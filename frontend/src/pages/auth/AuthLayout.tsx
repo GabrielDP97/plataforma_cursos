@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { Code2, Terminal, Braces, Database, CheckCircle2 } from 'lucide-react';
+import { Terminal, Braces, Database, CheckCircle2 } from 'lucide-react';
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -38,10 +38,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         {/* Content */}
         <div className="relative z-10 max-w-md text-center">
           <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-lg shadow-indigo-500/20">
-              <Code2 className="h-7 w-7 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">Plataforma Cursos</span>
+            <img src="/branding/auladev-icon.svg" alt="" className="h-12 w-12" />
+            <span className="text-2xl font-bold text-white">AulaDev</span>
           </Link>
 
           <h1 className="text-3xl font-bold text-white sm:text-4xl">
@@ -92,10 +90,8 @@ export function AuthLayout({ children }: AuthLayoutProps) {
             {/* Mobile logo */}
             <div className="text-center lg:hidden">
               <Link to="/" className="inline-flex items-center gap-2 text-2xl font-bold text-gray-900">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500">
-                  <Code2 className="h-6 w-6 text-white" />
-                </div>
-                Plataforma Cursos
+                <img src="/branding/auladev-icon.svg" alt="" className="h-10 w-10" />
+                AulaDev
               </Link>
             </div>
             {children}
@@ -103,7 +99,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </div>
         <footer className="border-t border-gray-200 bg-white py-6">
           <div className="mx-auto max-w-7xl px-4 text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} Plataforma Cursos. Todos los derechos reservados.
+            © {new Date().getFullYear()} AulaDev. Todos los derechos reservados.
           </div>
         </footer>
       </div>

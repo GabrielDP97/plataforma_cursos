@@ -10,7 +10,7 @@ export class EmailService {
     try {
       await this.provider.send({
         to: email,
-        subject: "Welcome to LMS Platform",
+        subject: "Welcome to AulaDev",
         html: welcomeTemplate(name),
       });
     } catch (error) {
@@ -84,7 +84,7 @@ function welcomeTemplate(name: string): string {
     </head>
     <body>
       <div class="header">
-        <h1>Welcome to LMS Platform!</h1>
+        <h1>Welcome to AulaDev!</h1>
       </div>
       <div class="content">
         <p>Hi ${escapeHtml(name)},</p>
@@ -119,7 +119,7 @@ function passwordResetTemplate(resetUrl: string): string {
         <h1>Password Reset Request</h1>
       </div>
       <div class="content">
-        <p>You requested a password reset for your LMS Platform account.</p>
+        <p>You requested a password reset for your AulaDev account.</p>
         <p>Click the button below to set a new password. This link expires in 1 hour.</p>
         <a href="${resetUrl}" class="button">Reset Password</a>
         <p>If you didn't request this, please ignore this email. Your password will remain unchanged.</p>

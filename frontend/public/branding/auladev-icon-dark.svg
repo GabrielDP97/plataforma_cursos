@@ -1,19 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#6366f1"/>
-      <stop offset="50%" stop-color="#8b5cf6"/>
-      <stop offset="100%" stop-color="#06b6d4"/>
-    </linearGradient>
-    <linearGradient id="grad-dark" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#818cf8"/>
       <stop offset="50%" stop-color="#a78bfa"/>
       <stop offset="100%" stop-color="#22d3ee"/>
     </linearGradient>
   </defs>
-  
-  <!-- Background circle (optional, remove for transparency) -->
-  <!-- <circle cx="256" cy="256" r="240" fill="url(#grad)"/> -->
   
   <!-- Main mark: Abstract "A" formed by code brackets + upward arrow (learning/growth) -->
   <g fill="none" stroke="url(#grad)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round">

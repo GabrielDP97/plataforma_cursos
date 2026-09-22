@@ -668,10 +668,8 @@ export function HomePage() {
             {/* Brand */}
             <div className="sm:col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500">
-                  <Code2 className="h-5 w-5 text-white" />
-                </div>
-                <span className="text-lg font-bold text-gray-900 dark:text-white">Plataforma Cursos</span>
+                <img src="/branding/auladev-icon.svg" alt="" className="h-9 w-9" />
+                <span className="text-lg font-bold text-gray-900 dark:text-white">AulaDev</span>
               </div>
               <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs">
                 Cursos de programacion para estudiantes de 1.º de DAM y DAW.
@@ -736,7 +734,7 @@ export function HomePage() {
 
           <div className="mt-12 border-t border-gray-200 dark:border-gray-700 pt-8">
             <p className="text-center text-sm text-gray-400 dark:text-gray-500">
-              &copy; {new Date().getFullYear()} Plataforma Cursos. Todos los derechos reservados.
+              &copy; {new Date().getFullYear()} AulaDev. Todos los derechos reservados.
             </p>
           </div>
         </div>
