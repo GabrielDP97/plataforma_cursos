@@ -450,12 +450,10 @@ export async function resetUserPassword(
   // Generate new temporary password
   const temporaryPassword = generateTemporaryPassword();
 
-  // Update password via Better Auth
-  // Better Auth doesn't have a direct "admin reset password" API,
-  // so we use the DB directly. The hashed password is stored in the account table.
-  // We'll use bcrypt to hash the new password and update it.
-  const bcrypt = await import("bcrypt");
-  const hashedPassword = await bcrypt.hash(temporaryPassword, 12);
+  // Hash password using Better Auth's built-in scrypt hasher
+  // (compatible with Better Auth's login verification)
+  const { hashPassword } = await import("better-auth/crypto");
+  const hashedPassword = await hashPassword(temporaryPassword);
 
   // Update the password in the account table (where email+password credentials live)
   const { account } = await import("../../infra/schema/user");
