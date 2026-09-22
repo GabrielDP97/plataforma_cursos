@@ -148,7 +148,7 @@ contactRoutes.post("/", validate({ body: contactSchema }), async (c) => {
     // send() now throws on Resend error — will be caught below
     const result = await emailProvider.send({
       to: contactEmail,
-      subject: "Nueva solicitud de contacto — Plataforma Cursos",
+      subject: "Nueva solicitud de contacto — AulaDev",
       html: emailHtml,
       replyTo: email,
     });

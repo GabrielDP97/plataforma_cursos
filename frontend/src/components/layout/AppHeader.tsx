@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, LogOut, User, Settings, Bell, Code2, Sun, Moon } from 'lucide-react';
+import { Menu, X, LogOut, User, Settings, Bell, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../providers/auth-provider';
 import { useTheme } from '../../providers/theme-provider';
 import { Badge } from '../ui/badge';
@@ -85,15 +85,13 @@ export function AppHeader() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link to="/" onClick={handleLogoClick} className="flex items-center gap-2.5 group" aria-label="Ir al inicio">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 shadow-lg shadow-indigo-500/20 transition-shadow group-hover:shadow-indigo-500/30">
-            <Code2 className="h-5 w-5 text-white" />
-          </div>
+          <img src="/branding/auladev-icon.svg" alt="" className="h-9 w-9" />
           <span
             className={`text-lg font-bold tracking-tight hidden sm:block ${
               isHome ? 'text-white' : 'text-gray-900 dark:text-white'
             }`}
           >
-            Plataforma Cursos
+            AulaDev
           </span>
         </Link>
 
