@@ -20,8 +20,7 @@ export function CondicionesUsoPage() {
 
       <h2>2. Descripción del servicio</h2>
       <p>
-        AulaDev es una plataforma educativa de formación informática, orientada
-        a estudiantes de Formación Profesional (ciclos de DAM y DAW). Ofrece
+        AulaDev es una plataforma educativa de formaci\u00F3n inform\u00E1ctica. Ofrece
         cursos con lecciones, ejercicios prácticos y materiales complementarios.
       </p>
       <p>

@@ -9,8 +9,7 @@ export function AvisoLegalPage() {
     <LegalPage title="Aviso legal" lastUpdated="22 de septiembre de 2026">
       <h2>1. Finalidad del sitio</h2>
       <p>
-        AulaDev es una plataforma educativa orientada a la formación informática,
-        dirigida a estudiantes de Formación Profesional (ciclos de DAM y DAW).
+        AulaDev es una plataforma educativa orientada a la formaci\u00F3n pr\u00E1ctica en inform\u00E1tica y tecnolog\u00EDa.
         El sitio tiene carácter meramente educativo e informativo.
       </p>
       <p>
@@ -36,8 +35,8 @@ export function AvisoLegalPage() {
 
       <h2>4. Propiedad intelectual</h2>
       <p>
-        El contenido de los cursos, incluyendo textos, ejercicios, código fuente,
-        vídeos y demás materiales, es propiedad de AulaDev o de sus autores, y
+        El contenido de los cursos, incluyendo textos, ejercicios, ejemplos de código
+        y otros materiales educativos, es propiedad de AulaDev o de sus autores, y
         está protegido por la legislación vigente en materia de propiedad
         intelectual.
       </p>
