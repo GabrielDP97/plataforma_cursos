@@ -11,6 +11,7 @@ import { Badge } from '../../components/ui/badge';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Alert } from '../../components/ui/alert';
 import { MODULE_OUTCOMES } from '../../lib/module-outcomes';
+import { COURSE_PRICE_LABEL } from '../../lib/pricing';
 import type { Course, Enrollment } from '../../api/types';
 
 interface CourseWithModules extends Course {
@@ -171,6 +172,7 @@ export function CourseDetailPage() {
               <Users className="h-4 w-4" />
               {totalLessons} {totalLessons === 1 ? 'lección' : 'lecciones'}
             </span>
+            <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{COURSE_PRICE_LABEL}</span>
           </div>
         </Card>
 

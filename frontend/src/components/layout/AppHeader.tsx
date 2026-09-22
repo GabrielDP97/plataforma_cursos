@@ -32,6 +32,7 @@ export function AppHeader() {
       ? [
           { to: '/courses', label: 'Catálogo' },
           { to: '/#sobre-mi', label: 'Sobre mí' },
+          { to: '/#precios', label: 'Precios' },
           { to: '/contacto', label: 'Contacto' },
           { to: '/admin', label: 'Admin' },
         ]
@@ -39,18 +40,21 @@ export function AppHeader() {
       ? [
           { to: '/courses', label: 'Catálogo' },
           { to: '/#sobre-mi', label: 'Sobre mí' },
+          { to: '/#precios', label: 'Precios' },
           { to: '/contacto', label: 'Contacto' },
           { to: '/instructor', label: 'Instructor' },
         ]
       : [
           { to: '/courses', label: 'Catálogo' },
           { to: '/#sobre-mi', label: 'Sobre mí' },
+          { to: '/#precios', label: 'Precios' },
           { to: '/contacto', label: 'Contacto' },
           { to: '/dashboard', label: 'Mi Panel' },
         ]
     : [
         { to: '/courses', label: 'Catálogo' },
         { to: '/#sobre-mi', label: 'Sobre mí' },
+        { to: '/#precios', label: 'Precios' },
         { to: '/contacto', label: 'Contacto' },
         { to: '/login', label: 'Iniciar Sesión' },
       ];

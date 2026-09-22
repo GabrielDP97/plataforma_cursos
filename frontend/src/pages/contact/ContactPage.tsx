@@ -116,7 +116,7 @@ export function ContactPage() {
       {searchParams.get('service') === 'clase-particular' && (
         <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-950/30">
           <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-            Clase particular
+            Clase particular — 12 €/hora
           </p>
           <p className="mt-1 text-xs text-indigo-600 dark:text-indigo-400">
             Incluye clase individual + ejercicios personalizados.

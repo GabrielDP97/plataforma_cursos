@@ -32,6 +32,11 @@ export function AppFooter() {
                 </a>
               </li>
               <li>
+                <a href="/#precios" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                  Precios
+                </a>
+              </li>
+              <li>
                 <Link to="/login" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                   Iniciar sesión
                 </Link>
