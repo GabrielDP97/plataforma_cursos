@@ -7,10 +7,6 @@ interface LegalPageProps {
   children: React.ReactNode;
 }
 
-/* ============================================================================
-   LEGAL PAGE — Reusable layout for all legal pages
-   ============================================================================ */
-
 export function LegalPage({ title, lastUpdated, children }: LegalPageProps) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
@@ -33,56 +29,20 @@ export function LegalPage({ title, lastUpdated, children }: LegalPageProps) {
         </p>
       </div>
 
-      {/* Content */}
-      <article className="prose prose-gray max-w-none
-        prose-headings:text-gray-900 dark:prose-headings:text-white
-        prose-p:text-gray-700 dark:prose-p:text-gray-300
-        prose-li:text-gray-700 dark:prose-li:text-gray-300
-        prose-a:text-indigo-600 dark:prose-a:text-indigo-400
-        prose-strong:text-gray-900 dark:prose-strong:text-white
-        prose-h2:text-gray-900 dark:prose-h2:text-white
-        prose-h3:text-gray-800 dark:prose-h3:text-gray-100
-        prose-h4:text-gray-800 dark:prose-h4:text-gray-100
-        prose-code:text-gray-800 dark:prose-code:text-gray-200
-        prose-pre:bg-gray-50 dark:prose-pre:bg-gray-800
-        prose-blockquote:border-gray-300 dark:prose-blockquote:border-gray-600
-        prose-blockquote:text-gray-600 dark:prose-blockquote:text-gray-400
-        prose-hr:border-gray-200 dark:prose-hr:border-gray-700
-        prose-td:text-gray-700 dark:prose-td:text-gray-300
-        prose-th:text-gray-900 dark:prose-th:text-white"
-      >
+      {/* Content — explicit styles, NO prose for colors */}
+      <div className="max-w-none text-gray-700 dark:text-gray-300">
         {children}
-      </article>
+      </div>
 
       {/* Footer nav */}
       <div className="mt-12 flex flex-wrap items-center gap-4 border-t border-gray-200 pt-6 dark:border-gray-700">
-        <Link
-          to="/aviso-legal"
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          Aviso legal
-        </Link>
+        <Link to="/aviso-legal" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Aviso legal</Link>
         <span className="text-gray-300 dark:text-gray-600">·</span>
-        <Link
-          to="/privacidad"
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          Privacidad
-        </Link>
+        <Link to="/privacidad" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Privacidad</Link>
         <span className="text-gray-300 dark:text-gray-600">·</span>
-        <Link
-          to="/cookies"
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          Cookies
-        </Link>
+        <Link to="/cookies" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Cookies</Link>
         <span className="text-gray-300 dark:text-gray-600">·</span>
-        <Link
-          to="/condiciones-de-uso"
-          className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          Condiciones de uso
-        </Link>
+        <Link to="/condiciones-de-uso" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Condiciones de uso</Link>
       </div>
     </div>
   );
