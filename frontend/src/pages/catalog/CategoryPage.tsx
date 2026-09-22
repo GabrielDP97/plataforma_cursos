@@ -5,6 +5,13 @@ import { catalogApi } from '../../api/modules/catalog';
 import { Card } from '../../components/ui/card';
 import { Skeleton } from '../../components/ui/skeleton';
 
+/** Returns true when the category slug corresponds to the DAM/DAW curriculum. */
+const isDamDawCategory = (slug?: string | null): boolean => {
+  if (!slug) return false;
+  const s = slug.toLowerCase();
+  return s === '1-dam-daw' || s === 'dam-daw' || s === 'dam' || s === 'daw';
+};
+
 export default function CategoryPage() {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const [courses, setCourses] = useState<any[]>([]);
@@ -60,6 +67,22 @@ export default function CategoryPage() {
           {categorySlug ? 'Cursos de ' + categorySlug : 'Cursos disponibles en esta categoría.'}
         </p>
       </div>
+
+      {/* Curriculum info (DAM/DAW only) */}
+      {isDamDawCategory(categorySlug) && (
+        <div className="mb-8 rounded-xl border border-indigo-200 bg-indigo-50/50 p-5 dark:border-indigo-800/50 dark:bg-indigo-950/30">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            Los cursos de esta categoría se han elaborado tomando como referencia los contenidos
+            establecidos en el currículo oficial de primer curso de Desarrollo de Aplicaciones
+            Multiplataforma (DAM) y Desarrollo de Aplicaciones Web (DAW), organizándolos en
+            explicaciones, ejemplos y ejercicios prácticos para facilitar su aprendizaje y refuerzo.
+          </p>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            AulaDev es una plataforma educativa independiente y no está afiliada ni vinculada
+            oficialmente con ninguna administración educativa.
+          </p>
+        </div>
+      )}
 
       {/* Course grid */}
       {error ? (

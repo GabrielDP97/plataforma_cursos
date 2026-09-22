@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { BookOpen, Users, ChevronDown, Check, ArrowLeft } from 'lucide-react';
-import { catalogApi, type CatalogModule } from '../../api/modules/catalog';
+import { catalogApi, type CatalogModule, type CatalogCategory } from '../../api/modules/catalog';
 import { coursesApi } from '../../api/modules/courses';
 import { enrollmentApi } from '../../api/modules/enrollment';
 import { useAuth } from '../../providers/auth-provider';
@@ -12,6 +12,15 @@ import { Skeleton } from '../../components/ui/skeleton';
 import { Alert } from '../../components/ui/alert';
 import { MODULE_OUTCOMES } from '../../lib/module-outcomes';
 import type { Course, Enrollment } from '../../api/types';
+
+/** Returns true when any category slug corresponds to the DAM/DAW curriculum. */
+const isDamDawCategory = (categories?: CatalogCategory[]): boolean => {
+  if (!categories || categories.length === 0) return false;
+  return categories.some((c) => {
+    const s = c.slug.toLowerCase();
+    return s === '1-dam-daw' || s === 'dam-daw' || s === 'dam' || s === 'daw';
+  });
+};
 
 interface CourseWithModules extends Course {
   modules?: CatalogModule[];
@@ -24,6 +33,7 @@ export function CourseDetailPage() {
 
   const [course, setCourse] = useState<CourseWithModules | null>(null);
   const [modules, setModules] = useState<CatalogModule[]>([]);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -43,6 +53,9 @@ export function CourseDetailPage() {
       const catalogData = await catalogApi.getBySlug(courseId!);
       setCourse({ ...catalogData.course, modules: catalogData.modules });
       setModules(catalogData.modules);
+      if (catalogData.categories) {
+        setCategories(catalogData.categories);
+      }
     } catch {
       try {
         // Fallback: use courses API (no per-module lesson requests — those don't exist)
@@ -171,6 +184,14 @@ export function CourseDetailPage() {
               <Users className="h-4 w-4" />
               {totalLessons} {totalLessons === 1 ? 'lección' : 'lecciones'}
             </span>
+            {isDamDawCategory(categories) && (
+              <div className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 dark:bg-indigo-950/30">
+                <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs text-indigo-700 dark:text-indigo-300">
+                  Basado en el currículo oficial
+                </span>
+              </div>
+            )}
           </div>
         </Card>
 
