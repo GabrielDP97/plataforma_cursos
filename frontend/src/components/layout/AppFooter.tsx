@@ -32,11 +32,6 @@ export function AppFooter() {
                 </a>
               </li>
               <li>
-                <a href="/#precios" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                  Precios
-                </a>
-              </li>
-              <li>
                 <Link to="/login" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                   Iniciar sesión
                 </Link>
@@ -78,11 +73,6 @@ export function AppFooter() {
               <li>
                 <Link to="/condiciones-de-uso" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                   Condiciones de uso
-                </Link>
-              </li>
-              <li>
-                <Link to="/condiciones-de-contratacion" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                  Condiciones de contratación
                 </Link>
               </li>
             </ul>

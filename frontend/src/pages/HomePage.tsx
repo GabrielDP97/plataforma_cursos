@@ -22,7 +22,7 @@ import type { Course } from '../api/types';
 import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
-import { COURSE_PRICE_LABEL, CLASS_PRICE_LABEL } from '../lib/pricing';
+
 
 /* ============================================================================
    HOME PAGE — Plataforma para 1.º de DAM y DAW
@@ -531,112 +531,7 @@ export function HomePage() {
       </section>
 
       {/* ====================================================================
-          SECTION 7 — PRECIOS
-          ==================================================================== */}
-      <section id="precios" className="bg-gray-50 dark:bg-gray-900 px-4 py-20 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <ScrollReveal>
-          <div className="text-center">
-            <Badge variant="info" size="md" className="mb-4">
-              Precios
-            </Badge>
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white sm:text-4xl">
-              Precios claros, sin suscripciones
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
-              Elige un curso para aprender a tu ritmo o reserva una clase particular cuando necesites ayuda personalizada.
-            </p>
-          </div>
-          </ScrollReveal>
-
-          <div className="mt-16 grid gap-8 sm:grid-cols-2 max-w-4xl mx-auto">
-            <ScrollReveal delay={100}>
-            <div className="relative rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center transition-all hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg">
-              <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 dark:bg-indigo-900/50">
-                <BookOpen className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Curso online</h3>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-indigo-600 dark:text-indigo-400">{COURSE_PRICE_LABEL}</span>
-                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">por curso</p>
-              </div>
-              <ul className="mt-6 space-y-3 text-left">
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-                  Acceso a todas las lecciones del curso
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-                  Ejercicios prácticos incluidos
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-                  Aprende a tu ritmo, sin límite de tiempo
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-                  Acceso a futuras actualizaciones
-                </li>
-              </ul>
-              <Link
-                to="/courses"
-                className="mt-8 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
-              >
-                Ver cursos
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            </ScrollReveal>
-
-            <ScrollReveal delay={200}>
-            <div className="relative rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-8 text-center transition-all hover:border-indigo-300 dark:hover:border-indigo-600 hover:shadow-lg">
-              <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-100 dark:bg-cyan-900/50">
-                <Terminal className="h-7 w-7 text-cyan-600 dark:text-cyan-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Clase particular</h3>
-              <div className="mt-4">
-                <span className="text-4xl font-bold text-cyan-600 dark:text-cyan-400">{CLASS_PRICE_LABEL}</span>
-              </div>
-              <p className="mt-2 text-sm font-medium text-cyan-700 dark:text-cyan-300">
-                Clase + ejercicios personalizados
-              </p>
-              <ul className="mt-6 space-y-3 text-left">
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-500" />
-                  Sesión 1 a 1 en tiempo real
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-500" />
-                  Ejercicios adaptados a tu nivel
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-500" />
-                  Resolución de dudas específicas
-                </li>
-                <li className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-cyan-500" />
-                  Preparación de exámenes y evaluaciones
-                </li>
-              </ul>
-              <Link
-                to="/contacto?service=clase-particular"
-                className="mt-8 inline-flex items-center gap-2 rounded-xl border-2 border-cyan-600 px-6 py-3 text-sm font-semibold text-cyan-600 transition-colors hover:bg-cyan-50 dark:hover:bg-cyan-900/20"
-              >
-                Contactar
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </div>
-            </ScrollReveal>
-          </div>
-
-          <p className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
-            Los cursos y las clases particulares se contratan por separado.
-          </p>
-        </div>
-      </section>
-
-      {/* ====================================================================
-          SECTION 9 — FOOTER
+          SECTION 7 — FOOTER
           ==================================================================== */}
       <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
@@ -665,11 +560,6 @@ export function HomePage() {
                 <li>
                   <a href="/#sobre-mi" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                     Sobre mí
-                  </a>
-                </li>
-                <li>
-                  <a href="/#precios" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Precios
                   </a>
                 </li>
                 <li>

@@ -8,7 +8,6 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Skeleton } from '../../components/ui/skeleton';
 import { EmptyState } from '../../components/ui/empty-state';
-import { COURSE_PRICE_LABEL } from '../../lib/pricing';
 
 const PAGE_SIZE = 12;
 
@@ -208,9 +207,6 @@ export function CatalogPage() {
                     <p className="mt-1.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2">
                       {course.description || 'Curso para reforzar contenido de primero de DAM/DAW.'}
                     </p>
-                    <div className="mt-3">
-                      <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{COURSE_PRICE_LABEL}</span>
-                    </div>
                     <div className="mt-2 flex items-end justify-between">
                       <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
                         {new Date(course.createdAt).toLocaleDateString('es-ES', {

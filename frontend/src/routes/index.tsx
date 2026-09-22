@@ -145,11 +145,6 @@ const CondicionesUsoPage = lazy(() =>
     default: m.CondicionesUsoPage,
   }))
 );
-const CondicionesContratacionPage = lazy(() =>
-  import('../pages/legal/CondicionesContratacionPage').then((m) => ({
-    default: m.CondicionesContratacionPage,
-  }))
-);
 
 // Loading fallback
 function PageLoader() {
@@ -265,14 +260,6 @@ export const router = createBrowserRouter([
         element: (
           <LazyPage>
             <CondicionesUsoPage />
-          </LazyPage>
-        ),
-      },
-      {
-        path: '/condiciones-de-contratacion',
-        element: (
-          <LazyPage>
-            <CondicionesContratacionPage />
           </LazyPage>
         ),
       },
