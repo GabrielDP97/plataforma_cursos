@@ -40,14 +40,14 @@ CONTACT_FROM = "onboarding@resend.dev"
 # Production
 [env.production]
 name = "lms-platform-production"
-routes = [
-  { pattern = "lms-platform.workers.dev", zone_name = "workers.dev" }
-]
+# No routes needed for workers.dev subdomains
 
 [env.production.vars]
 ENVIRONMENT = "production"
-BETTER_AUTH_URL = "https://lms-platform.workers.dev"
-CORS_ORIGIN = "https://lms-platform.workers.dev"
+BETTER_AUTH_URL = "https://lms-platform-production.19gdp97.workers.dev"
+CORS_ORIGIN = "https://lms-platform-production.19gdp97.workers.dev"
+CONTACT_EMAIL = "19profe97@gmail.com"
+CONTACT_FROM = "onboarding@resend.dev"
 
 # R2 not enabled yet — uncomment when R2 is activated
 # [env.production.r2_buckets]
