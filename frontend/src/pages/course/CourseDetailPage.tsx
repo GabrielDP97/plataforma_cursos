@@ -10,7 +10,6 @@ import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
 import { Skeleton } from '../../components/ui/skeleton';
 import { Alert } from '../../components/ui/alert';
-import { COURSE_PRICE_LABEL } from '../../lib/pricing';
 import { MODULE_OUTCOMES } from '../../lib/module-outcomes';
 import type { Course, Enrollment } from '../../api/types';
 
@@ -164,12 +163,6 @@ export function CourseDetailPage() {
         {/* ── Metadata bar ───────────────────────────────────────────── */}
         <Card className="mb-6 p-4 dark:bg-gray-900">
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-600 dark:text-gray-400">
-            <span className="inline-flex items-center gap-1.5 font-semibold text-gray-900 dark:text-gray-50">
-              {COURSE_PRICE_LABEL}
-              <span className="font-normal text-gray-500 dark:text-gray-500">
-                
-              </span>
-            </span>
             <span className="inline-flex items-center gap-1.5">
               <BookOpen className="h-4 w-4" />
               {moduleList.length} {moduleList.length === 1 ? 'módulo' : 'módulos'}
@@ -220,7 +213,7 @@ export function CourseDetailPage() {
                 to={`/contacto?course=${course?.slug || courseId}`}
                 className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-indigo-700"
               >
-                Contactar
+                Solicitar información
               </Link>
             </div>
           )}

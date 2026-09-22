@@ -31,7 +31,6 @@ export function AppHeader() {
     ? user.role === 'admin'
       ? [
           { to: '/courses', label: 'Catálogo' },
-          { to: '/#precios', label: 'Precios' },
           { to: '/#sobre-mi', label: 'Sobre mí' },
           { to: '/contacto', label: 'Contacto' },
           { to: '/admin', label: 'Admin' },
@@ -39,21 +38,18 @@ export function AppHeader() {
       : user.role === 'instructor'
       ? [
           { to: '/courses', label: 'Catálogo' },
-          { to: '/#precios', label: 'Precios' },
           { to: '/#sobre-mi', label: 'Sobre mí' },
           { to: '/contacto', label: 'Contacto' },
           { to: '/instructor', label: 'Instructor' },
         ]
       : [
           { to: '/courses', label: 'Catálogo' },
-          { to: '/#precios', label: 'Precios' },
           { to: '/#sobre-mi', label: 'Sobre mí' },
           { to: '/contacto', label: 'Contacto' },
           { to: '/dashboard', label: 'Mi Panel' },
         ]
     : [
         { to: '/courses', label: 'Catálogo' },
-        { to: '/#precios', label: 'Precios' },
         { to: '/#sobre-mi', label: 'Sobre mí' },
         { to: '/contacto', label: 'Contacto' },
         { to: '/login', label: 'Iniciar Sesión' },

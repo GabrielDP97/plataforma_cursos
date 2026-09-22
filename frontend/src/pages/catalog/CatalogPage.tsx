@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Search, Code2, ArrowRight } from 'lucide-react';
 import { catalogApi } from '../../api/modules/catalog';
 import type { Course, Category } from '../../api/types';
-import { COURSE_PRICE_LABEL } from '../../lib/pricing';
 import { Card } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Badge } from '../../components/ui/badge';
@@ -209,22 +208,20 @@ export function CatalogPage() {
                       {course.description || 'Curso para reforzar contenido de primero de DAM/DAW.'}
                     </p>
                     <div className="mt-4 flex items-end justify-between">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{COURSE_PRICE_LABEL}</span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400"></span>
-                        </div>
-                        <span className="mt-0.5 block text-xs font-medium text-gray-400 dark:text-gray-500">
-                          {new Date(course.createdAt).toLocaleDateString('es-ES', {
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 group-hover:gap-2 transition-all">
-                        Ver curso
-                        <ArrowRight className="h-3.5 w-3.5" />
+                      <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                        {new Date(course.createdAt).toLocaleDateString('es-ES', {
+                          month: 'short',
+                          year: 'numeric',
+                        })}
                       </span>
+                      <Link
+                        to={`/contacto?course=${course.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-700 transition-all"
+                      >
+                        Solicitar información
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
                     </div>
                   </div>
                 </div>

@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 /**
  * HashScrollHandler — handles smooth scrolling to hash anchors in React Router.
  * 
- * When the URL contains a hash (e.g. /#precios), this component
+ * When the URL contains a hash (e.g. /#sobre-mi), this component
  * scrolls to the element with that ID after the page renders.
  */
 export function HashScrollHandler() {

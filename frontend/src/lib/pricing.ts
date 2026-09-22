@@ -1,6 +1,2 @@
-export const COURSE_PRICE = 10;
-export const COURSE_PRICE_LABEL = '10 \u20ac';
-export const COURSE_PRICE_SUFFIX = 'por curso';
-
-export const CLASS_PRICE = 12;
-export const CLASS_PRICE_LABEL = '12 \u20ac/hora';
+// Pricing removed — AulaDev is in beta/informative phase.
+// Contact form handles course inquiries via /contacto?course=<slug>
