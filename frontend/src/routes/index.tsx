@@ -25,6 +25,11 @@ const CatalogPage = lazy(() =>
     default: m.CatalogPage,
   }))
 );
+const CategoryPage = lazy(() =>
+  import('../pages/catalog/CategoryPage').then((m) => ({
+    default: m.default,
+  }))
+);
 const CourseDetailPage = lazy(() =>
   import('../pages/course/CourseDetailPage').then((m) => ({
     default: m.CourseDetailPage,
@@ -178,6 +183,14 @@ export const router = createBrowserRouter([
         element: (
           <LazyPage>
             <CatalogPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: '/cursos/:categorySlug',
+        element: (
+          <LazyPage>
+            <CategoryPage />
           </LazyPage>
         ),
       },
