@@ -106,6 +106,12 @@ export function LoginPage() {
             Iniciar sesión
           </Button>
         </form>
+
+        <div className="mt-4 text-center text-xs text-gray-400 dark:text-gray-500">
+          <Link to="/privacidad" className="hover:underline">Política de privacidad</Link>
+          {' · '}
+          <Link to="/condiciones-de-uso" className="hover:underline">Condiciones de uso</Link>
+        </div>
       </div>
     </AuthLayout>
   );

@@ -116,7 +116,7 @@ export function ContactPage() {
       {searchParams.get('service') === 'clase-particular' && (
         <div className="mb-6 rounded-xl border border-indigo-200 bg-indigo-50 p-4 dark:border-indigo-800 dark:bg-indigo-950/30">
           <p className="text-sm font-medium text-indigo-700 dark:text-indigo-300">
-            Clase particular — 12 €/hora
+            Clase particular
           </p>
           <p className="mt-1 text-xs text-indigo-600 dark:text-indigo-400">
             Incluye clase individual + ejercicios personalizados.
@@ -199,6 +199,11 @@ export function ContactPage() {
             {loading ? 'Enviando...' : 'Enviar mensaje'}
           </Button>
         </form>
+
+        <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+          Los datos enviados se utilizarán para responder a tu consulta.{' '}
+          Consulta la <Link to="/privacidad" className="underline">Política de privacidad</Link>.
+        </p>
       </div>
     </div>
   );

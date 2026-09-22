@@ -124,6 +124,28 @@ const ContactPage = lazy(() =>
   }))
 );
 
+// Legal pages
+const AvisoLegalPage = lazy(() =>
+  import('../pages/legal/AvisoLegalPage').then((m) => ({
+    default: m.AvisoLegalPage,
+  }))
+);
+const PoliticaPrivacidadPage = lazy(() =>
+  import('../pages/legal/PoliticaPrivacidadPage').then((m) => ({
+    default: m.PoliticaPrivacidadPage,
+  }))
+);
+const PoliticaCookiesPage = lazy(() =>
+  import('../pages/legal/PoliticaCookiesPage').then((m) => ({
+    default: m.PoliticaCookiesPage,
+  }))
+);
+const CondicionesUsoPage = lazy(() =>
+  import('../pages/legal/CondicionesUsoPage').then((m) => ({
+    default: m.CondicionesUsoPage,
+  }))
+);
+
 // Loading fallback
 function PageLoader() {
   return (
@@ -206,6 +228,38 @@ export const router = createBrowserRouter([
         element: (
           <LazyPage>
             <ContactPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: '/aviso-legal',
+        element: (
+          <LazyPage>
+            <AvisoLegalPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: '/privacidad',
+        element: (
+          <LazyPage>
+            <PoliticaPrivacidadPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: '/cookies',
+        element: (
+          <LazyPage>
+            <PoliticaCookiesPage />
+          </LazyPage>
+        ),
+      },
+      {
+        path: '/condiciones-de-uso',
+        element: (
+          <LazyPage>
+            <CondicionesUsoPage />
           </LazyPage>
         ),
       },
