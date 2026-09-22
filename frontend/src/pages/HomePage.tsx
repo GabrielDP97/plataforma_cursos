@@ -542,42 +542,38 @@ export function HomePage() {
                 <span className="text-lg font-bold text-gray-900 dark:text-white">AulaDev</span>
               </div>
               <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 max-w-xs">
-                Cursos de programacion para estudiantes de 1.º de DAM y DAW.
-                Explicaciones claras, practica real, a tu ritmo.
+                Cursos de programación para estudiantes de 1.º de DAM y DAW.
+                Explicaciones claras, práctica real, a tu ritmo.
               </p>
             </div>
 
-            {/* Links */}
+            {/* Plataforma */}
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Plataforma</h3>
               <ul className="mt-4 space-y-3">
                 <li>
                   <Link to="/courses" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Catalogo de cursos
+                    Catálogo de cursos
                   </Link>
                 </li>
                 <li>
-                  <Link to="/contacto" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Contacto
-                  </Link>
+                  <a href="/#sobre-mi" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                    Sobre mí
+                  </a>
                 </li>
                 <li>
                   <Link to="/login" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Iniciar sesion
+                    Iniciar sesión
                   </Link>
                 </li>
               </ul>
             </div>
 
+            {/* Soporte */}
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Soporte</h3>
               <ul className="mt-4 space-y-3">
                 <li>
-                  <a href="#" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Centro de ayuda
-                  </a>
-                </li>
-                <li>
                   <Link to="/contacto" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
                     Contacto
                   </Link>
@@ -585,18 +581,29 @@ export function HomePage() {
               </ul>
             </div>
 
+            {/* Legal */}
             <div>
               <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Legal</h3>
               <ul className="mt-4 space-y-3">
                 <li>
-                  <a href="#" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Terminos de uso
-                  </a>
+                  <Link to="/aviso-legal" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                    Aviso legal
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-                    Politica de privacidad
-                  </a>
+                  <Link to="/privacidad" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                    Política de privacidad
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/cookies" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                    Política de cookies
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/condiciones-de-uso" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                    Condiciones de uso
+                  </Link>
                 </li>
               </ul>
             </div>

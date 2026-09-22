@@ -199,6 +199,11 @@ export function ContactPage() {
             {loading ? 'Enviando...' : 'Enviar mensaje'}
           </Button>
         </form>
+
+        <p className="mt-4 text-xs text-gray-500 dark:text-gray-400">
+          Los datos enviados se utilizarán para responder a tu consulta.{' '}
+          Consulta la <Link to="/privacidad" className="underline">Política de privacidad</Link>.
+        </p>
       </div>
     </div>
   );
