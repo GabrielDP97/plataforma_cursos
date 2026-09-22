@@ -1,0 +1,440 @@
+{
+  "id": "mod-16",
+  "title": "Bases de datos orientadas a objetos",
+  "description": "Modulo dedicado a las bases de datos orientadas a objetos (OODBMS) con ObjectDB. Se estudia la diferencia entre bases de datos relacionales y orientadas a objetos, se instala y configura ObjectDB, y se aprende a persistir objetos Java directamente usando JPA. El estudiante almacena, consulta, actualiza y elimina objetos complejos con relaciones.",
+  "phase": "phase-6",
+  "position": 16,
+  "learningOutcomes": [
+    "RA8"
+  ],
+  "assessmentCriteria": [
+    "RA8.a",
+    "RA8.b",
+    "RA8.c",
+    "RA8.d",
+    "RA8.e",
+    "RA8.f",
+    "RA8.g",
+    "RA8.h"
+  ],
+  "officialContents": [
+    "Utilizacion avanzada de clases (seccion 8 - bases de datos orientadas a objetos)"
+  ],
+  "duration": "14 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-06",
+    "mod-07",
+    "mod-08",
+    "mod-10"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-16-1",
+      "title": "Que son las OODBMS y diferencias con relacionales",
+      "objectives": [
+        "Definir que es una base de datos orientada a objetos (OODBMS)",
+        "Comparar OODBMS con bases de datos relacionales (RDBMS)",
+        "Identificar las ventajas e inconvenientes de cada enfoque",
+        "Entender el modelo de objetos persistentes",
+        "Conocer los estandares JPA y las implementaciones disponibles"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Bases de datos relacionales vs. orientadas a objetos",
+          "content": "Las **bases de datos relacionales (RDBMS)** como PostgreSQL, MySQL o SQLite almacenan datos en tablas con filas y columnas. Los datos se normalizan y se relacionan con claves foraneas. Para usarlas desde Java, necesitamos traducir objetos Java a filas de tablas (y viceversa), lo que se conoce como **impedancia de objeto-relacional**.\n\nLas **bases de datos orientadas a objetos (OODBMS)** almacenan objetos directamente, tal como existen en el programa. No hay necesidad de traducir: un objeto `Alumno` se guarda tal cual, con todos sus atributos y relaciones.\n\n### Comparacion directa\n\n| Aspecto | RDBMS (PostgreSQL) | OODBMS (ObjectDB) |\n|---------|-------------------|-------------------|\n| Modelo | Tablas, filas, columnas | Objetos, atributos, relaciones |\n| Lenguaje | SQL | JPA/JPQL (orientado a objetos) |\n| Persistencia | JDBC + mapeo manual | JPA directo |\n| Relaciones | JOINs y claves foraneas | Referencias directas a objetos |\n| Normalizacion | Obligatoria | No necesaria |\n| Rendimiento | Bueno para consultas simples | Excelente para objetos complejos |\n| Complejidad | SQL + JDBC + mapeo | JPA directo |\n\n### La impedancia objeto-relacional\n\nEn RDBMS, un objeto Java debe \"descomponerse\" para guardarse:\n\n```java\n// Objeto Java\nAlumno alumno = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\n\n// En RDBMS: INSERT INTO alumnos (nombre, email, nota_media) VALUES (?, ?, ?)\n// El objeto se descompone en 3 columnas de una tabla\n```\n\nEn OODBMS, el objeto se guarda directamente:\n```java\n// En OODBMS: em.persist(alumno); -- el objeto se guarda completo\n```"
+        },
+        {
+          "type": "text",
+          "title": "El modelo de objetos persistentes",
+          "content": "En una OODBMS, los objetos que se almacenan en la base de datos se llaman **objetos persistentes**. Estos objetos:\n\n1. **Tienen identidad propia**: cada objeto tiene un ID unico en la base de datos.\n2. **Mantienen su estado**: los atributos del objeto se guardan y recuperan automaticamente.\n3. **Conservan sus relaciones**: si un `Alumno` tiene una referencia a un `Curso`, esa relacion se persiste.\n4. **Se recuperan completos**: al cargar un objeto, se cargan tambien sus atributos y relaciones.\n\n### Estandar JPA (Java Persistence API)\n\nJPA es el estandar de Java para persistencia de objetos. Define:\n\n- **Entidades**: clases Java que representan objetos persistentes (anotadas con `@Entity`)\n- **EntityManager**: interfaz para guardar, buscar, actualizar y eliminar objetos\n- **JPQL**: lenguaje de consultas orientado a objetos (similar a SQL pero con objetos)\n- **Metadatos**: anotaciones que definen como se mapea un objeto a la base de datos\n\nObjectDB es una implementacion de JPA que almacena objetos Java directamente en ficheros `.odb`. Es ideal para aprendizaje porque no requiere servidor de bases de datos."
+        },
+        {
+          "type": "code",
+          "title": "Primera entidad: Alumno con JPA",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.io.Serializable;\n\n/**\n * Entidad que representa un alumno persistente.\n * Se almacena directamente en ObjectDB.\n */\n@Entity\n@Table(name = \"alumnos\")\npublic class Alumno implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n\n    @Id\n    @GeneratedValue(strategy = GenerationType.IDENTITY)\n    private long id;\n\n    @Column(nullable = false)\n    private String nombre;\n\n    @Column(nullable = false, unique = true)\n    private String email;\n\n    private double notaMedia;\n\n    // Constructor vacio (requerido por JPA)\n    public Alumno() {}\n\n    // Constructor con datos\n    public Alumno(String nombre, String email, double notaMedia) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    // Getters y setters\n    public long getId() { return id; }\n    public void setId(long id) { this.id = id; }\n\n    public String getNombre() { return nombre; }\n    public void setNombre(String nombre) { this.nombre = nombre; }\n\n    public String getEmail() { return email; }\n    public void setEmail(String email) { this.email = email; }\n\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double notaMedia) { this.notaMedia = notaMedia; }\n\n    @Override\n    public String toString() {\n        return String.format(\"Alumno{id=%d, nombre='%s', email='%s', nota=%.2f}\",\n            id, nombre, email, notaMedia);\n    }\n}\n\n// Anotaciones clave:\n// @Entity: marca la clase como entidad persistente\n// @Table: nombre de la tabla (opcional por defecto)\n// @Id: marca el campo como identificador unico\n// @GeneratedValue: genera el ID automaticamente\n// @Column: define propiedades de la columna\n// Constructor vacio: JPA lo necesita para crear objetos desde la BD"
+        },
+        {
+          "type": "code",
+          "title": "Primera persistencia: guardar y recuperar objetos",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.util.List;\n\npublic class PrimeraPersistencia {\n\n    public static void main(String[] args) {\n        // 1. Crear el EntityManagerFactory\n        EntityManagerFactory emf =\n            Persistence.createEntityManagerFactory(\"objectdb:miBase.odb\");\n\n        // 2. Crear un EntityManager\n        EntityManager em = emf.createEntityManager();\n\n        try {\n            // 3. GUARDAR un objeto\n            em.getTransaction().begin();\n\n            Alumno alumno1 = new Alumno(\"Ana Garcia\", \"ana@email.com\", 8.5);\n            Alumno alumno2 = new Alumno(\"Carlos Ruiz\", \"carlos@email.com\", 7.2);\n            Alumno alumno3 = new Alumno(\"Maria Lopez\", \"maria@email.com\", 9.1);\n\n            em.persist(alumno1);  // Guarda el objeto en la BD\n            em.persist(alumno2);\n            em.persist(alumno3);\n\n            em.getTransaction().commit();\n            System.out.println(\"Alumnos guardados correctamente.\");\n\n            // 4. CONSULTAR todos los objetos\n            List<Alumno> alumnos = em\n                .createQuery(\"SELECT a FROM Alumno a\", Alumno.class)\n                .getResultList();\n\n            System.out.println(\"Alumnos en la base de datos:\");\n            for (Alumno a : alumnos) {\n                System.out.println(\"  \" + a);\n            }\n\n            // 5. CONSULTAR con filtro\n            List<Alumno> aprobados = em\n                .createQuery(\"SELECT a FROM Alumno a WHERE a.notaMedia >= 5.0\", Alumno.class)\n                .getResultList();\n\n            System.out.println(\"\\nAlumnos aprobados: \" + aprobados.size());\n\n        } finally {\n            em.close();\n            emf.close();\n        }\n    }\n}\n\n// Flujo:\n// 1. EntityManagerFactory: abre la base de datos (costoso, se crea una vez)\n// 2. EntityManager: sesion de trabajo (ligero, se crea por operacion)\n// 3. begin/commit: transaccion (todo o nada)\n// 4. persist(): guarda el objeto\n// 5. JPQL: consulta orientada a objetos"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-1-1",
+          "difficulty": "basic",
+          "title": "Crear una entidad simple",
+          "description": "Crea una entidad `Libro` con campos: id, titulo, autor, numPaginas. Aniade el constructor vacio, constructor con datos, getters, setters y toString. Guarda 3 libros en ObjectDB y recuperalos.",
+          "solution": "import javax.persistence.*;\nimport java.io.Serializable;\nimport java.util.List;\n\n@Entity\npublic class Libro implements Serializable {\n    @Id @GeneratedValue\n    private long id;\n    private String titulo;\n    private String autor;\n    private int numPaginas;\n\n    public Libro() {}\n    public Libro(String titulo, String autor, int numPaginas) {\n        this.titulo = titulo;\n        this.autor = autor;\n        this.numPaginas = numPaginas;\n    }\n\n    // getters, setters, toString...\n}\n\n// Para persistir:\nEntityManagerFactory emf = Persistence.createEntityManagerFactory(\"objectdb:libros.odb\");\nEntityManager em = emf.createEntityManager();\nem.getTransaction().begin();\nem.persist(new Libro(\"Clean Code\", \"Robert Martin\", 464));\nem.persist(new Libro(\"Design Patterns\", \"Gang of Four\", 395));\nem.persist(new Libro(\"Effective Java\", \"Joshua Bloch\", 416));\nem.getTransaction().commit();\nList<Libro> libros = em.createQuery(\"SELECT l FROM Libro l\", Libro.class).getResultList();\nlibros.forEach(System.out::println);\nem.close(); emf.close();"
+        },
+        {
+          "id": "ex-17-1-2",
+          "difficulty": "intermediate",
+          "title": "Comparar RDBMS y OODBMS",
+          "description": "Escribe un documento de texto que explique 3 ventajas y 3 inconvenientes de OODBMS frente a RDBMS. Incluye un ejemplo de como se guardaria un objeto Alumno en cada sistema.",
+          "solution": "// VENTAJAS OODBMS:\n// 1. Sin impedancia objeto-relacional: se guardan objetos directamente\n// 2. Mejor rendimiento con objetos complejos (no hay JOINs)\n// 3. Las relaciones se mantienen como referencias nativas\n//\n// INCONVENIENTES OODBMS:\n// 1. Menos maduro que RDBMS (menos herramientas)\n// 2. Consultas complejas mas dificiles (no hay SQL tan potente)\n// 3. Menor compatibilidad con sistemas existentes\n//\n// RDBMS: INSERT INTO alumnos (nombre, email, nota_media) VALUES ('Ana', 'ana@email.com', 8.5)\n// OODBMS: em.persist(new Alumno(\"Ana\", \"ana@email.com\", 8.5))"
+        },
+        {
+          "id": "ex-17-1-3",
+          "difficulty": "advanced",
+          "title": "Entidad con validacion",
+          "description": "Crea la entidad Alumno con validacion en los setters: nombre no vacio, email con @, nota entre 0 y 10. Lanza IllegalArgumentException si los datos no son validos. Prueba guardando datos correctos e incorrectos.",
+          "solution": "// En los setters:\npublic void setNombre(String nombre) {\n    if (nombre == null || nombre.isBlank()) {\n        throw new IllegalArgumentException(\"El nombre no puede estar vacio\");\n    }\n    this.nombre = nombre;\n}\n\npublic void setEmail(String email) {\n    if (email == null || !email.contains(\"@\")) {\n        throw new IllegalArgumentException(\"Email invalido: \" + email);\n    }\n    this.email = email;\n}\n\npublic void setNotaMedia(double nota) {\n    if (nota < 0 || nota > 10) {\n        throw new IllegalArgumentException(\"Nota invalida: \" + nota);\n    }\n    this.notaMedia = nota;\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar el constructor vacio: JPA lo necesita para crear objetos desde la base de datos.",
+        "Olvidar anotar la clase con @Entity: sin la anotacion, JPA no sabe que es una entidad.",
+        "No cerrar EntityManager y EntityManagerFactory: causan fugas de recursos.",
+        "Olvidar begin/commit: sin transaccion, los cambios no se guardan.",
+        "Usar new en lugar de em.find(): new crea un objeto Java normal, no un objeto persistente."
+      ],
+      "keyConcepts": [
+        "OODBMS: bases de datos que almacenan objetos directamente",
+        "RDBMS: bases de datos que almacenan datos en tablas",
+        "Impedancia objeto-relacional: el problema de traducir entre ambos modelos",
+        "JPA: estandar de Java para persistencia de objetos",
+        "Entidad: clase Java anotada con @Entity que se persiste",
+        "EntityManager: interfaz para operaciones de persistencia",
+        "JPQL: lenguaje de consultas orientado a objetos"
+      ],
+      "learningOutcomes": [
+        "RA8"
+      ],
+      "assessmentCriteria": [
+        "RA8.a",
+        "RA8.b"
+      ]
+    },
+    {
+      "id": "lesson-16-2",
+      "title": "ObjectDB: instalacion y configuracion",
+      "objectives": [
+        "Descargar e instalar ObjectDB 2.9.5",
+        "Configurar un proyecto Maven/Gradle con la dependencia de ObjectDB",
+        "Crear la primera base de datos .odb",
+        "Usar el ObjectDB Explorer para inspeccionar la base de datos",
+        "Entender la estructura de un fichero .odb"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Instalacion de ObjectDB",
+          "content": "ObjectDB es una base de datos orientada a objetos que implementa el estandar JPA. Es gratuita para uso en desarrollo (bases de hasta 100MB). Veamos como instalarla:\n\n### Opcion 1: Dependencia Maven\n\nAñade esta dependencia en tu `pom.xml`:\n\n```xml\n<dependency>\n    <groupId>com.objectdb</groupId>\n    <artifactId>objectdb</artifactId>\n    <version>2.9.5</version>\n</dependency>\n```\n\n### Opcion 2: Descarga manual\n\n1. Ve a `https://www.objectdb.com/download`\n2. Descarga ObjectDB 2.9.5\n3. Descomprime en una carpeta\n4. Aniade `objectdb.jar` al classpath de tu proyecto\n\n### Configuracion persistence.xml\n\nCrea el archivo `META-INF/persistence.xml` en `src/main/resources/`:\n\n```xml\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<persistence xmlns=\"https://jakarta.ee/xml/ns/persistence\"\n             version=\"3.0\">\n    <persistence-unit name=\"MiPersistencia\">\n        <provider>com.objectdb.jpa.Impl</provider>\n        <class>com.ejemplo.Alumno</class>\n        <properties>\n            <property name=\"jakarta.persistence.jdbc.url\"\n                      value=\"objectdb:miBase.odb\"/>\n            <property name=\"objectdb.autocreate\" value=\"true\"/>\n            <property name=\"objectdb.autorestore\" value=\"true\"/>\n        </properties>\n    </persistence-unit>\n</persistence>\n```\n\n**Propiedades clave:**\n- `objectdb:miBase.odb`: ruta del fichero de base de datos\n- `objectdb.autocreate`: crea la BD si no existe\n- `objectdb.autorestore`: restaura automaticamente si hay problemas"
+        },
+        {
+          "type": "code",
+          "title": "Estructura de proyecto con ObjectDB",
+          "language": "java",
+          "content": "// Estructura de carpetas del proyecto:\n// MiProyecto/\n// +-- pom.xml\n// +-- src/\n//     +-- main/\n//         +-- java/\n//         |   +-- com/\n//         |       +-- ejemplo/\n//         |           +-- Alumno.java\n//         |           +-- AppPrincipal.java\n//         +-- resources/\n//             +-- META-INF/\n//                 +-- persistence.xml\n\n// Ejemplo de pom.xml con ObjectDB:\n/*\n<project>\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.ejemplo</groupId>\n    <artifactId>oodb-ejemplo</artifactId>\n    <version>1.0</version>\n    <dependencies>\n        <dependency>\n            <groupId>com.objectdb</groupId>\n            <artifactId>objectdb</artifactId>\n            <version>2.9.5</version>\n        </dependency>\n    </dependencies>\n</project>\n*/\n\n// Ejemplo de uso completo:\nimport javax.persistence.*;\nimport java.util.List;\n\npublic class AppPrincipal {\n    public static void main(String[] args) {\n        EntityManagerFactory emf =\n            Persistence.createEntityManagerFactory(\"MiPersistencia\");\n        EntityManager em = emf.createEntityManager();\n\n        try {\n            // Guardar\n            em.getTransaction().begin();\n            em.persist(new Alumno(\"Ana\", \"ana@email.com\", 8.5));\n            em.persist(new Alumno(\"Carlos\", \"carlos@email.com\", 7.2));\n            em.getTransaction().commit();\n\n            // Consultar\n            List<Alumno> alumnos = em\n                .createQuery(\"SELECT a FROM Alumno a\", Alumno.class)\n                .getResultList();\n\n            alumnos.forEach(System.out::println);\n\n        } finally {\n            em.close();\n            emf.close();\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "ObjectDB Explorer",
+          "content": "ObjectDB incluye una herramienta grafica llamada **ObjectDB Explorer** que permite:\n\n1. **Abrir y explorar** ficheros `.odb`\n2. **Ver las entidades** almacenadas y sus atributos\n3. **Ejecutar consultas JPQL** de forma interactiva\n4. **Ver estadisticas** de la base de datos\n5. **Exportar datos** a XML o JSON\n\nPara abrir ObjectDB Explorer:\n- Desde linea de comandos: `java -jar objectdb.jar`\n- Desde Eclipse IDE: clic derecho en el fichero `.odb` -> Open with ObjectDB Explorer\n\nEn el Explorer puedes:\n- Navegar por las entidades almacenadas\n- Ver los valores de cada campo\n- Ejecutar consultas JPQL\n- Ver el esquema de la base de datos"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-2-1",
+          "difficulty": "basic",
+          "title": "Configurar un proyecto con ObjectDB",
+          "description": "Crea un proyecto Maven con ObjectDB 2.9.5. Configura pom.xml con la dependencia y crea persistence.xml con una unidad de persistencia. Guarda un Alumno de prueba.",
+          "solution": "// 1. pom.xml con objectdb 2.9.5\n// 2. Crear META-INF/persistence.xml con provider com.objectdb.jpa.Impl\n// 3. Crear clase Alumno con @Entity\n// 4. En main: Persistence.createEntityManagerFactory(\"MiPersistencia\")\n// 5. em.persist(new Alumno(\"Ana\", \"ana@email.com\", 8.5))"
+        },
+        {
+          "id": "ex-17-2-2",
+          "difficulty": "basic",
+          "title": "Explorar la base de datos",
+          "description": "Abre la base de datos creada con ObjectDB Explorer. Identifica las entidades almacenadas, los campos de cada una y los valores guardados.",
+          "solution": "// 1. Ejecutar: java -jar objectdb.jar\n// 2. Abrir el fichero .odb\n// 3. Navegar por las entidades\n// 4. Verificar que los datos de Ana y Carlos estan guardados"
+        },
+        {
+          "id": "ex-17-2-3",
+          "difficulty": "intermediate",
+          "title": "Entidad Curso para ObjectDB",
+          "description": "Crea una entidad Curso con campos: id, nombre, horasTotales, capacidadMaxima. Guarda 3 cursos y consultalos con JPQL.",
+          "solution": "@Entity\npublic class Curso implements Serializable {\n    @Id @GeneratedValue\n    private long id;\n    private String nombre;\n    private int horasTotales;\n    private int capacidadMaxima;\n    // constructor vacio, constructores, getters, setters...\n}\n\n// Persistencia:\nem.getTransaction().begin();\nem.persist(new Curso(\"Programacion\", 120, 30));\nem.persist(new Curso(\"Base de Datos\", 100, 25));\nem.persist(new Curso(\"Desarrollo Web\", 140, 20));\nem.getTransaction().commit();\n\nList<Curso> cursos = em.createQuery(\"SELECT c FROM Curso c\", Curso.class)\n    .getResultList();"
+        }
+      ],
+      "commonErrors": [
+        "No crear META-INF/persistence.xml: sin este archivo, JPA no sabe que base de datos usar.",
+        "Usar la ruta incorrecta en el persistence.xml: debe ser objectdb:nombreFichero.odb",
+        "Olvidar la dependencia en pom.xml: sin objectdb.jar, el programa falla al ejecutar.",
+        "No cerrar EntityManager: puede causar bloqueos en la base de datos.",
+        "Usar el mismo EntityManagerFactory en toda la aplicacion: es correcto (patron singleton)."
+      ],
+      "keyConcepts": [
+        "ObjectDB 2.9.5 como implementacion de JPA",
+        "Dependencia Maven para ObjectDB",
+        "persistence.xml: configuracion de la unidad de persistencia",
+        "ObjectDB Explorer: herramienta grafica para inspeccionar la BD",
+        "Fichero .odb: formato de base de datos de ObjectDB",
+        "Entity Manager Factory como recurso compartido"
+      ],
+      "learningOutcomes": [
+        "RA8"
+      ],
+      "assessmentCriteria": [
+        "RA8.a",
+        "RA8.b",
+        "RA8.c"
+      ]
+    },
+    {
+      "id": "lesson-16-3",
+      "title": "Almacenar objetos: persist, find y consultas JPQL",
+      "objectives": [
+        "Guardar objetos en ObjectDB con em.persist()",
+        "Recuperar objetos por ID con em.find()",
+        "Consultar objetos con JPQL (lenguaje de consultas de JPA)",
+        "Filtrar resultados con WHERE, ORDER BY y JOIN",
+        "Manejar resultados unicos y multiples"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Operaciones basicas de persistencia",
+          "content": "JPA define 4 operaciones fundamentales (CRUD):\n\n| Operacion | Metodo JPQL | Descripcion |\n|-----------|------------|-------------|\n| **Create** | `em.persist(objeto)` | Guarda un nuevo objeto |\n| **Read** | `em.find(clase, id)` | Busca un objeto por su ID |\n| **Update** | `em.merge(objeto)` | Actualiza un objeto existente |\n| **Delete** | `em.remove(objeto)` | Elimina un objeto |\n\nAdemas, las **consultas JPQL** permiten buscar objetos con filtros complejos.\n\n### persist() - Guardar un objeto\n```java\nem.getTransaction().begin();\nAlumno alumno = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\nem.persist(alumno); // El objeto se guarda en la BD\nem.getTransaction().commit();\n// Despues de persist(), el objeto tiene un ID asignado\nSystem.out.println(\"ID: \" + alumno.getId());\n```\n\n### find() - Buscar por ID\n```java\nAlumno alumno = em.find(Alumno.class, 1L); // Busca el alumno con id=1\nif (alumno != null) {\n    System.out.println(alumno.getNombre());\n} else {\n    System.out.println(\"Alumno no encontrado\");\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Consultas JPQL en profundidad",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.util.List;\n\npublic class ConsultasJPQL {\n\n    public static void main(String[] args) {\n        EntityManagerFactory emf =\n            Persistence.createEntityManagerFactory(\"objectdb:miBase.odb\");\n        EntityManager em = emf.createEntityManager();\n\n        try {\n            // Consulta basica: todos los alumnos\n            List<Alumno> todos = em\n                .createQuery(\"SELECT a FROM Alumno a\", Alumno.class)\n                .getResultList();\n            System.out.println(\"Todos: \" + todos.size());\n\n            // Consulta con WHERE: alumnos aprobados\n            List<Alumno> aprobados = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a WHERE a.notaMedia >= 5.0\",\n                    Alumno.class)\n                .getResultList();\n            System.out.println(\"Aprobados: \" + aprobados.size());\n\n            // Consulta con ORDER BY: ordenados por nota\n            List<Alumno> ordenados = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a ORDER BY a.notaMedia DESC\",\n                    Alumno.class)\n                .getResultList();\n            System.out.println(\"Ordenados por nota:\");\n            ordenados.forEach(a ->\n                System.out.printf(\"  %s: %.2f%n\", a.getNombre(), a.getNotaMedia()));\n\n            // Consulta con LIKE: buscar por nombre\n            List<Alumno> conAna = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a WHERE a.nombre LIKE :patron\",\n                    Alumno.class)\n                .setParameter(\"patron\", \"%Ana%\")\n                .getResultList();\n            System.out.println(\"Contienen 'Ana': \" + conAna.size());\n\n            // Consulta con BETWEEN: rango de notas\n            List<Alumno> rango = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a WHERE a.notaMedia BETWEEN :min AND :max\",\n                    Alumno.class)\n                .setParameter(\"min\", 6.0)\n                .setParameter(\"max\", 9.0)\n                .getResultList();\n            System.out.println(\"Entre 6 y 9: \" + rango.size());\n\n            // Consulta unica: getSingleResult()\n            Alumno primero = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a ORDER BY a.notaMedia DESC\",\n                    Alumno.class)\n                .setMaxResults(1)\n                .getSingleResult();\n            System.out.println(\"Mejor alumno: \" + primero.getNombre());\n\n            // Consulta con COUNT\n            Long total = em\n                .createQuery(\"SELECT COUNT(a) FROM Alumno a\", Long.class)\n                .getSingleResult();\n            System.out.println(\"Total alumnos: \" + total);\n\n        } finally {\n            em.close();\n            emf.close();\n        }\n    }\n}\n\n// JPQL es como SQL pero con objetos:\n// - SELECT a FROM Alumno a  (no SELECT *)\n// - a.notaMedia (no a.nota_media)\n// - WHERE a.notaMedia >= 5.0 (como SQL pero con nombres de campos Java)\n// - :patron es un parametro nombrado (evita SQL injection)"
+        },
+        {
+          "type": "text",
+          "title": "Parametros y tipos de consulta",
+          "content": "### Parametros nombrados\n```java\nList<Alumno> resultado = em\n    .createQuery(\"SELECT a FROM Alumno a WHERE a.nombre = :nombre\", Alumno.class)\n    .setParameter(\"nombre\", \"Ana\")\n    .getResultList();\n```\n\n### Parametros posicionales\n```java\nList<Alumno> resultado = em\n    .createQuery(\"SELECT a FROM Alumno a WHERE a.nombre = ?1\", Alumno.class)\n    .setParameter(1, \"Ana\")\n    .getResultList();\n```\n\n### Tipos de resultado\n- `getResultList()`: devuelve `List<T>` (una lista de objetos)\n- `getSingleResult()`: devuelve un solo objeto (lanza exception si hay mas de uno)\n- `setMaxResults(n)`: limita el numero de resultados\n- `setFirstResult(n)`: salta los primeros n resultados (paginacion)\n\n### JPQL vs SQL\n| SQL | JPQL |\n|-----|------|\n| `SELECT * FROM alumnos` | `SELECT a FROM Alumno a` |\n| `WHERE nota_media >= 5` | `WHERE a.notaMedia >= 5.0` |\n| `ORDER BY nombre ASC` | `ORDER BY a.nombre ASC` |\n| `COUNT(*)` | `COUNT(a)` |\n| `INNER JOIN` | `JOIN a.curso c` |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-3-1",
+          "difficulty": "basic",
+          "title": "CRUD completo",
+          "description": "Crea 5 alumnos, consulta todos, busca uno por ID, actualiza su nota, y elimina uno. Muestra los resultados en cada paso.",
+          "solution": "// 1. Crear 5 alumnos y persistirlos\n// 2. Consultar todos con SELECT a FROM Alumno a\n// 3. Buscar por ID con em.find(Alumno.class, 1L)\n// 4. Modificar la nota y em.merge(alumno)\n// 5. Eliminar con em.remove(alumno)\n// En cada paso, imprimir los resultados"
+        },
+        {
+          "id": "ex-17-3-2",
+          "difficulty": "intermediate",
+          "title": "Consultas con filtros",
+          "description": "Ejecuta las siguientes consultas: (a) alumnos con nota > 7, (b) alumnos cuyo nombre empieza por 'A', (c) alumnos ordenados por nombre, (d) los 3 alumnos con mejor nota.",
+          "solution": "// a) WHERE a.notaMedia > 7.0\n// b) WHERE a.nombre LIKE 'A%'\n// c) ORDER BY a.nombre ASC\n// d) ORDER BY a.notaMedia DESC con setMaxResults(3)"
+        },
+        {
+          "id": "ex-17-3-3",
+          "difficulty": "advanced",
+          "title": "Paginacion de resultados",
+          "description": "Implementa paginacion: muestra los alumnos de 3 en 3. Primera pagina, segunda pagina, tercera pagina. Usa setFirstResult() y setMaxResults().",
+          "solution": "// Pagina 1:\nem.createQuery(\"SELECT a FROM Alumno a ORDER BY a.id\", Alumno.class)\n    .setFirstResult(0).setMaxResults(3).getResultList();\n// Pagina 2:\nem.createQuery(\"SELECT a FROM Alumno a ORDER BY a.id\", Alumno.class)\n    .setFirstResult(3).setMaxResults(3).getResultList();\n// Pagina 3:\nem.createQuery(\"SELECT a FROM Alumno a ORDER BY a.id\", Alumno.class)\n    .setFirstResult(6).setMaxResults(3).getResultList();"
+        }
+      ],
+      "commonErrors": [
+        "Usar SQL en lugar de JPQL: JPQL usa nombres de clases y campos Java, no tablas y columnas.",
+        "Olvidar setParameter() para consultas con parametros: puede causar errores de tipo.",
+        "Usar getSingleResult() cuando puede haber multiples resultados: lanzara NonUniqueResultException.",
+        "No cerrar EntityManager despues de usarlo: puede causar fugas de memoria.",
+        "Olvidar begin/commit: sin transaccion, los cambios no se persisten."
+      ],
+      "keyConcepts": [
+        "persist(): guardar un nuevo objeto",
+        "find(): buscar un objeto por su ID",
+        "merge(): actualizar un objeto existente",
+        "remove(): eliminar un objeto",
+        "JPQL: lenguaje de consultas orientado a objetos",
+        "Parametros nombrados (:nombre) y posicionales (?1)",
+        "getResultList() y getSingleResult(): tipos de resultado"
+      ],
+      "learningOutcomes": [
+        "RA8"
+      ],
+      "assessmentCriteria": [
+        "RA8.c",
+        "RA8.d"
+      ]
+    },
+    {
+      "id": "lesson-16-4",
+      "title": "Actualizar y eliminar objetos",
+      "objectives": [
+        "Actualizar atributos de un objeto persistente",
+        "Eliminar objetos de la base de datos",
+        "Entender el ciclo de vida de un objeto persistente",
+        "Manejar transacciones: begin, commit y rollback",
+        "Comprender la diferenciacion entre objeto gestionado y transitorio"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Ciclo de vida de un objeto persistente",
+          "content": "En JPA, un objeto puede estar en diferentes estados:\n\n```\nTransitorio -> Persistente -> Eliminado\n    |                              |\n    +---> Merge (transito)  ------+\n```\n\n1. **Transitorio**: el objeto es un objeto Java normal, no esta en la BD.\n   ```java\n   Alumno a = new Alumno(\"Ana\", \"ana@email.com\", 8.5); // transitorio\n   ```\n\n2. **Persistente (managed)**: el objeto esta en la BD y esta \"conectado\" al EntityManager.\n   ```java\n   em.persist(a); // ahora es persistente\n   ```\n\n3. **Eliminado**: el objeto se marca para eliminar.\n   ```java\n   em.remove(a); // se eliminara al hacer commit\n   ```\n\n4. **Desconectado (detached)**: el objeto estaba en la BD pero el EntityManager se cerro.\n   ```java\n   em.close(); // a se desconecta\n   // Para reconectar: em.merge(a)\n   ```\n\n**Objeto gestionado vs. transitorio:**\n- Un objeto **gestionado** esta en la BD y cualquier cambio se refleja automaticamente.\n- Un objeto **transitorio** es un objeto Java normal que no esta en la BD."
+        },
+        {
+          "type": "code",
+          "title": "Actualizar objetos",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.util.List;\n\npublic class EjemploActualizacion {\n\n    public static void main(String[] args) {\n        EntityManagerFactory emf =\n            Persistence.createEntityManagerFactory(\"objectdb:miBase.odb\");\n        EntityManager em = emf.createEntityManager();\n\n        try {\n            // Crear alumnos\n            em.getTransaction().begin();\n            Alumno ana = new Alumno(\"Ana\", \"ana@email.com\", 7.5);\n            Alumno carlos = new Alumno(\"Carlos\", \"carlos@email.com\", 6.0);\n            em.persist(ana);\n            em.persist(carlos);\n            em.getTransaction().commit();\n\n            System.out.println(\"ANTES:\");\n            System.out.println(\"  Ana: \" + ana.getNotaMedia());\n            System.out.println(\"  Carlos: \" + carlos.getNotaMedia());\n\n            // ACTUALIZAR: modificar atributos directamente\n            em.getTransaction().begin();\n            ana.setNotaMedia(9.0);  // se actualiza automaticamente\n            carlos.setEmail(\"nuevo@email.com\");\n            em.getTransaction().commit();\n\n            System.out.println(\"\\nDESPUES:\");\n            System.out.println(\"  Ana: \" + ana.getNotaMedia());\n            System.out.println(\"  Carlos email: \" + carlos.getEmail());\n\n            // ACTUALIZAR masivo con JPQL (sin cargar objetos)\n            em.getTransaction().begin();\n            int actualizados = em\n                .createQuery(\"UPDATE Alumno a SET a.notaMedia = a.notaMedia + 0.5\")\n                .executeUpdate();\n            em.getTransaction().commit();\n            System.out.println(\"\\nActualizados \" + actualizados + \" alumnos (+0.5 nota)\");\n\n        } finally {\n            em.close();\n            emf.close();\n        }\n    }\n}\n\n// Claves:\n// 1. Un objeto gestionado se actualiza automaticamente al modificar sus atributos\n// 2. No es necesario llamar a un metodo especial para actualizar\n// 3. UPDATE masivo con JPQL modifica multiples objetos sin cargarlos"
+        },
+        {
+          "type": "code",
+          "title": "Eliminar objetos",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.util.List;\n\npublic class EjemploEliminacion {\n\n    public static void main(String[] args) {\n        EntityManagerFactory emf =\n            Persistence.createEntityManagerFactory(\"objectdb:miBase.odb\");\n        EntityManager em = emf.createEntityManager();\n\n        try {\n            // Crear alumnos\n            em.getTransaction().begin();\n            em.persist(new Alumno(\"Ana\", \"ana@email.com\", 8.5));\n            em.persist(new Alumno(\"Carlos\", \"carlos@email.com\", 7.2));\n            em.persist(new Alumno(\"Maria\", \"maria@email.com\", 9.1));\n            em.getTransaction().commit();\n\n            // ELIMINAR un objeto\n            em.getTransaction().begin();\n            Alumno carlos = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a WHERE a.nombre = 'Carlos'\",\n                    Alumno.class)\n                .getSingleResult();\n            em.remove(carlos); // Elimina de la BD\n            em.getTransaction().commit();\n            System.out.println(\"Carlos eliminado.\");\n\n            // ELIMINAR masivo con JPQL\n            em.getTransaction().begin();\n            int eliminados = em\n                .createQuery(\"DELETE FROM Alumno a WHERE a.notaMedia < 5.0\")\n                .executeUpdate();\n            em.getTransaction().commit();\n            System.out.println(\"Eliminados \" + eliminados + \" alumnos suspensos.\");\n\n            // Verificar\n            List<Alumno> restantes = em\n                .createQuery(\"SELECT a FROM Alumno a\", Alumno.class)\n                .getResultList();\n            System.out.println(\"Alumnos restantes: \" + restantes.size());\n            restantes.forEach(System.out::println);\n\n        } finally {\n            em.close();\n            emf.close();\n        }\n    }\n}\n\n// Claves:\n// 1. em.remove(objeto) elimina el objeto de la BD\n// 2. DELETE masivo con JPQL elimina multiples objetos sin cargarlos\n// 3. Si hay relaciones ( CascadeType.REMOVE ), se eliminan en cascada"
+        },
+        {
+          "type": "text",
+          "title": "Transacciones: begin, commit y rollback",
+          "content": "Una **transaccion** es una operacion atomica: todo se ejecuta correctamente o nada se ejecuta. En JPA:\n\n```java\nem.getTransaction().begin();  // Iniciar transaccion\ntry {\n    // Operaciones de persistencia\n    em.persist(alumno1);\n    em.persist(alumno2);\n    em.getTransaction().commit();  // Confirmar cambios\n} catch (Exception e) {\n    em.getTransaction().rollback();  // Deshacer cambios\n    throw e;\n}\n```\n\n**Reglas de las transacciones:**\n1. Siempre begin antes de persist/merge/remove\n2. Si todo va bien: commit\n3. Si hay error: rollback (deshace todo)\n4. Despues de commit o rollback, se puede iniciar una nueva transaccion\n5. Si no hay transaccion activa, las operaciones fallan"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-4-1",
+          "difficulty": "basic",
+          "title": "Actualizar un alumno",
+          "description": "Crea un alumno, guardalo, recuperalo por ID, modifica su nota y email, y guarda los cambios. Verifica que los cambios se persisten.",
+          "solution": "// 1. em.persist(new Alumno(\"Ana\", \"ana@email.com\", 7.0))\n// 2. Alumno a = em.find(Alumno.class, 1L)\n// 3. a.setNotaMedia(9.0); a.setEmail(\"nuevo@email.com\")\n// 4. em.getTransaction().commit()\n// 5. em.find(Alumno.class, 1L) -> verificar cambios"
+        },
+        {
+          "id": "ex-17-4-2",
+          "difficulty": "intermediate",
+          "title": "Eliminar y verificar",
+          "description": "Crea 5 alumnos, elimina los 2 con menor nota usando JPQL, y muestra los 3 restantes.",
+          "solution": "// 1. Crear 5 alumnos con notas variadas\n// 2. em.createQuery(\"DELETE FROM Alumno a WHERE a.notaMedia < :umbral\")\n//    .setParameter(\"umbral\", 6.0).executeUpdate();\n// 3. em.createQuery(\"SELECT a FROM Alumno a ORDER BY a.notaMedia DESC\")\n//    .getResultList() -> mostrar restantes"
+        },
+        {
+          "id": "ex-17-4-3",
+          "difficulty": "advanced",
+          "title": "Manejo de errores con rollback",
+          "description": "Implementa un ejemplo donde se intente guardar un alumno con datos invalidos dentro de una transaccion. Usa try-catch para hacer rollback y verificar que no se guardo nada.",
+          "solution": "em.getTransaction().begin();\ntry {\n    Alumno a = new Alumno();\n    a.setNombre(\"\"); // invalido!\n    a.setEmail(\"bad\");\n    em.persist(a);\n    em.getTransaction().commit();\n} catch (Exception e) {\n    em.getTransaction().rollback();\n    System.out.println(\"Error: \" + e.getMessage());\n    System.out.println(\"Rollback ejecutado, nada se guardo.\");\n}\n// Verificar: la BD no tiene el alumno invalido"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar begin() antes de persist/merge/remove: lanzara TransactionRequiredException.",
+        "Hacer commit sin haber hecho begin(): no hay transaccion activa.",
+        "No hacer rollback en caso de error: la transaccion queda en estado inconsistente.",
+        "Intentar modificar un objeto desconectado (detached): usar em.merge() para reconectar.",
+        "No cerrar EntityManager despues de un rollback: puede causar problemas de estado."
+      ],
+      "keyConcepts": [
+        "Ciclo de vida: transitorio -> persistente -> eliminado",
+        "Objeto gestionado: conectado al EntityManager, cambios automaticos",
+        "Objeto transitorio: no esta en la BD",
+        "Actualizar: modificar atributos de un objeto gestionado",
+        "Eliminar: em.remove() o DELETE con JPQL",
+        "Transacciones: begin, commit, rollback",
+        "Atomicidad: todo o nada"
+      ],
+      "learningOutcomes": [
+        "RA8"
+      ],
+      "assessmentCriteria": [
+        "RA8.d",
+        "RA8.e"
+      ]
+    },
+    {
+      "id": "lesson-16-5",
+      "title": "Objetos complejos y relaciones en ObjectDB",
+      "objectives": [
+        "Crear entidades con relaciones: @OneToMany, @ManyToOne, @ManyToMany",
+        "Almacenar objetos con referencias a otros objetos",
+        "Consultar objetos con relaciones (JOIN en JPQL)",
+        "Entender CascadeType y como afecta a las operaciones",
+        "Construir una aplicacion completa con multiples entidades relacionadas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Relaciones entre entidades",
+          "content": "Una de las grandes ventajas de OODBMS es que las relaciones entre objetos se manejan naturalmente. En JPA, se definen con anotaciones:\n\n### @ManyToOne - Muchos a uno\n```java\n@Entity\npublic class Alumno {\n    @Id @GeneratedValue\n    private long id;\n    private String nombre;\n\n    @ManyToOne\n    @JoinColumn(name = \"curso_id\")\n    private Curso curso; // Un alumno pertenece a un curso\n}\n```\n\n### @OneToMany - Uno a muchos\n```java\n@Entity\npublic class Curso {\n    @Id @GeneratedValue\n    private long id;\n    private String nombre;\n\n    @OneToMany(mappedBy = \"curso\", cascade = CascadeType.ALL)\n    private List<Alumno> alumnos = new ArrayList<>();\n    // Un curso tiene muchos alumnos\n}\n```\n\n### @ManyToMany - Muchos a muchos\n```java\n@Entity\npublic class Alumno {\n    @ManyToMany\n    @JoinTable(\n        name = \"alumno_asignatura\",\n        joinColumns = @JoinColumn(name = \"alumno_id\"),\n        inverseJoinColumns = @JoinColumn(name = \"asignatura_id\")\n    )\n    private List<Asignatura> asignaturas = new ArrayList<>();\n}\n```\n\n### Tipos de cascada\n| CascadeType | Descripcion |\n|------------|-------------|\n| ALL | Todas las operaciones se propagan |\n| PERSIST | Guardar el padre guarda los hijos |\n| REMOVE | Eliminar el padre elimina los hijos |\n| MERGE | Actualizar el padre actualiza los hijos |\n| REFRESH | Refrescar el padre refresca los hijos |"
+        },
+        {
+          "type": "code",
+          "title": "Alumno y Curso con relacion @ManyToOne/@OneToMany",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.List;\n\n// === ENTIDAD ALUMNO ===\n@Entity\npublic class Alumno implements Serializable {\n    @Id @GeneratedValue\n    private long id;\n\n    @Column(nullable = false)\n    private String nombre;\n\n    @Column(nullable = false, unique = true)\n    private String email;\n\n    private double notaMedia;\n\n    @ManyToOne\n    @JoinColumn(name = \"curso_id\")\n    private Curso curso;\n\n    public Alumno() {}\n    public Alumno(String nombre, String email, double notaMedia) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    // Getters y setters\n    public long getId() { return id; }\n    public String getNombre() { return nombre; }\n    public void setNombre(String nombre) { this.nombre = nombre; }\n    public String getEmail() { return email; }\n    public void setEmail(String email) { this.email = email; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double notaMedia) { this.notaMedia = notaMedia; }\n    public Curso getCurso() { return curso; }\n    public void setCurso(Curso curso) { this.curso = curso; }\n\n    @Override\n    public String toString() {\n        return String.format(\"Alumno{id=%d, nombre='%s', nota=%.2f}\",\n            id, nombre, notaMedia);\n    }\n}\n\n// === ENTIDAD CURSO ===\n@Entity\npublic class Curso implements Serializable {\n    @Id @GeneratedValue\n    private long id;\n\n    @Column(nullable = false)\n    private String nombre;\n\n    private int horasTotales;\n    private int capacidadMaxima;\n\n    @OneToMany(mappedBy = \"curso\", cascade = CascadeType.ALL)\n    private List<Alumno> alumnos = new ArrayList<>();\n\n    public Curso() {}\n    public Curso(String nombre, int horas, int capacidad) {\n        this.nombre = nombre;\n        this.horasTotales = horas;\n        this.capacidadMaxima = capacidad;\n    }\n\n    public void addAlumno(Alumno alumno) {\n        alumnos.add(alumno);\n        alumno.setCurso(this);\n    }\n\n    // Getters y setters\n    public long getId() { return id; }\n    public String getNombre() { return nombre; }\n    public int getHorasTotales() { return horasTotales; }\n    public int getCapacidadMaxima() { return capacidadMaxima; }\n    public List<Alumno> getAlumnos() { return new ArrayList<>(alumnos); }\n\n    @Override\n    public String toString() {\n        return String.format(\"Curso{id=%d, nombre='%s', alumnos=%d}\",\n            id, nombre, alumnos.size());\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Aplicacion completa: Alumnos y Cursos en ObjectDB",
+          "language": "java",
+          "content": "import javax.persistence.*;\nimport java.util.List;\n\npublic class AppCompleta {\n\n    public static void main(String[] args) {\n        EntityManagerFactory emf =\n            Persistence.createEntityManagerFactory(\"objectdb:escuela.odb\");\n        EntityManager em = emf.createEntityManager();\n\n        try {\n            // 1. Crear cursos\n            em.getTransaction().begin();\n            Curso prog = new Curso(\"Programacion\", 120, 30);\n            Curso bd = new Curso(\"Base de Datos\", 100, 25);\n            em.persist(prog);\n            em.persist(bd);\n            em.getTransaction().commit();\n            System.out.println(\"Cursos creados.\");\n\n            // 2. Crear alumnos y asignar a cursos\n            em.getTransaction().begin();\n            Alumno ana = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\n            Alumno carlos = new Alumno(\"Carlos\", \"carlos@email.com\", 7.2);\n            Alumno maria = new Alumno(\"Maria\", \"maria@email.com\", 9.1);\n\n            prog.addAlumno(ana);\n            prog.addAlumno(carlos);\n            bd.addAlumno(maria);\n\n            em.persist(ana);\n            em.persist(carlos);\n            em.persist(maria);\n            em.getTransaction().commit();\n            System.out.println(\"Alumnos creados y asignados.\");\n\n            // 3. Consultar alumnos de Programacion\n            List<Alumno> alumnosProg = em\n                .createQuery(\n                    \"SELECT a FROM Alumno a WHERE a.curso.nombre = :curso\",\n                    Alumno.class)\n                .setParameter(\"curso\", \"Programacion\")\n                .getResultList();\n            System.out.println(\"\\nAlumnos de Programacion:\");\n            alumnosProg.forEach(a -> System.out.println(\"  \" + a));\n\n            // 4. Consultar curso con mas alumnos\n            List<Curso> cursos = em\n                .createQuery(\n                    \"SELECT c FROM Curso c ORDER BY c.alumnos.size DESC\",\n                    Curso.class)\n                .getResultList();\n            System.out.println(\"\\nCursos por numero de alumnos:\");\n            cursos.forEach(c ->\n                System.out.printf(\"  %s: %d alumnos%n\", c.getNombre(), c.getAlumnos().size()));\n\n            // 5. Media de notas por curso\n            List<Object[]> medias = em\n                .createQuery(\n                    \"SELECT a.curso.nombre, AVG(a.notaMedia) FROM Alumno a \" +\n                    \"GROUP BY a.curso.nombre\",\n                    Object[].class)\n                .getResultList();\n            System.out.println(\"\\nMedia de notas por curso:\");\n            medias.forEach(r ->\n                System.out.printf(\"  %s: %.2f%n\", r[0], r[1]));\n\n        } finally {\n            em.close();\n            emf.close();\n        }\n    }\n}\n\n// Esta aplicacion demuestra:\n// 1. Crear entidades con relaciones\n// 2. Usar addAlumno() para mantener la consistencia bidireccional\n// 3. Consultar con JPQL usando relaciones (a.curso.nombre)\n// 4. Consultas con GROUP BY y funciones de agregacion"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-5-1",
+          "difficulty": "basic",
+          "title": "Relacion simple Alumno-Curso",
+          "description": "Crea las entidades Alumno y Curso con relacion ManyToOne/OneToMany. Crea 1 curso con 3 alumnos. Consulta los alumnos del curso.",
+          "solution": "// Ver la AppCompleta de la leccion 17-5.\n// Crear Curso, crear 3 Alumnos, usar curso.addAlumno() para relacionar.\n// Consulta: SELECT a FROM Alumno a WHERE a.curso.nombre = :nombre"
+        },
+        {
+          "id": "ex-17-5-2",
+          "difficulty": "intermediate",
+          "title": "Relacion ManyToMany",
+          "description": "Crea entidades Alumno y Asignatura con relacion ManyToMany. Un alumno puede tener varias asignaturas y una asignatura puede tener varios alumnos. Crea datos de prueba y consulta.",
+          "solution": "// Entidad Alumno con @ManyToMany List<Asignatura>\n// Entidad Asignatura con @ManyToMany(mappedBy) List<Alumno>\n// Crear 3 alumnos y 2 asignaturas\n// Asignar: Ana -> [Prog, BD], Carlos -> [Prog], Maria -> [BD]\n// Consulta: alumnos de Prog, asignaturas de Ana"
+        },
+        {
+          "id": "ex-17-5-3",
+          "difficulty": "advanced",
+          "title": "Aplicacion completa con 3 entidades",
+          "description": "Crea un sistema con Alumno, Curso y Nota (3 entidades). Un alumno tiene muchas notas, cada nota pertenece a un curso. Consulta: media por alumno, mejor alumno por curso, ranking general.",
+          "solution": "// Entidades:\n// Alumno: id, nombre, email, List<Nota> notas\n// Curso: id, nombre, horas\n// Nota: id, double valor, String tipo, Alumno alumno, Curso curso\n//\n// Consultas:\n// a) SELECT a.nombre, AVG(n.valor) FROM Nota n JOIN n.alumno a GROUP BY a.nombre\n// b) SELECT a.nombre, c.nombre, MAX(n.valor) FROM Nota n JOIN ... GROUP BY ...\n// c) SELECT a.nombre, AVG(n.valor) FROM Nota n JOIN ... GROUP BY ... ORDER BY AVG(n.valor) DESC"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar el constructor vacio en las entidades: JPA lo necesita.",
+        "No mantener la consistencia bidireccional: al aniadir un alumno a un curso, tambien setcurso() en el alumno.",
+        "Olvidar cascade: si se elimina un curso, los alumnos no se eliminan sin CascadeType.REMOVE.",
+        "Usar List sin inicializar: puede causar NullPointerException al acceder a la lista.",
+        "Olvidar @JoinColumn: sin ella, JPA crea una tabla intermedia innecesaria."
+      ],
+      "keyConcepts": [
+        "@ManyToOne y @OneToMany: relaciones uno a muchos",
+        "@ManyToMany: relaciones muchos a muchos",
+        "CascadeType: propagacion de operaciones a entidades relacionadas",
+        "mappedBy: indicar el lado inverso de la relacion",
+        "Consistencia bidireccional: mantener sincronizadas ambas direcciones",
+        "JPQL con JOINs: consultas que cruzan entidades relacionadas",
+        "GROUP BY y funciones de agregacion en JPQL"
+      ],
+      "learningOutcomes": [
+        "RA8"
+      ],
+      "assessmentCriteria": [
+        "RA8.f",
+        "RA8.g",
+        "RA8.h"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Sistema de gestion de alumnos con ObjectDB",
+    "description": "Construir un sistema completo de gestion de alumnos usando ObjectDB como base de datos orientada a objetos. El estudiante debe crear entidades con relaciones, persistirlas, y realizar consultas avanzadas.",
+    "steps": [
+      "Configurar ObjectDB en el proyecto con persistence.xml",
+      "Crear las entidades: Alumno, Curso, Nota con sus relaciones",
+      "Implementar un menu de consola para interactuar con la BD",
+      "Crear operaciones: agregar alumno, matricular, asignar nota",
+      "Consultar: listar alumnos, buscar por curso, media por alumno",
+      "Implementar estadisticas: ranking, aprobados/suspensos"
+    ],
+    "deliverables": [
+      "Sistema funcional con persistencia en ObjectDB",
+      "Entidades con relaciones correctas",
+      "Consultas JPQL funcionales",
+      "Codigo documentado con Javadoc"
+    ]
+  }
+}

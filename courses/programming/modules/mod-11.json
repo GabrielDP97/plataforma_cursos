@@ -1,0 +1,387 @@
+{
+  "id": "mod-11",
+  "title": "Arrays y matrices",
+  "description": "Introducción a las estructuras de datos estáticas en Java: arrays unidimensionales y bidimensionales. Se aprende a declarar, inicializar, recorrer y buscar elementos en arrays. Se aplican algoritmos fundamentales de búsqueda lineal y ordenación. Se consolida el RA6 parcial con ejemplos del dominio Alumno/Curso.",
+  "phase": "phase-5",
+  "position": 11,
+  "learningOutcomes": [
+    "RA6"
+  ],
+  "assessmentCriteria": [
+    "RA6.a",
+    "RA6.b"
+  ],
+  "officialContents": [
+    "Aplicación de las estructuras de almacenamiento"
+  ],
+  "duration": "12 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-08",
+    "mod-09",
+    "mod-10"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-11-1",
+      "title": "Arrays unidimensionales",
+      "objectives": [
+        "Declarar e inicializar arrays de tipos primitivos y de objetos",
+        "Acceder a elementos mediante índices",
+        "Recorrer arrays con bucles for y for-each",
+        "Conocer las propiedades length y los límites de un array",
+        "Aplicar arrays al dominio Alumno y Curso"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es un array?",
+          "content": "Un **array** (también llamado vector o tabla) es una estructura de datos que almacena una colección de elementos **del mismo tipo** bajo un único nombre. Cada elemento se identifica por su **índice**, que comienza en 0.\n\nPiensa en un array como una fila de casillas numeradas:\n\n```\nnotas[0]  notas[1]  notas[2]  notas[3]  notas[4]\n  8.5       7.0       9.2       6.8       8.0\n```\n\n**Características principales:**\n- **Tamaño fijo**: una vez creado, el número de elementos no puede cambiar.\n- **Tipado homogéneo**: todos los elementos son del mismo tipo.\n- **Acceso por índice**: para acceder a un elemento se usa su posición (empezando en 0).\n- **En memoria**: los elementos se almacenan en posiciones contiguas de memoria.\n\n**Declaración:**\n```java\nint[] notas;                    // Declaración (sin tamaño)\nint[] notas = new int[5];       // Declaración con tamaño (5 elementos)\nint[] notas = {8.5, 7.0, 9.2}; // Declaración con valores iniciales\n```\n\n**Acceso a elementos:**\n```java\ndouble primera = notas[0];  // Primer elemento (índice 0)\ndouble tercera = notas[2];  // Tercer elemento (índice 2)\nnotas[4] = 9.0;             // Modificar el quinto elemento\n```\n\n**Importante**: intentar acceder a un índice fuera del rango lanza `ArrayIndexOutOfBoundsException`. El último índice válido es `length - 1`."
+        },
+        {
+          "type": "code",
+          "title": "Arrays de alumnos: ejemplo práctico",
+          "language": "java",
+          "content": "public class ArrayAlumnos {\n    public static void main(String[] args) {\n        // Array de nombres (String[])\n        String[] nombres = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\", \"Laura\"};\n\n        // Array de notas (double[])\n        double[] notas = {8.5, 7.0, 9.2, 6.8, 8.0};\n\n        // Acceder a un elemento\n        System.out.println(\"Primer alumno: \" + nombres[0]);\n        System.out.println(\"Nota del segundo alumno: \" + notas[1]);\n\n        // Modificar un elemento\n        notas[3] = 7.5; // Pedro mejora su nota\n        System.out.println(\"Nota de Pedro actualizada: \" + notas[3]);\n\n        // Longitud del array\n        System.out.println(\"Numero de alumnos: \" + nombres.length);\n\n        // Cuidado: accesos fuera de rango\n        // System.out.println(nombres[5]); // ArrayIndexOutOfBoundsException\n        System.out.println(\"Ultimo indice valido: \" + (nombres.length - 1));\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Recorrer arrays con bucles",
+          "language": "java",
+          "content": "public class RecorrerArrays {\n    public static void main(String[] args) {\n        String[] nombres = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\", \"Laura\"};\n        double[] notas = {8.5, 7.0, 9.2, 6.8, 8.0};\n\n        // === Bucle for clasico ===\n        System.out.println(\"=== Bucle for ===\");\n        for (int i = 0; i < nombres.length; i++) {\n            System.out.println(nombres[i] + \": \" + notas[i]);\n        }\n\n        // === Bucle for-each (enhanced for) ===\n        System.out.println(\"\\n=== Bucle for-each ===\");\n        for (String nombre : nombres) {\n            System.out.println(\"Alumno: \" + nombre);\n        }\n\n        // === Bucle for-each con notas ===\n        System.out.println(\"\\n=== Notas ===\");\n        for (double nota : notas) {\n            System.out.printf(\"Nota: %.1f%n\", nota);\n        }\n\n        // === Calcular la nota media ===\n        double suma = 0;\n        for (double nota : notas) {\n            suma += nota;\n        }\n        double media = suma / notas.length;\n        System.out.printf(\"\\nNota media: %.2f%n\", media);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Arrays de objetos",
+          "language": "java",
+          "content": "// Un array puede contener objetos (no solo primitivos)\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class ArrayObjetos {\n    public static void main(String[] args) {\n        // Crear objetos Alumno\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.addNota(8.5);\n        a1.addNota(7.0);\n\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        a2.addNota(9.2);\n        a2.addNota(6.8);\n\n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n        a3.addNota(7.5);\n        a3.addNota(8.0);\n\n        // Array de objetos Alumno\n        Alumno[] alumnos = {a1, a2, a3};\n\n        // Recorrer el array de objetos\n        for (Alumno a : alumnos) {\n            System.out.printf(\"%s - Media: %.2f%n\",\n                a.getNombre(), a.getNotaMedia());\n        }\n\n        // Encontrar el alumno con mejor nota\n        Alumno mejor = alumnos[0];\n        for (int i = 1; i < alumnos.length; i++) {\n            if (alumnos[i].getNotaMedia() > mejor.getNotaMedia()) {\n                mejor = alumnos[i];\n            }\n        }\n        System.out.println(\"Mejor alumno: \" + mejor.getNombre());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Operaciones comunes con arrays",
+          "content": "| Operación | Código | Notas |\n|-----------|--------|-------|\n| Declarar | `int[] arr = new int[10];` | Crea 10 elementos con valor 0 |\n| Inicializar | `int[] arr = {1, 2, 3};` | Valores conocidos |\n| Acceder | `arr[0]` | Primer elemento |\n| Modificar | `arr[2] = 5;` | Asignar valor |\n| Longitud | `arr.length` | Número de elementos |\n| Recorrer | `for (int x : arr)` | For-each |\n| Copiar | `int[] copia = arr.clone();` | Copia superficial |\n\n**Arrays y memoria:**\n- Los arrays de primitivos (`int[]`, `double[]`) almacenan los valores directamente.\n- Los arrays de objetos (`Alumno[]`) almacenan **referencias** a los objetos. Todos los elementos apuntan a los mismos objetos que los originales."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-1-1",
+          "difficulty": "basic",
+          "title": "Array de notas y media",
+          "description": "Crea un array de 5 notas (double). Recorre el array para calcular la nota media y mostrar todas las notas por consola.",
+          "solution": "public class MediaNotas {\n    public static void main(String[] args) {\n        double[] notas = {7.5, 8.0, 6.5, 9.0, 7.0};\n        double suma = 0;\n        \n        for (int i = 0; i < notas.length; i++) {\n            System.out.println(\"Nota \" + (i+1) + \": \" + notas[i]);\n            suma += notas[i];\n        }\n        \n        double media = suma / notas.length;\n        System.out.printf(\"Media: %.2f%n\", media);\n    }\n}"
+        },
+        {
+          "id": "ex-11-1-2",
+          "difficulty": "intermediate",
+          "title": "Encontrar el máximo y el mínimo",
+          "description": "Dado un array de enteros, encuentra el valor máximo y el mínimo sin usar clases de Java Collections.",
+          "solution": "public class MaxMin {\n    public static void main(String[] args) {\n        int[] numeros = {15, 3, 27, 8, 42, 1, 19};\n        int max = numeros[0];\n        int min = numeros[0];\n        \n        for (int i = 1; i < numeros.length; i++) {\n            if (numeros[i] > max) max = numeros[i];\n            if (numeros[i] < min) min = numeros[i];\n        }\n        \n        System.out.println(\"Maximo: \" + max);\n        System.out.println(\"Minimo: \" + min);\n    }\n}"
+        },
+        {
+          "id": "ex-11-1-3",
+          "difficulty": "intermediate",
+          "title": "Contar aprobados y suspensos",
+          "description": "Dado un array de notas, cuenta cuántos alumnos tienen nota >= 5 (aprobados) y cuántos < 5 (suspensos). Muestra el resultado.",
+          "solution": "public class AprobadosSuspensos {\n    public static void main(String[] args) {\n        double[] notas = {8.5, 3.0, 7.2, 4.5, 9.0, 2.8, 6.5};\n        int aprobados = 0;\n        int suspensos = 0;\n        \n        for (double nota : notas) {\n            if (nota >= 5.0) {\n                aprobados++;\n            } else {\n                suspensos++;\n            }\n        }\n        \n        System.out.println(\"Aprobados: \" + aprobados);\n        System.out.println(\"Suspensos: \" + suspensos);\n        System.out.println(\"Total: \" + notas.length);\n    }\n}"
+        },
+        {
+          "id": "ex-11-1-4",
+          "difficulty": "advanced",
+          "title": "Búsqueda lineal en array",
+          "description": "Implementa una función que dado un array de Strings y un valor a buscar, devuelva el índice donde se encuentra, o -1 si no existe. Prueba con un array de nombres de alumnos.",
+          "solution": "public class BusquedaLineal {\n    public static int buscar(String[] array, String valor) {\n        for (int i = 0; i < array.length; i++) {\n            if (array[i].equals(valor)) {\n                return i;\n            }\n        }\n        return -1;\n    }\n    \n    public static void main(String[] args) {\n        String[] nombres = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\", \"Laura\"};\n        \n        String buscar = \"Maria\";\n        int indice = buscar(nombres, buscar);\n        \n        if (indice != -1) {\n            System.out.println(buscar + \" encontrada en indice \" + indice);\n        } else {\n            System.out.println(buscar + \" no encontrada\");\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Acceder a un índice fuera de rango: `array[5]` en un array de 5 elementos lanza ArrayIndexOutOfBoundsException. El último índice válido es `length - 1`.",
+        "Olvidar que los índices empiezan en 0: el primer elemento es `array[0]`, no `array[1]`.",
+        "Mezclar arrays de distintos tipos: `int[] arr = {1, 2.5, 3}` no compila porque `{1, 2.5, 3}` mezcla int y double.",
+        "No inicializar el array antes de usarlo: `int[] arr; arr[0] = 5;` da error porque `arr` no apunta a ningún array.",
+        "Usar `.length` en lugar de `.length()`: `.length` es la propiedad del array, `.length()` es el método de String."
+      ],
+      "keyConcepts": [
+        "Array como estructura de datos estática de tamaño fijo",
+        "Índices comenzando en 0 y acceso con `[]`",
+        "Declaración con tipo[] y operador new",
+        "Inicialización directa con valores entre llaves",
+        "Propiedad `length` para conocer el tamaño",
+        "Recorrido con bucle for clásico y for-each",
+        "Arrays de primitivos vs arrays de objetos"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.a",
+        "RA6.b"
+      ]
+    },
+    {
+      "id": "lesson-11-2",
+      "title": "Arrays bidimensionales (matrices)",
+      "objectives": [
+        "Declarar e inicializar arrays bidimensionales",
+        "Acceder a elementos con doble índice [fila][columna]",
+        "Recorrer matrices con bucles anidados",
+        "Aplicar matrices a la representación de tablas de datos académicos",
+        "Comprender las diferencias entre arrays 1D y 2D en memoria"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Matrices: arrays de dos dimensiones",
+          "content": "Una **matriz** (array bidimensional) es un array cuyos elementos son a su vez arrays. Se usa para representar datos en formato de tabla con filas y columnas.\n\n```\nMatriz de notas (3 alumnos x 4 asignaturas):\n\n         Asig1  Asig2  Asig3  Asig4\nAlumno 0 [  8.5    7.0    9.2    6.8  ]\nAlumno 1 [  7.0    8.5    6.5    8.0  ]\nAlumno 2 [  9.0    6.0    7.5    9.5  ]\n```\n\n**Declaración:**\n```java\n// Sin valores iniciales\nint[][] matriz = new int[3][4]; // 3 filas, 4 columnas\n\n// Con valores iniciales\nint[][] matriz = {\n    {8, 7, 9, 7},\n    {7, 8, 6, 8},\n    {9, 6, 7, 10}\n};\n```\n\n**Acceso a elementos:**\n```java\ndouble valor = matriz[0][2]; // Fila 0, columna 2\nmatriz[1][3] = 9.0;          // Modificar\n```\n\n**Dimensiones:**\n- `matriz.length` → número de filas\n- `matriz[0].length` → número de columnas de la primera fila"
+        },
+        {
+          "type": "code",
+          "title": "Tabla de notas académicas",
+          "language": "java",
+          "content": "public class TablaNotas {\n    public static void main(String[] args) {\n        // Filas = alumnos, Columnas = asignaturas\n        double[][] notas = {\n            {8.5, 7.0, 9.2, 6.8},  // Ana\n            {7.0, 8.5, 6.5, 8.0},  // Carlos\n            {9.0, 6.0, 7.5, 9.5},  // Maria\n            {5.5, 7.0, 8.0, 6.0},  // Pedro\n            {8.0, 9.0, 7.0, 8.5}   // Laura\n        };\n\n        String[] alumnos = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\", \"Laura\"};\n        String[] asignaturas = {\"Matematicas\", \"Fisica\", \"Programacion\", \"BaseDatos\"};\n\n        // Mostrar la tabla completa\n        System.out.println(\"\\tMat\\tFis\\tProg\\tBDDS\");\n        System.out.println(\"-\".repeat(50));\n        for (int i = 0; i < notas.length; i++) {\n            System.out.print(alumnos[i] + \"\\t\");\n            for (int j = 0; j < notas[i].length; j++) {\n                System.out.printf(\"%.1f\\t\", notas[i][j]);\n            }\n            System.out.println();\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Recorrer matrices con bucles anidados",
+          "language": "java",
+          "content": "public class RecorrerMatriz {\n    public static void main(String[] args) {\n        double[][] notas = {\n            {8.5, 7.0, 9.2},\n            {7.0, 8.5, 6.5},\n            {9.0, 6.0, 7.5}\n        };\n\n        // === Recorrido fila por fila ===\n        System.out.println(\"=== Recorrido completo ===\");\n        for (int i = 0; i < notas.length; i++) {          // Recorre filas\n            for (int j = 0; j < notas[i].length; j++) {   // Recorre columnas\n                System.out.printf(\"%.1f \", notas[i][j]);\n            }\n            System.out.println(); // Salto de linea al final de cada fila\n        }\n\n        // === Media por alumno (por fila) ===\n        System.out.println(\"\\n=== Media por alumno ===\");\n        for (int i = 0; i < notas.length; i++) {\n            double suma = 0;\n            for (int j = 0; j < notas[i].length; j++) {\n                suma += notas[i][j];\n            }\n            double media = suma / notas[i].length;\n            System.out.printf(\"Alumno %d: %.2f%n\", i, media);\n        }\n\n        // === Media por asignatura (por columna) ===\n        System.out.println(\"\\n=== Media por asignatura ===\");\n        int numAsignaturas = notas[0].length;\n        for (int j = 0; j < numAsignaturas; j++) {\n            double suma = 0;\n            for (int i = 0; i < notas.length; i++) {\n                suma += notas[i][j];\n            }\n            double media = suma / notas.length;\n            System.out.printf(\"Asignatura %d: %.2f%n\", j, media);\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Usos prácticos de las matrices",
+          "content": "Las matrices son ideales para:\n\n1. **Tablas de datos**: notas de alumnos por asignaturas, calificaciones de exámenes.\n2. **Tablas de verdad**: comparaciones entre pares de elementos.\n3. **Mapas y tableros**: representación de cuadrículas (juegos, mapas).\n4. **Sistemas de ecuaciones**: matrices de coeficientes.\n5. **Imagenes digitales**: cada píxel es un valor en una matriz 2D.\n\n**Matrices irregulares (jagged arrays):**\nJava permite que cada fila tenga un número diferente de columnas:\n```java\nint[][] jagged = {\n    {1, 2, 3},      // 3 columnas\n    {4, 5},          // 2 columnas\n    {6, 7, 8, 9}    // 4 columnas\n};\n```\n\nEn este caso, siempre hay que usar `matriz[i].length` para cada fila, no asumir un tamaño fijo."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-2-1",
+          "difficulty": "basic",
+          "title": "Crear y mostrar una matriz",
+          "description": "Crea una matriz 3x3 con notas de ejemplo. Recorre y muestra toda la matriz por consola en formato de tabla.",
+          "solution": "public class MostrarMatriz {\n    public static void main(String[] args) {\n        double[][] matriz = {\n            {8.5, 7.0, 9.2},\n            {7.0, 8.5, 6.5},\n            {9.0, 6.0, 7.5}\n        };\n        \n        for (int i = 0; i < matriz.length; i++) {\n            for (int j = 0; j < matriz[i].length; j++) {\n                System.out.printf(\"%.1f\\t\", matriz[i][j]);\n            }\n            System.out.println();\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-11-2-2",
+          "difficulty": "intermediate",
+          "title": "Media por asignatura (columna)",
+          "description": "Dada una matriz de notas (alumnos x asignaturas), calcula la media de cada asignatura (media de cada columna).",
+          "solution": "public class MediaAsignaturas {\n    public static void main(String[] args) {\n        double[][] notas = {\n            {8.5, 7.0, 9.2, 6.8},\n            {7.0, 8.5, 6.5, 8.0},\n            {9.0, 6.0, 7.5, 9.5}\n        };\n        \n        int numAsignaturas = notas[0].length;\n        \n        for (int j = 0; j < numAsignaturas; j++) {\n            double suma = 0;\n            for (int i = 0; i < notas.length; i++) {\n                suma += notas[i][j];\n            }\n            double media = suma / notas.length;\n            System.out.printf(\"Asignatura %d: %.2f%n\", (j+1), media);\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-11-2-3",
+          "difficulty": "advanced",
+          "title": "Buscar el máximo en una matriz",
+          "description": "Dada una matriz de enteros, encuentra el valor máximo y la posición (fila, columna) donde se encuentra.",
+          "solution": "public class MaximoMatriz {\n    public static void main(String[] args) {\n        int[][] matriz = {\n            {3, 8, 1},\n            {5, 2, 9},\n            {7, 4, 6}\n        };\n        \n        int max = matriz[0][0];\n        int filaMax = 0;\n        int colMax = 0;\n        \n        for (int i = 0; i < matriz.length; i++) {\n            for (int j = 0; j < matriz[i].length; j++) {\n                if (matriz[i][j] > max) {\n                    max = matriz[i][j];\n                    filaMax = i;\n                    colMax = j;\n                }\n            }\n        }\n        \n        System.out.println(\"Maximo: \" + max);\n        System.out.println(\"Posicion: fila=\" + filaMax + \", columna=\" + colMax);\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Confundir `matriz.length` (nº de filas) con `matriz[0].length` (nº de columnas de la primera fila).",
+        "Acceder a `matriz[fila][columna]` sin comprobar que los índices están dentro del rango.",
+        "Crear una matriz con tamaños no consistentes y luego asumir que todas las filas tienen el mismo número de columnas.",
+        "Usar un solo bucle para recorrer una matriz: necesitas dos bucles anidados (filas y columnas).",
+        "Olvidar que las matrices se inicializan con 0 para enteros y 0.0 para decimales si no se especifican valores."
+      ],
+      "keyConcepts": [
+        "Matriz como array bidimensional: filas x columnas",
+        "Acceso con doble índice: `matriz[fila][columna]`",
+        "Inicialización con valores entre llaves anidadas",
+        "Recorrido con bucles anidados",
+        "Propiedades `.length` y `[i].length`",
+        "Medias por fila (alumno) y por columna (asignatura)",
+        "Matrices irregulares (jagged arrays)"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.a"
+      ]
+    },
+    {
+      "id": "lesson-11-3",
+      "title": "Recorridos y transformaciones de arrays",
+      "objectives": [
+        "Aplicar diferentes estrategias de recorrido sobre arrays",
+        "Realizar copias, inversiones y eliminaciones en arrays",
+        "Manipular arrays con el dominio de alumnos y cursos",
+        "Comprender las limitaciones de los arrays estáticos frente a las colecciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Estrategias de recorrido",
+          "content": "Un array se puede recorrer de varias formas según la operación que necesitemos:\n\n1. **Recorrido lineal**: visitar cada elemento de izquierda a derecha.\n2. **Recorrido inverso**: visitar los elementos de derecha a izquierda.\n3. **Recorrido por parejas**: comparar elementos adyacentes.\n4. **Recorrido con selección**: visitar solo los que cumplen una condición.\n\nCada estrategia tiene su caso de uso. Por ejemplo:\n- **Invertir** un array requiere recorrer desde los extremos hacia el centro.\n- **Eliminar duplicados** requiere un doble recorrido.\n- **Ordenar** requiere comparar elementos entre sí."
+        },
+        {
+          "type": "code",
+          "title": "Invertir un array",
+          "language": "java",
+          "content": "public class InvertirArray {\n    public static void main(String[] args) {\n        int[] numeros = {1, 2, 3, 4, 5, 6, 7};\n\n        System.out.println(\"Original:\");\n        for (int n : numeros) System.out.print(n + \" \");\n        System.out.println();\n\n        // Intercambiar desde los extremos hacia el centro\n        for (int i = 0; i < numeros.length / 2; i++) {\n            int j = numeros.length - 1 - i;  // Indice espejo\n            int temp = numeros[i];\n            numeros[i] = numeros[j];\n            numeros[j] = temp;\n        }\n\n        System.out.println(\"Invertido:\");\n        for (int n : numeros) System.out.print(n + \" \");\n        System.out.println();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Filtrar elementos de un array",
+          "language": "java",
+          "content": "public class FiltrarArray {\n    public static void main(String[] args) {\n        double[] notas = {8.5, 3.0, 7.2, 4.5, 9.0, 2.8, 6.5, 1.5};\n\n        // Contar cuantos estan aprobados para saber el tamano\n        int numAprobados = 0;\n        for (double nota : notas) {\n            if (nota >= 5.0) numAprobados++;\n        }\n\n        // Crear array nuevo solo con aprobados\n        double[] aprobados = new double[numAprobados];\n        int idx = 0;\n        for (double nota : notas) {\n            if (nota >= 5.0) {\n                aprobados[idx] = nota;\n                idx++;\n            }\n        }\n\n        System.out.println(\"Aprobados (\" + aprobados.length + \"):\");\n        for (double nota : aprobados) {\n            System.out.printf(\"  %.1f%n\", nota);\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Copiar arrays de objetos",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class CopiarArrays {\n    public static void main(String[] args) {\n        // Arrays de primitivos: clone() funciona correctamente\n        double[] notas = {8.5, 7.0, 9.2};\n        double[] notasCopia = notas.clone(); // Copia superficial\n        notasCopia[0] = 10.0;\n        System.out.println(\"Original: \" + notas[0]);      // 8.5\n        System.out.println(\"Copia: \" + notasCopia[0]);   // 10.0\n\n        // Arrays de objetos: clone() copia las referencias\n        Alumno[] alumnos = {\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\")\n        };\n        Alumno[] alumnosCopia = alumnos.clone();\n        // ambas referencias apuntan al MISMO objeto\n        System.out.println(alumnos[0] == alumnosCopia[0]); // true!\n\n        // Para arrays de objetos, usa un bucle y crea nuevos objetos:\n        Alumno[] alumnosCopiaReal = new Alumno[alumnos.length];\n        for (int i = 0; i < alumnos.length; i++) {\n            alumnosCopiaReal[i] = new Alumno(\n                alumnos[i].getNombre(),\n                alumnos[i].getEmail()\n            );\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Limitaciones de los arrays",
+          "content": "Los arrays son eficientes pero tienen limitaciones importantes:\n\n| Limitación | Descripción |\n|------------|-------------|\n| Tamaño fijo | No se puede ampliar ni reducir después de crearlos |\n| Solo un tipo | Todos los elementos deben ser del mismo tipo |\n| No hay métodos útiles | No tienen add(), remove(), contains()... |\n| No hay iterador | No se puede modificar el array mientras se recorre |\n\nPara superar estas limitaciones, Java ofrece las **colecciones** (`ArrayList`, `List`, `Set`, `Map`...), que veremos en el siguiente módulo. Mientras tanto, los arrays siguen siendo útiles para:\n- Datos con tamaño conocido y fijo.\n- Rendimiento: los arrays son más rápidos que las colecciones.\n- Compatibilidad con APIs que requieren arrays."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-3-1",
+          "difficulty": "basic",
+          "title": "Suma de pares e impares",
+          "description": "Dado un array de enteros, calcula la suma de los valores pares y la suma de los valores impares por separado.",
+          "solution": "public class ParesImpares {\n    public static void main(String[] args) {\n        int[] numeros = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};\n        int sumaPares = 0;\n        int sumaImpares = 0;\n        \n        for (int n : numeros) {\n            if (n % 2 == 0) {\n                sumaPares += n;\n            } else {\n                sumaImpares += n;\n            }\n        }\n        \n        System.out.println(\"Suma pares: \" + sumaPares);\n        System.out.println(\"Suma impares: \" + sumaImpares);\n    }\n}"
+        },
+        {
+          "id": "ex-11-3-2",
+          "difficulty": "intermediate",
+          "title": "Filtrar alumnos aprobados",
+          "description": "Dado un array de alumnos con notas, crea un nuevo array que contenga solo los alumnos con nota media >= 5. Muestra ambos arrays.",
+          "solution": "public class FiltrarAlumnos {\n    public static void main(String[] args) {\n        Alumno[] alumnos = {\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\")\n        };\n        alumnos[0].addNota(8.5); alumnos[0].addNota(7.0);\n        alumnos[1].addNota(3.0); alumnos[1].addNota(4.0);\n        alumnos[2].addNota(9.0); alumnos[2].addNota(8.0);\n        \n        // Contar aprobados\n        int count = 0;\n        for (Alumno a : alumnos) {\n            if (a.getNotaMedia() >= 5.0) count++;\n        }\n        \n        Alumno[] aprobados = new Alumno[count];\n        int idx = 0;\n        for (Alumno a : alumnos) {\n            if (a.getNotaMedia() >= 5.0) {\n                aprobados[idx++] = a;\n            }\n        }\n        \n        System.out.println(\"Aprobados: \" + aprobados.length);\n        for (Alumno a : aprobados) {\n            System.out.printf(\"  %s - Media: %.1f%n\", a.getNombre(), a.getNotaMedia());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-11-3-3",
+          "difficulty": "advanced",
+          "title": "Ordenar un array con Bubble Sort",
+          "description": "Implementa el algoritmo Bubble Sort para ordenar un array de enteros de menor a mayor. Muestra el array en cada pasada.",
+          "solution": "public class BubbleSort {\n    public static void main(String[] args) {\n        int[] numeros = {5, 3, 8, 1, 9, 2, 7};\n        \n        System.out.println(\"Original:\");\n        for (int n : numeros) System.out.print(n + \" \");\n        System.out.println();\n        \n        // Bubble Sort\n        for (int i = 0; i < numeros.length - 1; i++) {\n            boolean intercambiado = false;\n            for (int j = 0; j < numeros.length - 1 - i; j++) {\n                if (numeros[j] > numeros[j + 1]) {\n                    int temp = numeros[j];\n                    numeros[j] = numeros[j + 1];\n                    numeros[j + 1] = temp;\n                    intercambiado = true;\n                }\n            }\n            System.out.print(\"Pasada \" + (i+1) + \": \");\n            for (int n : numeros) System.out.print(n + \" \");\n            System.out.println();\n            \n            if (!intercambiado) break; // Ya ordenado\n        }\n        \n        System.out.println(\"Ordenado:\");\n        for (int n : numeros) System.out.print(n + \" \");\n        System.out.println();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Intentar invertir un array recorriendo solo de izquierda a derecha: se necesitan dos índices (inicio y fin).",
+        "No usar variable auxiliar al intercambiar: `a = b; b = a;` pierde el valor original de `a`.",
+        "Filtrar creando un array del mismo tamaño que el original sin rellenar todos los elementos: quedan ceros fantasma.",
+        "Intentar modificar un array mientras se recorre con for-each: no se puede eliminar ni insertar con for-each.",
+        "Olvidar que `clone()` en arrays de objetos solo copia las referencias, no los objetos."
+      ],
+      "keyConcepts": [
+        "Recorrido inverso con dos índices",
+        "Filtrado de elementos en arrays",
+        "Copia de arrays: clone() para primitivos, bucle para objetos",
+        "Limitaciones de arrays estáticos frente a colecciones",
+        "Intercambio de valores con variable auxiliar",
+        "Bubble Sort como algoritmo introductorio de ordenación"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.a",
+        "RA6.b"
+      ]
+    },
+    {
+      "id": "lesson-11-4",
+      "title": "Búsqueda y ordenación de arrays",
+      "objectives": [
+        "Implementar búsqueda lineal en arrays de objetos",
+        "Implementar búsqueda binaria en arrays ordenados",
+        "Aplicar algoritmos de ordenación: Selection Sort y Bubble Sort",
+        "Comparar la eficiencia de los algoritmos de búsqueda y ordenación",
+        "Resolver problemas prácticos del dominio académico con arrays"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Búsqueda lineal",
+          "content": "La **búsqueda lineal** (o secuencial) recorre el array elemento por elemento hasta encontrar el valor buscado o llegar al final.\n\n**Complejidad**: O(n) — en el peor caso, recorre todo el array.\n\n**Ventaja**: funciona en arrays sin ordenar.\n**Desventaja**: es lenta para arrays grandes.\n\n```java\npublic static int buscarLineal(String[] array, String valor) {\n    for (int i = 0; i < array.length; i++) {\n        if (array[i].equals(valor)) {\n            return i;\n        }\n    }\n    return -1; // No encontrado\n}\n```"
+        },
+        {
+          "type": "text",
+          "title": "Búsqueda binaria",
+          "content": "La **búsqueda binaria** divide el array por la mitad en cada paso. Requiere que el array esté **ordenado**.\n\n**Complejidad**: O(log₂n) — para 1.000 elementos, solo ~10 comparaciones.\n\n**Algoritmo:**\n1. Comparar el valor del medio con el buscado.\n2. Si son iguales, encontrado.\n3. Si el valor buscado es menor, buscar en la mitad izquierda.\n4. Si es mayor, buscar en la mitad derecha.\n5. Repetir hasta encontrar o quedarse sin espacio.\n\n```java\npublic static int buscarBinaria(int[] array, int valor) {\n    int inicio = 0;\n    int fin = array.length - 1;\n    \n    while (inicio <= fin) {\n        int medio = (inicio + fin) / 2;\n        if (array[medio] == valor) {\n            return medio;\n        } else if (array[medio] < valor) {\n            inicio = medio + 1;\n        } else {\n            fin = medio - 1;\n        }\n    }\n    return -1;\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Búsqueda en arrays de alumnos",
+          "language": "java",
+          "content": "public class BusquedaAlumnos {\n    public static void main(String[] args) {\n        String[] nombres = {\n            \"Ana\", \"Carlos\", \"Elena\", \"Laura\", \"Maria\", \"Pedro\"\n        };\n        double[] notas = {8.5, 7.0, 9.2, 6.8, 8.0, 5.5};\n\n        // Busqueda lineal por nombre\n        String buscar = \"Laura\";\n        int indice = busquedaLineal(nombres, buscar);\n\n        if (indice != -1) {\n            System.out.printf(\"%s encontrada en posicion %d - Nota: %.1f%n\",\n                buscar, indice, notas[indice]);\n        } else {\n            System.out.println(buscar + \" no encontrada\");\n        }\n\n        // Buscar el alumno con mejor nota\n        int mejorIdx = 0;\n        for (int i = 1; i < notas.length; i++) {\n            if (notas[i] > notas[mejorIdx]) {\n                mejorIdx = i;\n            }\n        }\n        System.out.printf(\"Mejor alumno: %s (%.1f)%n\",\n            nombres[mejorIdx], notas[mejorIdx]);\n    }\n\n    public static int busquedaLineal(String[] array, String valor) {\n        for (int i = 0; i < array.length; i++) {\n            if (array[i].equals(valor)) {\n                return i;\n            }\n        }\n        return -1;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Algoritmos de ordenación",
+          "language": "java",
+          "content": "public class OrdenacionArrays {\n\n    // === Selection Sort: busca el minimo y lo pone al inicio ===\n    public static void selectionSort(int[] arr) {\n        for (int i = 0; i < arr.length - 1; i++) {\n            int minIdx = i;\n            for (int j = i + 1; j < arr.length; j++) {\n                if (arr[j] < arr[minIdx]) {\n                    minIdx = j;\n                }\n            }\n            // Intercambiar arr[i] con arr[minIdx]\n            int temp = arr[i];\n            arr[i] = arr[minIdx];\n            arr[minIdx] = temp;\n        }\n    }\n\n    // === Bubble Sort: burbuja elementos grandes al final ===\n    public static void bubbleSort(int[] arr) {\n        for (int i = 0; i < arr.length - 1; i++) {\n            boolean intercambiado = false;\n            for (int j = 0; j < arr.length - 1 - i; j++) {\n                if (arr[j] > arr[j + 1]) {\n                    int temp = arr[j];\n                    arr[j] = arr[j + 1];\n                    arr[j + 1] = temp;\n                    intercambiado = true;\n                }\n            }\n            if (!intercambiado) break;\n        }\n    }\n\n    public static void mostrar(int[] arr) {\n        for (int n : arr) System.out.print(n + \" \");\n        System.out.println();\n    }\n\n    public static void main(String[] args) {\n        int[] nums1 = {64, 25, 12, 22, 11};\n        int[] nums2 = {64, 25, 12, 22, 11};\n\n        System.out.println(\"Selection Sort:\");\n        mostrar(nums1);\n        selectionSort(nums1);\n        mostrar(nums1);\n\n        System.out.println(\"Bubble Sort:\");\n        mostrar(nums2);\n        bubbleSort(nums2);\n        mostrar(nums2);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Comparación de algoritmos",
+          "content": "| Algoritmo | Tipo | Mejor caso | Peor caso | Requiere orden |\n|-----------|------|------------|-----------|----------------|\n| Lineal | Búsqueda | O(1) | O(n) | No |\n| Binaria | Búsqueda | O(1) | O(log₂n) | Sí |\n| Selection Sort | Ordenación | O(n²) | O(n²) | No |\n| Bubble Sort | Ordenación | O(n) | O(n²) | No |\n\n**¿Cuándo usar cada uno?**\n- **Búsqueda lineal**: array pequeño o desordenado.\n- **Búsqueda binaria**: array grande y ordenado.\n- **Selection Sort**: array pequeño, simple de entender.\n- **Bubble Sort**: array pequeño, detecta si ya está ordenado.\n\nPara arrays grandes en producción, se usan algoritmos como **QuickSort** o **MergeSort** (O(n log n)), o simplemente `Arrays.sort()` de Java."
+        },
+        {
+          "type": "code",
+          "title": "Usar Arrays.sort() de Java",
+          "language": "java",
+          "content": "import java.util.Arrays;\n\npublic class ArraysSort {\n    public static void main(String[] args) {\n        // Arrays.sort() usa Dual-Pivot Quicksort (O(n log n))\n        int[] numeros = {64, 25, 12, 22, 11};\n        System.out.println(\"Antes: \" + Arrays.toString(numeros));\n\n        Arrays.sort(numeros);\n        System.out.println(\"Despues: \" + Arrays.toString(numeros));\n\n        // Buscar en array ordenado con busqueda binaria\n        int indice = Arrays.binarySearch(numeros, 22);\n        System.out.println(\"22 encontrado en posicion: \" + indice);\n\n        // Arrays de strings\n        String[] nombres = {\"Pedro\", \"Ana\", \"Carlos\", \"Maria\"};\n        Arrays.sort(nombres);\n        System.out.println(\"Nombres ordenados: \" + Arrays.toString(nombres));\n\n        // Copiar un array\n        int[] copia = Arrays.copyOf(numeros, numeros.length);\n        System.out.println(\"Copia: \" + Arrays.toString(copia));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-4-1",
+          "difficulty": "basic",
+          "title": "Búsqueda lineal de alumnos",
+          "description": "Dado un array de nombres de alumnos, implementa una función que busque un nombre y devuelva su índice. Prueba buscando un nombre que existe y otro que no.",
+          "solution": "public class BuscarAlumno {\n    public static int buscar(String[] nombres, String objetivo) {\n        for (int i = 0; i < nombres.length; i++) {\n            if (nombres[i].equals(objetivo)) {\n                return i;\n            }\n        }\n        return -1;\n    }\n    \n    public static void main(String[] args) {\n        String[] nombres = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\"};\n        \n        String[] buscar = {\"Maria\", \"Elena\"};\n        for (String nombre : buscar) {\n            int idx = buscar(nombres, nombre);\n            if (idx != -1) {\n                System.out.println(nombre + \" encontrada en posicion \" + idx);\n            } else {\n                System.out.println(nombre + \" no encontrada\");\n            }\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-11-4-2",
+          "difficulty": "intermediate",
+          "title": "Ordenar alumnos por nota",
+          "description": "Dado un array de nombres y un array de notas paralelos, ordénalos de mayor a menor nota usando Selection Swap.",
+          "solution": "public class OrdenarPorNota {\n    public static void main(String[] args) {\n        String[] nombres = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\"};\n        double[] notas = {8.5, 7.0, 9.2, 5.5};\n        \n        // Selection Sort por nota (descendente)\n        for (int i = 0; i < notas.length - 1; i++) {\n            int maxIdx = i;\n            for (int j = i + 1; j < notas.length; j++) {\n                if (notas[j] > notas[maxIdx]) {\n                    maxIdx = j;\n                }\n            }\n            // Intercambiar tanto las notas como los nombres\n            double tempNota = notas[i];\n            notas[i] = notas[maxIdx];\n            notas[maxIdx] = tempNota;\n            \n            String tempNombre = nombres[i];\n            nombres[i] = nombres[maxIdx];\n            nombres[maxIdx] = tempNombre;\n        }\n        \n        System.out.println(\"Ordenados por nota (mayor a menor):\" );\n        for (int i = 0; i < nombres.length; i++) {\n            System.out.printf(\"%s: %.1f%n\", nombres[i], notas[i]);\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-11-4-3",
+          "difficulty": "advanced",
+          "title": "Sistema completo de gestión de notas con arrays",
+          "description": "Crea un programa que gestione notas de alumnos usando arrays paralelos (nombres[], notas[][]). El programa debe:\n1. Mostrar la tabla de notas completa\n2. Calcular la media por alumno\n3. Calcular la media por asignatura\n4. Buscar un alumno por nombre\n5. Encontrar el alumno con mejor media global\n6. Contar aprobados/suspensos por asignatura",
+          "solution": "public class GestionNotas {\n    public static void main(String[] args) {\n        String[] alumnos = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\", \"Laura\"};\n        String[] asignaturas = {\"Mat\", \"Fis\", \"Prog\", \"BDDS\"};\n        double[][] notas = {\n            {8.5, 7.0, 9.2, 6.8},\n            {7.0, 8.5, 6.5, 8.0},\n            {9.0, 6.0, 7.5, 9.5},\n            {5.5, 7.0, 8.0, 6.0},\n            {8.0, 9.0, 7.0, 8.5}\n        };\n        \n        // 1. Tabla completa\n        System.out.println(\"=== TABLA DE NOTAS ===\");\n        System.out.printf(\"%-10s\", \"Alumno\");\n        for (String asig : asignaturas) System.out.printf(\"%8s\", asig);\n        System.out.println();\n        for (int i = 0; i < alumnos.length; i++) {\n            System.out.printf(\"%-10s\", alumnos[i]);\n            for (int j = 0; j < notas[i].length; j++) {\n                System.out.printf(\"%8.1f\", notas[i][j]);\n            }\n            System.out.println();\n        }\n        \n        // 2. Media por alumno\n        System.out.println(\"\\n=== MEDIA POR ALUMNO ===\");\n        for (int i = 0; i < alumnos.length; i++) {\n            double suma = 0;\n            for (double n : notas[i]) suma += n;\n            System.out.printf(\"%s: %.2f%n\", alumnos[i], suma / notas[i].length);\n        }\n        \n        // 3. Media por asignatura\n        System.out.println(\"\\n=== MEDIA POR ASIGNATURA ===\");\n        for (int j = 0; j < asignaturas.length; j++) {\n            double suma = 0;\n            for (int i = 0; i < alumnos.length; i++) suma += notas[i][j];\n            System.out.printf(\"%s: %.2f%n\", asignaturas[j], suma / alumnos.length);\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Mezclar arrays paralelos (nombres[] y notas[][]) que no están sincronizados en tamaño.",
+        "Usar búsqueda binaria en un array no ordenado: los resultados serán incorrectos.",
+        "No intercambiar también los arrays paralelos al ordenar: si ordenas las notas pero no los nombres, se desincronizan.",
+        "Olvidar que `Arrays.binarySearch()` solo funciona en arrays ordenados con `Arrays.sort()` previo.",
+        "No considerar que `Arrays.sort()` para objetos usa `Comparable` o `Comparator`. Sin ellos, no sabe cómo ordenar."
+      ],
+      "keyConcepts": [
+        "Búsqueda lineal: recorre todo el array, O(n)",
+        "Búsqueda binaria: divide por la mitad, O(log₂n), requiere array ordenado",
+        "Selection Sort: busca el mínimo y lo intercambia al inicio",
+        "Bubble Sort: burbuja los elementos grandes al final",
+        "Arrays.sort() de Java: Dual-Pivot Quicksort, O(n log n)",
+        "Arrays paralelos: arrays sincronizados por índice"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.a",
+        "RA6.b"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Sistema de gestión de notas con arrays",
+    "description": "Crea un programa completo que gestione un sistema académico usando arrays y matrices:\n\n1. **Modelo de datos con arrays paralelos**:\n   - `String[] nombres` — nombres de 5 alumnos\n   - `String[] asignaturas` — nombres de 4 asignaturas\n   - `double[][] notas` — matriz 5x4 de notas\n   - `boolean[] activos` — si el alumno está activo o no\n\n2. **Funcionalidades**:\n   - Mostrar la tabla de notas completa formateada\n   - Calcular y mostrar la media por alumno\n   - Calcular y mostrar la media por asignatura\n   - Buscar un alumno por nombre (búsqueda lineal)\n   - Encontrar el alumno con mejor media global\n   - Contar aprobados y suspensos por asignatura\n   - Ordenar alumnos por nota media (Selection Sort)\n   - Mostrar ranking de alumnos\n\n3. **Validaciones**:\n   - Notas entre 0 y 10\n   - No repetir nombres de alumnos\n   - Manejar arrays vacíos\n\n4. **Métodos auxiliares**:\n   - `double calcularMedia(double[] notas)` — media de un array\n   - `int buscarAlumno(String[] nombres, String nombre)` — búsqueda lineal\n   - `void selectionSort(double[] arr, String[] nombres)` — ordenar paralelamente\n   - `void mostrarTabla(String[] alumnos, String[] asigs, double[][] notas)` — tabla formateada\n\n5. **Bucle de menú** con opciones:\n   1. Mostrar notas\n   2. Calcular medias\n   3. Buscar alumno\n   4. Ordenar por nota\n   5. Contar aprobados/suspensos\n   0. Salir",
+    "learningOutcomes": [
+      "RA6"
+    ],
+    "assessmentCriteria": [
+      "RA6.a",
+      "RA6.b"
+    ]
+  }
+}

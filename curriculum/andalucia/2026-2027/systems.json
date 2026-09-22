@@ -1,0 +1,101 @@
+{
+  "jurisdiction": "andalucia",
+  "academicYear": "2026-2027",
+  "degree": ["DAM", "DAW"],
+  "year": 1,
+  "moduleCode": "0483",
+  "officialName": "Sistemas informáticos",
+  "weeklyHours": 5,
+  "totalHours": 170,
+  "stateMinimumHours": 100,
+  "ects": 10,
+  "sources": [{"sourceId": "BOE-A-2023-13221", "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-13221", "sourceTitle": "Real Decreto 405/2023, de 29 de mayo", "sourceDate": "2023-06-03", "annex": "ANEXO I"}],
+  "learningOutcomes": [
+    {"id": "RA1", "description": "Evalúa sistemas informáticos, identificando sus componentes y características.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"},
+    {"id": "RA2", "description": "Instala sistemas operativos planificando el proceso e interpretando documentación técnica.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"},
+    {"id": "RA3", "description": "Gestiona la información del sistema identificando las estructuras de almacenamiento y aplicando medidas para asegurar la integridad de los datos.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"},
+    {"id": "RA4", "description": "Gestiona sistemas operativos utilizando comandos y herramientas gráficas y evaluando las necesidades del sistema.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"},
+    {"id": "RA5", "description": "Interconecta sistemas en red configurando dispositivos y protocolos.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"},
+    {"id": "RA6", "description": "Opera sistemas en red gestionando sus recursos e identificando las restricciones de seguridad existentes.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"},
+    {"id": "RA7", "description": "Elabora documentación valorando y utilizando aplicaciones informáticas de propósito general.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0483"}
+  ],
+  "assessmentCriteria": {
+    "RA1": [
+      {"id": "RA1.a", "description": "Se han reconocido los componentes físicos de un sistema informático y sus mecanismos de interconexión."},
+      {"id": "RA1.b", "description": "Se han clasificado los tipos de memorias, señalando sus características e identificando sus prestaciones y la función que desarrollan en el conjunto del sistema."},
+      {"id": "RA1.c", "description": "Se ha verificado el proceso de puesta en marcha de un equipo."},
+      {"id": "RA1.d", "description": "Se han clasificado, instalado y configurado diferentes tipos de dispositivos periféricos."},
+      {"id": "RA1.e", "description": "Se han identificado los tipos de redes y sistemas de comunicación."},
+      {"id": "RA1.f", "description": "Se han identificado los componentes de una red informática."},
+      {"id": "RA1.g", "description": "Se han interpretado mapas físicos y lógicos de una red informática."},
+      {"id": "RA1.h", "description": "Se han reconocido las normas de seguridad y prevención de riesgos laborales en el uso de los sistemas informáticos."}
+    ],
+    "RA2": [
+      {"id": "RA2.a", "description": "Se han identificado los elementos funcionales de un sistema informático."},
+      {"id": "RA2.b", "description": "Se han analizado las características, funciones y arquitectura de un sistema operativo."},
+      {"id": "RA2.c", "description": "Se han comparado sistemas operativos en base a sus requisitos, características, campos de aplicación y licencias de uso."},
+      {"id": "RA2.d", "description": "Se ha planificado el proceso de la instalación de sistemas operativos."},
+      {"id": "RA2.e", "description": "Se han instalado y actualizado sistemas operativos libres y propietarios."},
+      {"id": "RA2.f", "description": "Se han aplicado técnicas de actualización y recuperación del sistema."},
+      {"id": "RA2.g", "description": "Se han utilizado tecnologías de virtualización para instalar y probar sistemas operativos."},
+      {"id": "RA2.h", "description": "Se han instalado, desinstalado y actualizado aplicaciones."},
+      {"id": "RA2.i", "description": "Se han documentado los procesos realizados."}
+    ],
+    "RA3": [
+      {"id": "RA3.a", "description": "Se han comparado sistemas de archivos."},
+      {"id": "RA3.b", "description": "Se ha identificado la estructura y función de los directorios del sistema operativo."},
+      {"id": "RA3.c", "description": "Se han utilizado herramientas en entorno gráfico y comandos para localizar información en el sistema de archivos."},
+      {"id": "RA3.d", "description": "Se han creado diferentes tipos de particiones y unidades lógicas."},
+      {"id": "RA3.e", "description": "Se han realizado y restaurado copias de seguridad."},
+      {"id": "RA3.f", "description": "Se han planificado y automatizado tareas."},
+      {"id": "RA3.g", "description": "Se han instalado y evaluado utilidades relacionadas con la gestión de información."}
+    ],
+    "RA4": [
+      {"id": "RA4.a", "description": "Se han configurado cuentas de usuario locales y grupos."},
+      {"id": "RA4.b", "description": "Se ha asegurado el acceso al sistema mediante el uso de directivas de cuenta y directivas de contraseñas."},
+      {"id": "RA4.c", "description": "Se han identificado, arrancado y detenido servicios y procesos."},
+      {"id": "RA4.d", "description": "Se ha protegido el acceso a la información mediante el uso de permisos locales y listas de control de acceso."},
+      {"id": "RA4.e", "description": "Se han utilizado comandos para realizar las tareas básicas de configuración y administración del sistema."},
+      {"id": "RA4.f", "description": "Se ha monitorizado el sistema."},
+      {"id": "RA4.g", "description": "Se han instalado y evaluado utilidades para el mantenimiento y optimización del sistema."},
+      {"id": "RA4.h", "description": "Se han evaluado las necesidades del sistema informático en relación con el desarrollo de aplicaciones."}
+    ],
+    "RA5": [
+      {"id": "RA5.a", "description": "Se ha configurado el protocolo TCP/IP."},
+      {"id": "RA5.b", "description": "Se han configurado redes de área local cableadas."},
+      {"id": "RA5.c", "description": "Se han configurado redes de área local inalámbricas."},
+      {"id": "RA5.d", "description": "Se han utilizado dispositivos de interconexión de redes."},
+      {"id": "RA5.e", "description": "Se ha configurado el acceso a redes de área extensa."},
+      {"id": "RA5.f", "description": "Se han gestionado puertos de comunicaciones."},
+      {"id": "RA5.g", "description": "Se ha verificado el funcionamiento de la red mediante el uso de comandos y herramientas básicas."},
+      {"id": "RA5.h", "description": "Se han aplicado protocolos seguros de comunicaciones."}
+    ],
+    "RA6": [
+      {"id": "RA6.a", "description": "Se ha configurado el acceso a recursos locales y recursos de red."},
+      {"id": "RA6.b", "description": "Se han identificado y configurado los derechos de usuario y directivas de seguridad."},
+      {"id": "RA6.c", "description": "Se han explotado servidores de ficheros, servidores de impresión y servidores de aplicaciones."},
+      {"id": "RA6.d", "description": "Se ha accedido a los servidores utilizando técnicas de conexión remota."},
+      {"id": "RA6.e", "description": "Se ha evaluado la necesidad de proteger los recursos y el sistema."},
+      {"id": "RA6.f", "description": "Se han instalado y evaluado utilidades de seguridad básica."},
+      {"id": "RA6.g", "description": "Se han configurado y explotado dominios."}
+    ],
+    "RA7": [
+      {"id": "RA7.a", "description": "Se ha clasificado software en función de su licencia y propósito."},
+      {"id": "RA7.b", "description": "Se han analizado las necesidades específicas de software asociadas al uso de sistemas informáticos en diferentes entornos productivos."},
+      {"id": "RA7.c", "description": "Se han realizado tareas de documentación mediante el uso de herramientas ofimáticas y de trabajo colaborativo."},
+      {"id": "RA7.d", "description": "Se han utilizado sistemas de correo y mensajería electrónica."},
+      {"id": "RA7.e", "description": "Se han utilizado los servicios de transferencia de ficheros."},
+      {"id": "RA7.f", "description": "Se han utilizado métodos de búsqueda de documentación técnica mediante el uso de servicios de Internet."},
+      {"id": "RA7.g", "description": "Se han utilizado herramientas de propósito general."}
+    ]
+  },
+  "officialContents": [
+    {"section": "Explotación de sistemas microinformáticos", "items": ["Placas base. Formatos", "Estructura y componentes del procesador, memoria, E/S", "Normas de seguridad y PRL", "Redes: características, tipos, componentes, topologías, cableado", "Mapa físico y lógico de una red local"]},
+    {"section": "Instalación de sistemas operativos", "items": ["Evolución histórica y clasificación", "Funciones y tipos de SO", "Licencias", "Procedimiento de instalación", "Gestores de arranque", "Virtualización", "Instalación de SO libres y propietarios", "Actualización y recuperación"]},
+    {"section": "Gestión de la información", "items": ["Sistemas de archivos", "Estructura de directorios", "Búsqueda de información", "Copias de seguridad", "Administración de discos", "Tareas automáticas"]},
+    {"section": "Configuración de sistemas operativos", "items": ["Usuarios y grupos", "Seguridad de cuentas y contraseñas", "Permisos y ACL", "Servicios y procesos", "Comandos de SO", "Monitorización"]},
+    {"section": "Conexión de sistemas en red", "items": ["TCP/IP: IP, máscaras, puertas de enlace, DNS", "Configuración de red", "Gestión de puertos", "Diagnóstico de conectividad", "Monitorización de redes", "Interconexión de redes", "Redes cableadas e inalámbricas", "Seguridad de comunicaciones"]},
+    {"section": "Gestión de recursos en una red", "items": ["Permisos y derechos", "Recursos compartidos", "Seguridad del sistema", "Servidores de ficheros/impresión/aplicaciones", "Conexión remota", "Cortafuegos", "Dominios"]},
+    {"section": "Explotación de aplicaciones informáticas de propósito general", "items": ["Software: tipos, licencias", "Herramientas ofimáticas", "Utilidades de propósito general"]}
+  ]
+}

@@ -1,0 +1,504 @@
+{
+  "id": "mod-04",
+  "title": "Estructuras de control — repetición y excepciones",
+  "description": "Este módulo completa las estructuras de control con bucles (for, for-each, while, do-while), sentencias de salto (break, continue) y anidamiento de bucles. También se introducen las excepciones como mecanismo de control de errores y las aserciones para verificar supuestos durante el desarrollo.",
+  "phase": "phase-2",
+  "position": 4,
+  "learningOutcomes": [
+    "RA3"
+  ],
+  "assessmentCriteria": [
+    "RA3.b",
+    "RA3.c",
+    "RA3.d",
+    "RA3.f",
+    "RA3.h",
+    "RA3.i"
+  ],
+  "officialContents": [
+    "Uso de estructuras de control (completo: repetición, salto, excepciones, aserciones, depuración)"
+  ],
+  "duration": "14 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-03"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-04-1",
+      "title": "Bucles for y for-each",
+      "objectives": [
+        "Escribir bucles for para repetir un bloque de código un número determinado de veces",
+        "Usar la forma abreviada del bucle for con inicialización, condición e incremento",
+        "Recorrer arrays con el bucle for-each (for mejorado)",
+        "Evitar bucles infinitos y gestionar correctamente las variables de control"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es un bucle?",
+          "content": "Un **bucle** es una estructura de control que repite un bloque de código mientras se cumpla una condición. Sin bucles, tendríamos que escribir la misma instrucción muchas veces para realizar tareas repetitivas.\n\nJava ofrece varios tipos de bucles:\n- **`for`**: cuando sabemos de antemano cuántas veces queremos repetir.\n- **`for-each`** (for mejorado): para recorrer colecciones o arrays.\n- **`while`**: cuando no sabemos cuántas veces se repetirá, pero la condición se comprueba al inicio.\n- **`do-while`**: similar a while, pero la condición se comprueba al final (se ejecuta al menos una vez).\n\nEn este nos centraremos en `for` y `for-each`."
+        },
+        {
+          "type": "text",
+          "title": "El bucle for",
+          "content": "El bucle `for` tiene esta estructura:\n\n```java\nfor (inicializacion; condicion; actualizacion) {\n    // Bloque de codigo que se repite\n}\n```\n\nLos tres elementos entre paréntesis son:\n1. **Inicialización**: se ejecuta una sola vez al inicio. Normalmente declara un contador: `int i = 0`.\n2. **Condición**: se comprueba antes de cada iteración. Si es `true`, se ejecuta el bloque. Si es `false`, el bucle termina.\n3. **Actualización**: se ejecuta al final de cada iteración. Normalmente incrementa o decrementa el contador: `i++`.\n\n**Flujo de ejecución**:\n1. Se ejecuta la inicialización (`int i = 0`).\n2. Se comprueba la condición (`i < 10`).\n3. Si es true, se ejecuta el bloque.\n4. Se ejecuta la actualización (`i++`).\n5. Se vuelve al paso 2.\n\nEjemplo: imprimir los números del 0 al 9:\n```java\nfor (int i = 0; i < 10; i++) {\n    System.out.println(i);\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplos de bucles for",
+          "language": "java",
+          "content": "public class BucleFor {\n    public static void main(String[] args) {\n        // Ejemplo 1: contar del 1 al 5\n        System.out.println(\"Contando del 1 al 5:\");\n        for (int i = 1; i <= 5; i++) {\n            System.out.println(i);\n        }\n\n        // Ejemplo 2: suma de los primeros 10 numeros\n        int suma = 0;\n        for (int i = 1; i <= 10; i++) {\n            suma += i;\n        }\n        System.out.println(\"Suma del 1 al 10: \" + suma);\n\n        // Ejemplo 3: tabla de multiplicar\n        int numero = 7;\n        System.out.println(\"Tabla del \" + numero + \":\");\n        for (int i = 1; i <= 10; i++) {\n            System.out.printf(\"%d x %2d = %3d%n\", numero, i, numero * i);\n        }\n\n        // Ejemplo 4: contar hacia atras\n        System.out.println(\"Cuenta atras:\");\n        for (int i = 10; i >= 0; i--) {\n            System.out.println(i);\n        }\n        System.out.println(\"¡Despegue!\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "El bucle for-each (for mejorado)",
+          "content": "El bucle **for-each** (también llamado \"for mejorado\") se usa para recorrer arrays o colecciones sin necesidad de manejar un índice manualmente. Su sintaxis es:\n\n```java\nfor (tipoVariable : array) {\n    // Cada iteracion, 'tipoVariable' contiene el siguiente elemento\n}\n```\n\n**Ventaja**: es más legible y no puedes cometer errores de índice (como \"out of bounds\").\n\n**Desventaja**: no tienes acceso al índice, así que no sabes en qué posición estás (a menos que uses un contador aparte).\n\n```java\nString[] frutas = {\"Manzana\", \"Pera\", \"Naranja\", \"Platano\"};\n\n// Con for clasico\nfor (int i = 0; i < frutas.length; i++) {\n    System.out.println(i + \": \" + frutas[i]);\n}\n\n// Con for-each (mas limpio)\nfor (String fruta : frutas) {\n    System.out.println(fruta);\n}\n```\n\nEl for-each es ideal cuando solo necesitas leer los elementos, no modificar su posición."
+        },
+        {
+          "type": "code",
+          "title": "For-each con arrays de distintos tipos",
+          "language": "java",
+          "content": "public class ForEach {\n    public static void main(String[] args) {\n        // Array de String\n        String[] alumnos = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\"};\n        System.out.println(\"Alumnos:\");\n        for (String alumno : alumnos) {\n            System.out.println(\"  - \" + alumno);\n        }\n\n        // Array de double\n        double[] notas = {8.5, 7.0, 6.5, 9.0, 5.5};\n        System.out.println(\"\\nNotas:\");\n        for (double nota : notas) {\n            String estado = (nota >= 5.0) ? \"Aprobado\" : \"Suspendido\";\n            System.out.printf(\"  Nota: %.1f - %s%n\", nota, estado);\n        }\n\n        // Array de int\n        int[] numeros = {10, 20, 30, 40, 50};\n        int suma = 0;\n        for (int num : numeros) {\n            suma += num;\n        }\n        System.out.println(\"\\nSuma: \" + suma);\n        System.out.println(\"Media: \" + (double) suma / numeros.length);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Bucles infinitos y cómo evitarlos",
+          "content": "Un **bucle infinito** es un bucle que nunca termina porque su condición siempre es `true`. Esto suele ser un error, pero a veces se usa intencionadamente (por ejemplo, en un servidor que escucha peticiones continuamente).\n\n```java\n// ERROR: bucle infinito\nfor (int i = 0; i < 10; ) {\n    System.out.println(i);\n    // Falta i++: el contador nunca cambia, el bucle es infinito\n}\n```\n\n**Causas comunes de bucles infinitos**:\n- Olvidar el incremento del contador (`i++`).\n- Poner la condición siempre true: `for (;;)`, `while (true)`.\n- Incremento en dirección incorrecta: `for (int i = 10; i >= 0; i++)` — i nunca disminuye.\n\n**Cómo salir de un bucle infinito** en Eclipse IDE: pulsa el botón rojo cuadrado en la consola, o usa `Ctrl + C` en la terminal."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo: suma acumulada",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class SumaAcumulada {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Cuantos numeros vas a introducir? \");\n        int cantidad = teclado.nextInt();\n\n        int suma = 0;\n        int contador = 0;\n\n        for (int i = 1; i <= cantidad; i++) {\n            System.out.print(\"Numero \" + i + \": \");\n            int numero = teclado.nextInt();\n            suma += numero;\n            contador++;\n        }\n\n        double media = (contador > 0) ? (double) suma / contador : 0;\n\n        System.out.println();\n        System.out.println(\"=== RESULTADO ===\");\n        System.out.println(\"Numeros introducidos: \" + contador);\n        System.out.println(\"Suma total: \" + suma);\n        System.out.printf(\"Media: %.2f%n\", media);\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-1-1",
+          "difficulty": "basic",
+          "title": "Suma de los primeros N números",
+          "description": "Crea un programa que pida un número N al usuario y calcule la suma de todos los enteros del 1 al N usando un bucle for.",
+          "solution": "import java.util.Scanner;\n\npublic class SumaN {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Introduce N: \");\n        int n = teclado.nextInt();\n\n        int suma = 0;\n        for (int i = 1; i <= n; i++) {\n            suma += i;\n        }\n\n        System.out.println(\"La suma de 1 a \" + n + \" es: \" + suma);\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-04-1-2",
+          "difficulty": "intermediate",
+          "title": "Factorial de un número",
+          "description": "Crea un programa que pida un número entero no negativo y calcule su factorial (n! = n × (n-1) × (n-2) × ... × 1). Valida la entrada.",
+          "solution": "import java.util.Scanner;\n\npublic class Factorial {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Introduce un numero (>= 0): \");\n        int n = teclado.nextInt();\n\n        if (n < 0) {\n            System.out.println(\"Error: el factorial no esta definido para negativos.\");\n        } else {\n            long factorial = 1;\n            for (int i = 2; i <= n; i++) {\n                factorial *= i;\n            }\n            System.out.println(n + \"! = \" + factorial);\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-04-1-3",
+          "difficulty": "advanced",
+          "title": "Número primo",
+          "description": "Crea un programa que pida un número entero y determine si es primo. Un número primo solo es divisible entre 1 y sí mismo. Usa un bucle for para verificar la divisibilidad.",
+          "solution": "import java.util.Scanner;\n\npublic class NumeroPrimo {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Introduce un numero: \");\n        int n = teclado.nextInt();\n\n        boolean esPrimo = true;\n\n        if (n < 2) {\n            esPrimo = false;\n        } else {\n            for (int i = 2; i * i <= n; i++) {\n                if (n % i == 0) {\n                    esPrimo = false;\n                    break;\n                }\n            }\n        }\n\n        if (esPrimo) {\n            System.out.println(n + \" es primo.\");\n        } else {\n            System.out.println(n + \" no es primo.\");\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Bucle infinito por olvidar el incremento del contador: `for (int i = 0; i < 10; )` sin `i++`.",
+        "Condición incorrecta que nunca se cumple: `for (int i = 10; i >= 0; i++)` — i nunca disminuye.",
+        "Usar `=` en vez de `==` en la condición del for: `for (int i = 0; i = 10; i++)` asigna 10 siempre y es un bucle infinito.",
+        "Usar la variable de control del for fuera del bucle. En Java moderno, `int i` declarado en el for solo existe dentro del bucle.",
+        "No considerar que el array puede estar vacío en un for-each (longitud 0, no entra al bucle)."
+      ],
+      "keyConcepts": [
+        "Estructura del bucle for: inicialización, condición, actualización",
+        "Bucle for-each para recorrer arrays sin índice",
+        "Diferencia entre for clásico y for-each",
+        "Bucles infinitos: causas, prevención y salida",
+        "Uso del break dentro de un bucle",
+        "Variables de control y su ámbito"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.b"
+      ]
+    },
+    {
+      "id": "lesson-04-2",
+      "title": "Bucles while y do-while",
+      "objectives": [
+        "Escribir bucles while que repiten mientras se cumpla una condición",
+        "Usar do-while para garantizar al menos una ejecución del bloque",
+        "Diferenciar cuándo usar for, while y do-while",
+        "Gestionar la entrada de datos con while hasta obtener un valor válido"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "El bucle while",
+          "content": "El bucle `while` repite un bloque mientras su condición sea `true`. A diferencia de `for`, no tiene un contador incorporado: la condición puede depender de cualquier variable.\n\n```java\nwhile (condicion) {\n    // Bloque que se repite mientras condicion sea true\n}\n```\n\nEl flujo es:\n1. Se evalúa la condición.\n2. Si es `true`, se ejecuta el bloque.\n3. Se vuelve al paso 1.\n4. Si es `false`, el bucle termina y el programa continúa.\n\n**Cuándo usar while**: cuando no sabemos cuántas veces se repetirá el bucle. Por ejemplo: \"seguir pidiendo datos hasta que el usuario introduzca un número válido\"."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo de bucle while",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploWhile {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        // Pedir un numero positivo hasta que sea valido\n        int numero = -1;\n        while (numero <= 0) {\n            System.out.print(\"Introduce un numero positivo: \");\n            numero = teclado.nextInt();\n            if (numero <= 0) {\n                System.out.println(\"Valor no valido. Intenta de nuevo.\");\n            }\n        }\n\n        System.out.println(\"Numero aceptado: \" + numero);\n\n        // Contador con while\n        System.out.println(\"\\nContando con while:\");\n        int contador = 1;\n        while (contador <= 5) {\n            System.out.println(\"Iteracion \" + contador);\n            contador++;\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "El bucle do-while",
+          "content": "El bucle `do-while` es similar a `while`, pero la condición se comprueba **después** de ejecutar el bloque. Esto garantiza que el bloque se ejecuta al menos una vez, sin importar la condición.\n\n```java\ndo {\n    // Bloque que se ejecuta al menos una vez\n} while (condicion);  // Nota: hay punto y coma al final\n```\n\n**Diferencia clave con while**:\n- `while`: si la condición es `false` al inicio, el bloque no se ejecuta nunca.\n- `do-while`: el bloque se ejecuta una vez y luego se comprueba la condición.\n\n**Cuándo usar do-while**: ideal para menús interactivos donde siempre quieres mostrar el menú al menos una vez, o para validar entradas donde necesitas pedir el dato antes de comprobar si es válido."
+        },
+        {
+          "type": "code",
+          "title": "Menú interactivo con do-while",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class MenuDoWhile {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        int opcion;\n\n        do {\n            System.out.println();\n            System.out.println(\"=== MENU ===\");\n            System.out.println(\"1 - Saludar\");\n            System.out.println(\"2 - Mostrar fecha\");\n            System.out.println(\"3 - Calculadora rapida\");\n            System.out.println(\"0 - Salir\");\n            System.out.print(\"Opcion: \");\n            opcion = teclado.nextInt();\n\n            switch (opcion) {\n                case 1:\n                    System.out.println(\"¡Hola! Bienvenido al programa.\");\n                    break;\n                case 2:\n                    System.out.println(\"Hoy es 17 de septiembre de 2026.\");\n                    break;\n                case 3:\n                    System.out.print(\"A + B: \");\n                    double a = teclado.nextDouble();\n                    System.out.print(\"B = \");\n                    double b = teclado.nextDouble();\n                    System.out.println(\"Resultado: \" + (a + b));\n                    break;\n                case 0:\n                    System.out.println(\"Hasta luego!\");\n                    break;\n                default:\n                    System.out.println(\"Opcion no valida.\");\n            }\n\n        } while (opcion != 0);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Comparativa: for vs while vs do-while",
+          "content": "| Estructura | Cuándo usarla | Condición |\n|-----------|---------------|----------|\n| `for` | Sabemos cuántas veces repetir. Tenemos un contador. | Al inicio |\n| `while` | No sabemos cuántas veces. Depende de una condición variable. | Al inicio |\n| `do-while` | Queremos ejecutar al menos una vez. Menús, validación de entrada. | Al final |\n\n**Regla práctica**:\n- Si tienes un contador que va de 0 a N: usa `for`.\n- Si necesitas seguir hasta que algo pase: usa `while`.\n- Si necesitas ejecutar al menos una vez: usa `do-while`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo: adivinar un número",
+          "language": "java",
+          "content": "import java.util.Scanner;\nimport java.util.Random;\n\npublic class AdivinarNumero {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        Random random = new Random();\n\n        int numeroSecreto = random.nextInt(100) + 1; // 1 a 100\n        int intento = 0;\n        int contadorIntentos = 0;\n        boolean acertado = false;\n\n        System.out.println(\"=== JUEGO: ADIVINA EL NUMERO ===\");\n        System.out.println(\"Pienso en un numero entre 1 y 100.\");\n        System.out.println();\n\n        do {\n            System.out.print(\"Tu intento: \");\n            intento = teclado.nextInt();\n            contadorIntentos++;\n\n            if (intento < numeroSecreto) {\n                System.out.println(\"Demasiado bajo. Intenta mas alto.\");\n            } else if (intento > numeroSecreto) {\n                System.out.println(\"Demasiado alto. Intenta mas bajo.\");\n            } else {\n                acertado = true;\n                System.out.println(\"¡CORRECTO! Has acertado en \" +\n                    contadorIntentos + \" intento(s).\"\n                );\n            }\n        } while (!acertado);\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-2-1",
+          "difficulty": "basic",
+          "title": "Suma de números hasta cero",
+          "description": "Crea un programa que pida números enteros al usuario y los vaya sumando. El programa termina cuando el usuario introduce el 0. Muestra la suma total.",
+          "solution": "import java.util.Scanner;\n\npublic class SumaHastaCero {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        int suma = 0;\n        int numero;\n\n        System.out.println(\"Introduce numeros (0 para terminar):\");\n\n        do {\n            System.out.print(\"Numero: \");\n            numero = teclado.nextInt();\n            suma += numero;\n        } while (numero != 0);\n\n        System.out.println(\"Suma total: \" + suma);\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-04-2-2",
+          "difficulty": "intermediate",
+          "title": "Validación de contraseña",
+          "description": "Crea un programa que pida una contraseña al usuario. La contraseña debe tener al menos 8 caracteres. Si no cumple, pide de nuevo hasta que sea válida. Usa while.",
+          "solution": "import java.util.Scanner;\n\npublic class Contrasena {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        String contrasena;\n\n        do {\n            System.out.print(\"Introduce tu contrasena (minimo 8 caracteres): \");\n            contrasena = teclado.nextLine();\n\n            if (contrasena.length() < 8) {\n                System.out.println(\"Error: demasiado corta. Intenta de nuevo.\");\n            }\n        } while (contrasena.length() < 8);\n\n        System.out.println(\"Contrasena aceptada.\");\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-04-2-3",
+          "difficulty": "advanced",
+          "title": "Cálculo de la raíz cuadrada (método de Newton)",
+          "description": "Implementa el método de Newton para calcular la raíz cuadrada de un número sin usar Math.sqrt(). La fórmula es: x_n+1 = (x_n + S/x_n) / 2. Repite hasta que la diferencia entre dos aproximaciones sea menor que 0.0001.",
+          "solution": "import java.util.Scanner;\n\npublic class RaizCuadradaNewton {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Numero: \");\n        double s = teclado.nextDouble();\n\n        if (s < 0) {\n            System.out.println(\"Error: no existe raiz cuadrada real.\");\n        } else {\n            double x = s / 2.0; // Aproximacion inicial\n            double anterior = 0;\n            int iteraciones = 0;\n\n            while (Math.abs(x - anterior) > 0.0001) {\n                anterior = x;\n                x = (x + s / x) / 2;\n                iteraciones++;\n            }\n\n            System.out.printf(\"Raiz cuadrada de %.4f = %.6f%n\", s, x);\n            System.out.println(\"Iteraciones: \" + iteraciones);\n            System.out.printf(\"Comprobacion: %.6f * %.6f = %.6f%n\", x, x, x * x);\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Bucle infinito por olvidar modificar la condición. Si la variable que evalúa while nunca cambia, el bucle es infinito.",
+        "Olvidar el punto y coma al final de do-while. Sin él, el compilador da error.",
+        "Usar while cuando se necesita do-while (o viceversa). Si necesitas ejecutar al menos una vez, usa do-while.",
+        "No inicializar la variable de condición antes del while. Si no se inicializa, puede dar error de compilación.",
+        "Confundir `while (x != 0)` con `while (x == 0)`. El primero repite mientras x NO sea cero; el segundo solo repite cuando x ES cero."
+      ],
+      "keyConcepts": [
+        "Bucle while: condición al inicio, ejecución cero o más veces",
+        "Bucle do-while: condición al final, ejecución al menos una vez",
+        "Punto y coma obligatorio al final de do-while",
+        "Cuándo usar for, while y do-while según el caso de uso",
+        "Validación de entrada con bucles",
+        "Menús interactivos con do-while"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.b"
+      ]
+    },
+    {
+      "id": "lesson-04-3",
+      "title": "Break, continue y bucles anidados",
+      "objectives": [
+        "Usar break para salir de un bucle o de un switch",
+        "Usar continue para saltar a la siguiente iteración del bucle",
+        "Diseñar y gestionar bucles anidados",
+        "Resolver problemas que requieren bucles anidados"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Sentencia break",
+          "content": "La sentencia `break` sale inmediatamente del bucle o switch más cercano. Se usa cuando:\n- Ya has encontrado lo que buscas y no necesitas seguir iterando.\n- Necesitas salir de un bucle ante una condición especial.\n\n```java\nfor (int i = 0; i < 100; i++) {\n    if (i == 10) {\n        break; // Sale del bucle cuando i vale 10\n    }\n    System.out.println(i);\n}\n// Imprime: 0, 1, 2, ..., 9\n```\n\nEn un `switch`, `break` impide el \"fall-through\" (ejecutar los cases siguientes)."
+        },
+        {
+          "type": "code",
+          "title": "Uso de break en un bucle",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploBreak {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        // Buscar un nombre en una lista\n        String[] nombres = {\"Ana\", \"Carlos\", \"Maria\", \"Pedro\", \"Laura\"};\n        String buscado;\n\n        System.out.print(\"¿A quien buscas? \");\n        buscado = teclado.nextLine();\n\n        boolean encontrado = false;\n\n        for (String nombre : nombres) {\n            if (nombre.equalsIgnoreCase(buscado)) {\n                System.out.println(\"Encontrado: \" + nombre);\n                encontrado = true;\n                break; // No necesitamos seguir buscando\n            }\n        }\n\n        if (!encontrado) {\n            System.out.println(buscado + \" no esta en la lista.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Sentencia continue",
+          "content": "La sentencia `continue` salta al inicio de la siguiente iteración del bucle, omitiendo el resto del código de la iteración actual. No sale del bucle, solo \" salta \" una vuelta.\n\n```java\nfor (int i = 0; i < 10; i++) {\n    if (i % 2 == 0) {\n        continue; // Salta los numeros pares\n    }\n    System.out.println(i);\n}\n// Imprime: 1, 3, 5, 7, 9\n```\n\n`continue` es útil cuando quieres procesar solo los elementos que cumplen una condición, sin usar un `if` que envuelva todo el código."
+        },
+        {
+          "type": "code",
+          "title": "Uso de continue",
+          "language": "java",
+          "content": "public class EjemploContinue {\n    public static void main(String[] args) {\n        // Filtrar numeros impares usando continue\n        System.out.println(\"Numeros impares del 1 al 20:\");\n        for (int i = 1; i <= 20; i++) {\n            if (i % 2 == 0) {\n                continue; // Saltar pares\n            }\n            System.out.print(i + \" \");\n        }\n        System.out.println();\n\n        // Procesar solo elementos validos de un array\n        int[] valores = {5, -3, 8, 0, 12, -7, 4};\n        int sumaPositivos = 0;\n\n        for (int valor : valores) {\n            if (valor <= 0) {\n                continue; // Saltar ceros y negativos\n            }\n            sumaPositivos += valor;\n        }\n\n        System.out.println(\"Suma de positivos: \" + sumaPositivos);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Bucles anidados",
+          "content": "Un **bucle anidado** es un bucle dentro de otro bucle. El bucle interno completa todas sus iteraciones antes de que el bucle externo avance una.\n\n```java\nfor (int i = 0; i < 3; i++) {      // Externo: 3 iteraciones\n    for (int j = 0; j < 4; j++) {  // Interno: 4 por cada externa\n        System.out.print(\"(\"+i+\",\"+j+\") \");\n    }\n    System.out.println();\n}\n```\n\nResultado:\n```\n(0,0) (0,1) (0,2) (0,3)\n(1,0) (1,1) (1,2) (1,3)\n(2,0) (2,1) (2,2) (2,3)\n```\n\nEl número total de iteraciones es `3 × 4 = 12`. Con bucles anidados, cuidado con el rendimiento: si cada bucle itera 1000 veces, el total es 1.000.000."
+        },
+        {
+          "type": "code",
+          "title": "Tabla de multiplicar anidada",
+          "language": "java",
+          "content": "public class TablaMultiplicarAnidada {\n    public static void main(String[] args) {\n        int maximo = 10;\n\n        // Cabecera\n        System.out.printf(\"%5s\", \"|\");\n        for (int i = 1; i <= maximo; i++) {\n            System.out.printf(\"%4d\", i);\n        }\n        System.out.println();\n        System.out.println(\"-\".repeat(5 + maximo * 4));\n\n        // Tabla completa con bucles anidados\n        for (int i = 1; i <= maximo; i++) {\n            System.out.printf(\"%4d |\", i);\n            for (int j = 1; j <= maximo; j++) {\n                System.out.printf(\"%4d\", i * j);\n            }\n            System.out.println();\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Break en bucles anidados",
+          "language": "java",
+          "content": "public class BreakAnidado {\n    public static void main(String[] args) {\n        // break solo afecta al bucle mas interno\n        System.out.println(\"Break en bucle interno:\");\n        for (int i = 0; i < 3; i++) {\n            for (int j = 0; j < 5; j++) {\n                if (j == 3) {\n                    break; // Solo sale del bucle de j\n                }\n                System.out.print(\"(\" + i + \",\" + j + \") \");\n            }\n            System.out.println();\n        }\n\n        // Para salir de ambos bucles, se puede usar una etiqueta\n        System.out.println(\"\\nUsando etiqueta para salir de ambos:\");\n        externo:\n        for (int i = 0; i < 3; i++) {\n            for (int j = 0; j < 5; j++) {\n                if (i == 1 && j == 2) {\n                    break externo; // Sale del bucle etiquetado\n                }\n                System.out.print(\"(\" + i + \",\" + j + \") \");\n            }\n            System.out.println();\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-3-1",
+          "difficulty": "basic",
+          "title": "Numeros no divisibles entre 3",
+          "description": "Usando un bucle for y continue, muestra los números del 1 al 30 que NO son divisibles entre 3.",
+          "solution": "public class NoDivisibles3 {\n    public static void main(String[] args) {\n        System.out.println(\"Numeros del 1 al 30 no divisibles entre 3:\");\n        for (int i = 1; i <= 30; i++) {\n            if (i % 3 == 0) {\n                continue;\n            }\n            System.out.print(i + \" \");\n        }\n        System.out.println();\n    }\n}"
+        },
+        {
+          "id": "ex-04-3-2",
+          "difficulty": "intermediate",
+          "title": "Tabla de multiplicar completa",
+          "description": "Usando dos bucles anidados, genera la tabla de multiplicar completa del 1 al 10 con formato alineado.",
+          "solution": "public class TablaCompleta {\n    public static void main(String[] args) {\n        System.out.printf(\"%5s\", \"|\");\n        for (int i = 1; i <= 10; i++) {\n            System.out.printf(\"%4d\", i);\n        }\n        System.out.println();\n\n        for (int i = 1; i <= 10; i++) {\n            System.out.printf(\"%4d |\", i);\n            for (int j = 1; j <= 10; j++) {\n                System.out.printf(\"%4d\", i * j);\n            }\n            System.out.println();\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-04-3-3",
+          "difficulty": "advanced",
+          "title": "Buscar en matriz bidimensional",
+          "description": "Crea una matriz 3x3 con números enteros. Usa bucles anidados para buscar un valor introducido por el usuario. Si lo encuentra, muestra su posición (fila, columna) y usa break con etiqueta para salir de ambos bucles.",
+          "solution": "import java.util.Scanner;\n\npublic class BuscarEnMatriz {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        int[][] matriz = {\n            {10, 25, 30},\n            {45, 5, 60},\n            {70, 80, 15}\n        };\n\n        // Mostrar la matriz\n        System.out.println(\"Matriz:\");\n        for (int i = 0; i < 3; i++) {\n            for (int j = 0; j < 3; j++) {\n                System.out.printf(\"%4d\", matriz[i][j]);\n            }\n            System.out.println();\n        }\n\n        System.out.print(\"Numero a buscar: \");\n        int buscado = teclado.nextInt();\n\n        boolean encontrado = false;\n\n        externo:\n        for (int i = 0; i < 3; i++) {\n            for (int j = 0; j < 3; j++) {\n                if (matriz[i][j] == buscado) {\n                    System.out.println(\"Encontrado en posicion (\" + i + \", \" + j + \")\");\n                    encontrado = true;\n                    break externo;\n                }\n            }\n        }\n\n        if (!encontrado) {\n            System.out.println(\"El numero \" + buscado + \" no esta en la matriz.\");\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar break en un switch dentro de un bucle y esperar que salga del bucle. break solo sale del switch, no del bucle.",
+        "Usar continue en el último bucle anidado y pensar que salta al externo. continue solo afecta al bucle más interno.",
+        "Olvidar que break en bucles anidados solo sale del bucle más cercano. Para salir de ambos, usa etiquetas.",
+        "Poner continue antes de código que necesita ejecutarse. Recuerda que continue salta el resto del bloque.",
+        "No inicializar correctamente las variables de control en bucles anidados."
+      ],
+      "keyConcepts": [
+        "Sentencia break: salida inmediata del bucle más cercano",
+        "Sentencia continue: saltar a la siguiente iteración",
+        "Bucles anidados: bucle interno completa todas sus vueltas antes del externo",
+        "Etiquetas para break en bucles anidados: break nombreEtiqueta",
+        "break solo afecta al bucle o switch más cercano",
+        "Rendimiento en bucles anidados: N × M iteraciones totales"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.c"
+      ]
+    },
+    {
+      "id": "lesson-04-4",
+      "title": "Control de excepciones: try, catch, finally",
+      "objectives": [
+        "Comprender qué es una excepción y por qué se produce",
+        "Usar try-catch para capturar y manejar excepciones",
+        "Utilizar finally para ejecutar código que siempre debe ejecutarse",
+        "Diferenciar entre excepciones verificadas y no verificadas",
+        "Crear excepciones personalizadas con throw y throws"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es una excepción?",
+          "content": "Una **excepción** es un evento inesperado que interrumpe el flujo normal de un programa. Cuando se produce una excepción, el programa \"lanza\" un objeto de tipo `Exception` que contiene información sobre el error.\n\nEjemplos de situaciones que provocan excepciones:\n- Dividir entre cero: `10 / 0` → `ArithmeticException`\n- Acceder a un índice inexistente en un array: `array[10]` → `ArrayIndexOutOfBoundsException`\n- Convertir un texto no numérico a entero: `Integer.parseInt(\"hola\")` → `NumberFormatException`\n- Leer un fichero que no existe → `FileNotFoundException`\n- Acceder a un objeto null: `objeto.metodo()` → `NullPointerException`\n\nSi no se maneja una excepción, el programa termina abruptmente y muestra un mensaje de error (stack trace). En una aplicación real, esto es inaceptable: hay que capturar la excepción y manejarla de forma controlada."
+        },
+        {
+          "type": "text",
+          "title": "Sentencia try-catch",
+          "content": "El bloque `try-catch` permite \"envolver\" el código que puede lanzar una excepción y manejarla si ocurre:\n\n```java\ntry {\n    // Codigo que puede lanzar una excepcion\n} catch (TipoExcepcion e) {\n    // Codigo que se ejecuta si ocurre esa excepcion\n}\n```\n\nSi dentro del `try` se produce una excepción:\n1. Se interrumpe la ejecución del `try` en el punto exacto del error.\n2. Se busca un `catch` que coincida con el tipo de excepción.\n3. Si se encuentra, se ejecuta el bloque `catch`.\n4. Si no se encuentra, la excepción \"sube\" y el programa termina.\n\nPuedes tener múltiples bloques `catch` para manejar diferentes tipos de excepción:\n\n```java\ntry {\n    // ...\n} catch (NumberFormatException e) {\n    System.out.println(\"Error: no es un numero\");\n} catch (ArithmeticException e) {\n    System.out.println(\"Error: division por cero\");\n} catch (Exception e) {\n    System.out.println(\"Error desconocido: \" + e.getMessage());\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo de try-catch",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploTryCatch {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        // Ejemplo 1: Division por cero\n        try {\n            System.out.print(\"Dividendo: \");\n            int a = teclado.nextInt();\n            System.out.print(\"Divisor: \");\n            int b = teclado.nextInt();\n            int resultado = a / b;\n            System.out.println(\"Resultado: \" + resultado);\n        } catch (ArithmeticException e) {\n            System.err.println(\"Error: no se puede dividir por cero.\");\n        }\n\n        System.out.println();\n\n        // Ejemplo 2: Conversion de texto a numero\n        try {\n            System.out.print(\"Introduce un entero: \");\n            String entrada = teclado.next();\n            int numero = Integer.parseInt(entrada);\n            System.out.println(\"Numero introducido: \" + numero);\n        } catch (NumberFormatException e) {\n            System.err.println(\"Error: \\\"\" + e.getMessage() + \"\\\" no es un entero valido.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Sentencia finally",
+          "content": "El bloque `finally` contiene código que se ejecuta **siempre**, tanto si se produce una excepción como si no. Es útil para liberar recursos (cerrar ficheros, conexiones, etc.).\n\n```java\ntry {\n    // Codigo que puede fallar\n} catch (Excepcion e) {\n    // Se ejecuta si hay excepcion\n} finally {\n    // Se ejecuta SIEMPRE (con o sin excepcion)\n}\n```\n\n**Reglas de finally**:\n- Es opcional, pero muy recomendable para limpiar recursos.\n- Se ejecuta incluso si hay un `return` o un `break` en el try o catch.\n- Si no hay catch, finally se ejecuta igualmente y la excepción propaga.\n- Si finally tiene un `return`, sobreescribe el del try/catch (mal estilo, evitar)."
+        },
+        {
+          "type": "code",
+          "title": "Uso de finally y throw",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class ExcepcionesCompletas {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        try {\n            System.out.print(\"Introduce tu edad: \");\n            int edad = teclado.nextInt();\n\n            // Lanzar excepcion manualmente con throw\n            if (edad < 0) {\n                throw new IllegalArgumentException(\n                    \"La edad no puede ser negativa: \" + edad\n                );\n            }\n            if (edad > 150) {\n                throw new IllegalArgumentException(\n                    \"La edad no puede ser mayor de 150: \" + edad\n                );\n            }\n\n            System.out.println(\"Edad aceptada: \" + edad + \" anios.\");\n\n        } catch (IllegalArgumentException e) {\n            System.err.println(\"Error de validacion: \" + e.getMessage());\n        } catch (Exception e) {\n            System.err.println(\"Error inesperado: \" + e.getMessage());\n        } finally {\n            System.out.println(\"(finally: el programa continua)\");\n            teclado.close();\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Excepciones verificadas vs no verificadas",
+          "content": "Java clasifica las excepciones en dos categorías:\n\n**Excepciones no verificadas** (Unchecked):\n- Heredan de `RuntimeException`.\n- El compilador NO obliga a manejarlas.\n- Ejemplos: `ArithmeticException`, `NullPointerException`, `ArrayIndexOutOfBoundsException`, `NumberFormatException`.\n- Son errores de programación que se deberían prevenir.\n\n**Excepciones verificadas** (Checked):\n- Heredan de `Exception` (pero no de `RuntimeException`).\n- El compilador OBLIGA a manejarlas o declararlas con `throws`.\n- Ejemplos: `IOException`, `FileNotFoundException`, `SQLException`.\n- Son errores que pueden ocurrir aunque el código sea correcto (fichero borrado, red caída, etc.).\n\n```java\n// Ejemplo de excepcion verificada: el compilador exige try-catch o throws\n// try {\n//     FileReader archivo = new FileReader(\"no_existe.txt\");\n// } catch (FileNotFoundException e) {\n//     System.out.println(\"Fichero no encontrado\");\n// }\n```\n\nEn este curso trabajaremos principalmente con excepciones no verificadas. Cuando lleguemos a ficheros, veremos las verificadas."
+        },
+        {
+          "type": "code",
+          "title": "Programa completo con manejo de excepciones",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class CalculadoraSegura {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        boolean continuar = true;\n\n        while (continuar) {\n            try {\n                System.out.println(\"\\n=== CALCULADORA SEGURA ===\");\n                System.out.print(\"Numero 1: \");\n                double a = teclado.nextDouble();\n                System.out.print(\"Operador (+, -, *, /): \");\n                char op = teclado.next().charAt(0);\n                System.out.print(\"Numero 2: \");\n                double b = teclado.nextDouble();\n\n                double resultado;\n\n                switch (op) {\n                    case '+':\n                        resultado = a + b;\n                        break;\n                    case '-':\n                        resultado = a - b;\n                        break;\n                    case '*':\n                        resultado = a * b;\n                        break;\n                    case '/':\n                        if (b == 0) {\n                            throw new ArithmeticException(\"Division por cero\");\n                        }\n                        resultado = a / b;\n                        break;\n                    default:\n                        throw new IllegalArgumentException(\n                            \"Operador no valido: \" + op\n                        );\n                }\n\n                System.out.printf(\"Resultado: %.4f%n\", resultado);\n\n            } catch (ArithmeticException e) {\n                System.err.println(\"Error aritmetico: \" + e.getMessage());\n            } catch (IllegalArgumentException e) {\n                System.err.println(\"Error de validacion: \" + e.getMessage());\n            } catch (Exception e) {\n                System.err.println(\"Error de entrada. Introduce valores validos.\");\n                teclado.next(); // limpiar buffer\n            }\n\n            System.out.print(\"¿Continuar? (s/n): \");\n            String respuesta = teclado.next();\n            continuar = respuesta.equalsIgnoreCase(\"s\");\n        }\n\n        System.out.println(\"Hasta luego!\");\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-4-1",
+          "difficulty": "basic",
+          "title": "Capturar NumberFormatException",
+          "description": "Crea un programa que pida al usuario un número entero. Si el usuario introduce algo que no es un número, captura la NumberFormatException y muestra un mensaje amigable.",
+          "solution": "import java.util.Scanner;\n\npublic class CapturarNumero {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        try {\n            System.out.print(\"Introduce un entero: \");\n            String entrada = teclado.nextLine();\n            int numero = Integer.parseInt(entrada);\n            System.out.println(\"Numero correcto: \" + numero);\n        } catch (NumberFormatException e) {\n            System.err.println(\"Error: \\\"\" + e.getMessage() + \"\\\" no es un entero valido.\");\n        } finally {\n            teclado.close();\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-04-4-2",
+          "difficulty": "intermediate",
+          "title": "División segura con reintentos",
+          "description": "Crea una calculadora que pida dos números y los divida. Si el divisor es cero, lance una ArithmeticException y pida de nuevo el divisor hasta que sea válido. Usa finally para mostrar un mensaje de cierre.",
+          "solution": "import java.util.Scanner;\n\npublic class DivisionSegura {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        try {\n            System.out.print(\"Dividendo: \");\n            double a = teclado.nextDouble();\n\n            boolean divisorValido = false;\n            while (!divisorValido) {\n                try {\n                    System.out.print(\"Divisor: \");\n                    double b = teclado.nextDouble();\n\n                    if (b == 0) {\n                        throw new ArithmeticException(\"El divisor no puede ser cero.\");\n                    }\n\n                    double resultado = a / b;\n                    System.out.printf(\"%.2f / %.2f = %.4f%n\", a, b, resultado);\n                    divisorValido = true;\n\n                } catch (ArithmeticException e) {\n                    System.err.println(\"Error: \" + e.getMessage() + \" Intenta de nuevo.\");\n                }\n            }\n        } catch (Exception e) {\n            System.err.println(\"Error inesperado: \" + e.getMessage());\n        } finally {\n            System.out.println(\"(Operacion completada)\");\n            teclado.close();\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-04-4-3",
+          "difficulty": "advanced",
+          "title": "Excepción personalizada",
+          "description": "Crea una clase `EdadInvalidaException` que herede de `Exception`. Luego crea un programa que pida la edad y lance esta excepción si es menor que 0 o mayor que 150. Captura la excepción y muestra el mensaje.",
+          "solution": "class EdadInvalidaException extends Exception {\n    public EdadInvalidaException(String mensaje) {\n        super(mensaje);\n    }\n}\n\npublic class ValidarEdad {\n    public static void main(String[] args) {\n        java.util.Scanner teclado = new java.util.Scanner(System.in);\n\n        try {\n            System.out.print(\"Introduce tu edad: \");\n            int edad = teclado.nextInt();\n\n            if (edad < 0 || edad > 150) {\n                throw new EdadInvalidaException(\n                    \"Edad no valida: \" + edad + \". Debe estar entre 0 y 150.\"\n                );\n            }\n\n            System.out.println(\"Edad aceptada: \" + edad + \" anios.\");\n\n        } catch (EdadInvalidaException e) {\n            System.err.println(e.getMessage());\n        } catch (java.util.InputMismatchException e) {\n            System.err.println(\"Error: no has introducido un numero.\");\n        } finally {\n            teclado.close();\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Capturar Exception antes que excepciones más específicas. El orden importa: pon las más específicas primero.",
+        "Poner catch vacío: `catch (Exception e) { }`. Esto \"traga\" el error silenciosamente y es muy peligroso.",
+        "Olvidar que finally se ejecuta SIEMPRE, incluso si hay un return en el try.",
+        "Usar exceptions para flujo de control normal. Exceptions son para errores inesperados, no para lógica habitual.",
+        "No cerrar recursos en finally. Si abres un fichero en el try, ciérralo en finally."
+      ],
+      "keyConcepts": [
+        "Excepción como objeto que representa un error",
+        "Sentencia try-catch: captura y manejo de excepciones",
+        "Sentencia finally: código que siempre se ejecuta",
+        "throw: lanzar una excepción manualmente",
+        "throws: declarar que un método puede lanzar excepciones",
+        "Excepciones verificadas (checked) vs no verificadas (unchecked)",
+        "Excepciones personalizadas heredando de Exception"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.d",
+        "RA3.h"
+      ]
+    },
+    {
+      "id": "lesson-04-5",
+      "title": "Aserciones para detección de errores",
+      "objectives": [
+        "Comprender qué es una aserción y para qué sirve",
+        "Usar la sentencia assert para verificar supuestos en tiempo de desarrollo",
+        "Configurar la ejecución de aserciones en Eclipse IDE",
+        "Diferenciar entre aserciones y excepciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es una aserción?",
+          "content": "Una **aserción** es una sentencia que comprueba que una condición es `true` en un punto concreto del programa. Si la condición es `false`, se lanza un `AssertionError`, indicando que algo funciona de forma inesperada.\n\nLas aserciones se usan durante el **desarrollo y pruebas** para detectar errores lógicos. No son para manejar errores en producción, sino para \"atrapar\" bugs lo antes posible.\n\n```java\nassert condicion : \"mensaje de error\";\n```\n\nEjemplo:\n```java\nint edad = -5;\nassert edad >= 0 : \"La edad no puede ser negativa: \" + edad;\n```\n\nSi `edad` es -5, el assert falla y lanza `AssertionError: La edad no puede ser negativa: -5`. Si `edad` fuera 20, simplemente continuaría.\n\n**Importante**: las aserciones están **desactivadas por defecto** en Java. Para activarlas, se ejecuta el programa con la opción `-ea` (enable assertions) o se configura en el IDE."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplos de aserciones",
+          "language": "java",
+          "content": "public class EjemploAserciones {\n    public static void main(String[] args) {\n        // Ejemplo 1: verificar que un numero esta en rango\n        int porcentaje = 150;\n        assert porcentaje >= 0 && porcentaje <= 100\n            : \"Porcentaje fuera de rango: \" + porcentaje;\n        System.out.println(\"Porcentaje valido: \" + porcentaje);\n\n        // Ejemplo 2: verificar que un array no esta vacio\n        String[] nombres = {\"Ana\", \"Carlos\"};\n        assert nombres.length > 0 : \"El array no debe estar vacio\";\n        System.out.println(\"Primer nombre: \" + nombres[0]);\n\n        // Ejemplo 3: verificar un calculo\n        double nota = 7.5;\n        double media = (nota + 8.0) / 2;\n        assert media >= 0 && media <= 10\n            : \"La media debe estar entre 0 y 10, valor: \" + media;\n        System.out.printf(\"Media: %.2f%n\", media);\n\n        System.out.println(\"Todas las aserciones pasaron.\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Cómo activar las aserciones en Eclipse IDE",
+          "content": "Para ejecutar un programa con aserciones activadas en Eclipse IDE:\n\n1. Ve a `Run > Run Configurations...`\n2. Selecciona la configuración de ejecución de tu programa.\n3. En la pestaña **Arguments**, en el campo \"VM arguments\" escribe: `-ea`\n4. Haz clic en `Apply` y `Run`.\n\nAhora, cuando ejecutes el programa, las aserciones se comprobarán. Si alguna falla, verás un `AssertionError` con el mensaje que especificaste.\n\n**Desde la línea de comandos**:\n```bash\njava -ea MiPrograma\n```\n\nCuando el programa esté listo para producción, las aserciones se desactivan (sin `-ea`) y no tienen ningún coste de rendimiento."
+        },
+        {
+          "type": "code",
+          "title": "Aserciones en un método con precondiciones",
+          "language": "java",
+          "content": "public class MetodosConAssert {\n\n    /**\n     * Calcula la nota media de dos calificaciones.\n     * Precondiciones: ambas notas deben estar entre 0 y 10.\n     */\n    public static double calcularMedia(double nota1, double nota2) {\n        // Precondiciones: verificar que los datos de entrada son validos\n        assert nota1 >= 0 && nota1 <= 10\n            : \"nota1 fuera de rango: \" + nota1;\n        assert nota2 >= 0 && nota2 <= 10\n            : \"nota2 fuera de rango: \" + nota2;\n\n        double media = (nota1 + nota2) / 2;\n\n        // Postcondicion: la media debe estar entre 0 y 10\n        assert media >= 0 && media <= 10\n            : \"La media calculada esta fuera de rango: \" + media;\n\n        return media;\n    }\n\n    public static void main(String[] args) {\n        // Caso normal: funciona correctamente\n        double media1 = calcularMedia(7.0, 9.0);\n        System.out.println(\"Media 1: \" + media1);\n\n        double media2 = calcularMedia(5.5, 6.5);\n        System.out.println(\"Media 2: \" + media2);\n\n        // Este caso activaria un AssertionError si las aserciones estan activadas\n        // double media3 = calcularMedia(12.0, 5.0); // nota1 > 10\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Aserciones vs Excepciones: ¿cuándo usar cada una?",
+          "content": "| Característica | Aserción | Excepción |\n|----------------|----------|----------|\n| **Propósito** | Verificar supuestos del programador | Manejar errores esperados |\n| **Cuándo falla** | Bug en el código | Situación anómala pero posible |\n| **Producción** | Desactivada (sin coste) | Activa siempre |\n| **Sintaxis** | `assert condicion;` | `throw new Exception();` |\n| **Ejemplo** | `assert edad >= 0;` | `if (fichero == null) throw ...` |\n\n**Regla simple**:\n- Si la condición **nunca** debería fallar si el código es correcto → usa `assert`.\n- Si la condición **puede** fallar por datos del usuario, red, ficheros, etc. → usa una excepción.\n\nLas aserciones son para desarrollo; las excepciones son para producción."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-5-1",
+          "difficulty": "basic",
+          "title": "Aserción con rango",
+          "description": "Crea un método que reciba un porcentaje (double) y use un assert para verificar que está entre 0 y 100. Prueba con un valor válido y otro inválido (con -ea activado).",
+          "solution": "public class AssertRango {\n    public static void main(String[] args) {\n        double porcentaje = 75.5;\n\n        assert porcentaje >= 0 && porcentaje <= 100\n            : \"Porcentaje fuera de rango: \" + porcentaje;\n\n        System.out.println(\"Porcentaje valido: \" + porcentaje);\n    }\n}"
+        },
+        {
+          "id": "ex-04-5-2",
+          "difficulty": "intermediate",
+          "title": "Precondiciones con assert",
+          "description": "Crea un método `dividir` que use asserts para verificar que el divisor no es cero (precondición) y que el resultado está en un rango esperado (postcondición).",
+          "solution": "public class DividirConAssert {\n    public static double dividir(double a, double b) {\n        // Precondicion: divisor no puede ser cero\n        assert b != 0 : \"El divisor no puede ser cero\";\n\n        double resultado = a / b;\n\n        // Postcondicion: resultado debe ser un numero finito\n        assert Double.isFinite(resultado) : \"El resultado no es finito: \" + resultado;\n\n        return resultado;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"10 / 2 = \" + dividir(10, 2));\n        System.out.println(\"7 / 3 = \" + dividir(7, 3));\n        // dividir(10, 0) activaria AssertionError con -ea\n    }\n}"
+        },
+        {
+          "id": "ex-04-5-3",
+          "difficulty": "advanced",
+          "title": "Aserciones en un array",
+          "description": "Crea un método que busque un elemento en un array y use asserts para verificar que el array no es nulo ni está vacío antes de buscar. Incluye un postcondición que verifique que el índice devuelto es válido.",
+          "solution": "public class BuscarConAssert {\n    public static int buscar(int[] array, int objetivo) {\n        // Precondiciones\n        assert array != null : \"El array no puede ser nulo\";\n        assert array.length > 0 : \"El array no puede estar vacio\";\n\n        for (int i = 0; i < array.length; i++) {\n            if (array[i] == objetivo) {\n                // Postcondicion: el indice debe ser valido\n                assert i >= 0 && i < array.length\n                    : \"Indice fuera de rango: \" + i;\n                return i;\n            }\n        }\n        return -1; // No encontrado\n    }\n\n    public static void main(String[] args) {\n        int[] numeros = {10, 25, 30, 45, 50};\n        int encontrado = buscar(numeros, 30);\n        System.out.println(\"Indice: \" + encontrado);\n\n        int noEncontrado = buscar(numeros, 99);\n        System.out.println(\"Indice: \" + noEncontrado);\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar aserciones para validar datos de entrada del usuario. Las aserciones son para bugs internos, no para validación externa.",
+        "Olvidar que las aserciones están desactivadas por defecto. Sin `-ea`, `assert` no hace nada.",
+        "No incluir un mensaje descriptivo en el assert. Sin mensaje, el error no indica qué supuesto se ha roto.",
+        "Usar aserciones con efectos secundarios: `assert lista.remove(0) != null`. Si las aserciones se desactivan, la acción no se ejecuta.",
+        "Confundir asserts con validación de parámetros públicos. Los métodos públicos deben validar con excepciones; los asserts son para implementación interna."
+      ],
+      "keyConcepts": [
+        "Aserción como verificación de supuestos internos",
+        "Sentencia `assert condicion : \"mensaje\"`",
+        "Activación de aserciones con `-ea`",
+        "Precondiciones (antes del código) y postcondiciones (después)",
+        "Diferencia entre aserciones (desarrollo) y excepciones (producción)",
+        "Coste cero en producción cuando las aserciones están desactivadas"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.i"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Gestor de notas con validación completa",
+    "description": "Crea un programa que gestione las notas de un alumno:\n1. Pedir nombre y hasta 5 notas usando Scanner con validación (while + try-catch)\n2. Cada nota debe estar entre 0 y 10 (excepción personalizada EdadInvalidaException)\n3. Calcular media, nota máxima y mínima usando bucles for\n4. Clasificar la calificación con if/else if\n5. Usar asserts para verificar que las notas son válidas antes de procesarlas\n6. Mostrar informe completo con printf()\n7. Documentar el código con comentarios explicativos\n8. Manejar todas las excepciones con try-catch-finally",
+    "learningOutcomes": [
+      "RA3",
+      "RA5"
+    ],
+    "assessmentCriteria": [
+      "RA3.b",
+      "RA3.c",
+      "RA3.d",
+      "RA3.f",
+      "RA3.h",
+      "RA3.i",
+      "RA5.a",
+      "RA5.b"
+    ]
+  }
+}

@@ -1,0 +1,50 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+frontend/dist/
+
+# Cloudflare Workers
+.wrangler/
+
+# Environment files (secrets)
+.dev.vars
+.env
+.env.local
+.env.*.local
+
+# Drizzle
+drizzle/meta/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Test coverage
+coverage/
+
+# OpenCode / SDD (local working files)
+.opencode/
+.sdd/
+
+# Scripts output (compiled .ts, keep templates)
+scripts/*.ts
+!scripts/*.template.ts
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+
+temp-java-validation/

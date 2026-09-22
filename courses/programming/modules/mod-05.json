@@ -1,0 +1,398 @@
+{
+  "id": "mod-05",
+  "title": "Métodos y funciones",
+  "description": "Este módulo introduce la estructuración del código en Java mediante métodos. Se aprende a dividir programas complejos en bloques reutilizables, a declarar métodos con parámetros y valores de retorno, a gestionar el ámbito de las variables y a utilizar la sobrecarga de métodos.",
+  "phase": "phase-3",
+  "position": 5,
+  "learningOutcomes": [
+    "RA5",
+    "RA1"
+  ],
+  "assessmentCriteria": [
+    "RA5.c"
+  ],
+  "officialContents": [
+    "Identificación de los elementos de un programa informático (refuerzo: funciones)"
+  ],
+  "duration": "10 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-01",
+    "mod-02",
+    "mod-03",
+    "mod-04"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-05-1",
+      "title": "¿Por qué dividir el código en métodos?",
+      "objectives": [
+        "Comprender los beneficios de dividir un programa en métodos",
+        "Identificar situaciones donde el código se repite y puede reutilizarse",
+        "Entender la diferencia entre código inline y código modular",
+        "Reconocer la estructura de una clase con múltiples métodos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "El problema del código monolítico",
+          "content": "Imagina que tienes un programa que calcula el área de un rectángulo, la de un círculo y la de un triángulo, y luego muestra un informe. Si todo el código está en el método `main`, rápidamente se vuelve difícil de leer, depurar y mantener.\n\nLos métodos (también llamados funciones en otros lenguajes) permiten:\n\n1. **Reutilizar código**: escribes una vez y la usas cuantas veces necesites.\n2. **Organizar el programa**: cada método tiene una responsabilidad clara.\n3. **Facilitar la depuración**: si hay un error, sabes buscar en el método concreto.\n4. **Hacer el código legible**: un nombre descriptivo sustituye 10 líneas de código.\n5. **Permitir trabajo en equipo**: diferentes programadores pueden trabajar en métodos distintos.\n\nEn Java, **todo el código debe estar dentro de una clase**, y los métodos son los bloques que contienen la lógica. La única excepción es `main`, que es el punto de entrada."
+        },
+        {
+          "type": "code",
+          "title": "Antes: código monolítico",
+          "language": "java",
+          "content": "public class SinMetodos {\n    public static void main(String[] args) {\n        // Calcular area de rectangulo\n        double base1 = 10, altura1 = 5;\n        double area1 = base1 * altura1;\n        System.out.printf(\"Area rectangulo: %.2f%n\", area1);\n\n        // Calcular area de circulo\n        double radio1 = 3;\n        double area2 = Math.PI * radio1 * radio1;\n        System.out.printf(\"Area circulo: %.2f%n\", area2);\n\n        // Calcular area de triangulo\n        double base2 = 8, altura2 = 6;\n        double area3 = (base2 * altura2) / 2;\n        System.out.printf(\"Area triangulo: %.2f%n\", area3);\n\n        // --- Mismo calculo, otros valores ---\n        double base3 = 15, altura3 = 10;\n        double area4 = base3 * altura3;\n        System.out.printf(\"Area rectangulo 2: %.2f%n\", area4);\n\n        double radio2 = 7;\n        double area5 = Math.PI * radio2 * radio2;\n        System.out.printf(\"Area circulo 2: %.2f%n\", area5);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Después: código con métodos reutilizables",
+          "language": "java",
+          "content": "public class ConMetodos {\n\n    static double calcularAreaRectangulo(double base, double altura) {\n        return base * altura;\n    }\n\n    static double calcularAreaCirculo(double radio) {\n        return Math.PI * radio * radio;\n    }\n\n    static double calcularAreaTriangulo(double base, double altura) {\n        return (base * altura) / 2;\n    }\n\n    public static void main(String[] args) {\n        System.out.printf(\"Area rectangulo: %.2f%n\",\n            calcularAreaRectangulo(10, 5));\n        System.out.printf(\"Area circulo: %.2f%n\",\n            calcularAreaCirculo(3));\n        System.out.printf(\"Area triangulo: %.2f%n\",\n            calcularAreaTriangulo(8, 6));\n\n        // Reutilizamos los mismos metodos con otros valores\n        System.out.printf(\"Area rectangulo 2: %.2f%n\",\n            calcularAreaRectangulo(15, 10));\n        System.out.printf(\"Area circulo 2: %.2f%n\",\n            calcularAreaCirculo(7));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Anatomía de un método",
+          "content": "Un método en Java tiene esta estructura:\n\n```java\n[modificadores] tipoRetorno nombreMetodo(parametros) {\n    // Cuerpo del metodo\n    return valor; // si tipoRetorno no es void\n}\n```\n\n- **Modificadores** (`public`, `private`, `static`, etc.): indican el nivel de acceso y el comportamiento del método. Por ahora usaremos `static` para poder llamarlos desde `main`.\n\n- **Tipo de retorno**: el tipo de dato que devuelve el método. Si no devuelve nada, se usa `void`.\n\n- **Nombre del método**: debe seguir la convención camelCase: `calcularArea`, `mostrarMenu`, `esPar`.\n\n- **Parámetros**: lista de variables que el método recibe como entrada. Cada parámetro tiene un tipo y un nombre.\n\n- **Cuerpo**: el código que ejecuta el método.\n\n- **Return**: la sentencia que devuelve el valor. Solo se usa si el tipo de retorno no es `void`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo de clase con varios métodos",
+          "language": "java",
+          "content": "public class CalculadoraBasica {\n\n    // Metodo que suma dos enteros\n    static int sumar(int a, int b) {\n        return a + b;\n    }\n\n    // Metodo que resta dos enteros\n    static int restar(int a, int b) {\n        return a - b;\n    }\n\n    // Metodo que multiplica dos enteros\n    static int multiplicar(int a, int b) {\n        return a * b;\n    }\n\n    // Metodo que divide dos doubles\n    static double dividir(double a, double b) {\n        if (b == 0) {\n            System.out.println(\"Error: division por cero.\");\n            return 0;\n        }\n        return a / b;\n    }\n\n    // Metodo que no devuelve nada (void)\n    static void mostrarResultado(String operacion, double resultado) {\n        System.out.printf(\"%s = %.2f%n\", operacion, resultado);\n    }\n\n    public static void main(String[] args) {\n        int x = 10, y = 3;\n\n        mostrarResultado(x + \" + \" + y, sumar(x, y));\n        mostrarResultado(x + \" - \" + y, restar(x, y));\n        mostrarResultado(x + \" * \" + y, multiplicar(x, y));\n        mostrarResultado(x + \" / \" + y, dividir(x, y));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-1-1",
+          "difficulty": "basic",
+          "title": "Identificar código repetido",
+          "description": "Analiza el siguiente código e identifica al menos 3 líneas que se repiten. Luego escribe un método que las sustituya:\n\n```java\nSystem.out.println(\"============\");\nSystem.out.println(\"  DATOS    \");\nSystem.out.println(\"============\");\n// ... codigo ...\nSystem.out.println(\"============\");\nSystem.out.println(\"  RESULTADO\");\nSystem.out.println(\"============\");\n```",
+          "solution": "public class IdentificarRepeticion {\n    static void mostrarSeparador(String titulo) {\n        System.out.println(\"============\");\n        System.out.printf(\"  %-9s%n\", titulo);\n        System.out.println(\"============\");\n    }\n\n    public static void main(String[] args) {\n        mostrarSeparador(\"DATOS\");\n        System.out.println(\"Aqui van los datos...\");\n        mostrarSeparador(\"RESULTADO\");\n        System.out.println(\"Aqui van los resultados...\");\n    }\n}"
+        },
+        {
+          "id": "ex-05-1-2",
+          "difficulty": "intermediate",
+          "title": "Refactorizar calculadora",
+          "description": "Toma la calculadora del módulo 03 (con switch) y refactoriza cada operación aritmética en un método estático propio (sumar, restar, multiplicar, dividir).",
+          "solution": "public class CalculadoraRefactorizada {\n    static double sumar(double a, double b) { return a + b; }\n    static double restar(double a, double b) { return a - b; }\n    static double multiplicar(double a, double b) { return a * b; }\n    static double dividir(double a, double b) {\n        if (b == 0) throw new ArithmeticException(\"Division por cero\");\n        return a / b;\n    }\n\n    public static void main(String[] args) {\n        double a = 10, b = 3;\n        System.out.printf(\"%.2f + %.2f = %.2f%n\", a, b, sumar(a, b));\n        System.out.printf(\"%.2f - %.2f = %.2f%n\", a, b, restar(a, b));\n        System.out.printf(\"%.2f * %.2f = %.2f%n\", a, b, multiplicar(a, b));\n        System.out.printf(\"%.2f / %.2f = %.4f%n\", a, b, dividir(a, b));\n    }\n}"
+        },
+        {
+          "id": "ex-05-1-3",
+          "difficulty": "advanced",
+          "title": "Sistema de áreas reutilizable",
+          "description": "Crea una clase `AreasGeometricas` con métodos estáticos para calcular el área de: rectángulo, círculo, triángulo y trapecio. Cada método debe validar sus parámetros con asserts. Incluye un main que pruebe todos los métodos.",
+          "solution": "public class AreasGeometricas {\n    static double rectangulo(double base, double altura) {\n        assert base > 0 : \"La base debe ser positiva\";\n        assert altura > 0 : \"La altura debe ser positiva\";\n        return base * altura;\n    }\n\n    static double circulo(double radio) {\n        assert radio > 0 : \"El radio debe ser positivo\";\n        return Math.PI * radio * radio;\n    }\n\n    static double triangulo(double base, double altura) {\n        assert base > 0 : \"La base debe ser positiva\";\n        assert altura > 0 : \"La altura debe ser positiva\";\n        return (base * altura) / 2;\n    }\n\n    static double trapecio(double baseMayor, double baseMenor, double altura) {\n        assert baseMayor > 0 : \"La base mayor debe ser positiva\";\n        assert baseMenor > 0 : \"La base menor debe ser positiva\";\n        assert baseMayor > baseMenor : \"La base mayor debe ser mayor que la menor\";\n        assert altura > 0 : \"La altura debe ser positiva\";\n        return ((baseMayor + baseMenor) * altura) / 2;\n    }\n\n    public static void main(String[] args) {\n        System.out.printf(\"Rectangulo: %.2f%n\", rectangulo(10, 5));\n        System.out.printf(\"Circulo: %.2f%n\", circulo(3));\n        System.out.printf(\"Triangulo: %.2f%n\", triangulo(8, 6));\n        System.out.printf(\"Trapecio: %.2f%n\", trapecio(10, 6, 4));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "No poner el modificador `static` en los métodos que se llaman desde `main` (que también es estático).",
+        "Olvidar el `return` en métodos que no son `void`. Si el tipo de retorno no es `void`, siempre debe haber un `return`.",
+        "Confundir `void` con no devolver nada. Un método void ejecuta código pero no devuelve un valor usable por quien lo llama.",
+        "No poner punto y coma después del `return valor;`.",
+        "Declarar un método dentro de otro método. En Java, los métodos se declaran directamente en la clase, no anidados."
+      ],
+      "keyConcepts": [
+        "Método como bloque de código reutilizable con una responsabilidad",
+        "Estructura: modificadores, tipo retorno, nombre, parámetros, cuerpo",
+        "Diferencia entre void y métodos que devuelven un valor",
+        "El modificador static para métodos de clase",
+        "Ventajas de la modularidad: reutilización, legibilidad, depuración",
+        "Refactorización: extraer código repetido en métodos"
+      ],
+      "learningOutcomes": [
+        "RA1",
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.c"
+      ]
+    },
+    {
+      "id": "lesson-05-2",
+      "title": "Declaración de métodos: parámetros y retorno",
+      "objectives": [
+        "Declarar métodos con diferentes tipos de parámetros",
+        "Entender cómo se pasan los argumentos a un método (paso por valor)",
+        "Usar return para devolver valores de un método",
+        "Crear métodos void que ejecutan acciones sin devolver valor"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Parámetros y argumentos",
+          "content": "Los **parámetros** son las variables que un método declara en su firma. Los **argumentos** son los valores concretos que se pasan al llamar al método.\n\n```java\n// 'nombre' y 'edad' son PARAMETROS\nstatic void saludar(String nombre, int edad) {\n    System.out.println(\"Hola \" + nombre + \", tienes \" + edad + \" anios.\");\n}\n\n// \"Ana\" y 20 son ARGUMENTOS\nsaludar(\"Ana\", 20);\n```\n\n**Reglas de los parámetros:**\n- Pueden ser de cualquier tipo: primitivos (`int`, `double`, `boolean`) o de referencia (`String`, arrays, objetos).\n- Se separan por comas.\n- Cada parámetro tiene un tipo y un nombre.\n- El orden de los argumentos al llamar debe coincidir con el orden de los parámetros.\n- No puedes omitir argumentos (a menos que el parámetro tenga un valor por defecto, que en Java se hace con sobrecarga)."
+        },
+        {
+          "type": "code",
+          "title": "Métodos con distintos tipos de parámetros",
+          "language": "java",
+          "content": "public class ParametrosYArgumentos {\n\n    // Metodo con un solo parametro\n    static void mostrarCuadrado(int numero) {\n        System.out.println(numero + \"^2 = \" + (numero * numero));\n    }\n\n    // Metodo con varios parametros de distinto tipo\n    static void ficha(String nombre, int edad, double nota) {\n        System.out.printf(\"%s | %d anios | Nota: %.2f%n\", nombre, edad, nota);\n    }\n\n    // Metodo con array como parametro\n    static void mostrarArray(int[] numeros) {\n        System.out.print(\"Array: [ \");\n        for (int n : numeros) {\n            System.out.print(n + \" \");\n        }\n        System.out.println(\"]\");\n    }\n\n    // Metodo sin parametros\n    static void mostrarInfo() {\n        System.out.println(\"Programa de gestion de notas v1.0\");\n    }\n\n    public static void main(String[] args) {\n        mostrarCuadrado(5);\n        mostrarCuadrado(10);\n\n        System.out.println();\n        ficha(\"Ana\", 20, 8.5);\n        ficha(\"Carlos\", 18, 6.75);\n\n        System.out.println();\n        int[] notas = {7, 8, 9, 5, 6};\n        mostrarArray(notas);\n\n        System.out.println();\n        mostrarInfo();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Paso por valor en Java",
+          "content": "En Java, **todos los argumentos se pasan por valor**. Esto significa que cuando pasas una variable a un método, se copia su contenido. El método recibe una copia, no la variable original.\n\nPara tipos primitivos (`int`, `double`, `boolean`), esto es sencillo: el método trabaja con una copia y cualquier cambio dentro del método no afecta a la variable original.\n\n```java\nstatic void intentarCambiar(int valor) {\n    valor = 100; // Solo cambia la copia local\n}\n\nint x = 5;\nintentarCambiar(x);\nSystem.out.println(x); // Sigue valiendo 5\n```\n\nPara tipos de referencia (`String`, arrays, objetos), el método recibe una copia de la **referencia** (la dirección en memoria), no de los datos. Esto significa que puede modificar el contenido del objeto, pero no puede cambiar a qué objeto apunta la variable original.\n\n```java\nstatic void modificarArray(int[] arr) {\n    arr[0] = 999; // Modifica el contenido (mismo objeto)\n    arr = new int[]{1, 2, 3}; // Esto NO afecta al array original\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Paso por valor: ejemplos prácticos",
+          "language": "java",
+          "content": "public class PasoPorValor {\n\n    static void intentarCambiar(int valor) {\n        valor = 100;\n        System.out.println(\"Dentro del metodo: valor = \" + valor);\n    }\n\n    static void modificarArray(int[] array) {\n        array[0] = 999;\n        System.out.println(\"Dentro del metodo: array[0] = \" + array[0]);\n    }\n\n    static int calcularDoble(int numero) {\n        return numero * 2; // Devuelve el resultado, no modifica el original\n    }\n\n    public static void main(String[] args) {\n        // Tipos primitivos: se copia el valor\n        int x = 5;\n        intentarCambiar(x);\n        System.out.println(\"Despues del metodo: x = \" + x);\n        // x sigue valiendo 5\n\n        System.out.println();\n\n        // Arrays: se copia la referencia\n        int[] numeros = {10, 20, 30};\n        System.out.println(\"Antes: numeros[0] = \" + numeros[0]);\n        modificarArray(numeros);\n        System.out.println(\"Despues: numeros[0] = \" + numeros[0]);\n        // numeros[0] ahora vale 999 (se modifico el contenido)\n\n        System.out.println();\n\n        // Metodo con return: usar el resultado sin modificar nada\n        int original = 7;\n        int doble = calcularDoble(original);\n        System.out.println(\"Original: \" + original);\n        System.out.println(\"Doble: \" + doble);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Valores de retorno",
+          "content": "Un método puede devolver un valor usando la sentencia `return`. El tipo de retorno se especifica en la firma del método:\n\n```java\nstatic int sumar(int a, int b) {\n    return a + b; // Devuelve un int\n}\n\nstatic boolean esPar(int n) {\n    return n % 2 == 0; // Devuelve un boolean\n}\n\nstatic String saludar(String nombre) {\n    return \"Hola, \" + nombre; // Devuelve un String\n}\n```\n\n**Reglas del return:**\n- Solo puede haber un valor de retorno por llamada.\n- Si el tipo de retorno es `void`, no se usa `return` (o se usa sin valor: `return;`).\n- Un `return` anticipado termina la ejecución del método inmediatamente.\n- El tipo del valor devuelto debe ser compatible con el tipo de retorno declarado."
+        },
+        {
+          "type": "code",
+          "title": "Métodos con retorno de valor",
+          "language": "java",
+          "content": "public class RetornoDeValor {\n\n    static int maximo(int a, int b) {\n        return (a >= b) ? a : b;\n    }\n\n    static double promedio(double nota1, double nota2, double nota3) {\n        return (nota1 + nota2 + nota3) / 3;\n    }\n\n    static String calificacion(double nota) {\n        if (nota >= 9) return \"MH\";\n        if (nota >= 7) return \"SB\";\n        if (nota >= 5) return \"N\";\n        return \"I\";\n    }\n\n    static boolean esValido(String texto) {\n        return texto != null && !texto.isEmpty();\n    }\n\n    // Return anticipado: salir del metodo antes del final\n    static double dividirSegura(double a, double b) {\n        if (b == 0) {\n            System.out.println(\"Error: divisor cero.\");\n            return 0; // Return anticipado\n        }\n        return a / b;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Maximo(10, 25): \" + maximo(10, 25));\n        System.out.printf(\"Promedio: %.2f%n\", promedio(7.0, 8.5, 9.0));\n        System.out.println(\"Calificacion(8.5): \" + calificacion(8.5));\n        System.out.println(\"Es valido \\\"hola\\\": \" + esValido(\"hola\"));\n        System.out.println(\"Es valido \\\"\\\": \" + esValido(\"\"));\n        System.out.println(\"10 / 3 = \" + dividirSegura(10, 3));\n        System.out.println(\"10 / 0 = \" + dividirSegura(10, 0));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-2-1",
+          "difficulty": "basic",
+          "title": "Método que calcula el área",
+          "description": "Crea un método estático `areaRectangulo` que reciba base y altura (double) y devuelva el área. Llama al método desde main con 3 conjuntos de valores diferentes.",
+          "solution": "public class AreaRectangulo {\n    static double areaRectangulo(double base, double altura) {\n        return base * altura;\n    }\n\n    public static void main(String[] args) {\n        System.out.printf(\"Area 1: %.2f%n\", areaRectangulo(10, 5));\n        System.out.printf(\"Area 2: %.2f%n\", areaRectangulo(3.5, 7));\n        System.out.printf(\"Area 3: %.2f%n\", areaRectangulo(12, 8.5));\n    }\n}"
+        },
+        {
+          "id": "ex-05-2-2",
+          "difficulty": "intermediate",
+          "title": "Conversor de temperaturas",
+          "description": "Crea dos métodos: `celsiusAFahrenheit` y `fahrenheitACelsius`. Cada uno recibe un double y devuelve el resultado. Prueba ambos métodos desde main con valores de ejemplo.",
+          "solution": "public class ConversionTemperaturas {\n    static double celsiusAFahrenheit(double celsius) {\n        return celsius * 9.0 / 5 + 32;\n    }\n\n    static double fahrenheitACelsius(double fahrenheit) {\n        return (fahrenheit - 32) * 5.0 / 9;\n    }\n\n    public static void main(String[] args) {\n        double[] celsius = {0, 20, 37, 100};\n\n        for (double c : celsius) {\n            double f = celsiusAFahrenheit(c);\n            System.out.printf(\"%.1f C = %.1f F%n\", c, f);\n        }\n\n        System.out.println();\n\n        double[] fahrenheit = {32, 68, 98.6, 212};\n        for (double f : fahrenheit) {\n            double c = fahrenheitACelsius(f);\n            System.out.printf(\"%.1f F = %.1f C%n\", f, c);\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-05-2-3",
+          "difficulty": "advanced",
+          "title": "Validación con paso por valor",
+          "description": "Crea un método `normalizar` que reciba un double (nota) y devuelva el valor normalizado entre 0 y 10 (si es menor que 0 devuelve 0, si es mayor que 10 devuelve 10). Demuestra en main que la variable original no se modifica tras llamar al método.",
+          "solution": "public class NormalizarValor {\n    static double normalizar(double valor) {\n        if (valor < 0) return 0;\n        if (valor > 10) return 10;\n        return valor;\n    }\n\n    public static void main(String[] args) {\n        double nota1 = -5.0;\n        double nota2 = 15.0;\n        double nota3 = 7.5;\n\n        System.out.printf(\"Original: %.1f -> Normalizado: %.1f%n\", nota1, normalizar(nota1));\n        System.out.printf(\"Original: %.1f -> Normalizado: %.1f%n\", nota2, normalizar(nota2));\n        System.out.printf(\"Original: %.1f -> Normalizado: %.1f%n\", nota3, normalizar(nota3));\n\n        System.out.println();\n        System.out.println(\"Variables originales sin cambios:\");\n        System.out.println(\"nota1 = \" + nota1); // Sigue valiendo -5.0\n        System.out.println(\"nota2 = \" + nota2); // Sigue valiendo 15.0\n        System.out.println(\"nota3 = \" + nota3); // Sigue valiendo 7.5\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar el modificador `static` al declarar un método que se llama desde `main` (también estático).",
+        "No poner tipo de retorno. Si el método no devuelve nada, debe ser `void`. Si devuelve algo, debe especificar el tipo.",
+        "Olvidar `return` en un método que no es void. El compilador dará error.",
+        "No returnar un valor del tipo correcto. `return \"texto\"` en un método `int` da error.",
+        "Esperar que un método modifique una variable primitiva pasada como argumento. Java pasa por valor.",
+        "Poner más de un return con valor en un camino que puede alcanzarse. Si hay un return en un if, asegúrate de que siempre haya un return al final."
+      ],
+      "keyConcepts": [
+        "Parámetros (declaración) vs argumentos (llamada)",
+        "Paso por valor: copia del contenido (primitivos) o de la referencia (objetos)",
+        "Valores de retorno con return",
+        "Métodos void para acciones sin retorno",
+        "Return anticipado para salir de un método antes del final",
+        "Diferencia entre modificar el contenido de un objeto y reasignar una referencia"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.c"
+      ]
+    },
+    {
+      "id": "lesson-05-3",
+      "title": "Ámbito de variables y visibilidad",
+      "objectives": [
+        "Comprender el ámbito (scope) de una variable en Java",
+        "Diferenciar entre variables locales, de parámetro y de clase",
+        "Entender por qué una variable local no es accesible fuera de su método",
+        "Usar el modificador static para variables de clase"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es el ámbito de una variable?",
+          "content": "El **ámbito** (scope) de una variable es la zona del código donde esa variable es accesible (se puede leer y modificar). En Java, el ámbito está determinado por dónde se declara la variable.\n\nHay tres tipos principales de ámbitos:\n\n**1. Variable local**: se declara dentro de un método, constructor o bloque. Solo existe dentro de ese bloque.\n\n```java\nstatic void miMetodo() {\n    int x = 10; // x solo existe aqui dentro\n    System.out.println(x);\n}\n// Fuera de miMetodo, x no existe\n```\n\n**2. Parámetro**: es como una variable local que se inicializa con el valor del argumento.\n\n```java\nstatic void saludar(String nombre) { // nombre es local al metodo\n    System.out.println(\"Hola \" + nombre);\n}\n```\n\n**3. Variable de clase (campo)**: se declara fuera de cualquier método, dentro de la clase. Existe durante toda la vida del objeto o de la clase (si es static).\n\n```java\npublic class MiClase {\n    static int contador = 0; // Variable de clase\n\n    static void incrementar() {\n        contador++; // Accede a la variable de clase\n    }\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplos de ámbitos de variables",
+          "language": "java",
+          "content": "public class AmbitoVariables {\n\n    // Variable de clase (static): accesible desde cualquier metodo estatico\n    static String nombrePrograma = \"Mi Programa\";\n    static int contadorGlobal = 0;\n\n    static void metodoA() {\n        // Variable local a metodoA\n        int x = 10;\n        System.out.println(\"metodoA: x = \" + x);\n        System.out.println(\"metodoA: nombrePrograma = \" + nombrePrograma);\n\n        contadorGlobal++; // Modifica la variable de clase\n    }\n\n    static void metodoB() {\n        // Variable local a metodoB\n        int y = 20;\n        System.out.println(\"metodoB: y = \" + y);\n        // System.out.println(x); // ERROR: x no existe aqui\n\n        contadorGlobal++; // Modifica la variable de clase\n    }\n\n    static void metodoConParametro(String texto) {\n        // 'texto' es una variable local (parametro)\n        System.out.println(\"metodoConParametro: texto = \" + texto);\n        // System.out.println(y); // ERROR: y no existe aqui\n    }\n\n    public static void main(String[] args) {\n        // Variable local a main\n        int z = 30;\n\n        metodoA();\n        metodoB();\n        metodoConParametro(\"Hola mundo\");\n\n        System.out.println();\n        System.out.println(\"main: z = \" + z);\n        System.out.println(\"main: nombrePrograma = \" + nombrePrograma);\n        System.out.println(\"main: contadorGlobal = \" + contadorGlobal);\n\n        // System.out.println(x); // ERROR: x no existe en main\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Reglas del ámbito",
+          "content": "**Regla 1**: una variable solo se puede usar después de haber sido declarada.\n\n```java\nint a = b + 1; // ERROR: b no se ha declarado aun\nint b = 5;\n```\n\n**Regla 2**: si una variable local tiene el mismo nombre que una variable de clase, la local \"aparece\" (tiene prioridad). Esto se llama **shadowing** (sombreado).\n\n```java\nstatic int x = 100; // Variable de clase\n\nstatic void metodo() {\n    int x = 50; // Variable local: oculta la de clase\n    System.out.println(x); // Imprime 50\n    System.out.println(AmbitoVariables.x); // Imprime 100 (acceso explicito)\n}\n```\n\n**Regla 3**: las variables locales no pueden tener modificadores de acceso (`public`, `private`). Solo las variables de clase los admiten.\n\n**Regla 4**: si declaras la misma variable dos veces en el mismo ámbito, el compilador da error.\n\n```java\nstatic void metodo() {\n    int x = 10;\n    int x = 20; // ERROR: variable ya definida\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Shadowing y variables de clase",
+          "language": "java",
+          "content": "public class Shadowing {\n\n    static int contador = 100; // Variable de clase\n\n    static void incrementar(int cantidad) {\n        // 'cantidad' es local y no tiene nada que ver con 'contador'\n        contador += cantidad;\n        System.out.println(\"Dentro de incrementar: contador = \" + contador);\n    }\n\n    static void resetear() {\n        int contador = 0; // Shadowing: esta variable local oculta la de clase\n        System.out.println(\"Dentro de resetear: contador local = \" + contador);\n        // La variable de clase NO se modifica porque 'contador' aqui es la local\n        System.out.println(\"Dentro de resetear: contador de clase = \" + Shadowing.contador);\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Inicial: contador = \" + contador);\n\n        incrementar(10);\n        System.out.println(\"Despues de incrementar: contador = \" + contador);\n\n        resetear();\n        System.out.println(\"Despues de resetear: contador = \" + contador);\n        // El contador de clase sigue valiendo 110, no 0\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Constantes con final",
+          "content": "En Java, puedes crear **constantes** usando el modificador `final`. Una vez asignado un valor, no puede cambiar.\n\n```java\nfinal double PI = 3.14159265;\nfinal String NOMBRE_CURSO = \"Programacion\";\n\n// PI = 3.0; // ERROR: no se puede modificar una constante\n```\n\nLas convenciones para constantes son:\n- Tipo: `final`\n- Nombre: `SCREAMING_SNAKE_CASE` (todo en mayúsculas con guiones bajos)\n- Se declaran como `static final` si pertenecen a la clase y no cambian entre instancias.\n\nLas constantes son especialmente útiles para valores mágicos que no deberían cambiar: tasas de impuestos, límites, configuración, etc."
+        },
+        {
+          "type": "code",
+          "title": "Uso de constantes con final",
+          "language": "java",
+          "content": "public class Constantes {\n\n    // Constantes de clase\n    static final double PI = 3.141592653589793;\n    static final int DIAS_SEMANA = 7;\n    static final String SEPARADOR = \"=\".repeat(40);\n\n    static double calcularAreaCirculo(double radio) {\n        return PI * radio * radio;\n    }\n\n    static String getNombreDia(int numero) {\n        final String[] DIAS = {\n            \"Lunes\", \"Martes\", \"Miercoles\",\n            \"Jueves\", \"Viernes\", \"Sabado\", \"Domingo\"\n        };\n\n        if (numero < 1 || numero > DIAS_SEMANA) {\n            return \"No valido\";\n        }\n        return DIAS[numero - 1];\n    }\n\n    public static void main(String[] args) {\n        System.out.println(SEPARADOR);\n        System.out.println(\"CONSTANTES EN JAVA\");\n        System.out.println(SEPARADOR);\n        System.out.println();\n\n        System.out.printf(\"PI = %.15f%n\", PI);\n        System.out.println(\"Dias de la semana: \" + DIAS_SEMANA);\n        System.out.println();\n\n        // Calcular areas\n        double[] radios = {1, 2, 3, 5, 10};\n        for (double r : radios) {\n            System.out.printf(\"Area del circulo con radio %.0f: %.2f%n\",\n                r, calcularAreaCirculo(r));\n        }\n\n        System.out.println();\n\n        // Mostrar dias\n        for (int i = 1; i <= DIAS_SEMANA; i++) {\n            System.out.println(\"Dia \" + i + \": \" + getNombreDia(i));\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-3-1",
+          "difficulty": "basic",
+          "title": "Ámbito de variables",
+          "description": "Identifica en qué ámbitos son accesibles las variables del siguiente código. Comenta cada línea indicando si la variable es local, de parámetro o de clase:\n\n```java\npublic class Ejemplo {\n    static int global = 10;\n    static void metodo(int parametro) {\n        int local = 5;\n    }\n}\n```",
+          "solution": "public class EjemploAmbito {\n    // 'global' es VARIABLE DE CLASE: accesible desde cualquier metodo estatico\n    static int global = 10;\n\n    static void metodo(int parametro) {\n        // 'parametro' es VARIABLE LOCAL (parametro): accesible solo en este metodo\n        // 'local' es VARIABLE LOCAL: accesible solo en este metodo\n        int local = 5;\n        System.out.println(\"global: \" + global);   // OK: variable de clase\n        System.out.println(\"parametro: \" + parametro); // OK: variable local\n        System.out.println(\"local: \" + local);     // OK: variable local\n    }\n\n    public static void main(String[] args) {\n        metodo(20);\n        System.out.println(\"global: \" + global);   // OK\n        // System.out.println(parametro); // ERROR: parametro no existe aqui\n        // System.out.println(local);     // ERROR: local no existe aqui\n    }\n}"
+        },
+        {
+          "id": "ex-05-3-2",
+          "difficulty": "intermediate",
+          "title": "Constantes y shadowing",
+          "description": "Crea una clase con una constante PI y un método que declare una variable local PI con otro valor. Muestra ambas_PI para demostrar el shadowing.",
+          "solution": "public class DemoShadowing {\n    static final double PI = 3.14159265;\n\n    static void calcular(double radio) {\n        // Variable local que oculta la de clase\n        final double PI = 3.14;\n\n        System.out.println(\"PI local: \" + PI);\n        System.out.println(\"PI de clase: \" + DemoShadowing.PI);\n\n        double areaLocal = PI * radio * radio;\n        double areaGlobal = DemoShadowing.PI * radio * radio;\n\n        System.out.printf(\"Area con PI local: %.4f%n\", areaLocal);\n        System.out.printf(\"Area con PI global: %.4f%n\", areaGlobal);\n    }\n\n    public static void main(String[] args) {\n        calcular(5);\n    }\n}"
+        },
+        {
+          "id": "ex-05-3-3",
+          "difficulty": "advanced",
+          "title": "Variables de clase con static",
+          "description": "Crea una clase `Contador` con una variable estática `contador`. Añade métodos `incrementar()`, `decrementar()` y `getValor()`. Crea un main que pruebe que la variable se comparte entre todas las llamadas a los métodos.",
+          "solution": "public class Contador {\n    static int contador = 0;\n\n    static void incrementar() {\n        contador++;\n    }\n\n    static void decrementar() {\n        contador--;\n    }\n\n    static int getValor() {\n        return contador;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Valor inicial: \" + getValor());\n\n        incrementar();\n        incrementar();\n        incrementar();\n        System.out.println(\"Despues de 3 incrementos: \" + getValor());\n\n        decrementar();\n        System.out.println(\"Despues de 1 decremento: \" + getValor());\n\n        // La variable se mantiene entre llamadas\n        incrementar();\n        incrementar();\n        System.out.println(\"Valor final: \" + getValor());\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Declarar una variable local fuera de un bloque. Las variables locales solo existen dentro del método.",
+        "Intentar usar una variable local fuera de su ámbito. Si se declara en un bucle, solo existe dentro del bucle.",
+        "Shadowing no intencionado: declarar una variable local con el mismo nombre que una de clase puede causar confusiones.",
+        "No inicializar una variable local antes de usarla. El compilador da error si la variable puede no tener valor.",
+        "Olvidar que static final crea una constante. Una vez asignado, no puede cambiar."
+      ],
+      "keyConcepts": [
+        "Ámbito (scope): la zona del código donde una variable es accesible",
+        "Variable local: solo existe dentro del método o bloque donde se declara",
+        "Variable de clase (campo): existe durante toda la vida de la clase",
+        "Shadowing: variable local que oculta una variable de clase con el mismo nombre",
+        "Constantes con final: valores que no pueden modificarse",
+        "static final para constantes de clase"
+      ],
+      "learningOutcomes": [
+        "RA1"
+      ],
+      "assessmentCriteria": [
+        "RA1.d",
+        "RA1.e"
+      ]
+    },
+    {
+      "id": "lesson-05-4",
+      "title": "Sobrecarga de métodos",
+      "objectives": [
+        "Comprender qué es la sobrecarga de métodos y por qué existe",
+        "Crear múltiples métodos con el mismo nombre pero diferentes parámetros",
+        "Entender cómo Java resuelve qué método llamar (resolución de sobrecarga)",
+        "Aplicar la sobrecarga para crear interfaces más limpias"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es la sobrecarga de métodos?",
+          "content": "La **sobrecarga** (overloading) permite tener múltiples métodos con **el mismo nombre** pero **diferente número o tipo de parámetros**. Java distingue entre ellos por la \"firma\" del método (nombre + tipos de los parámetros).\n\n```java\nstatic int sumar(int a, int b) {\n    return a + b;\n}\n\nstatic double sumar(double a, double b) {\n    return a + b;\n}\n\nstatic int sumar(int a, int b, int c) {\n    return a + b + c;\n}\n```\n\nEstos tres métodos se llaman igual (`sumar`), pero Java sabe cuál llamar dependiendo de los argumentos que le pases:\n- `sumar(3, 5)` → llama al primero (int, int)\n- `sumar(3.5, 2.1)` → llama al segundo (double, double)\n- `sumar(1, 2, 3)` → llama al tercero (int, int, int)\n\nLa sobrecarga es muy útil porque permite que una misma \"idea\" (sumar) funcione con diferentes tipos de datos sin tener que inventar nombres como `sumarEnteros`, `sumarDecimales`, `sumarTresEnteros`."
+        },
+        {
+          "type": "code",
+          "title": "Sobrecarga de métodos: ejemplos",
+          "language": "java",
+          "content": "public class SobrecargaEjemplos {\n\n    // Sobrecarga: mismo nombre, diferente numero de parametros\n    static String formatear(int valor) {\n        return \"Entero: \" + valor;\n    }\n\n    static String formatear(double valor) {\n        return String.format(\"Decimal: %.2f\", valor);\n    }\n\n    static String formatear(String texto) {\n        return \"Texto: \" + texto;\n    }\n\n    static String formatear(int valor, String etiqueta) {\n        return etiqueta + \": \" + valor;\n    }\n\n    // Sobrecarga con array\n    static int sumar(int[] numeros) {\n        int suma = 0;\n        for (int n : numeros) {\n            suma += n;\n        }\n        return suma;\n    }\n\n    static int sumar(int a, int b) {\n        return a + b;\n    }\n\n    public static void main(String[] args) {\n        // Java resuelve cual metodo llamar segun los argumentos\n        System.out.println(formatear(42));\n        System.out.println(formatear(3.14159));\n        System.out.println(formatear(\"Hola mundo\"));\n        System.out.println(formatear(100, \"Puntuacion\"));\n\n        System.out.println();\n\n        int[] notas = {7, 8, 9, 5, 6};\n        System.out.println(\"Suma array: \" + sumar(notas));\n        System.out.println(\"Suma dos: \" + sumar(10, 20));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Reglas de la sobrecarga",
+          "content": "Para que dos métodos sean una sobrecarga válida, deben diferir en al menos uno de estos aspectos:\n\n1. **Número de parámetros diferente**\n   ```java\n   static void metodo(int a) { }\n   static void metodo(int a, int b) { } // Valid: diferente num. parametros\n   ```\n\n2. **Tipo de al menos un parámetro diferente**\n   ```java\n   static void metodo(int a) { }\n   static void metodo(double a) { } // Valid: diferente tipo\n   ```\n\n3. **Orden de los tipos diferente**\n   ```java\n   static void metodo(int a, double b) { }\n   static void metodo(double a, int b) { } // Valid: diferente orden\n   ```\n\n**Lo que NO es sobrecarga válida**:\n- Solo cambiar el tipo de retorno: `int metodo(int a)` y `double metodo(int a)` → ERROR.\n- Solo cambiar el nombre de los parámetros: `metodo(int a)` y `metodo(int b)` → es el mismo método.\n\nJava resuelve la llamada al momento de la compilación (resolución estática). No importa el valor en tiempo de ejecución, solo los tipos declarados."
+        },
+        {
+          "type": "code",
+          "title": "Sobrecarga práctica: utilidades de texto",
+          "language": "java",
+          "content": "public class UtilidadesTexto {\n\n    // Repetir un texto N veces\n    static String repetir(String texto, int veces) {\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < veces; i++) {\n            sb.append(texto);\n        }\n        return sb.toString();\n    }\n\n    // Repetir con separador (sobrecarga)\n    static String repetir(String texto, int veces, String separador) {\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < veces; i++) {\n            sb.append(texto);\n            if (i < veces - 1) {\n                sb.append(separador);\n            }\n        }\n        return sb.toString();\n    }\n\n    // Truncar texto a N caracteres\n    static String truncar(String texto, int maxLongitud) {\n        if (texto.length() <= maxLongitud) {\n            return texto;\n        }\n        return texto.substring(0, maxLongitud) + \"...\";\n    }\n\n    // Truncar con sufijo personalizado (sobrecarga)\n    static String truncar(String texto, int maxLongitud, String sufijo) {\n        if (texto.length() <= maxLongitud) {\n            return texto;\n        }\n        return texto.substring(0, maxLongitud) + sufijo;\n    }\n\n    // Rellenar texto con caracteres\n    static String rellenar(String texto, int longitudTotal, char caracter) {\n        while (texto.length() < longitudTotal) {\n            texto = caracter + texto;\n        }\n        return texto;\n    }\n\n    public static void main(String[] args) {\n        // Repeticion\n        System.out.println(repetir(\"=\", 30));\n        System.out.println(repetir(\"*-\", 5, \" \"));\n\n        System.out.println();\n\n        // Truncar\n        String textoLargo = \"Este es un texto muy largo que necesita ser truncado\";\n        System.out.println(truncar(textoLargo, 20));\n        System.out.println(truncar(textoLargo, 20, \" >>\"));\n\n        System.out.println();\n\n        // Rellenar\n        System.out.println(rellenar(\"42\", 8, '0'));\n        System.out.println(rellenar(\"Hola\", 15, '.'));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Sobrecarga vs métodos con valores por defecto",
+          "content": "Java NO permite valores por defecto en parámetros como otros lenguajes (Python, C++, etc.). La sobrecarga es la forma de simular este comportamiento:\n\n```java\n// En Python (no se puede en Java):\n# def saludar(nombre, idioma=\"es\"):\n\n// En Java: usar sobrecarga\nstatic void saludar(String nombre) {\n    saludar(nombre, \"es\"); // Llama a la version completa\n}\n\nstatic void saludar(String nombre, String idioma) {\n    if (idioma.equals(\"es\")) {\n        System.out.println(\"Hola, \" + nombre);\n    } else {\n        System.out.println(\"Hello, \" + nombre);\n    }\n}\n```\n\nLa versión sin el segundo parámetro usa un valor por defecto llamando a la versión completa. Este patrón es muy común en la API estándar de Java."
+        },
+        {
+          "type": "code",
+          "title": "Simular valores por defecto con sobrecarga",
+          "language": "java",
+          "content": "public class ValoresPorDefecto {\n\n    // Version completa: todos los parametros\n    static void crearInforme(String titulo, String alumno, int ancho, char relleno) {\n        String separador = String.valueOf(relleno).repeat(ancho);\n        System.out.println(separador);\n        System.out.printf(\"%\" + (ancho / 2) + \"s%s%n\", \"\", titulo);\n        System.out.println(separador);\n        System.out.printf(\"Alumno: %s%n\", alumno);\n        System.out.println(separador);\n    }\n\n    // Sobrecarga: titulo y alumno con valores por defecto\n    static void crearInforme(String titulo, String alumno) {\n        crearInforme(titulo, alumno, 40, '=');\n    }\n\n    // Sobrecarga: solo titulo\n    static void crearInforme(String titulo) {\n        crearInforme(titulo, \"Sin especificar\", 40, '=');\n    }\n\n    public static void main(String[] args) {\n        // Llamada completa\n        crearInforme(\"INFORME 1\", \"Ana Garcia\", 35, '*');\n\n        System.out.println();\n\n        // Llamada con valores por defecto\n        crearInforme(\"INFORME 2\", \"Carlos Ruiz\");\n\n        System.out.println();\n\n        // Llamada minima\n        crearInforme(\"INFORME 3\");\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-4-1",
+          "difficulty": "basic",
+          "title": "Sobrecarga de sumar",
+          "description": "Crea 3 versiones sobrecargadas de un método `sumar`: uno que reciba 2 int, otro que reciba 3 int, y otro que reciba 2 double. Prueba las tres desde main.",
+          "solution": "public class SumaSobrecarga {\n    static int sumar(int a, int b) {\n        return a + b;\n    }\n\n    static int sumar(int a, int b, int c) {\n        return a + b + c;\n    }\n\n    static double sumar(double a, double b) {\n        return a + b;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"2 int: \" + sumar(5, 3));\n        System.out.println(\"3 int: \" + sumar(5, 3, 7));\n        System.out.println(\"2 double: \" + sumar(5.5, 3.2));\n    }\n}"
+        },
+        {
+          "id": "ex-05-4-2",
+          "difficulty": "intermediate",
+          "title": "Sobrecarga de mostrar",
+          "description": "Crea un método `mostrar` sobrecargado que acepte: un int, un double, un String, o un boolean. Cada versión debe mostrar el valor con un formato adecuado.",
+          "solution": "public class MostrarSobrecarga {\n    static void mostrar(int valor) {\n        System.out.println(\"Entero: \" + valor);\n    }\n\n    static void mostrar(double valor) {\n        System.out.printf(\"Decimal: %.4f%n\", valor);\n    }\n\n    static void mostrar(String valor) {\n        System.out.println(\"Texto: \\\"\" + valor + \"\\\"\");\n    }\n\n    static void mostrar(boolean valor) {\n        System.out.println(\"Booleano: \" + (valor ? \"VERDADERO\" : \"FALSO\"));\n    }\n\n    public static void main(String[] args) {\n        mostrar(42);\n        mostrar(3.14159);\n        mostrar(\"Hola mundo\");\n        mostrar(true);\n    }\n}"
+        },
+        {
+          "id": "ex-05-4-3",
+          "difficulty": "advanced",
+          "title": "Biblioteca de utilidades con sobrecarga",
+          "description": "Crea una clase `Texto` con métodos sobrecargados para: `recortar(String, int)` (recorta a N caracteres) y `recortar(String, int, String)` (recorta y añade sufijo). Añade también `contiene(String, String)` y `contiene(String, char)` para buscar texto o un carácter.",
+          "solution": "public class Texto {\n    static String recortar(String texto, int maxLong) {\n        if (texto.length() <= maxLong) return texto;\n        return texto.substring(0, maxLong);\n    }\n\n    static String recortar(String texto, int maxLong, String sufijo) {\n        if (texto.length() <= maxLong) return texto;\n        return texto.substring(0, maxLong) + sufijo;\n    }\n\n    static boolean contiene(String texto, String busqueda) {\n        return texto.contains(busqueda);\n    }\n\n    static boolean contiene(String texto, char caracter) {\n        return texto.indexOf(caracter) >= 0;\n    }\n\n    public static void main(String[] args) {\n        String frase = \"Java es un lenguaje de programacion orientado a objetos\";\n\n        System.out.println(\"Original: \" + frase);\n        System.out.println(\"Recortar 20: \\\"\" + recortar(frase, 20) + \"\\\"\");\n        System.out.println(\"Recortar 20 + sufijo: \\\"\" + recortar(frase, 20, \"...\") + \"\\\"\");\n        System.out.println();\n        System.out.println(\"Contiene \\\"lenguaje\\\": \" + contiene(frase, \"lenguaje\"));\n        System.out.println(\"Contiene 'x': \" + contiene(frase, 'x'));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Intentar hacer sobrecarga cambiando solo el nombre del parámetro. `metodo(int a)` y `metodo(int b)` son el mismo método.",
+        "Intentar hacer sobrecarga cambiando solo el tipo de retorno. `int metodo(int)` y `double metodo(int)` dan error de compilación.",
+        "No entender que Java resuelve la sobrecarga en compilación, no en ejecución.",
+        "Confundir sobrecarga (mismo nombre, diferente firma) con sobreescritura (mismo método en clases heredadas, que veremos más adelante).",
+        "Crear demasiadas sobrecargas que confundan. Si tienes más de 4-5, considera si un diseño con objetos sería mejor."
+      ],
+      "keyConcepts": [
+        "Sobrecarga: múltiples métodos con el mismo nombre y diferente firma",
+        "Firma del método: nombre + número + tipo + orden de parámetros",
+        "Resolución de sobrecarga: Java elige el método más específico en compilación",
+        "Simular valores por defecto con sobrecarga",
+        "La sobrecarga NO cambia el tipo de retorno ni usa solo el nombre del parámetro",
+        "Cuándo usar sobrecarga vs diseñar con un solo método más flexible"
+      ],
+      "learningOutcomes": [
+        "RA5",
+        "RA1"
+      ],
+      "assessmentCriteria": [
+        "RA5.c"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Biblioteca de utilidades matemáticas",
+    "description": "Crea una clase `Matematicas` con métodos estáticos reutilizables:\n1. Método `factorial(int n)` que devuelva el factorial con un bucle for\n2. Método `esPrimo(int n)` que devuelva boolean\n3. Método `fibonacci(int n)` que devuelva el enésimo número de Fibonacci\n4. Método `mcd(int a, int b)` que calcule el Máximo Común Divisor\n5. Sobrecarga: `sumar(int[])` y `sumar(int, int, int)`\n6. Usa constantes para valores fijos (ej: límite máximo de iteraciones)\n7. Documenta cada método con Javadoc incluyendo @param y @return\n8. Crea un main que pruebe todos los métodos con valores de ejemplo",
+    "learningOutcomes": [
+      "RA1",
+      "RA5"
+    ],
+    "assessmentCriteria": [
+      "RA1.a",
+      "RA1.d",
+      "RA1.e",
+      "RA1.f",
+      "RA1.i",
+      "RA5.c"
+    ]
+  }
+}

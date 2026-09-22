@@ -1,0 +1,387 @@
+{
+  "id": "mod-08",
+  "title": "POO — Herencia",
+  "description": "Este módulo introduce la herencia como mecanismo para reutilizar y extender código. Se aprende a crear jerarquías de clases con superclases y subclases, a usar `super` y `this`, a sobrescribir métodos y a gestionar constructores en jerarquías. Se mantiene el dominio Alumno-Curso con la extensión a tipos específicos de alumno.",
+  "phase": "phase-4",
+  "position": 8,
+  "learningOutcomes": [
+    "RA7"
+  ],
+  "assessmentCriteria": [
+    "RA7.a",
+    "RA7.b",
+    "RA7.c",
+    "RA7.d"
+  ],
+  "officialContents": [
+    "Utilización avanzada de clases"
+  ],
+  "duration": "12 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-06",
+    "mod-07"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-08-1",
+      "title": "Concepto de herencia",
+      "objectives": [
+        "Comprender la herencia como mecanismo de reutilización de código",
+        "Identificar superclases y subclases en una jerarquía",
+        "Crear subclases con la sentencia `extends`",
+        "Entender qué hereda una subclase de su superclase"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es la herencia?",
+          "content": "La **herencia** es un mecanismo de la POO que permite crear una nueva clase basándose en una ya existente. La nueva clase (subclase o clase hija) hereda los campos y métodos de la clase original (superclase o clase padre) y puede añadir los suyos propios.\n\nImagina que tienes una clase `Alumno` con nombre, email y notaMedia. Ahora necesitas un tipo especial de alumno: un `AlumnoBecario`, que además tiene un número de beca y un porcentaje de descuento. En lugar de copiar todo el código de `Alumno`, creamos `AlumnoBecario` que **hereda** de `Alumno`:\n\n```java\npublic class AlumnoBecario extends Alumno {\n    private String numBeca;\n    private double descuento;\n}\n```\n\n`AlumnoBecario` tiene automáticamente:\n- Todos los campos de `Alumno`: nombre, email, notaMedia\n- Todos los métodos de `Alumno`: getNombre(), estaAprobado(), etc.\n- Sus propios campos: numBeca, descuento\n- Puede añadir sus propios métodos\n\nLa herencia modela una relación **\"es un tipo de\"**:\n- Un AlumnoBecario **es un** Alumno (con características extra)\n- Un CocheElectrico **es un** Coche (con motor eléctrico)\n- Un ProfesorTitular **es un** Profesor (con categoría)"
+        },
+        {
+          "type": "code",
+          "title": "Superclase: Alumno",
+          "language": "java",
+          "content": "public class Alumno {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n\n    public boolean estaAprobado() {\n        return notaMedia >= 5.0;\n    }\n\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \") - Nota: \" + String.format(\"%.1f\", notaMedia);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Subclase: AlumnoBecario",
+          "language": "java",
+          "content": "public class AlumnoBecario extends Alumno {\n    // Campos propios de AlumnoBecario\n    private String numBeca;\n    private double porcentajeDescuento;\n\n    // Constructor: llama al constructor de Alumno con super()\n    public AlumnoBecario(String nombre, String email, String numBeca, double descuento) {\n        super(nombre, email);  // Llama al constructor de Alumno\n        this.numBeca = numBeca;\n        this.porcentajeDescuento = descuento;\n    }\n\n    // Getters propios\n    public String getNumBeca() { return numBeca; }\n    public double getPorcentajeDescuento() { return porcentajeDescuento; }\n\n    // Metodo propio\n    public double calcularCuotaDescuento(double cuotaBase) {\n        return cuotaBase * (1 - porcentajeDescuento / 100);\n    }\n\n    @Override\n    public String toString() {\n        return super.toString() + \" [Beca: \" + numBeca + \", Descuento: \" + porcentajeDescuento + \"%]\";\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Usando la jerarquía de clases",
+          "language": "java",
+          "content": "public class GestionAlumnos {\n    public static void main(String[] args) {\n        // Alumno normal\n        Alumno ana = new Alumno(\"Ana\", \"ana@email.com\");\n        ana.setNotaMedia(8.5);\n\n        // Alumno becario (hereda de Alumno)\n        AlumnoBecario carlos = new AlumnoBecario(\n            \"Carlos\", \"carlos@email.com\", \"BEC-2026-001\", 25.0\n        );\n        carlos.setNotaMedia(7.0);\n\n        // AlumnoBecario TAMBIEN es un Alumno\n        System.out.println(\"Ana: \" + ana);\n        System.out.println(\"Carlos: \" + carlos);\n\n        // Metodos heredados funcionan igual\n        System.out.println(\"Ana aprobada: \" + ana.estaAprobado());\n        System.out.println(\"Carlos aprobado: \" + carlos.estaAprobado());\n\n        // Metodo propio de AlumnoBecario\n        double cuotaBase = 1000.0;\n        System.out.println(\"Cuota Carlos (con beca): \" + carlos.calcularCuotaDescuento(cuotaBase) + \" EUR\");\n\n        // Polimorfismo basico: un AlumnoBecario puede usarse donde se espere un Alumno\n        Alumno referencia = carlos; // OK: AlumnoBecario es un Alumno\n        System.out.println(\"Referencia: \" + referencia.getNombre());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "¿Qué hereda y qué no?",
+          "content": "Una subclase hereda **todos** los campos y métodos públicos y protegidos de su superclase. Pero hay matices:\n\n**Sí hereda:**\n- Campos `public` y `protected`\n- Métodos `public` y `protected`\n- Constructores (pero no los \"hereda\" directamente, los llama con `super()`)\n- Clases internas\n\n**No hereda:**\n- Campos `private` (existen en el objeto, pero la subclase no puede acceder directamente)\n- Constructores (la subclase debe llamar al de la superclase explícitamente)\n- Miembros del paquete (sin modificador) si están en paquetes distintos\n\n```java\npublic class Alumno {\n    private String nombre;     // No accesible directamente en subclase\n    protected int edad;        // Accesible en subclase\n    public String email;       // Accesible en subclase\n\n    private void metodoPrivado() { }   // No accesible\n    protected void metodoProtegido() { } // Accesible\n    public void metodoPublico() { }      // Accesible\n}\n```\n\nPara acceder a campos `private` desde la subclase, se usan los getters heredados:"
+        },
+        {
+          "type": "code",
+          "title": "Accediendo a campos privados de la superclase",
+          "language": "java",
+          "content": "public class AlumnoBecario extends Alumno {\n    private String numBeca;\n    private double descuento;\n\n    public AlumnoBecario(String nombre, String email, String numBeca, double descuento) {\n        super(nombre, email);\n        this.numBeca = numBeca;\n        this.descuento = descuento;\n    }\n\n    // No podemos hacer: this.nombre = \"X\"; (nombre es private en Alumno)\n    // Pero si podemos: getNombre() (heredado de Alumno)\n\n    @Override\n    public String toString() {\n        // Usamos getNombre() para acceder al nombre privado de la superclase\n        return getNombre() + \" [Beca: \" + numBeca + \", Descuento: \" + descuento + \"%]\";\n    }\n\n    // Metodo que combina datos heredados y propios\n    public String getInfoCompleta() {\n        return getNombre() + \" | \" + getEmail()\n             + \" | Nota: \" + getNotaMedia()\n             + \" | Beca: \" + numBeca\n             + \" | Descuento: \" + descuento + \"%\";\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-1-1",
+          "difficulty": "basic",
+          "title": "Identificar relaciones de herencia",
+          "description": "Piensa en 3 ejemplos de relaciones de herencia del mundo real (no programación). Para cada uno, identifica la superclase y la subclase.",
+          "solution": "// 1. Superclase: Animal, Subclase: Perro\n//    Un perro ES UN animal\n//\n// 2. Superclase: Vehiculo, Subclase: Coche\n//    Un coche ES UN vehiculo\n//\n// 3. Superclase: Empleado, Subclase: Profesor\n//    Un profesor ES UN empleado\n//\n// Relacion \"es un tipo de\":\n// - Perro es un tipo de Animal ✓\n// - Coche es un tipo de Vehiculo ✓\n// - Profesor es un tipo de Empleado ✓\n// - NOTA: \"tiene un\" NO es herencia (ej: Coche tiene un Motor = Composicion)"
+        },
+        {
+          "id": "ex-08-1-2",
+          "difficulty": "intermediate",
+          "title": "Crear subclase Profesor",
+          "description": "Dada la clase `Persona` (nombre, edad, email), crea una subclase `Profesor` que añada: departamento (String), categoria (String) y un método `getInfo()` que muestre toda la información.",
+          "solution": "public class Persona {\n    private String nombre;\n    private int edad;\n    private String email;\n\n    public Persona(String nombre, int edad, String email) {\n        this.nombre = nombre;\n        this.edad = edad;\n        this.email = email;\n    }\n\n    public String getNombre() { return nombre; }\n    public int getEdad() { return edad; }\n    public String getEmail() { return email; }\n\n    @Override\n    public String toString() {\n        return nombre + \", \" + edad + \" anios - \" + email;\n    }\n}\n\npublic class Profesor extends Persona {\n    private String departamento;\n    private String categoria;\n\n    public Profesor(String nombre, int edad, String email, String departamento, String categoria) {\n        super(nombre, edad, email);\n        this.departamento = departamento;\n        this.categoria = categoria;\n    }\n\n    public String getDepartamento() { return departamento; }\n    public String getCategoria() { return categoria; }\n\n    public String getInfo() {\n        return getNombre() + \" | \" + departamento + \" | \" + categoria;\n    }\n}"
+        },
+        {
+          "id": "ex-08-1-3",
+          "difficulty": "advanced",
+          "title": "Jerarquía de vehículos",
+          "description": "Crea una jerarquía: `Vehiculo` (marca, modelo, anio) → `CocheElectrico` (bateriaKwh, autonomia) → `CocheElectricoDeLujo` (marcaPremium, nivelConfort). Cada subclase debe tener constructor, getters y `toString()`. El constructor de cada subclase debe llamar a `super()`.",
+          "solution": "public class Vehiculo {\n    private String marca;\n    private String modelo;\n    private int anio;\n\n    public Vehiculo(String marca, String modelo, int anio) {\n        this.marca = marca;\n        this.modelo = modelo;\n        this.anio = anio;\n    }\n\n    public String getMarca() { return marca; }\n    public String getModelo() { return modelo; }\n    public int getAnio() { return anio; }\n\n    @Override\n    public String toString() {\n        return marca + \" \" + modelo + \" (\" + anio + \")\";\n    }\n}\n\npublic class CocheElectrico extends Vehiculo {\n    private double bateriaKwh;\n    private int autonomiaKm;\n\n    public CocheElectrico(String marca, String modelo, int anio, double bateria, int autonomia) {\n        super(marca, modelo, anio);\n        this.bateriaKwh = bateria;\n        this.autonomiaKm = autonomia;\n    }\n\n    public double getBateriaKwh() { return bateriaKwh; }\n    public int getAutonomiaKm() { return autonomiaKm; }\n\n    @Override\n    public String toString() {\n        return super.toString() + \" | \" + bateriaKwh + \"kWh | \" + autonomiaKm + \"km\";\n    }\n}\n\npublic class CocheElectricoDeLujo extends CocheElectrico {\n    private String marcaPremium;\n    private String nivelConfort;\n\n    public CocheElectricoDeLujo(String marca, String modelo, int anio, double bateria, int autonomia, String premium, String confort) {\n        super(marca, modelo, anio, bateria, autonomia);\n        this.marcaPremium = premium;\n        this.nivelConfort = confort;\n    }\n\n    @Override\n    public String toString() {\n        return super.toString() + \" | \" + marcaPremium + \" | \" + nivelConfort;\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Pensar que la herencia es para reutilizar código sin relación lógica. La herencia modela relaciones \"es un tipo de\".",
+        "Olvidar llamar a `super()` en el constructor de la subclase. Si no lo haces, Java busca un constructor sin parámetros en la superclase.",
+        "Intentar acceder a campos `private` de la superclase directamente. Usa los getters heredados.",
+        "Crear subclases que no añaden nada. Si una subclase no tiene campos ni métodos propios, probablemente no necesita herencia.",
+        "Confundir herencia con composición. \"Un coche tiene un motor\" = composición. \"Un coche eléctrico es un coche\" = herencia."
+      ],
+      "keyConcepts": [
+        "Herencia como mecanismo de reutilización y extensión",
+        "Relación \"es un tipo de\" entre superclase y subclase",
+        "Sentencia `extends` para declarar herencia",
+        "Qué se hereda: campos y métodos públicos/protected",
+        "Campos private: existen pero no son accesibles directamente",
+        "Uso de `super()` para llamar al constructor de la superclase"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.a"
+      ]
+    },
+    {
+      "id": "lesson-08-2",
+      "title": "Super y this en la herencia",
+      "objectives": [
+        "Dominar el uso de `super()` para llamar constructores de la superclase",
+        "Diferenciar entre `this` y `super`",
+        "Acceder a campos y métodos de la superclase con `super`",
+        "Gestionar la cadena de constructor en jerarquías profundas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "`this` vs. `super`",
+          "content": "En Java, `this` y `super` son palabras reservadas que se refieren a diferentes cosas:\n\n| Palabra | Se refiere a | Ejemplo |\n|---------|-------------|----------|\n| `this` | El objeto actual | `this.nombre` = mi campo nombre |\n| `super` | La superclase | `super.nombre` = el campo nombre de la superclase |\n\n```java\npublic class AlumnoBecario extends Alumno {\n    private String numBeca;\n\n    public AlumnoBecario(String nombre, String email, String numBeca) {\n        super(nombre, email);  // Llama al constructor de Alumno\n        this.numBeca = numBeca; // Asigna el campo propio\n    }\n}\n```\n\n**Regla importante**: `super()` debe ser la **primera sentencia** del constructor. No puedes poner nada antes.\n\n```java\n// CORRECTO\npublic AlumnoBecario(String nombre, String numBeca) {\n    super(nombre, \"sin@email.com\");  // Primero\n    this.numBeca = numBeca;           // Despues\n}\n\n// INCORRECTO\npublic AlumnoBecario(String nombre, String numBeca) {\n    System.out.println(\"Creando alumno becario\");  // ERROR\n    super(nombre, \"sin@email.com\");  // No puede ir despues\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Uso de super para acceder a miembros de la superclase",
+          "language": "java",
+          "content": "public class Alumno {\n    protected String nombre;\n    protected double notaMedia;\n\n    public Alumno(String nombre) {\n        this.nombre = nombre;\n        this.notaMedia = 0.0;\n    }\n\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n\n    public String getDescripcion() {\n        return \"Alumno: \" + nombre;\n    }\n}\n\npublic class AlumnoBecario extends Alumno {\n    private double descuento;\n\n    public AlumnoBecario(String nombre, double descuento) {\n        super(nombre);  // Llama al constructor de Alumno\n        this.descuento = descuento;\n    }\n\n    // Sobrescribir getDescripcion usando super\n    @Override\n    public String getDescripcion() {\n        return super.getDescripcion() + \" [Becado: \" + descuento + \"%]\";\n    }\n\n    // Acceder al campo protegido de la superclase\n    public void mostrarInfo() {\n        System.out.println(\"Nombre (via super): \" + super.nombre);\n        System.out.println(\"Nombre (via getter): \" + super.getNombre());\n        System.out.println(\"Descripcion: \" + getDescripcion());\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Cadena de constructores en jerarquía profunda",
+          "language": "java",
+          "content": "// Persona -> Alumno -> AlumnoBecario\n\npublic class Persona {\n    protected String nombre;\n    protected int edad;\n\n    public Persona(String nombre, int edad) {\n        this.nombre = nombre;\n        this.edad = edad;\n        System.out.println(\"Constructor de Persona llamado para: \" + nombre);\n    }\n\n    public String getNombre() { return nombre; }\n}\n\npublic class Alumno extends Persona {\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, int edad, String email) {\n        super(nombre, edad);  // Llama a Persona(String, int)\n        this.email = email;\n        this.notaMedia = 0.0;\n        System.out.println(\"Constructor de Alumno llamado para: \" + nombre);\n    }\n\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n}\n\npublic class AlumnoBecario extends Alumno {\n    private String numBeca;\n    private double descuento;\n\n    public AlumnoBecario(String nombre, int edad, String email, String numBeca, double descuento) {\n        super(nombre, edad, email);  // Llama a Alumno(String, int, String)\n        this.numBeca = numBeca;\n        this.descuento = descuento;\n        System.out.println(\"Constructor de AlumnoBecario llamado para: \" + nombre);\n    }\n\n    public String getNumBeca() { return numBeca; }\n    public double getDescuento() { return descuento; }\n\n    public static void main(String[] args) {\n        System.out.println(\"--- Creando AlumnoBecario ---\");\n        AlumnoBecario ab = new AlumnoBecario(\n            \"Ana\", 20, \"ana@email.com\", \"BEC-001\", 25.0\n        );\n        System.out.println(\"--- Fin de construccion ---\");\n        System.out.println(ab.getNombre() + \", \" + ab.getEmail());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Orden de ejecución de constructores",
+          "content": "Cuando creas un objeto de una subclase, los constructores se ejecutan de **arriba a abajo** (de la superclase a la subclase):\n\n1. Se ejecuta el constructor de `Persona` (la raíz de la jerarquía)\n2. Se ejecuta el constructor de `Alumno` (llamando a `super()`)\n3. Se ejecuta el constructor de `AlumnoBecario` (llamando a `super()`)\n\nEl resultado en consola sería:\n\n```\n--- Creando AlumnoBecario ---\nConstructor de Persona llamado para: Ana\nConstructor de Alumno llamado para: Ana\nConstructor de AlumnoBecario llamado para: Ana\n--- Fin de construccion ---\nAna, ana@email.com\n```\n\n**Importante**: si no escribes `super()` explícitamente, Java llama automáticamente a `super()` (constructor sin parámetros) de la superclase. Si la superclase no tiene constructor sin parámetros, da error de compilación."
+        },
+        {
+          "type": "code",
+          "title": "Constructor por defecto y super() implícito",
+          "language": "java",
+          "content": "public class Animal {\n    private String nombre;\n\n    // Solo tiene constructor con parametro\n    public Animal(String nombre) {\n        this.nombre = nombre;\n    }\n\n    public String getNombre() { return nombre; }\n}\n\npublic class Perro extends Animal {\n    private String raza;\n\n    // Este constructor llama automaticamente a super()\n    // Pero Animal NO tiene constructor sin parametros!\n    // public Perro(String raza) {  // ERROR de compilacion\n    //     this.raza = raza;\n    // }\n\n    // Solucion: llamar explicitamente a super(String)\n    public Perro(String nombre, String raza) {\n        super(nombre);  // Obligatorio: Animal solo tiene constructor con String\n        this.raza = raza;\n    }\n\n    public String getRaza() { return raza; }\n\n    public static void main(String[] args) {\n        Perro perro = new Perro(\"Rex\", \"Pastor Aleman\");\n        System.out.println(perro.getNombre() + \" - \" + perro.getRaza());\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-2-1",
+          "difficulty": "basic",
+          "title": "Cadena de constructores",
+          "description": "Dada la jerarquía `Animal` → `Perro`, añade un tercer nivel `PerroDeServicio` que tenga un campo `funcion` (String). Escribe los constructores con `super()` y añade `System.out.println` en cada constructor para ver el orden de ejecución.",
+          "solution": "public class Animal {\n    protected String nombre;\n    public Animal(String nombre) {\n        this.nombre = nombre;\n        System.out.println(\"1. Animal: \" + nombre);\n    }\n}\n\npublic class Perro extends Animal {\n    protected String raza;\n    public Perro(String nombre, String raza) {\n        super(nombre);\n        this.raza = raza;\n        System.out.println(\"2. Perro: \" + raza);\n    }\n}\n\npublic class PerroDeServicio extends Perro {\n    private String funcion;\n    public PerroDeServicio(String nombre, String raza, String funcion) {\n        super(nombre, raza);\n        this.funcion = funcion;\n        System.out.println(\"3. PerroDeServicio: \" + funcion);\n    }\n\n    public static void main(String[] args) {\n        new PerroDeServicio(\"Rex\", \"Labrador\", \"Guia\");\n        // Salida: 1. Animal -> 2. Perro -> 3. PerroDeServicio\n    }\n}"
+        },
+        {
+          "id": "ex-08-2-2",
+          "difficulty": "intermediate",
+          "title": "Super para sobrescribir con extensión",
+          "description": "Crea la clase `Producto` con un método `getDescripcion()` que devuelva el nombre. Luego `ProductoRebajado` que sobrescriba `getDescripcion()` usando `super.getDescripcion()` y añada el porcentaje de descuento.",
+          "solution": "public class Producto {\n    protected String nombre;\n    protected double precio;\n\n    public Producto(String nombre, double precio) {\n        this.nombre = nombre;\n        this.precio = precio;\n    }\n\n    public String getDescripcion() {\n        return nombre + \" - \" + String.format(\"%.2f\", precio) + \" EUR\";\n    }\n}\n\npublic class ProductoRebajado extends Producto {\n    private double porcentajeDescuento;\n\n    public ProductoRebajado(String nombre, double precio, double descuento) {\n        super(nombre, precio);\n        this.porcentajeDescuento = descuento;\n    }\n\n    @Override\n    public String getDescripcion() {\n        double precioRebajado = precio * (1 - porcentajeDescuento / 100);\n        return super.getDescripcion() + \" -> \" + String.format(\"%.2f\", precioRebajado) + \" EUR (-\" + porcentajeDescuento + \"%)\");\n    }\n\n    public static void main(String[] args) {\n        Producto p1 = new Producto(\"Java Tutorial\", 29.99);\n        ProductoRebajado p2 = new ProductoRebajado(\"Java Avanzado\", 49.99, 20);\n        System.out.println(p1.getDescripcion());\n        System.out.println(p2.getDescripcion());\n    }\n}"
+        },
+        {
+          "id": "ex-08-2-3",
+          "difficulty": "advanced",
+          "title": "Jerarquía de cuentas bancarias",
+          "description": "Crea `CuentaBancaria` → `CuentaAhorro` (tasaInteres) → `CuentaAhorroPremium` (tasaExtra). Cada nivel debe usar `super()` correctamente. La cuenta de ahorro debe calcular intereses sobre el saldo. La premium añade un extra. Usa `super.getSaldo()` en la cadena.",
+          "solution": "public class CuentaBancaria {\n    protected String titular;\n    protected double saldo;\n\n    public CuentaBancaria(String titular, double saldoInicial) {\n        this.titular = titular;\n        this.saldo = saldoInicial;\n    }\n\n    public String getTitular() { return titular; }\n    public double getSaldo() { return saldo; }\n\n    public void ingresar(double cantidad) {\n        if (cantidad > 0) saldo += cantidad;\n    }\n\n    public void retirar(double cantidad) {\n        if (cantidad > 0 && cantidad <= saldo) saldo -= cantidad;\n    }\n\n    public String getDescripcion() {\n        return titular + \" | Saldo: \" + String.format(\"%.2f\", saldo) + \" EUR\";\n    }\n}\n\npublic class CuentaAhorro extends CuentaBancaria {\n    protected double tasaInteres;\n\n    public CuentaAhorro(String titular, double saldo, double tasaInteres) {\n        super(titular, saldo);\n        this.tasaInteres = tasaInteres;\n    }\n\n    public double calcularInteres() {\n        return getSaldo() * tasaInteres / 100;\n    }\n\n    @Override\n    public String getDescripcion() {\n        return super.getDescripcion() + \" | Interes: \" + tasaInteres + \"%\";\n    }\n}\n\npublic class CuentaAhorroPremium extends CuentaAhorro {\n    private double tasaExtra;\n\n    public CuentaAhorroPremium(String titular, double saldo, double tasaInteres, double tasaExtra) {\n        super(titular, saldo, tasaInteres);\n        this.tasaExtra = tasaExtra;\n    }\n\n    @Override\n    public double calcularInteres() {\n        return super.calcularInteres() + (getSaldo() * tasaExtra / 100);\n    }\n\n    @Override\n    public String getDescripcion() {\n        return super.getDescripcion() + \" + \" + tasaExtra + \"% extra\";\n    }\n\n    public static void main(String[] args) {\n        CuentaAhorroPremium c = new CuentaAhorroPremium(\"Ana\", 10000, 2.0, 1.5);\n        System.out.println(c.getDescripcion());\n        System.out.println(\"Interes total: \" + String.format(\"%.2f\", c.calcularInteres()) + \" EUR\");\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar que `super()` debe ser la primera sentencia del constructor.",
+        "No llamar a `super()` cuando la superclase no tiene constructor sin parámetros.",
+        "Usar `this()` y `super()` en el mismo constructor. No se puede hacer ambas cosas.",
+        "Pensar que `super.nombre` funciona con campos private. Solo funciona con protected y paquete.",
+        "Olvidar que la cadena de constructores siempre empieza en `Object` (la raíz de todo en Java)."
+      ],
+      "keyConcepts": [
+        "`this` se refiere al objeto actual, `super` a la superclase",
+        "`super()` para llamar al constructor de la superclase (primera línea)",
+        "`super.metodo()` para acceder a métodos de la superclase",
+        "Cadena de ejecución: de arriba a abajo en la jerarquía",
+        "Constructor sin parámetros implícito si no se escribe `super()`",
+        "Los campos `private` de la superclase existen pero no se acceden con `super.campo`"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.c"
+      ]
+    },
+    {
+      "id": "lesson-08-3",
+      "title": "Sobrescritura de métodos (Overriding)",
+      "objectives": [
+        "Comprender la sobrescritura de métodos como mecanismo de especialización",
+        "Aplicar la anotación `@Override` correctamente",
+        "Conocer las reglas de la sobrescritura (firmas compatibles)",
+        "Diferenciar entre sobrescritura y sobrecarga de métodos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es la sobrescritura de métodos?",
+          "content": "La **sobrescritura** (overriding) permite que una subclase proporcione una implementación diferente de un método que ya existe en su superclase. Cuando llamas al método en un objeto de la subclase, se ejecuta la versión de la subclase, no la de la superclase.\n\n```java\npublic class Alumno {\n    public String getCalificacion() {\n        return \"Sin calificar\";\n    }\n}\n\npublic class AlumnoUniversitario extends Alumno {\n    @Override\n    public String getCalificacion() {\n        return \"Matricula de honor\";  // Diferente implementacion\n    }\n}\n```\n\nLa anotación `@Override` es opcional pero **muy recomendable**: le dice al compilador que intendes sobrescribir un método. Si te equivocas en el nombre o los parámetros, el compilador te avisa."
+        },
+        {
+          "type": "text",
+          "title": "Reglas de la sobrescritura",
+          "content": "Para que una subclase sobrescriba correctamente un método:\n\n1. **El nombre debe ser idéntico** al de la superclase.\n2. **Los parámetros deben ser idénticos** (mismo número, mismo tipo, mismo orden).\n3. **El tipo de retorno puede ser igual o una subclase** del tipo de retorno original (covarianza).\n4. **El nivel de acceso puede ser igual o menos restrictivo** (no más).\n\n```java\npublic class Alumno {\n    public Object getDatos() { ... }\n}\n\npublic class AlumnoBecario extends Alumno {\n    @Override\n    public String getDatos() { ... }  // OK: String es subclase de Object\n}\n```\n\n**Lo que NO cambia en la sobrescritura:**\n- No se puede cambiar `static` a no-estático ni viceversa.\n- No se puede cambiar `private` a `public` sin más.\n- No se puede cambiar `final` a no-`final`."
+        },
+        {
+          "type": "code",
+          "title": "Sobrescritura con @Override",
+          "language": "java",
+          "content": "public class Alumno {\n    private String nombre;\n    private double notaMedia;\n\n    public Alumno(String nombre, double notaMedia) {\n        this.nombre = nombre;\n        this.notaMedia = notaMedia;\n    }\n\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n\n    // Metodo que sera sobrescrito\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n\n    public String toString() {\n        return nombre + \" - Nota: \" + String.format(\"%.1f\", notaMedia)\n             + \" - \" + getCalificacion();\n    }\n}\n\npublic class AlumnoBecario extends Alumno {\n    private double descuento;\n\n    public AlumnoBecario(String nombre, double notaMedia, double descuento) {\n        super(nombre, notaMedia);\n        this.descuento = descuento;\n    }\n\n    // Sobrescritura: misma firma, diferente implementacion\n    @Override\n    public String getCalificacion() {\n        String cal = super.getCalificacion(); // Llama a la version de Alumno\n        return cal + \" (Becado \" + descuento + \"%)\";\n    }\n\n    @Override\n    public String toString() {\n        return super.toString() + \" [Beca]\";\n    }\n}\n\npublic class GestionAlumnos {\n    public static void main(String[] args) {\n        Alumno a1 = new Alumno(\"Ana\", 8.5);\n        AlumnoBecario a2 = new AlumnoBecario(\"Carlos\", 7.0, 25.0);\n\n        // Se ejecuta la version que corresponde al tipo real del objeto\n        System.out.println(a1);  // Alumno.toString()\n        System.out.println(a2);  // AlumnoBecario.toString()\n\n        System.out.println(a1.getCalificacion());  // Alumno version\n        System.out.println(a2.getCalificacion());  // AlumnoBecario version\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Sobrescritura vs. Sobrecarga",
+          "content": "No confundas **sobrescritura** (overriding) con **sobrecarga** (overloading):\n\n| Característica | Sobrescritura (Overriding) | Sobrecarga (Overloading) |\n|----------------|---------------------------|-------------------------|\n| **Nombre** | Mismo nombre | Mismo nombre |\n| **Parámetros** | Mismos | Diferentes |\n| **Herencia** | Entre superclase y subclase | En la misma clase |\n| **Anotación** | `@Override` | No necesita |\n| **Objetivo** | Cambiar el comportamiento existente | Ofrecer variantes del método |\n\n```java\n// SOBRECARGA (misma clase, diferentes parametros)\npublic class Calculadora {\n    int sumar(int a, int b) { return a + b; }\n    double sumar(double a, double b) { return a + b; }\n    int sumar(int a, int b, int c) { return a + b + c; }\n}\n\n// SOBRESCRITURA (subclase, misma firma)\npublic class AlumnoBecario extends Alumno {\n    @Override\n    public String getCalificacion() { ... }\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo: jerarquía con sobrescritura",
+          "language": "java",
+          "content": "public class Persona {\n    protected String nombre;\n\n    public Persona(String nombre) {\n        this.nombre = nombre;\n    }\n\n    public String getNombre() { return nombre; }\n\n    public String getRol() {\n        return \"Persona\";\n    }\n\n    public String saludar() {\n        return \"Hola, soy \" + nombre;\n    }\n\n    @Override\n    public String toString() {\n        return getRol() + \": \" + nombre;\n    }\n}\n\npublic class Alumno extends Persona {\n    private double notaMedia;\n\n    public Alumno(String nombre, double notaMedia) {\n        super(nombre);\n        this.notaMedia = notaMedia;\n    }\n\n    public double getNotaMedia() { return notaMedia; }\n\n    @Override\n    public String getRol() { return \"Alumno\"; }\n\n    @Override\n    public String saludar() {\n        return super.saludar() + \", y soy alumno con nota \" + String.format(\"%.1f\", notaMedia);\n    }\n}\n\npublic class Profesor extends Persona {\n    private String departamento;\n\n    public Profesor(String nombre, String departamento) {\n        super(nombre);\n        this.departamento = departamento;\n    }\n\n    @Override\n    public String getRol() { return \"Profesor\"; }\n\n    @Override\n    public String saludar() {\n        return super.saludar() + \", y soy profesor de \" + departamento;\n    }\n}\n\npublic class DemoRoles {\n    public static void main(String[] args) {\n        Persona[] personas = {\n            new Persona(\"Ana\"),\n            new Alumno(\"Carlos\", 8.5),\n            new Profesor(\"Maria\", \"Informatica\")\n        };\n\n        for (Persona p : personas) {\n            System.out.println(p);         // toString() sobrescrito\n            System.out.println(p.saludar()); // saludar() sobrescrito\n            System.out.println(\"Rol: \" + p.getRol());\n            System.out.println();\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-3-1",
+          "difficulty": "basic",
+          "title": "Sobrescribir toString()",
+          "description": "Crea una clase `Figura` con un campo `nombre` y un método `getArea()` que devuelva 0. Luego `Circulo` (radio) que sobrescriba `getArea()` con la fórmula πr². Ambas deben sobrescribir `toString()`.",
+          "solution": "public class Figura {\n    protected String nombre;\n\n    public Figura(String nombre) {\n        this.nombre = nombre;\n    }\n\n    public double getArea() { return 0; }\n\n    @Override\n    public String toString() {\n        return nombre + \" - Area: \" + String.format(\"%.2f\", getArea());\n    }\n}\n\npublic class Circulo extends Figura {\n    private double radio;\n\n    public Circulo(double radio) {\n        super(\"Circulo\");\n        this.radio = radio;\n    }\n\n    @Override\n    public double getArea() {\n        return Math.PI * radio * radio;\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" (r=\" + radio + \") - Area: \" + String.format(\"%.2f\", getArea());\n    }\n\n    public static void main(String[] args) {\n        Figura f = new Figura(\"Generico\");\n        Circulo c = new Circulo(5);\n        System.out.println(f);\n        System.out.println(c);\n    }\n}"
+        },
+        {
+          "id": "ex-08-3-2",
+          "difficulty": "intermediate",
+          "title": "Sobrescritura con lógica extendida",
+          "description": "Crea `Empleado` (nombre, salarioBase) con método `getSalarioTotal()` que devuelva el salario base. `EmpleadoComision` (porcentajeComision, ventas) sobrescriba `getSalarioTotal()` sumando la comisión. `EmpleadoDirector` (bonusFijo) sobrescriba sumando un bonus fijo.",
+          "solution": "public class Empleado {\n    protected String nombre;\n    protected double salarioBase;\n\n    public Empleado(String nombre, double salarioBase) {\n        this.nombre = nombre;\n        this.salarioBase = salarioBase;\n    }\n\n    public double getSalarioTotal() { return salarioBase; }\n\n    @Override\n    public String toString() {\n        return nombre + \" | Salario: \" + String.format(\"%.2f\", getSalarioTotal()) + \" EUR\";\n    }\n}\n\npublic class EmpleadoComision extends Empleado {\n    private double porcentajeComision;\n    private double ventas;\n\n    public EmpleadoComision(String nombre, double salarioBase, double comision, double ventas) {\n        super(nombre, salarioBase);\n        this.porcentajeComision = comision;\n        this.ventas = ventas;\n    }\n\n    @Override\n    public double getSalarioTotal() {\n        double comision = ventas * porcentajeComision / 100;\n        return super.getSalarioTotal() + comision;\n    }\n}\n\npublic class EmpleadoDirector extends Empleado {\n    private double bonusFijo;\n\n    public EmpleadoDirector(String nombre, double salarioBase, double bonusFijo) {\n        super(nombre, salarioBase);\n        this.bonusFijo = bonusFijo;\n    }\n\n    @Override\n    public double getSalarioTotal() {\n        return super.getSalarioTotal() + bonusFijo;\n    }\n\n    public static void main(String[] args) {\n        Empleado e1 = new Empleado(\"Ana\", 1500);\n        EmpleadoComision e2 = new EmpleadoComision(\"Carlos\", 1200, 5, 10000);\n        EmpleadoDirector e3 = new EmpleadoDirector(\"Maria\", 2000, 500);\n\n        System.out.println(e1);\n        System.out.println(e2);\n        System.out.println(e3);\n    }\n}"
+        },
+        {
+          "id": "ex-08-3-3",
+          "difficulty": "advanced",
+          "title": "Sobrescritura con validación",
+          "description": "Crea `CuentaBancaria` con `retirar(double cantidad)` que resta del saldo. `CuentaConLimite` sobrescriba `retirar()` para no permitir retiradas mayores a un límite diario. `CuentaPremium` sobrescriba para permitir descubierto hasta un límite. Cada una debe validar y mostrar mensajes informativos.",
+          "solution": "public class CuentaBancaria {\n    protected String titular;\n    protected double saldo;\n\n    public CuentaBancaria(String titular, double saldo) {\n        this.titular = titular;\n        this.saldo = saldo;\n    }\n\n    public double getSaldo() { return saldo; }\n\n    public void retirar(double cantidad) {\n        if (cantidad <= 0) { System.out.println(\"Cantidad invalida\"); return; }\n        if (cantidad > saldo) { System.out.println(\"Saldo insuficiente\"); return; }\n        saldo -= cantidad;\n        System.out.println(\"Retirado: \" + cantidad + \" EUR. Saldo: \" + saldo);\n    }\n}\n\npublic class CuentaConLimite extends CuentaBancaria {\n    private double limiteDiario;\n    private double retiradoHoy;\n\n    public CuentaConLimite(String titular, double saldo, double limiteDiario) {\n        super(titular, saldo);\n        this.limiteDiario = limiteDiario;\n        this.retiradoHoy = 0;\n    }\n\n    @Override\n    public void retirar(double cantidad) {\n        if (retiradoHoy + cantidad > limiteDiario) {\n            System.out.println(\"Excede el limite diario de \" + limiteDiario + \" EUR\");\n            return;\n        }\n        super.retirar(cantidad);\n        retiradoHoy += cantidad;\n    }\n}\n\npublic class CuentaPremium extends CuentaBancaria {\n    private double limiteDescubierto;\n\n    public CuentaPremium(String titular, double saldo, double limiteDescubierto) {\n        super(titular, saldo);\n        this.limiteDescubierto = limiteDescubierto;\n    }\n\n    @Override\n    public void retirar(double cantidad) {\n        if (cantidad <= 0) { System.out.println(\"Cantidad invalida\"); return; }\n        if (cantidad > saldo + limiteDescubierto) {\n            System.out.println(\"Excede el descubierto permitido\");\n            return;\n        }\n        saldo -= cantidad;\n        System.out.println(\"Retirado: \" + cantidad + \" EUR. Saldo: \" + saldo);\n    }\n}\n\n// Prueba:\n// CuentaPremium cp = new CuentaPremium(\"Ana\", 100, 50);\n// cp.retirar(120); // OK: -20 (dentro del descubierto)\n// cp.retirar(50);  // Excede descubierto"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar `@Override`. Sin él, si te equivocas en la firma, creas un método nuevo en vez de sobrescribir.",
+        "Cambiar la firma del método al sobrescribir. Si cambias el nombre o los parámetros, no es sobrescritura.",
+        "Hacer más restrictivo el nivel de acceso. No puedes cambiar `public` a `private` en una sobrescritura.",
+        "Confundir sobrescritura con sobrecarga. Si los parámetros cambian, es sobrecarga, no sobrescritura.",
+        "Olvidar llamar a `super.metodo()` cuando quieres extender el comportamiento en vez de reemplazarlo."
+      ],
+      "keyConcepts": [
+        "Sobrescritura: subclase re implementa un método de la superclase",
+        "Anotación `@Override` para validar la sobrescritura",
+        "Reglas: mismo nombre, mismos parámetros, retorno兼容",
+        "Extender comportamiento con `super.metodo()` dentro de la sobrescritura",
+        "Diferencia entre sobrescritura y sobrecarga",
+        "Polimorfismo: el tipo real del objeto determina qué versión se ejecuta"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.d"
+      ]
+    },
+    {
+      "id": "lesson-08-4",
+      "title": "Constructores en herencia y modificadores",
+      "objectives": [
+        "Gestionar constructores en jerarquías de múltiples niveles",
+        "Entender el papel de `private`, `protected` y `final` en la herencia",
+        "Usar `final` para bloquear la herencia de clases y métodos",
+        "Conocer las palabras reservadas `abstract` (introducción)"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Constructores en jerarquías complejas",
+          "content": "En jerarquías con varios niveles, la cadena de constructores sigue una regla estricta:\n\n1. Cada constructor debe llamar a `super()` o `this()` como primera sentencia.\n2. Si no se llama a nadie, Java llama implícitamente a `super()` (sin parámetros).\n3. La cadena siempre empieza en `Object` (la raíz de todo) y baja hasta la subclase.\n\n```java\nObject → Persona → Alumno → AlumnoBecario\n```\n\nCada nivel puede tener varios constructores sobrecargados. Pero solo uno puede ser llamado desde la subclase."
+        },
+        {
+          "type": "code",
+          "title": "Jerarquía completa con múltiples constructores",
+          "language": "java",
+          "content": "public class Persona {\n    protected String nombre;\n    protected int edad;\n\n    public Persona(String nombre) {\n        this(nombre, 0); // Llama al otro constructor\n    }\n\n    public Persona(String nombre, int edad) {\n        this.nombre = nombre;\n        this.edad = edad;\n    }\n}\n\npublic class Alumno extends Persona {\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email) {\n        super(nombre); // Llama a Persona(String)\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    public Alumno(String nombre, int edad, String email) {\n        super(nombre, edad); // Llama a Persona(String, int)\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n}\n\npublic class AlumnoBecario extends Alumno {\n    private String numBeca;\n    private double descuento;\n\n    public AlumnoBecario(String nombre, String email, String numBeca, double descuento) {\n        super(nombre, email); // Llama a Alumno(String, String)\n        this.numBeca = numBeca;\n        this.descuento = descuento;\n    }\n\n    public AlumnoBecario(String nombre, int edad, String email, String numBeca, double descuento) {\n        super(nombre, edad, email); // Llama a Alumno(String, int, String)\n        this.numBeca = numBeca;\n        this.descuento = descuento;\n    }\n\n    public String getNumBeca() { return numBeca; }\n    public double getDescuento() { return descuento; }\n\n    public static void main(String[] args) {\n        AlumnoBecario ab1 = new AlumnoBecario(\"Ana\", \"ana@email.com\", \"BEC-001\", 25);\n        AlumnoBecario ab2 = new AlumnoBecario(\"Carlos\", 20, \"carlos@email.com\", \"BEC-002\", 30);\n\n        System.out.println(ab1.getNombre() + \" - \" + ab1.getEmail());\n        System.out.println(ab2.getNombre() + \", \" + ab2.edad + \" anios\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Modificadores y herencia: `protected` y `final`",
+          "content": "**`protected`**: accesible desde la misma clase, el mismo paquete y las subclases (incluso en otros paquetes).\n\n```java\npublic class Alumno {\n    protected String nombre; // Accesible en subclases\n}\n\npublic class AlumnoBecario extends Alumno {\n    void mostrar() {\n        System.out.println(nombre); // OK: protected es accesible\n    }\n}\n```\n\n**`final`**: bloquea la herencia o la sobrescritura.\n\n| Aplicación | Efecto |\n|-----------|--------|\n| `final class Alumno` | No puede tener subclases |\n| `final getCalificacion()` | No puede sobrescribirse |\n| `final double PI = 3.14` | Constante que no cambia |\n\n```java\n// Clase final: no se puede heredar\npublic final class Configuracion {\n    // ...\n}\n// public class MiConfig extends Configuracion {} // ERROR\n\n// Metodo final: no se puede sobrescribir\npublic class Alumno {\n    public final String getID() {\n        return \"ALU-\" + hashCode();\n    }\n}\n// La subclase NO puede sobrescribir getID()\n```"
+        },
+        {
+          "type": "code",
+          "title": "Uso de final en herencia",
+          "language": "java",
+          "content": "public class Alumno {\n    private String nombre;\n    private double notaMedia;\n\n    public Alumno(String nombre, double notaMedia) {\n        this.nombre = nombre;\n        this.notaMedia = notaMedia;\n    }\n\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n\n    // Metodo final: no puede sobrescribirse\n    public final String getID() {\n        return \"ALU-\" + String.format(\"%04d\", Math.abs(nombre.hashCode() % 10000));\n    }\n\n    // Metodo que puede sobrescribirse\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n}\n\npublic class AlumnoBecario extends Alumno {\n    private double descuento;\n\n    public AlumnoBecario(String nombre, double notaMedia, double descuento) {\n        super(nombre, notaMedia);\n        this.descuento = descuento;\n    }\n\n    // OK: getCalificacion() no es final\n    @Override\n    public String getCalificacion() {\n        return super.getCalificacion() + \" (Becado)\";\n    }\n\n    // ERROR de compilacion: getID() es final\n    // @Override\n    // public String getID() { ... }\n\n    public static void main(String[] args) {\n        AlumnoBecario ab = new AlumnoBecario(\"Ana\", 8.5, 25);\n        System.out.println(\"ID: \" + ab.getID());     // Metodo final heredado\n        System.out.println(\"Calif: \" + ab.getCalificacion()); // Metodo sobrescrito\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Clases abstractas (introducción)",
+          "content": "Una **clase abstracta** es una clase que no puede instanciarse directamente. Solo sirve como superclase para otras clases. Se declara con la palabra `abstract`:\n\n```java\npublic abstract class Figura {\n    protected String nombre;\n\n    public Figura(String nombre) {\n        this.nombre = nombre;\n    }\n\n    // Metodo abstracto: no tiene implementacion\n    public abstract double calcularArea();\n\n    // Metodo concreto: tiene implementacion\n    public String getNombre() { return nombre; }\n}\n```\n\n**Características:**\n1. No se puede crear un objeto con `new Figura()`. Solo `new Circulo()`.\n2. Puede tener métodos abstractos (sin cuerpo) y métodos concretos (con cuerpo).\n3. Las subclases **deben** implementar todos los métodos abstractos.\n4. Se usa para definir contratos: \"toda Figura debe poder calcular su área\".\n\nVeremos las clases abstractas en mucho más detalle en el módulo de Polimorfismo."
+        },
+        {
+          "type": "code",
+          "title": "Figura abstracta: introducción",
+          "language": "java",
+          "content": "public abstract class Figura {\n    protected String nombre;\n\n    public Figura(String nombre) {\n        this.nombre = nombre;\n    }\n\n    // Metodo abstracto: cada subclase DEBE implementarlo\n    public abstract double calcularArea();\n\n    // Metodo concreto: todos comparten esta implementacion\n    public void mostrarInfo() {\n        System.out.println(nombre + \" - Area: \" + String.format(\"%.2f\", calcularArea()));\n    }\n}\n\npublic class Circulo extends Figura {\n    private double radio;\n\n    public Circulo(double radio) {\n        super(\"Circulo\");\n        this.radio = radio;\n    }\n\n    @Override\n    public double calcularArea() {\n        return Math.PI * radio * radio;\n    }\n}\n\npublic class Rectangulo extends Figura {\n    private double base, altura;\n\n    public Rectangulo(double base, double altura) {\n        super(\"Rectangulo\");\n        this.base = base;\n        this.altura = altura;\n    }\n\n    @Override\n    public double calcularArea() {\n        return base * altura;\n    }\n}\n\npublic class DemoFiguras {\n    public static void main(String[] args) {\n        // Figura f = new Figura(\"X\"); // ERROR: clase abstracta\n\n        Figura[] figuras = {\n            new Circulo(5),\n            new Rectangulo(10, 5),\n            new Circulo(3)\n        };\n\n        for (Figura f : figuras) {\n            f.mostrarInfo(); // Polimorfismo: cada area se calcula distinto\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-4-1",
+          "difficulty": "basic",
+          "title": "Usar final para bloquear herencia",
+          "description": "Crea una clase `CalculadoraUtil` con métodos estáticos para sumar, restar y multiplicar. Marca la clase como `final` y explica por qué es apropiado.",
+          "solution": "public class Solution_73 {\n    // Clase utilitaria con solo metodos estaticos\n    // (renombrada de CalculadoraUtil a Solution_73 para coincidir con el nombre de archivo)\n\n    public static int sumar(int a, int b) { return a + b; }\n    public static int restar(int a, int b) { return a - b; }\n    public static int multiplicar(int a, int b) { return a * b; }\n    public static double dividir(double a, double b) {\n        if (b == 0) throw new ArithmeticException(\"Division por cero\");\n        return a / b;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(sumar(5, 3));\n        System.out.println(dividir(10, 3));\n    }\n}"
+        },
+        {
+          "id": "ex-08-4-2",
+          "difficulty": "intermediate",
+          "title": "Clase abstracta Empleado",
+          "description": "Crea una clase abstracta `Empleado` con campos nombre y salarioBase. Métodos: abstract `calcularSalario()` y concreto `getDescripcion()`. Crea dos subclases: `EmpleadoFijo` y `EmpleadoTemporal` (por horas) que implementen `calcularSalario()`.",
+          "solution": "public abstract class Empleado {\n    protected String nombre;\n    protected double salarioBase;\n\n    public Empleado(String nombre, double salarioBase) {\n        this.nombre = nombre;\n        this.salarioBase = salarioBase;\n    }\n\n    public abstract double calcularSalario();\n\n    public String getDescripcion() {\n        return nombre + \" | Salario: \" + String.format(\"%.2f\", calcularSalario()) + \" EUR\";\n    }\n}\n\npublic class EmpleadoFijo extends Empleado {\n    public EmpleadoFijo(String nombre, double salarioBase) {\n        super(nombre, salarioBase);\n    }\n\n    @Override\n    public double calcularSalario() {\n        return salarioBase; // Sin cambios\n    }\n}\n\npublic class EmpleadoTemporal extends Empleado {\n    private int horasTrabajadas;\n    private double precioHora;\n\n    public EmpleadoTemporal(String nombre, double salarioBase, int horas, double precioHora) {\n        super(nombre, salarioBase);\n        this.horasTrabajadas = horas;\n        this.precioHora = precioHora;\n    }\n\n    @Override\n    public double calcularSalario() {\n        return horasTrabajadas * precioHora;\n    }\n\n    public static void main(String[] args) {\n        Empleado e1 = new EmpleadoFijo(\"Ana\", 1800);\n        Empleado e2 = new EmpleadoTemporal(\"Carlos\", 0, 80, 15);\n        System.out.println(e1.getDescripcion());\n        System.out.println(e2.getDescripcion());\n    }\n}"
+        },
+        {
+          "id": "ex-08-4-3",
+          "difficulty": "advanced",
+          "title": "Sistema de formas con abstract y final",
+          "description": "Crea una jerarquía: `Forma` (abstracta, con `calcularArea()` abstracto) → `Cuadrado` (lado) → `CuadradoMagico` (que añade un método `getMagia()`). Marca `calcularArea()` como final en `Cuadrado`. Crea también un `Circulo`. Demuestra que `CuadradoMagico` puede sobrescribir `toString()` pero no `calcularArea()`.",
+          "solution": "public abstract class Forma {\n    protected String nombre;\n    public Forma(String nombre) { this.nombre = nombre; }\n    public abstract double calcularArea();\n    @Override\n    public String toString() { return nombre + \" [Area: \" + String.format(\"%.2f\", calcularArea()) + \"]\"; }\n}\n\npublic class Cuadrado extends Forma {\n    protected double lado;\n    public Cuadrado(double lado) {\n        super(\"Cuadrado\");\n        this.lado = lado;\n    }\n    @Override\n    public final double calcularArea() { return lado * lado; } // final: no sobrescribible\n}\n\npublic class CuadradoMagico extends Cuadrado {\n    private String magia;\n    public CuadradoMagico(double lado, String magia) {\n        super(lado);\n        this.nombre = \"Cuadrado Magico\";\n        this.magia = magia;\n    }\n    public String getMagia() { return magia; }\n    // calcularArea() NO se puede sobrescribir (es final en Cuadrado)\n    @Override\n    public String toString() { return nombre + \" [Magia: \" + magia + \", Area: \" + String.format(\"%.2f\", calcularArea()) + \"]\"; }\n}\n\npublic class Circulo extends Forma {\n    private double radio;\n    public Circulo(double radio) { super(\"Circulo\"); this.radio = radio; }\n    @Override\n    public double calcularArea() { return Math.PI * radio * radio; }\n}\n\n// Prueba:\n// Forma[] formas = { new CuadradoMagico(5, \"Luminosa\"), new Circulo(3) };\n// for (Forma f : formas) System.out.println(f);"
+        }
+      ],
+      "commonErrors": [
+        "Intentar instanciar una clase abstracta. `new Figura()` da error de compilación.",
+        "Olvidar implementar todos los métodos abstractos en la subclase. Da error de compilación.",
+        "Confundir `final` en un método (no sobrescribible) con `final` en una clase (no heredable).",
+        "Usar `protected` sin necesidad. Si solo se accede desde la misma clase, usa `private`.",
+        "No entender que `final` en un método de una subclase bloquea a sus propias subclases, no a la superclase."
+      ],
+      "keyConcepts": [
+        "Cadena de constructores en jerarquías de múltiples niveles",
+        "Modificador `protected`: accesible en subclases y mismo paquete",
+        "Modificador `final`: bloquea herencia (clase) o sobrescritura (método)",
+        "Clases abstractas: no se instancian, definen contratos",
+        "Métodos abstractos: sin cuerpo, obligatorios en subclases",
+        "Métodos concretos en clases abstractas: compartidos por todas las subclases"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.b",
+        "RA7.c"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Jerarquía de empleados",
+    "description": "Crea un sistema de gestión de empleados con:\n1. Clase abstracta `Empleado` (nombre, salarioBase) con método abstracto `calcularSalario()`\n2. Subclase `EmpleadoFijo` (salario mensual fijo)\n3. Subclase `EmpleadoTemporal` (horas trabajadas × precio por hora)\n4. Subclase `EmpleadoComision` (salario base + comisión sobre ventas)\n5. Cada clase con constructor, getters, `toString()` sobrescrito y método `getDescripcion()`\n6. Un programa que cree un array de empleados de distintos tipos y muestre:\n   - Lista completa con nombre y salario total\n   - Empleado con mayor salario\n   - Salario medio de todos los empleados\n   - Total de salarios\n7. Documentación Javadoc en la clase abstracta y al menos 2 métodos",
+    "learningOutcomes": [
+      "RA7"
+    ],
+    "assessmentCriteria": [
+      "RA7.a",
+      "RA7.b",
+      "RA7.c",
+      "RA7.d"
+    ]
+  }
+}

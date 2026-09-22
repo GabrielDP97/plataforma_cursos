@@ -1,0 +1,304 @@
+{
+  "id": "mod-07",
+  "title": "POO — Encapsulación y visibilidad",
+  "description": "Este módulo profundiza en la encapsulación como pilar fundamental de la POO. Se aprende a controlar el acceso a los campos y métodos de una clase mediante modificadores de visibilidad (private, protected, public), se implementan getters y setters con validación, se introducen los métodos estáticos y se organizan las clases en paquetes.",
+  "phase": "phase-4",
+  "position": 7,
+  "learningOutcomes": [
+    "RA4"
+  ],
+  "assessmentCriteria": [
+    "RA4.c",
+    "RA4.f",
+    "RA4.h"
+  ],
+  "officialContents": [
+    "Desarrollo de clases"
+  ],
+  "duration": "10 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-06"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-07-1",
+      "title": "Modificadores de visibilidad",
+      "objectives": [
+        "Comprender la encapsulación como pilar de la POO",
+        "Diferenciar entre los modificadores de acceso: public, private, protected y paquete",
+        "Aplicar el modificador private para proteger campos de una clase",
+        "Diseñar interfaces públicas seguras para interactuar con objetos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es la encapsulación?",
+          "content": "La **encapsulación** es el pilar de la POO que consiste en ocultar los detalles internos de un objeto y exponer solo lo necesario a través de una interfaz controlada.\n\nPiensa en un coche: tú usas el volante, el pedal del acelerador y los mandos del salpicadero. No necesitas acceder directamente al motor, al sistema de inyección o al circuito eléctrico. Si pudieras tocar esos componentes directamente, podrías romper el coche.\n\nEn programación, encapsular significa:\n1. **Ocultar los campos** (datos internos) con `private`.\n2. **Exponer métodos** públicos que permitan interactuar con el objeto de forma segura.\n3. **Validar** datos antes de modificar el estado del objeto.\n\nEsto tiene ventajas enormes:\n- **Seguridad**: nadie puede poner una nota de 15 en un campo directamente.\n- **Flexibilidad**: puedes cambiar la implementación interna sin romper el código que usa tu clase.\n- **Mantenimiento**: los errores se detectan en un solo lugar (los setters), no en todo el código.\n- **Legibilidad**: el usuario de tu clase solo ve lo que necesita, sin distracciones."
+        },
+        {
+          "type": "text",
+          "title": "Los 4 modificadores de acceso",
+          "content": "Java ofrece 4 niveles de visibilidad, de menor a mayor acceso:\n\n| Modificador | Misma clase | Mismo paquete | Subclase | Cualquier sitio |\n|-------------|:-----------:|:-------------:|:--------:|:---------------:|\n| `private` | Sí | No | No | No |\n| (sin modificador / paquete) | Sí | Sí | No | No |\n| `protected` | Sí | Sí | Sí | No |\n| `public` | Sí | Sí | Sí | Sí |\n\nEn este módulo nos centraremos en `private` y `public`, que son los más usados:\n\n- **`private`**: solo accesible desde dentro de la misma clase. Es el modificador por defecto para campos que quieres proteger.\n- **`public`**: accesible desde cualquier sitio. Es el modificador por defecto para métodos que quieres que todos puedan usar.\n\nLos modificador `protected` y el de paquete (sin modificador) los veremos en detalle cuando estudiemos herencia."
+        },
+        {
+          "type": "code",
+          "title": "Antes: campos públicos (peligroso)",
+          "language": "java",
+          "content": "public class AlumnoPublico {\n    String nombre;   // Publico (por defecto)\n    String email;\n    double notaMedia;\n\n    public AlumnoPublico(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n}\n\n// Cualquiera puede hacer esto:\n// AlumnoPublico a = new AlumnoPublico(\"Ana\", \"ana@email.com\");\n// a.notaMedia = 100.0;  // ¡No hay validación!\n// a.nombre = \"\";        // ¡Nombre vacío!\n// a.email = null;       // ¡Email nulo!"
+        },
+        {
+          "type": "code",
+          "title": "Después: campos privados con control (seguro)",
+          "language": "java",
+          "content": "public class AlumnoPrivado {\n    private String nombre;    // Privado: solo accesible dentro de esta clase\n    private String email;\n    private double notaMedia;\n\n    public AlumnoPrivado(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n\n    public void setNombre(String nombre) {\n        if (nombre != null && !nombre.isBlank()) {\n            this.nombre = nombre;\n        }\n    }\n\n    public void setNotaMedia(double notaMedia) {\n        if (notaMedia >= 0 && notaMedia <= 10) {\n            this.notaMedia = notaMedia;\n        } else {\n            System.out.println(\"Error: nota invalida (debe ser 0-10)\");\n        }\n    }\n}\n\n// Ahora:\n// AlumnoPrivado a = new AlumnoPrivado(\"Ana\", \"ana@email.com\");\n// a.notaMedia = 100.0;  // ERROR: campo privado\n// a.setNotaMedia(100.0); // Validado: muestra error\n// a.setNotaMedia(8.5);   // OK: valor valido"
+        },
+        {
+          "type": "text",
+          "title": "Cuándo usar cada modificador",
+          "content": "**Regla general:**\n\n- **Campos**: siempre `private`, excepto constantes `public static final`.\n- **Constructores**: siempre `public` (para que otros puedan crear objetos).\n- **Getters**: siempre `public` (para leer datos).\n- **Setters**: siempre `public` (para modificar datos con validación).\n- **Métodos de ayuda internos**: `private` (si solo se usan dentro de la clase).\n- **Constantes**: `public static final` (valores fijos que todos necesitan).\n\n```java\npublic class Configuracion {\n    public static final int MAXIMO_ALUMNOS = 30;  // Constante publica\n    private String rutaBase;                         // Campo privado\n\n    private void validarRuta(String ruta) { ... }    // Metodo privado\n    public String getRutaBase() { ... }              // Getter publico\n}\n```\n\nLa idea es simple: **mínima exposición, máxima funcionalidad**. Solo haces público lo que el usuario de tu clase necesita."
+        },
+        {
+          "type": "code",
+          "title": "Alumno encapsulado completo",
+          "language": "java",
+          "content": "public class Alumno {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email) {\n        setNombre(nombre);  // Reutilizamos la validacion del setter\n        setEmail(email);\n        this.notaMedia = 0.0;\n    }\n\n    // --- Getters (solo lectura) ---\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n\n    // --- Setters (con validacion) ---\n    public void setNombre(String nombre) {\n        if (nombre == null || nombre.isBlank()) {\n            throw new IllegalArgumentException(\"El nombre no puede estar vacio\");\n        }\n        this.nombre = nombre.trim();\n    }\n\n    public void setEmail(String email) {\n        if (email == null || !email.contains(\"@\")) {\n            throw new IllegalArgumentException(\"Email invalido: \" + email);\n        }\n        this.email = email.trim().toLowerCase();\n    }\n\n    public void setNotaMedia(double notaMedia) {\n        if (notaMedia < 0 || notaMedia > 10) {\n            throw new IllegalArgumentException(\"La nota debe estar entre 0 y 10\");\n        }\n        this.notaMedia = notaMedia;\n    }\n\n    // --- Metodos de accion ---\n    public boolean estaAprobado() {\n        return notaMedia >= 5.0;\n    }\n\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \") - Nota: \" + String.format(\"%.1f\", notaMedia);\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-07-1-1",
+          "difficulty": "basic",
+          "title": "Encapsular la clase CuentaBancaria",
+          "description": "Toma la clase CuentaBancaria del módulo anterior y convierte todos los campos a `private`. Añade getters y setters donde sea apropiado. Valida que el titular no esté vacío y que el saldo no sea negativo.",
+          "solution": "public class CuentaBancaria {\n    private String titular;\n    private double saldo;\n\n    public CuentaBancaria(String titular, double saldoInicial) {\n        if (titular == null || titular.isBlank()) throw new IllegalArgumentException(\"Titular invalido\");\n        if (saldoInicial < 0) throw new IllegalArgumentException(\"Saldo no puede ser negativo\");\n        this.titular = titular;\n        this.saldo = saldoInicial;\n    }\n\n    public String getTitular() { return titular; }\n    public double getSaldo() { return saldo; }\n\n    // Sin setter de saldo: solo se modifica con ingresar/retirar\n    public void ingresar(double cantidad) {\n        if (cantidad <= 0) throw new IllegalArgumentException(\"Cantidad debe ser positiva\");\n        saldo += cantidad;\n    }\n\n    public void retirar(double cantidad) {\n        if (cantidad <= 0) throw new IllegalArgumentException(\"Cantidad debe ser positiva\");\n        if (cantidad > saldo) throw new IllegalArgumentException(\"Saldo insuficiente\");\n        saldo -= cantidad;\n    }\n\n    public static void main(String[] args) {\n        CuentaBancaria c = new CuentaBancaria(\"Ana\", 1000);\n        c.ingresar(500);\n        c.retirar(200);\n        System.out.println(c.getTitular() + \": \" + c.getSaldo() + \" EUR\");\n    }\n}"
+        },
+        {
+          "id": "ex-07-1-2",
+          "difficulty": "intermediate",
+          "title": "Identificar errores de encapsulación",
+          "description": "El siguiente código tiene problemas de encapsulación. Identifícalos y corrígelos:\n\n```java\npublic class Producto {\n    public String nombre;\n    public double precio;\n    public int stock;\n}\n```",
+          "solution": "public class Producto {\n    private String nombre;\n    private double precio;\n    private int stock;\n\n    public Producto(String nombre, double precio, int stock) {\n        this.nombre = nombre;\n        setPrecio(precio);\n        setStock(stock);\n    }\n\n    public String getNombre() { return nombre; }\n    public double getPrecio() { return precio; }\n    public int getStock() { return stock; }\n\n    public void setPrecio(double precio) {\n        if (precio < 0) throw new IllegalArgumentException(\"Precio invalido\");\n        this.precio = precio;\n    }\n\n    public void setStock(int stock) {\n        if (stock < 0) throw new IllegalArgumentException(\"Stock invalido\");\n        this.stock = stock;\n    }\n}\n// Problemas originales:\n// 1. Campos publicos: cualquiera puede modificarlos sin validacion\n// 2. Sin validacion: precio podria ser negativo\n// 3. Sin getters: no se puede leer el estado de forma controlada"
+        },
+        {
+          "id": "ex-07-1-3",
+          "difficulty": "advanced",
+          "title": "Clase validadora de email",
+          "description": "Crea una clase `Validator` con un método estático `esEmailValido(String email)` que compruebe que el email contiene @ y un dominio válido. Úsalo en el setter de Alumno.",
+          "solution": "public class Validator {\n    public static boolean esEmailValido(String email) {\n        if (email == null || email.isBlank()) return false;\n        if (!email.contains(\"@\")) return false;\n        String[] partes = email.split(\"@\");\n        if (partes.length != 2) return false;\n        if (partes[0].isEmpty() || partes[1].isEmpty()) return false;\n        return partes[1].contains(\".\");\n    }\n\n    public static boolean esNombreValido(String nombre) {\n        return nombre != null && !nombre.isBlank() && nombre.length() >= 2;\n    }\n}\n\n// Uso en Alumno:\n// setEmail(String email) {\n//     if (!Validator.esEmailValido(email)) {\n//         throw new IllegalArgumentException(\"Email invalido\");\n//     }\n//     this.email = email.toLowerCase();\n// }"
+        }
+      ],
+      "commonErrors": [
+        "Hacer campos públicos 'por comodidad'. Esto rompe la encapsulación y crea dependencias peligrosas.",
+        "Crear un setter sin validación. Si un setter acepta cualquier valor, no está encapsulando nada.",
+        "No usar `this` en los setters cuando el parámetro se llama igual que el campo.",
+        "Hacer privados los constructores sin razón. Los constructores deben ser públicos para que se puedan crear objetos.",
+        "Crear getters y setters para todos los campos automáticamente. Piensa si cada campo necesita setter o solo getter."
+      ],
+      "keyConcepts": [
+        "Encapsulación como pilar de la POO",
+        "Los 4 modificadores de acceso: private, paquete, protected, public",
+        "Campos siempre private, métodos públicos para acceder",
+        "Validación de datos en setters y constructores",
+        "Constantes públicas: `public static final`",
+        "Principio de mínima exposición"
+      ],
+      "learningOutcomes": [
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA4.f"
+      ]
+    },
+    {
+      "id": "lesson-07-2",
+      "title": "Métodos estáticos y constantes",
+      "objectives": [
+        "Comprender la diferencia entre miembros de instancia y miembros estáticos",
+        "Crear y usar métodos estáticos",
+        "Definir y usar constantes con `static final`",
+        "Identificar cuándo usar `static` y cuándo no"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Miembros estáticos vs. de instancia",
+          "content": "En Java, los miembros de una clase pueden ser de dos tipos:\n\n**Miembros de instancia:**\n- Cada objeto tiene su propia copia.\n- Se crean cuando instancias un objeto con `new`.\n- Ejemplo: el campo `nombre` de un Alumno. Cada alumno tiene su propio nombre.\n\n**Miembros estáticos (de clase):**\n- Hay UNA sola copia compartida por todos los objetos.\n- Se crean cuando se carga la clase, antes de crear ningún objeto.\n- Se acceden a través de la clase, no de un objeto.\n- Ejemplo: `System.out` es un campo estático de la clase `System`.\n\n```java\n// Miembro de instancia: necesita un objeto\nAlumno a = new Alumno(\"Ana\", \"ana@email.com\");\na.getNombre(); // OK: metodo de instancia\n\n// Miembro estatico: se accede desde la clase\nAlumno.contarAlumnos(); // OK: metodo estatico\na.contarAlumnos();      // Tambien funciona, pero es confuso\n```"
+        },
+        {
+          "type": "code",
+          "title": "Métodos estáticos: utilidad sin objeto",
+          "language": "java",
+          "content": "public class Alumno {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n    private static int totalAlumnos = 0;  // Contador compartido\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n        totalAlumnos++;  // Se incrementa con cada nuevo alumno\n    }\n\n    // Metodo estatico: puede acceder a totalAlumnos\n    public static int getTotalAlumnos() {\n        return totalAlumnos;\n    }\n\n    // Metodo estatico de utilidad: no necesita datos de un alumno concreto\n    public static boolean esAprobado(double nota) {\n        return nota >= 5.0;\n    }\n\n    // Metodos de instancia\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n\n    public static void main(String[] args) {\n        System.out.println(\"Alumnos creados: \" + Alumno.getTotalAlumnos());\n\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n\n        System.out.println(\"Alumnos creados: \" + Alumno.getTotalAlumnos()); // 2\n\n        // Metodo estatico sin crear objeto\n        System.out.println(\"Nota 7 es aprobada: \" + Alumno.esAprobado(7.0));\n        System.out.println(\"Nota 4 es aprobada: \" + Alumno.esAprobado(4.0));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Constantes: `static final`",
+          "content": "Una **constante** es un valor que no cambia nunca. En Java se define con `static final`:\n\n```java\npublic static final int MAXIMO_ALUMNOS = 30;\npublic static final double IVA = 21.0;\npublic static final String NOMBRE_CICLO = \"DAM/DAW\";\n```\n\n**Por qué `static final`?**\n- `static`: la constante pertenece a la clase, no a un objeto. No necesitas crear un objeto para acceder a ella.\n- `final`: el valor no puede cambiar una vez asignado. Si intentas modificarlo, el compilador da error.\n\n**Convención**: las constantes se escriben en `SCREAMING_SNAKE_CASE` (todo en mayúsculas con guiones bajos).\n\n```java\n// Correcto\npublic static final int MAXIMO_REINTENTOS = 3;\n\n// Incorrecto\npublic static final int maximoReintentos = 3; // No sigue la convencion\n```"
+        },
+        {
+          "type": "code",
+          "title": "Constantes en la clase Alumno",
+          "language": "java",
+          "content": "public class Alumno {\n    // --- Constantes (static final) ---\n    public static final double NOTA_MINIMA_APROBADO = 5.0;\n    public static final double NOTA_MAXIMA = 10.0;\n    public static final double NOTA_MINIMA = 0.0;\n    public static final int MAXIMO_CREDITOS = 60;\n\n    // --- Campos de instancia ---\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    // --- Campo estatico (no constante) ---\n    private static int totalAlumnos = 0;\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n        totalAlumnos++;\n    }\n\n    // --- Getters ---\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n    public static int getTotalAlumnos() { return totalAlumnos; }\n\n    // --- Setter con validacion usando constantes ---\n    public void setNotaMedia(double notaMedia) {\n        if (notaMedia < NOTA_MINIMA || notaMedia > NOTA_MAXIMA) {\n            throw new IllegalArgumentException(\n                \"La nota debe estar entre \" + NOTA_MINIMA + \" y \" + NOTA_MAXIMA\n            );\n        }\n        this.notaMedia = notaMedia;\n    }\n\n    public boolean estaAprobado() {\n        return notaMedia >= NOTA_MINIMA_APROBADO;\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Nota minima aprobado: \" + Alumno.NOTA_MINIMA_APROBADO);\n        System.out.println(\"Max creditos: \" + Alumno.MAXIMO_CREDITOS);\n\n        Alumno a = new Alumno(\"Ana\", \"ana@email.com\");\n        a.setNotaMedia(8.5);\n        System.out.println(a.getNombre() + \": \" + a.getCalificacion());\n    }\n\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "¿Cuándo usar `static`?",
+          "content": "Usa `static` cuando:\n\n✅ **Método estático**: el método no necesita acceder a campos de ningún objeto.\n- `Math.sqrt(25)` — no necesita un objeto Math.\n- `Alumno.esAprobado(nota)` — solo compara un número.\n\n✅ **Campo estático**: el valor es compartido por todos los objetos.\n- `Alumno.totalAlumnos` — el contador es único para todos los alumnos.\n\n✅ **Constante**: el valor es fijo y pertenece a la clase.\n- `Alumno.NOTA_MAXIMA` — siempre es 10.\n\n**NO uses `static` cuando:**\n\n❌ El método necesita acceder a campos del objeto (`this.nombre`, `this.email`).\n- `alumno.getNombre()` — necesita el nombre de ESE alumno.\n\n❌ Cada objeto debe tener su propio valor.\n- `alumno.notaMedia` — cada alumno tiene su nota.\n\n**Regla simple**: si el método/field no usa `this` ni campos de instancia, puede ser `static`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con constantes y métodos estáticos",
+          "language": "java",
+          "content": "public class CalculadoraNotas {\n    public static final double NOTA_APROBADO = 5.0;\n    public static final double NOTA_MAXIMA = 10.0;\n    public static final String[] CALIFICACIONES = {\n        \"Suspenso\", \"Aprobado\", \"Notable\", \"Sobresaliente\"\n    };\n\n    // Metodo estatico: no necesita objeto\n    public static String calcularCalificacion(double nota) {\n        if (nota >= 9) return CALIFICACIONES[3];\n        if (nota >= 7) return CALIFICACIONES[2];\n        if (nota >= NOTA_APROBADO) return CALIFICACIONES[1];\n        return CALIFICACIONES[0];\n    }\n\n    public static boolean estaAprobado(double nota) {\n        return nota >= NOTA_APROBADO;\n    }\n\n    public static double calcularMedia(double[] notas) {\n        double suma = 0;\n        for (double nota : notas) {\n            suma += nota;\n        }\n        return suma / notas.length;\n    }\n\n    public static void main(String[] args) {\n        double[] notas = {8.5, 7.0, 9.2, 4.5, 6.8};\n\n        for (double nota : notas) {\n            System.out.printf(\"Nota: %.1f -> %s (Aprobado: %s)%n\",\n                nota,\n                calcularCalificacion(nota),\n                estaAprobado(nota) ? \"Si\" : \"No\");\n        }\n\n        double media = calcularMedia(notas);\n        System.out.printf(\"\\nMedia: %.2f -> %s%n\", media, calcularCalificacion(media));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-07-2-1",
+          "difficulty": "basic",
+          "title": "Contador de objetos",
+          "description": "Añade a la clase `Alumno` un campo estático que cuente cuántos alumnos se han creado. Incluye un método estático `getTotalAlumnos()` que devuelva ese número.",
+          "solution": "public class AlumnoContador {\n    private String nombre;\n    private static int total = 0;\n\n    public AlumnoContador(String nombre) {\n        this.nombre = nombre;\n        total++;\n    }\n\n    public static int getTotal() { return total; }\n    public String getNombre() { return nombre; }\n\n    public static void main(String[] args) {\n        System.out.println(\"Alumnos: \" + AlumnoContador.getTotal());\n        new AlumnoContador(\"Ana\");\n        new AlumnoContador(\"Carlos\");\n        new AlumnoContador(\"Maria\");\n        System.out.println(\"Alumnos: \" + AlumnoContador.getTotal());\n    }\n}"
+        },
+        {
+          "id": "ex-07-2-2",
+          "difficulty": "intermediate",
+          "title": "Constantes de configuración",
+          "description": "Crea una clase `Configuracion` con constantes para: `MAXIMO_ALUMNOS_POR_CURSO` (30), `NOTA_APROBADO` (5.0), `NOMBRE_INSTITUTO` (\"IES Tecnologia\"). Usa estas constantes en una clase `Alumno` que las referencia.",
+          "solution": "public class Configuracion {\n    public static final int MAXIMO_ALUMNOS_POR_CURSO = 30;\n    public static final double NOTA_APROBADO = 5.0;\n    public static final String NOMBRE_INSTITUTO = \"IES Tecnologia\";\n}\n\npublic class Alumno {\n    private String nombre;\n    private double notaMedia;\n\n    public Alumno(String nombre) {\n        this.nombre = nombre;\n        this.notaMedia = 0.0;\n    }\n\n    public boolean estaAprobado() {\n        return notaMedia >= Configuracion.NOTA_APROBADO;\n    }\n\n    public void mostrarInfo() {\n        System.out.println(Configuracion.NOMBRE_INSTITUTO + \" - \" + nombre + \": \" + notaMedia);\n    }\n\n    public static void main(String[] args) {\n        Alumno a = new Alumno(\"Ana\");\n        a.notaMedia = 7.5;\n        a.mostrarInfo();\n        System.out.println(\"Aprobado: \" + a.estaAprobado());\n        System.out.println(\"Max alumnos por curso: \" + Configuracion.MAXIMO_ALUMNOS_POR_CURSO);\n    }\n}"
+        },
+        {
+          "id": "ex-07-2-3",
+          "difficulty": "advanced",
+          "title": "Clase utilitaria estática",
+          "description": "Crea una clase `StringUtils` con métodos estáticos: `esVacia(String s)`, `capitalizar(String s)` (primera letra en mayúscula), `contiene(String s, String sub)` y `repetir(String s, int n)` (repite el texto n veces). No usa campos de instancia.",
+          "solution": "public class StringUtils {\n    public static boolean esVacia(String s) {\n        return s == null || s.isBlank();\n    }\n\n    public static String capitalizar(String s) {\n        if (esVacia(s)) return s;\n        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();\n    }\n\n    public static boolean contiene(String s, String sub) {\n        if (s == null || sub == null) return false;\n        return s.contains(sub);\n    }\n\n    public static String repetir(String s, int n) {\n        if (s == null || n <= 0) return \"\";\n        StringBuilder sb = new StringBuilder();\n        for (int i = 0; i < n; i++) sb.append(s);\n        return sb.toString();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(capitalizar(\"hola\"));     // Hola\n        System.out.println(contiene(\"Java\", \"av\"));  // true\n        System.out.println(repetir(\"-\", 10));         // ----------\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar `static` en campos que deberían ser de instancia. Si cada objeto tiene su valor diferente, no es estático.",
+        "Acceder a campos de instancia desde un método estático. Los métodos estáticos no tienen `this`.",
+        "Olvidar que `final` impide reasignar. `static final int X = 5; X = 10;` da error de compilación.",
+        "No seguir la convención SCREAMING_SNAKE_CASE para constantes.",
+        "Hacer estático un método que necesita datos de un alumno concreto (como `getNombre()`)."
+      ],
+      "keyConcepts": [
+        "Miembros de instancia vs. miembros estáticos",
+        "Métodos estáticos: accesibles sin crear objetos",
+        "Constantes `static final` con convención SCREAMING_SNAKE_CASE",
+        "Campo estático para contadores compartidos",
+        "Cuándo usar `static`: si no necesita `this` ni campos de instancia",
+        "Clases utilitarias con solo métodos estáticos"
+      ],
+      "learningOutcomes": [
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA4.h"
+      ]
+    },
+    {
+      "id": "lesson-07-3",
+      "title": "Paquetes y organización del código",
+      "objectives": [
+        "Comprender la función de los paquetes en Java",
+        "Declarar paquetes con la sentencia `package`",
+        "Importar clases de otros paquetes con `import`",
+        "Organizar las clases del dominio Alumno-Curso-Matrícula en paquetes"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué son los paquetes?",
+          "content": "Los **paquetes** son la forma que tiene Java de organizar las clases en carpetas lógicas. Son como las carpetas del sistema de archivos: evitan conflictos de nombres y facilitan la gestión de proyectos grandes.\n\nSin paquetes, todas las clases estarían en el paquete por defecto, y dos programadores podrían crear dos clases llamadas `Alumno` sin saberlo, causando conflictos.\n\n**Ventajas de los paquetes:**\n1. **Evitan colisiones de nombres**: `com.escuela.Alumno` y `com.empresa.Alumno` son clases distintas.\n2. **Organizan el código**: agrupas clases relacionadas.\n3. **Controlan el acceso**: el modificador de paquete (sin palabra reservada) limita el acceso a clases del mismo paquete.\n4. **Facilitan la mantenibilidad**: es más fácil encontrar clases en una estructura de carpetas.\n\n**Convención de nombres de paquetes:**\n- Minúsculas siempre: `com.escuela.modelos`\n- Estructura invertida del dominio: `com.empresa.proyecto.modulo`\n- En Java, la convención es usar el dominio invertido: `com.google.guava`, `org.apache.commons`"
+        },
+        {
+          "type": "code",
+          "title": "Declarar un paquete",
+          "language": "java",
+          "content": "// Archivo: src/com/escuela/modelos/Alumno.java\npackage com.escuela.modelos;\n\npublic class Alumno {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \")\";\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Usar clases de otros paquetes con import",
+          "language": "java",
+          "content": "// Archivo: src/com/escuela/app/Main.java\npackage com.escuela.app;\n\n// Importar clases especificas\nimport com.escuela.modelos.Alumno;\nimport com.escuela.modelos.Curso;\n\n// O importar todo un paquete (no recomendado)\n// import com.escuela.modelos.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Alumno alumno = new Alumno(\"Ana\", \"ana@email.com\");\n        Curso curso = new Curso(\"Java\", 272, \"Prof. Garcia\");\n\n        System.out.println(alumno);\n        System.out.println(curso.getNombre());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Estructura de paquetes para nuestro dominio",
+          "content": "Para nuestro dominio de gestión escolar, podemos organizar las clases así:\n\n```\nsrc/\n├── com/\n│   └── escuela/\n│       ├── modelos/          ← Clases de dominio\n│       │   ├── Alumno.java\n│       │   ├── Curso.java\n│       │   └── Matricula.java\n│       ├── servicios/        ← Logica de negocio\n│       │   └── CalculadoraNotas.java\n│       ├── utilidades/       ← Helpers generales\n│       │   └── Validator.java\n│       └── app/              ← Punto de entrada\n│           └── Main.java\n```\n\n**Estructura de carpetas = estructura de paquetes:**\n- `package com.escuela.modelos` → carpeta `com/escuela/modelos/`\n- `package com.escuela.servicios` → carpeta `com/escuela/servicios/`\n\nEclipse IDE crea automáticamente las carpetas al declarar el paquete. Solo necesitas escribir `package com.escuela.modelos;` al inicio del archivo."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo con paquetes",
+          "language": "java",
+          "content": "// === Archivo: com/escuela/modelos/Alumno.java ===\npackage com.escuela.modelos;\n\npublic class Alumno {\n    public static final double NOTA_APROBADO = 5.0;\n\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n    public boolean estaAprobado() { return notaMedia >= NOTA_APROBADO; }\n\n    @Override\n    public String toString() {\n        return nombre + \" - Nota: \" + String.format(\"%.1f\", notaMedia);\n    }\n}\n\n// === Archivo: com/escuela/modelos/Curso.java ===\npackage com.escuela.modelos;\n\npublic class Curso {\n    private String nombre;\n    private int horasTotales;\n    private String profesor;\n    private int numAlumnos;\n\n    public Curso(String nombre, int horas, String profesor) {\n        this.nombre = nombre;\n        this.horasTotales = horas;\n        this.profesor = profesor;\n        this.numAlumnos = 0;\n    }\n\n    public String getNombre() { return nombre; }\n    public int getNumAlumnos() { return numAlumnos; }\n    public void matricularAlumno() { numAlumnos++; }\n\n    public String getResumen() {\n        return nombre + \" | \" + profesor + \" | \" + horasTotales + \"h\";\n    }\n}\n\n// === Archivo: com/escuela/app/Main.java ===\npackage com.escuela.app;\n\nimport com.escuela.modelos.Alumno;\nimport com.escuela.modelos.Curso;\n\npublic class Main {\n    public static void main(String[] args) {\n        Alumno a = new Alumno(\"Ana\", \"ana@email.com\");\n        a.setNotaMedia(8.5);\n\n        Curso c = new Curso(\"Java\", 272, \"Garcia\");\n        c.matricularAlumno();\n\n        System.out.println(a);\n        System.out.println(c.getResumen());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Clases de la API de Java: java.lang y más",
+          "content": "Java organiza sus propias clases en paquetes. Los más usados:\n\n| Paquete | Contenido |\n|---------|-----------|\n| `java.lang` | Clases básicas: `String`, `Math`, `System`, `Object` (se importa automáticamente) |\n| `java.util` | Colecciones, fechas, Scanner: `ArrayList`, `HashMap`, `LocalDate` |\n| `java.io` | Entrada/salida de archivos: `File`, `FileReader` |\n| `java.math` | Operaciones matemáticas de precisión: `BigDecimal`, `BigInteger` |\n\nLa clase `String` está en `java.lang`, que se importa automáticamente. Por eso no necesitas escribir `import java.lang.String;`.\n\nPero `Scanner` está en `java.util`, así que necesitas:\n\n```java\nimport java.util.Scanner;\n```\n\nSi usas `Scanner` sin importarlo, Java da error: \"cannot find symbol\"."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-07-3-1",
+          "difficulty": "basic",
+          "title": "Crear paquetes para Alumno y Curso",
+          "description": "Crea un proyecto en Eclipse con la estructura de paquetes: `com.escuela.modelos`. Coloca las clases `Alumno` y `Curso` en ese paquete. Crea la clase `Main` en `com.escuela.app` que importe y use ambas.",
+          "solution": "// Estructura:\n// src/com/escuela/modelos/Alumno.java\n// src/com/escuela/modelos/Curso.java\n// src/com/escuela/app/Main.java\n\n// Alumno.java:\npackage com.escuela.modelos;\npublic class Alumno {\n    private String nombre;\n    public Alumno(String nombre) { this.nombre = nombre; }\n    public String getNombre() { return nombre; }\n}\n\n// Curso.java:\npackage com.escuela.modelos;\npublic class Curso {\n    private String nombre;\n    public Curso(String nombre) { this.nombre = nombre; }\n    public String getNombre() { return nombre; }\n}\n\n// Main.java:\npackage com.escuela.app;\nimport com.escuela.modelos.Alumno;\nimport com.escuela.modelos.Curso;\npublic class Main {\n    public static void main(String[] args) {\n        Alumno a = new Alumno(\"Ana\");\n        Curso c = new Curso(\"Java\");\n        System.out.println(a.getNombre() + \" en \" + c.getNombre());\n    }\n}"
+        },
+        {
+          "id": "ex-07-3-2",
+          "difficulty": "intermediate",
+          "title": "Organizar un proyecto completo",
+          "description": "Reorganiza el mini-proyecto del módulo anterior con esta estructura de paquetes:\n- `com.escuela.modelos` → Alumno, Curso\n- `com.escuela.utilidades` → Validator\n- `com.escuela.app` → Main",
+          "solution": "// Archivos necesarios:\n// src/com/escuela/modelos/Alumno.java\n// src/com/escuela/modelos/Curso.java\n// src/com/escuela/utilidades/Validator.java\n// src/com/escuela/app/Main.java\n\n// Validator.java:\npackage com.escuela.utilidades;\npublic class Validator {\n    public static boolean esEmailValido(String email) {\n        return email != null && email.contains(\"@\") && email.contains(\".\");\n    }\n}\n\n// Alumno.java:\npackage com.escuela.modelos;\nimport com.escuela.utilidades.Validator;\npublic class Alumno {\n    private String nombre;\n    private String email;\n    public Alumno(String nombre, String email) {\n        if (!Validator.esEmailValido(email)) throw new IllegalArgumentException(\"Email invalido\");\n        this.nombre = nombre;\n        this.email = email;\n    }\n    public String getNombre() { return nombre; }\n}\n\n// Main.java:\npackage com.escuela.app;\nimport com.escuela.modelos.Alumno;\npublic class Main {\n    public static void main(String[] args) {\n        Alumno a = new Alumno(\"Ana\", \"ana@email.com\");\n        System.out.println(a.getNombre());\n    }\n}"
+        },
+        {
+          "id": "ex-07-3-3",
+          "difficulty": "advanced",
+          "title": "Explorar la API de Java",
+          "description": "Crea un programa que use al menos 3 clases de diferentes paquetes de la API de Java: `java.lang.Math`, `java.util.Scanner` y `java.time.LocalDate`. Documenta qué paquete contiene cada clase.",
+          "solution": "import java.util.Scanner;\nimport java.time.LocalDate;\n\npublic class ExplorarAPI {\n    public static void main(String[] args) {\n        // java.lang.Math (no necesita import)\n        System.out.println(\"PI: \" + Math.PI);\n        System.out.println(\"Raiz cuadrada de 144: \" + Math.sqrt(144));\n        System.out.println(\"Maximo de 3 y 7: \" + Math.max(3, 7));\n\n        // java.time.LocalDate\n        LocalDate hoy = LocalDate.now();\n        System.out.println(\"Hoy: \" + hoy);\n        System.out.println(\"Ano: \" + hoy.getYear());\n        System.out.println(\"Mes: \" + hoy.getMonth());\n\n        // java.util.Scanner\n        Scanner lector = new Scanner(System.in);\n        System.out.print(\"Escribe algo: \");\n        String texto = lector.nextLine();\n        System.out.println(\"Longitud: \" + texto.length());\n        lector.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar la sentencia `package` al inicio del archivo. Sin ella, la clase está en el paquete por defecto.",
+        "Que la estructura de carpetas no coincida con el paquete declarado. `package com.escuela;` requiere la carpeta `com/escuela/`.",
+        "Olvidar importar clases de paquetes que no son `java.lang`. `Scanner` necesita `import java.util.Scanner;`.",
+        "Usar `import com.escuela.modelos.*`. Es mejor importar clases específicas para mayor claridad.",
+        "Mezclar convenciones de nombres en paquetes. Los paquetes siempre son minúsculas: `com.escuela.Modelos` es incorrecto."
+      ],
+      "keyConcepts": [
+        "Paquetes como organización lógica de clases",
+        "Sentencia `package` al inicio del archivo",
+        "Importación con `import` y estructura de carpetas",
+        "Estructura de paquetes para el dominio Alumno-Curso-Matrícula",
+        "Convención de nombres de paquetes: minúsculas, dominio invertido",
+        "Paquetes de la API de Java: java.lang, java.util, java.io, java.math"
+      ],
+      "learningOutcomes": [
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA4.f"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Sistema de gestión escolar encapsulado",
+    "description": "Crea un sistema completo con:\n1. Clase Alumno (nombre, email, notaMedia) completamente encapsulada con validación\n2. Clase Curso (nombre, horas, profesor) con constante MAX_ALUMNOS=30\n3. Clase CalculadoraNotas con métodos estáticos para media, calificación y aprobado\n4. Clase Validator con métodos estáticos para email y nombre\n5. Todo organizado en paquetes: com.escuela.modelos, com.escuela.servicios, com.escuela.utilidades\n6. Main en com.escuela.app que pruebe todo el sistema\n7. Documentación Javadoc en al menos 3 métodos",
+    "learningOutcomes": [
+      "RA4"
+    ],
+    "assessmentCriteria": [
+      "RA4.c",
+      "RA4.f",
+      "RA4.h"
+    ]
+  }
+}

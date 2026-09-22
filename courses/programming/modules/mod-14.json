@@ -1,0 +1,373 @@
+{
+  "id": "mod-14",
+  "title": "Ficheros y persistencia",
+  "description": "Módulo completo sobre entrada/salida de archivos en Java: la clase File, lectura y escritura de ficheros de texto y bytes, serialización de objetos, y persistencia de datos del dominio Alumno/Curso. Se completa el RA5 con sus criterios de evaluación.",
+  "phase": "phase-7",
+  "position": 14,
+  "learningOutcomes": [
+    "RA5"
+  ],
+  "assessmentCriteria": [
+    "RA5.d",
+    "RA5.e"
+  ],
+  "officialContents": [
+    "Lectura y escritura de información"
+  ],
+  "duration": "14 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-13"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-14-1",
+      "title": "La clase File y operaciones con ficheros",
+      "objectives": [
+        "Conocer la clase File y sus métodos principales",
+        "Crear, comprobar existencia y eliminar ficheros y directorios",
+        "Listar el contenido de directorios",
+        "Obtener información de un fichero: tamaño, ruta, extensión",
+        "Gestionar permisos de lectura/escritura"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "La clase File: representar ficheros en memoria",
+          "content": "La clase `java.io.File` representa un fichero o directorio en el sistema de archivos. **No abre el fichero** ni lee su contenido; solo proporciona información y operaciones sobre la ruta.\n\n**Crear un objeto File:**\n```java\nFile f1 = new File(\"datos.txt\");                    // Ruta relativa\nFile f2 = new File(\"C:/Users/alumno/datos.txt\");     // Ruta absoluta\nFile f3 = new File(\"cursos\", \"programacion.txt\");   // Directorio + nombre\nFile f4 = new File(new File(\"cursos\"), \"prog.txt\"); // File + nombre\n```\n\n**Métodos principales:**\n| Método | Descripción |\n|--------|-------------|\n| `exists()` | ¿Existe el fichero/directorio? |\n| `isFile()` | ¿Es un fichero? |\n| `isDirectory()` | ¿Es un directorio? |\n| `getName()` | Nombre del fichero (sin ruta) |\n| `getPath()` | Ruta completa |\n| `getAbsolutePath()` | Ruta absoluta |\n| `getParent()` | Directorio padre |\n| `length()` | Tamaño en bytes |\n| `canRead()` | ¿Se puede leer? |\n| `canWrite()` | ¿Se puede escribir? |\n| `lastModified()` | Última modificación (timestamp) |\n| `delete()` | Eliminar el fichero |\n| `mkdir()` | Crear directorio |\n| `mkdirs()` | Crear directorio y padres |\n| `renameTo(File)` | Renombrar o mover |\n| `list()` | Array de nombres en el directorio |\n| `listFiles()` | Array de File en el directorio |"
+        },
+        {
+          "type": "code",
+          "title": "Operaciones con la clase File",
+          "language": "java",
+          "content": "import java.io.File;\nimport java.io.IOException;\nimport java.time.Instant;\nimport java.time.LocalDateTime;\nimport java.time.ZoneId;\nimport java.time.format.DateTimeFormatter;\n\npublic class OperacionesFile {\n    public static void main(String[] args) throws IOException {\n        // === CREAR FICHERO ===\n        File fichero = new File(\"ejemplo.txt\");\n\n        if (!fichero.exists()) {\n            boolean creado = fichero.createNewFile();\n            System.out.println(\"Fichero creado: \" + creado);\n        } else {\n            System.out.println(\"El fichero ya existe\");\n        }\n\n        // === INFORMACION DEL FICHERO ===\n        System.out.println(\"\\n=== Informacion ===\");\n        System.out.println(\"Nombre: \" + fichero.getName());\n        System.out.println(\"Ruta: \" + fichero.getPath());\n        System.out.println(\"Ruta absoluta: \" + fichero.getAbsolutePath());\n        System.out.println(\"Directorio padre: \" + fichero.getParent());\n        System.out.println(\"Tamano: \" + fichero.length() + \" bytes\");\n        System.out.println(\"Es fichero: \" + fichero.isFile());\n        System.out.println(\"Es directorio: \" + fichero.isDirectory());\n        System.out.println(\"Se puede leer: \" + fichero.canRead());\n        System.out.println(\"Se puede escribir: \" + fichero.canWrite());\n\n        // Ultima modificacion formateada\n        LocalDateTime fecha = LocalDateTime.ofInstant(\n            Instant.ofEpochMilli(fichero.lastModified()), ZoneId.systemDefault());\n        System.out.println(\"Ultima modificacion: \" +\n            fecha.format(DateTimeFormatter.ofPattern(\"dd/MM/yyyy HH:mm:ss\")));\n\n        // === CREAR DIRECTORIOS ===\n        File directorio = new File(\"cursos/programacion/ejercicios\");\n        if (!directorio.exists()) {\n            boolean creado = directorio.mkdirs(); // Crea todos los padres\n            System.out.println(\"\\nDirectorio creado: \" + creado);\n        }\n\n        // === LISTAR CONTENIDO ===\n        File raiz = new File(\".\");\n        System.out.println(\"\\n=== Contenido del directorio actual ===\");\n        String[] archivos = raiz.list();\n        if (archivos != null) {\n            for (String nombre : archivos) {\n                File f = new File(raiz, nombre);\n                String tipo = f.isDirectory() ? \"[DIR]\" : \"[FIC]\";\n                System.out.printf(\"%s %s (%d bytes)%n\", tipo, nombre, f.length());\n            }\n        }\n\n        // === ELIMINAR ===\n        if (fichero.exists()) {\n            boolean eliminado = fichero.delete();\n            System.out.println(\"\\nFichero eliminado: \" + eliminado);\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Explorar un directorio recursivamente",
+          "language": "java",
+          "content": "import java.io.File;\n\npublic class ExplorarDirectorio {\n\n    public static void explorar(File directorio, String indentacion) {\n        if (!directorio.exists() || !directorio.isDirectory()) return;\n\n        File[] archivos = directorio.listFiles();\n        if (archivos == null) return;\n\n        for (File archivo : archivos) {\n            if (archivo.isDirectory()) {\n                System.out.println(indentacion + \"📁 \" + archivo.getName());\n                explorar(archivo, indentacion + \"  \");\n            } else {\n                System.out.printf(indentacion + \"📄 %s (%d bytes)%n\",\n                    archivo.getName(), archivo.length());\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        File directorio = new File(\".\");\n        System.out.println(\"Estructura de archivos:\");\n        explorar(directorio, \"  \");\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-1-1",
+          "difficulty": "basic",
+          "title": "Información de un fichero",
+          "description": "Dada una ruta de fichero, muestra: nombre, tamaño, si es fichero o directorio, si se puede leer, si se puede escribir, y la última modificación.",
+          "solution": "import java.io.File;\nimport java.time.Instant;\nimport java.time.LocalDateTime;\nimport java.time.ZoneId;\n\npublic class InfoFichero {\n    public static void main(String[] args) {\n        File f = new File(\"ejemplo.txt\");\n        System.out.println(\"Nombre: \" + f.getName());\n        System.out.println(\"Tamano: \" + f.length() + \" bytes\");\n        System.out.println(\"Tipo: \" + (f.isFile() ? \"Fichero\" : \"Directorio\"));\n        System.out.println(\"Lectura: \" + f.canRead());\n        System.out.println(\"Escritura: \" + f.canWrite());\n        LocalDateTime fecha = LocalDateTime.ofInstant(\n            Instant.ofEpochMilli(f.lastModified()), ZoneId.systemDefault());\n        System.out.println(\"Modificado: \" + fecha);\n    }\n}"
+        },
+        {
+          "id": "ex-14-1-2",
+          "difficulty": "intermediate",
+          "title": "Crear estructura de carpetas",
+          "description": "Crea la siguiente estructura de directorios si no existe: `proyecto/datos/entradas`, `proyecto/datos/salidas`, `proyecto/logs`. Usa mkdirs().",
+          "solution": "import java.io.File;\n\npublic class CrearCarpetas {\n    public static void main(String[] args) {\n        String[] carpetas = {\n            \"proyecto/datos/entradas\",\n            \"proyecto/datos/salidas\",\n            \"proyecto/logs\"\n        };\n        \n        for (String ruta : carpetas) {\n            File dir = new File(ruta);\n            if (!dir.exists()) {\n                boolean ok = dir.mkdirs();\n                System.out.println((ok ? \"Creado: \" : \"Error: \") + ruta);\n            } else {\n                System.out.println(\"Ya existe: \" + ruta);\n            }\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-14-1-3",
+          "difficulty": "advanced",
+          "title": "Explorador de archivos con filtros",
+          "description": "Crea un explorador que liste todos los archivos de un directorio con extensión `.java`. Muestra nombre, tamaño y última modificación. Usa FileFilter o un filtro lambda.",
+          "solution": "import java.io.File;\nimport java.io.FileFilter;\nimport java.time.Instant;\nimport java.time.LocalDateTime;\nimport java.time.ZoneId;\n\npublic class ExploradorJava {\n    public static void main(String[] args) {\n        File dir = new File(\"src\");\n        if (!dir.exists() || !dir.isDirectory()) {\n            System.out.println(\"Directorio no encontrado\");\n            return;\n        }\n        \n        // Filtro con lambda\n        FileFilter filtroJava = f -> f.getName().endsWith(\".java\");\n        File[] archivos = dir.listFiles(filtroJava);\n        \n        if (archivos != null) {\n            System.out.println(\"Archivos .java en src:\");\n            for (File f : archivos) {\n                LocalDateTime fecha = LocalDateTime.ofInstant(\n                    Instant.ofEpochMilli(f.lastModified()), ZoneId.systemDefault());\n                System.out.printf(\"  %-30s %6d bytes  %s%n\",\n                    f.getName(), f.length(), fecha);\n            }\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar File para leer/escribir contenido: File solo gestiona la ruta, no el contenido. Usa FileReader/BufferedReader.",
+        "No comprobar exists() antes de operar: un File no existe automáticamente al crearlo con new.",
+        "Usar mkdir() en lugar de mkdirs(): mkdir solo crea el último directorio, mkdirs crea toda la ruta.",
+        "Olvidar que length() devuelve 0 para directorios: los directorios no tienen tamaño en bytes.",
+        "No gestionar el caso de list() o listFiles() devolviendo null: puede pasar si no es un directorio."
+      ],
+      "keyConcepts": [
+        "Clase File: representar rutas sin abrir ficheros",
+        "Crear ficheros: createNewFile()",
+        "Crear directorios: mkdir() y mkdirs()",
+        "Información: exists, isFile, isDirectory, length, canRead, canWrite",
+        "Listar contenido: list() y listFiles()",
+        "Eliminar: delete()",
+        "Exploración recursiva de directorios"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.d"
+      ]
+    },
+    {
+      "id": "lesson-14-2",
+      "title": "Lectura de ficheros de texto",
+      "objectives": [
+        "Leer ficheros de texto con BufferedReader y FileReader",
+        "Leer ficheros completos con Files.readString() y Files.readAllLines()",
+        "Leer ficheros con Scanner para parsing de datos",
+        "Procesar ficheros línea a línea del dominio académico",
+        "Manejar excepciones de E/S correctamente"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Flujos de entrada: leer ficheros",
+          "content": "Java ofrece varias formas de leer ficheros de texto. La más común es `BufferedReader` con `FileReader`, que lee efficiently línea a línea.\n\n**Jerarquía de flujos de caracteres:**\n```\nReader (abstracta)\n├── FileReader              ← lee de un fichero\n├── StringReader            ← lee de un String\n├── BufferedReader          ← buffer para lectura eficiente\n│   └── (envuelve a FileReader)\n└── InputStreamReader       ← convierte bytes a caracteres\n    └── System.in           ← entrada estandar (teclado)\n```\n\n**Formas de leer:**\n1. **BufferedReader + FileReader**: línea a línea, eficiente.\n2. **Files.readString()**: lee todo el fichero en un String (Java 11+).\n3. **Files.readAllLines()**: lee todo en una `List<String>` (Java 11+).\n4. **Scanner**: parsing de tipos primitivos y líneas."
+        },
+        {
+          "type": "code",
+          "title": "Leer con BufferedReader y try-with-resources",
+          "language": "java",
+          "content": "import java.io.*;\n\npublic class LeerBufferedReader {\n    public static void main(String[] args) {\n        // Crear un fichero de ejemplo\n        try (BufferedWriter writer = new BufferedWriter(new FileWriter(\"alumnos.txt\"))) {\n            writer.write(\"Ana,8.5\"); writer.newLine();\n            writer.write(\"Carlos,7.0\"); writer.newLine();\n            writer.write(\"Maria,9.2\"); writer.newLine();\n            writer.write(\"Pedro,5.5\"); writer.newLine();\n        } catch (IOException e) {\n            System.out.println(\"Error creando fichero: \" + e.getMessage());\n            return;\n        }\n\n        // Leer linea a linea\n        try (BufferedReader reader = new BufferedReader(new FileReader(\"alumnos.txt\"))) {\n            String linea;\n            int numLinea = 1;\n            while ((linea = reader.readLine()) != null) {\n                System.out.printf(\"Linea %d: %s%n\", numLinea, linea);\n                numLinea++;\n            }\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Fichero no encontrado: \" + e.getMessage());\n        } catch (IOException e) {\n            System.out.println(\"Error de lectura: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Métodos modernos: Files (Java 11+)",
+          "language": "java",
+          "content": "import java.io.IOException;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.List;\n\npublic class LeerConFiles {\n    public static void main(String[] args) {\n        Path fichero = Path.of(\"alumnos.txt\");\n\n        // === readString(): todo el fichero en un String ===\n        try {\n            String contenido = Files.readString(fichero);\n            System.out.println(\"=== Contenido completo ===\");\n            System.out.println(contenido);\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n\n        // === readAllLines(): todas las lineas en una List ===\n        try {\n            List<String> lineas = Files.readAllLines(fichero);\n            System.out.println(\"=== Lineas ===\");\n            for (String linea : lineas) {\n                System.out.println(\"  \" + linea);\n            }\n            System.out.println(\"Total lineas: \" + lineas.size());\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n\n        // === readString() con Path (Java 11+) ===\n        try {\n            String contenido = Files.readString(Path.of(\"alumnos.txt\"));\n            System.out.println(\"\\n=== Contenido ===\");\n            System.out.println(contenido);\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Leer y parsear ficheros de notas",
+          "language": "java",
+          "content": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class LeerNotas {\n\n    record RegistroNota(String nombre, double nota) {}\n\n    public static List<RegistroNota> leerFicheroNotas(String ruta) {\n        List<RegistroNota> registros = new ArrayList<>();\n\n        try (BufferedReader reader = new BufferedReader(new FileReader(ruta))) {\n            String linea;\n            int numLinea = 1;\n\n            while ((linea = reader.readLine()) != null) {\n                // Saltar lineas vacias o comentarios\n                linea = linea.trim();\n                if (linea.isEmpty() || linea.startsWith(\"#\")) {\n                    numLinea++;\n                    continue;\n                }\n\n                // Parsear: nombre,nota\n                String[] partes = linea.split(\",\");\n                if (partes.length == 2) {\n                    String nombre = partes[0].trim();\n                    double nota = Double.parseDouble(partes[1].trim());\n                    registros.add(new RegistroNota(nombre, nota));\n                } else {\n                    System.out.printf(\"Linea %d formato incorrecto: %s%n\", numLinea, linea);\n                }\n                numLinea++;\n            }\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Fichero no encontrado: \" + e.getMessage());\n        } catch (IOException e) {\n            System.out.println(\"Error de lectura: \" + e.getMessage());\n        } catch (NumberFormatException e) {\n            System.out.println(\"Error de formato numerico: \" + e.getMessage());\n        }\n\n        return registros;\n    }\n\n    public static void main(String[] args) {\n        List<RegistroNota> notas = leerFicheroNotas(\"alumnos.txt\");\n        System.out.println(\"Registros leidos: \" + notas.size());\n        for (RegistroNota r : notas) {\n            System.out.printf(\"  %s: %.1f%n\", r.nombre(), r.nota());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Leer con Scanner para parsing",
+          "language": "java",
+          "content": "import java.io.*;\nimport java.util.Scanner;\n\npublic class LeerConScanner {\n    public static void main(String[] args) {\n        // Scanner puede parsear tipos automaticamente\n        try (Scanner sc = new Scanner(new File(\"alumnos.txt\"))) {\n            while (sc.hasNextLine()) {\n                String linea = sc.nextLine();\n                String[] partes = linea.split(\",\");\n                if (partes.length == 2) {\n                    String nombre = partes[0].trim();\n                    double nota = Double.parseDouble(partes[1].trim());\n                    String estado = nota >= 5 ? \"Aprobado\" : \"Suspensa\";\n                    System.out.printf(\"%s: %.1f (%s)%n\", nombre, nota, estado);\n                }\n            }\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Fichero no encontrado: \" + e.getMessage());\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-2-1",
+          "difficulty": "basic",
+          "title": "Leer y contar líneas",
+          "description": "Lee un fichero de texto y cuenta cuántas líneas tiene, cuántas están vacías y cuántas contienen texto.",
+          "solution": "import java.io.*;\n\npublic class ContarLineas {\n    public static void main(String[] args) {\n        int total = 0, vacias = 0, conTexto = 0;\n        \n        try (BufferedReader reader = new BufferedReader(new FileReader(\"datos.txt\"))) {\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                total++;\n                if (linea.trim().isEmpty()) {\n                    vacias++;\n                } else {\n                    conTexto++;\n                }\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n        \n        System.out.println(\"Total: \" + total);\n        System.out.println(\"Vacias: \" + vacias);\n        System.out.println(\"Con texto: \" + conTexto);\n    }\n}"
+        },
+        {
+          "id": "ex-14-2-2",
+          "difficulty": "intermediate",
+          "title": "Convertir CSV a lista de alumnos",
+          "description": "Dado un fichero CSV con formato `nombre,email,nota`, conviértelo a una `List<Alumno>` usando BufferedReader y parsing manual.",
+          "solution": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class CSVaAlumnos {\n    public static List<Alumno> cargarDesdeCSV(String ruta) {\n        List<Alumno> alumnos = new ArrayList<>();\n        \n        try (BufferedReader reader = new BufferedReader(new FileReader(ruta))) {\n            String linea;\n            boolean esCabecera = true;\n            \n            while ((linea = reader.readLine()) != null) {\n                if (esCabecera) { esCabecera = false; continue; }\n                \n                String[] partes = linea.split(\",\");\n                if (partes.length >= 3) {\n                    Alumno a = new Alumno(partes[0].trim(), partes[1].trim());\n                    double nota = Double.parseDouble(partes[2].trim());\n                    a.addNota(nota);\n                    alumnos.add(a);\n                }\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n        \n        return alumnos;\n    }\n}"
+        },
+        {
+          "id": "ex-14-2-3",
+          "difficulty": "advanced",
+          "title": "Procesador de logs académicos",
+          "description": "Crea un procesador que lea un fichero de logs con formato `[FECHA] ACCION: detalle` y genere un informe con: total de acciones, acciones por tipo, y las 5 acciones más recientes.",
+          "solution": "import java.io.*;\nimport java.util.*;\n\npublic class ProcesadorLogs {\n    record LogEntry(String fecha, String accion, String detalle) {}\n    \n    public static void main(String[] args) {\n        List<LogEntry> entradas = new ArrayList<>();\n        \n        try (BufferedReader reader = new BufferedReader(new FileReader(\"logs.txt\"))) {\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                // Parsear: [2026-09-15 10:30] MATRICULA: Ana → Prog\n                if (linea.startsWith(\"[\")) {\n                    int cierre = linea.indexOf(']');\n                    if (cierre > 0) {\n                        String fecha = linea.substring(1, cierre);\n                        String resto = linea.substring(cierre + 2).trim();\n                        int dosPuntos = resto.indexOf(':');\n                        if (dosPuntos > 0) {\n                            String accion = resto.substring(0, dosPuntos).trim();\n                            String detalle = resto.substring(dosPuntos + 1).trim();\n                            entradas.add(new LogEntry(fecha, accion, detalle));\n                        }\n                    }\n                }\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n        \n        System.out.println(\"Total entradas: \" + entradas.size());\n        \n        // Contar por tipo\n        Map<String, Long> porTipo = entradas.stream()\n            .collect(java.util.stream.Collectors.groupingBy(\n                LogEntry::accion, java.util.stream.Collectors.counting()));\n        porTipo.forEach((k, v) -> System.out.println(k + \": \" + v));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar cerrar el BufferedReader: con try-with-resources se evita, pero sin él, se produce un memory leak.",
+        "Usar FileReader sin BufferedReader: funciona pero es muy lento para ficheros grandes.",
+        "No manejar FileNotFoundException: es checked y el compilador obliga a capturarla o propagarla.",
+        "Usar readLine() sin comprobar null: el último readLine() devuelve null cuando termina el fichero.",
+        "No trim() las líneas leídas: los espacios al inicio/fin causan errores en el parsing."
+      ],
+      "keyConcepts": [
+        "BufferedReader + FileReader: lectura eficiente línea a línea",
+        "Files.readString() y Files.readAllLines() (Java 11+)",
+        "Scanner para parsing de tipos",
+        "Excepciones de E/S: FileNotFoundException, IOException",
+        "Parsing manual: split() para CSV, parseInt/parseDouble",
+        "Lectura con comentarios y líneas vacías"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.d",
+        "RA5.e"
+      ]
+    },
+    {
+      "id": "lesson-14-3",
+      "title": "Escritura de ficheros de texto",
+      "objectives": [
+        "Escribir ficheros con BufferedWriter y FileWriter",
+        "Escribir líneas con println() y write()",
+        "Usar Files.writeString() y Files.write() (Java 11+)",
+        "Generar informes académicos como ficheros de texto",
+        "Comprender los modos de apertura: sobrescribir vs añadir"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Flujos de salida: escribir ficheros",
+          "content": "Para escribir ficheros de texto se usa `BufferedWriter` con `FileWriter`. Al igual que en lectura, siempre se usa try-with-resources.\n\n**Jerarquía de flujos de caracteres de salida:**\n```\nWriter (abstracta)\n├── FileWriter              ← escribe en un fichero\n├── BufferedWriter          ← buffer para escritura eficiente\n│   └── (envuelve a FileWriter)\n├── PrintWriter             ← metodos println() y format()\n└── OutputStreamWriter      ← convierte caracteres a bytes\n```\n\n**Modos de apertura de FileWriter:**\n```java\nnew FileWriter(\"fichero.txt\")          // Sobrescribe (crea si no existe)\nnew FileWriter(\"fichero.txt\", true)    // Modo append (añade al final)\nnew FileWriter(fichero, false)          // Sobrescribe\nnew FileWriter(fichero, true)           // Modo append\n```\n\n**Métodos de BufferedWriter:**\n- `write(String)` — escribe un texto.\n- `write(char[], int, int)` — escribe un array de caracteres.\n- `newLine()` — escribe el separador de línea del sistema.\n- `flush()` — fuerza la escritura al disco.\n- `close()` — cierra y hace flush automático."
+        },
+        {
+          "type": "code",
+          "title": "Escribir ficheros con BufferedWriter",
+          "language": "java",
+          "content": "import java.io.*;\n\npublic class EscribirBufferedWriter {\n    public static void main(String[] args) {\n\n        // === SOBRESCRIBIR un fichero ===\n        try (BufferedWriter writer = new BufferedWriter(new FileWriter(\"informe.txt\"))) {\n            writer.write(\"=== INFORME ACADEMICO ===\");\n            writer.newLine();\n            writer.write(\"Fecha: 15/09/2026\");\n            writer.newLine();\n            writer.newLine();\n            writer.write(\"Alumnos matriculados: 25\");\n            writer.newLine();\n            writer.write(\"Aprobados: 20 (80%)\");\n            writer.newLine();\n            writer.write(\"Suspensos: 5 (20%)\");\n            writer.newLine();\n            System.out.println(\"Informe creado correctamente\");\n        } catch (IOException e) {\n            System.out.println(\"Error de escritura: \" + e.getMessage());\n        }\n\n        // === ANADIR al final (modo append) ===\n        try (BufferedWriter writer = new BufferedWriter(new FileWriter(\"informe.txt\", true))) {\n            writer.newLine();\n            writer.write(\"Nota media: 7.5\");\n            writer.newLine();\n            writer.write(\"Mejor alumno: Maria (9.2)\");\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Escribir con PrintWriter (más cómodo)",
+          "language": "java",
+          "content": "import java.io.*;\n\npublic class EscribirPrintWriter {\n    public static void main(String[] args) {\n        // PrintWriter tiene println(), printf(), format()\n        try (PrintWriter pw = new PrintWriter(new BufferedWriter(\n                new FileWriter(\"notas.txt\")))) {\n\n            pw.println(\"=== LISTADO DE NOTAS ===\");\n            pw.println();\n\n            String[][] notas = {\n                {\"Ana\", \"8.5\", \"Aprobado\"},\n                {\"Carlos\", \"7.0\", \"Aprobado\"},\n                {\"Maria\", \"9.2\", \"Aprobado\"},\n                {\"Pedro\", \"4.5\", \"Suspensa\"},\n                {\"Laura\", \"6.0\", \"Aprobado\"}\n            };\n\n            // Cabecera formateada\n            pw.printf(\"%-15s %6s %12s%n\", \"Alumno\", \"Nota\", \"Estado\");\n            pw.printf(\"%-15s %6s %12s%n\", \"-\".repeat(15), \"-\".repeat(6), \"-\".repeat(12));\n\n            // Datos\n            for (String[] nota : notas) {\n                pw.printf(\"%-15s %6s %12s%n\", nota[0], nota[1], nota[2]);\n            }\n\n            pw.println();\n            pw.printf(\"Total: %d alumnos%n\", notas.length);\n\n            System.out.println(\"Fichero de notas creado\");\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Métodos modernos: Files.writeString() (Java 11+)",
+          "language": "java",
+          "content": "import java.io.IOException;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.util.List;\n\npublic class EscribirConFiles {\n    public static void main(String[] args) {\n\n        // === writeString(): escribe un String completo ===\n        try {\n            String contenido = \"\"\"\n                === INFORME ===\n                Fecha: 15/09/2026\n                Modulo: Programacion\n                Alumnos: 25\n                \"\"\";\n            Files.writeString(Path.of(\"informe.txt\"), contenido);\n            System.out.println(\"Fichero escrito con writeString()\");\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n\n        // === write(): escribe una lista de lineas ===\n        try {\n            List<String> lineas = List.of(\n                \"Alumno,Nota,Estado\",\n                \"Ana,8.5,Aprobado\",\n                \"Carlos,7.0,Aprobado\",\n                \"Maria,9.2,Aprobado\"\n            );\n            Files.write(Path.of(\"notas.csv\"), lineas);\n            System.out.println(\"CSV creado con write()\");\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n\n        // === Añadir contenido (Java 11+) ===\n        try {\n            Files.writeString(Path.of(\"log.txt\"), \"Inicio de sesion\\n\");\n            Files.writeString(Path.of(\"log.txt\"), \"Alumno creado\\n\");\n            // Por defecto sobrescribe. Para append:\n            Files.write(\n                Path.of(\"log.txt\"),\n                List.of(\"Nota asignada\"),\n                java.nio.file.StandardOpenOption.CREATE,\n                java.nio.file.StandardOpenOption.APPEND\n            );\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Generar informe académico completo",
+          "language": "java",
+          "content": "import java.io.*;\nimport java.util.List;\n\npublic class GenerarInforme {\n\n    public static void generarInforme(List<Alumno> alumnos, String ruta) {\n        try (PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(ruta)))) {\n            pw.println(\"=\".repeat(50));\n            pw.println(\"         INFORME ACADEMICO\");\n            pw.println(\"         Programacion - Curso 2026/2027\");\n            pw.println(\"=\".repeat(50));\n            pw.println();\n\n            // Cabecera\n            pw.printf(\"%-20s %8s %10s%n\", \"Alumno\", \"Notas\", \"Media\");\n            pw.printf(\"%-20s %8s %10s%n\", \"-\".repeat(20), \"-\".repeat(8), \"-\".repeat(10));\n\n            double sumaGlobal = 0;\n            int aprobados = 0;\n\n            for (Alumno a : alumnos) {\n                pw.printf(\"%-20s %8d %10.2f%n\",\n                    a.getNombre(), a.getNumNotas(), a.getNotaMedia());\n                sumaGlobal += a.getNotaMedia();\n                if (a.getNotaMedia() >= 5.0) aprobados++;\n            }\n\n            pw.println();\n            pw.println(\"-\".repeat(50));\n            pw.printf(\"Total alumnos: %d%n\", alumnos.size());\n            pw.printf(\"Aprobados: %d (%.1f%%)%n\", aprobados,\n                (double) aprobados / alumnos.size() * 100);\n            pw.printf(\"Suspensos: %d%n\", alumnos.size() - aprobados);\n            pw.printf(\"Media global: %.2f%n\", sumaGlobal / alumnos.size());\n\n            System.out.println(\"Informe generado: \" + ruta);\n        } catch (IOException e) {\n            System.out.println(\"Error generando informe: \" + e.getMessage());\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-3-1",
+          "difficulty": "basic",
+          "title": "Crear un fichero con datos de ejemplo",
+          "description": "Crea un programa que escriba 10 líneas en un fichero: línea 1 es la cabecera, líneas 2-10 son datos de ejemplo (nombre, nota).",
+          "solution": "import java.io.*;\n\npublic class CrearDatos {\n    public static void main(String[] args) {\n        try (BufferedWriter writer = new BufferedWriter(new FileWriter(\"ejemplo.txt\"))) {\n            writer.write(\"Nombre,Nota\");\n            writer.newLine();\n            writer.write(\"Ana,8.5\"); writer.newLine();\n            writer.write(\"Carlos,7.0\"); writer.newLine();\n            writer.write(\"Maria,9.2\"); writer.newLine();\n            System.out.println(\"Fichero creado\");\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-14-3-2",
+          "difficulty": "intermediate",
+          "title": "Append de notas",
+          "description": "Crea un programa que añada notas nuevas a un fichero existente (modo append). Primero crea el fichero, luego añade 3 notas más sin sobrescribir.",
+          "solution": "import java.io.*;\n\npublic class AnadirNotas {\n    public static void main(String[] args) throws IOException {\n        // Crear fichero inicial\n        try (BufferedWriter w = new BufferedWriter(new FileWriter(\"notas.txt\"))) {\n            w.write(\"Ana,8.5\"); w.newLine();\n            w.write(\"Carlos,7.0\"); w.newLine();\n        }\n        \n        // Añadir en modo append\n        try (BufferedWriter w = new BufferedWriter(new FileWriter(\"notas.txt\", true))) {\n            w.write(\"Maria,9.2\"); w.newLine();\n            w.write(\"Pedro,5.5\"); w.newLine();\n            w.write(\"Laura,8.0\"); w.newLine();\n        }\n        \n        System.out.println(\"Notas añadidas\");\n    }\n}"
+        },
+        {
+          "id": "ex-14-3-3",
+          "difficulty": "advanced",
+          "title": "Exportar alumnos a CSV y generar informe",
+          "description": "Crea un programa que: 1) exporte una lista de alumnos a un fichero CSV, 2) lea ese CSV y genere un informe de texto formateado con estadísticas.",
+          "solution": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class ExportarInforme {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = new ArrayList<>();\n        // ... crear alumnos con notas ...\n        \n        // 1. Exportar a CSV\n        try (BufferedWriter w = new BufferedWriter(new FileWriter(\"export.csv\"))) {\n            w.write(\"Nombre,Email,Media\"); w.newLine();\n            for (Alumno a : alumnos) {\n                w.write(a.getNombre() + \",\" + a.getEmail() + \",\" + a.getNotaMedia());\n                w.newLine();\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error CSV: \" + e.getMessage());\n        }\n        \n        // 2. Leer CSV y generar informe\n        try (PrintWriter pw = new PrintWriter(new FileWriter(\"informe.txt\"))) {\n            pw.println(\"INFORME ACADEMICO\");\n            pw.println(\"=\".repeat(40));\n            try (BufferedReader r = new BufferedReader(new FileReader(\"export.csv\"))) {\n                String linea;\n                boolean cabecera = true;\n                while ((linea = r.readLine()) != null) {\n                    if (cabecera) { cabecera = false; continue; }\n                    pw.println(linea);\n                }\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error informe: \" + e.getMessage());\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar FileWriter sin try-with-resources: el fichero no se cierra y puede corromperse.",
+        "Olvidar newLine() después de write(): las líneas se pegan sin salto de línea.",
+        "No distinguir entre sobrescribir y append: `new FileWriter(\"f.txt\")` sobrescribe por defecto.",
+        "Usar write() en BufferedWriter para números: write() solo acepta String. Usa printf() o String.format().",
+        "No hacer flush() antes de close() en circunstancias normales: el flush es automático en close()."
+      ],
+      "keyConcepts": [
+        "BufferedWriter + FileWriter: escritura eficiente de texto",
+        "Modos de apertura: sobrescribir (default) vs append (true)",
+        "PrintWriter: println(), printf(), format() para escritura cómoda",
+        "Files.writeString() y Files.write() (Java 11+)",
+        "newLine() para saltos de línea portables",
+        "Generación de informes y ficheros CSV"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.d",
+        "RA5.e"
+      ]
+    },
+    {
+      "id": "lesson-14-4",
+      "title": "Serialización de objetos",
+      "objectives": [
+        "Comprender qué es la serialización y para qué sirve",
+        "Implementar Serializable en clases del dominio",
+        "Guardar y cargar objetos con ObjectOutputStream/ObjectInputStream",
+        "Usar transient para excluir campos de la serialización",
+        "Persistir la lista de alumnos y cursos con serialización"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Serialización: convertir objetos en bytes",
+          "content": "La **serialización** es el proceso de convertir un objeto Java en una secuencia de bytes que puede guardarse en un fichero o enviarse por red. La **deserialización** es el proceso inverso: reconstruir el objeto desde los bytes.\n\n**Para qué sirve:**\n- **Persistencia**: guardar el estado de un objeto para recuperarlo después.\n- **Comunicación**: enviar objetos entre programas o máquinas.\n- **Caché**: guardar objetos temporalmente en disco.\n\n**Cómo hacerlo:**\n1. La clase debe implementar `java.io.Serializable` (interfaz de marcador, sin métodos).\n2. Usar `ObjectOutputStream` para escribir y `ObjectInputStream` para leer.\n3. Todos los campos deben ser serializables (o marcados como `transient`).\n\n```java\npublic class Alumno implements Serializable {\n    private static final long serialVersionUID = 1L;\n    private String nombre;\n    private String email;\n    // ... campos normales\n}\n```\n\n**¿Qué es serialVersionUID?**\nEs un número de versión que identifica la versión de la clase. Si cambia la estructura de la clase, la deserialización de objetos antiguos puede fallar. Se genera automáticamente, pero es buena práctica definirlo explícitamente."
+        },
+        {
+          "type": "code",
+          "title": "Serializar un objeto Alumno",
+          "language": "java",
+          "content": "import java.io.*;\n\n// Clase que implementa Serializable\npublic class Alumno implements Serializable {\n    private static final long serialVersionUID = 1L;\n\n    private String nombre;\n    private String email;\n    private double notaMedia;\n    private int numNotas;\n\n    // Campo transient: NO se serializa\n    private transient String tokenSesion;\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n        this.numNotas = 0;\n        this.tokenSesion = java.util.UUID.randomUUID().toString();\n    }\n\n    // Getters\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n    public int getNumNotas() { return numNotas; }\n    public String getTokenSesion() { return tokenSesion; }\n\n    // Metodos de nota\n    public void addNota(double nota) {\n        if (nota < 0 || nota > 10) throw new IllegalArgumentException(\"Nota invalida\");\n        double totalAnterior = notaMedia * numNotas;\n        numNotas++;\n        notaMedia = (totalAnterior + nota) / numNotas;\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \") - Media: \" + String.format(\"%.1f\", notaMedia);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Guardar y cargar objetos con serialización",
+          "language": "java",
+          "content": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class PersistenciaSerializacion {\n\n    // === GUARDAR objetos en un fichero ===\n    public static void guardarAlumnos(List<Alumno> alumnos, String ruta) {\n        try (ObjectOutputStream oos = new ObjectOutputStream(\n                new FileOutputStream(ruta))) {\n            oos.writeObject(alumnos);\n            System.out.println(\"Alumnos guardados en: \" + ruta);\n        } catch (IOException e) {\n            System.out.println(\"Error guardando: \" + e.getMessage());\n        }\n    }\n\n    // === CARGAR objetos desde un fichero ===\n    @SuppressWarnings(\"unchecked\")\n    public static List<Alumno> cargarAlumnos(String ruta) {\n        try (ObjectInputStream ois = new ObjectInputStream(\n                new FileInputStream(ruta))) {\n            return (List<Alumno>) ois.readObject();\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Fichero no encontrado, creando lista vacia\");\n            return new ArrayList<>();\n        } catch (IOException | ClassNotFoundException e) {\n            System.out.println(\"Error cargando: \" + e.getMessage());\n            return new ArrayList<>();\n        }\n    }\n\n    public static void main(String[] args) {\n        // Crear alumnos\n        List<Alumno> alumnos = new ArrayList<>();\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.addNota(8.5); a1.addNota(7.0);\n        alumnos.add(a1);\n\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        a2.addNota(6.0); a2.addNota(5.5);\n        alumnos.add(a2);\n\n        // Guardar\n        guardarAlumnos(alumnos, \"alumnos.dat\");\n\n        // Cargar\n        List<Alumno> cargados = cargarAlumnos(\"alumnos.dat\");\n        System.out.println(\"\\nAlumnos cargados: \" + cargados.size());\n        for (Alumno a : cargados) {\n            System.out.println(a);\n            // Token de sesion sera null (transient)\n            System.out.println(\"  Token: \" + a.getTokenSesion());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Persistencia del dominio completo",
+          "language": "java",
+          "content": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class PersistenciaDominio {\n\n    public static void guardarTodo(List<Alumno> alumnos, List<Curso> cursos, String ruta) {\n        try (ObjectOutputStream oos = new ObjectOutputStream(\n                new FileOutputStream(ruta))) {\n            // Guardar alumnos\n            oos.writeObject(alumnos);\n            // Guardar cursos\n            oos.writeObject(cursos);\n            System.out.println(\"Datos guardados en: \" + ruta);\n        } catch (IOException e) {\n            System.out.println(\"Error guardando: \" + e.getMessage());\n        }\n    }\n\n    @SuppressWarnings(\"unchecked\")\n    public static void cargarTodo(String ruta) {\n        try (ObjectInputStream ois = new ObjectInputStream(\n                new FileInputStream(ruta))) {\n            List<Alumno> alumnos = (List<Alumno>) ois.readObject();\n            List<Curso> cursos = (List<Curso>) ois.readObject();\n\n            System.out.println(\"Alumnos cargados: \" + alumnos.size());\n            for (Alumno a : alumnos) System.out.println(\"  \" + a);\n\n            System.out.println(\"Cursos cargados: \" + cursos.size());\n            for (Curso c : cursos) System.out.println(\"  \" + c);\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Fichero no encontrado\");\n        } catch (IOException | ClassNotFoundException e) {\n            System.out.println(\"Error cargando: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Serialización vs JSON vs CSV",
+          "content": "| Característica | Serialización | JSON | CSV |\n|----------------|---------------|------|-----|\n| Formato | Binario | Texto | Texto |\n| Legibilidad humana | No | Sí | Sí |\n| Rendimiento | Rápido | Medio | Rápido |\n| Tamaño | Pequeño | Medio | Pequeño |\n| Compatibilidad | Solo Java | Multiplataforma | Multiplataforma |\n| Manejo de tipos | Automático | Manual | Manual |\n| serialVersionUID | Sí | No | No |\n| Campos transient | Sí | No | No |\n\n**Cuándo usar cada uno:**\n- **Serialización**: persistencia interna de la aplicación, cuando solo Java lee/escribe.\n- **JSON**: intercambio entre sistemas, APIs, configuración.\n- **CSV**: datos tabulares simples, import/export de hojas de cálculo."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-4-1",
+          "difficulty": "basic",
+          "title": "Serializar un objeto simple",
+          "description": "Crea una clase `Persona` que implemente Serializable con nombre y edad. Guarda un objeto Persona en un fichero y léelo de vuelta.",
+          "solution": "import java.io.*;\n\npublic class Persona implements Serializable {\n    private static final long serialVersionUID = 1L;\n    private String nombre;\n    private int edad;\n    \n    public Persona(String nombre, int edad) {\n        this.nombre = nombre;\n        this.edad = edad;\n    }\n    \n    public String getNombre() { return nombre; }\n    public int getEdad() { return edad; }\n    \n    public static void main(String[] args) {\n        Persona p = new Persona(\"Ana\", 20);\n        \n        // Guardar\n        try (ObjectOutputStream oos = new ObjectOutputStream(\n                new FileOutputStream(\"persona.dat\"))) {\n            oos.writeObject(p);\n        } catch (IOException e) { e.printStackTrace(); }\n        \n        // Cargar\n        try (ObjectInputStream ois = new ObjectInputStream(\n                new FileInputStream(\"persona.dat\"))) {\n            Persona cargada = (Persona) ois.readObject();\n            System.out.println(cargada.getNombre() + \", \" + cargada.getEdad());\n        } catch (IOException | ClassNotFoundException e) { e.printStackTrace(); }\n    }\n}"
+        },
+        {
+          "id": "ex-14-4-2",
+          "difficulty": "intermediate",
+          "title": "Persistencia de lista de alumnos",
+          "description": "Crea un programa que guarde una `List<Alumno>` en un fichero y que pueda cargarla de vuelta. Añade un campo transient y verifica que no se serializa.",
+          "solution": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class PersistenciaAlumnos {\n    public static void main(String[] args) {\n        // Crear y guardar\n        List<Alumno> alumnos = new ArrayList<>();\n        Alumno a = new Alumno(\"Ana\", \"ana@email.com\");\n        a.addNota(8.5);\n        alumnos.add(a);\n        \n        try (ObjectOutputStream oos = new ObjectOutputStream(\n                new FileOutputStream(\"alumnos.dat\"))) {\n            oos.writeObject(alumnos);\n        } catch (IOException e) { e.printStackTrace(); }\n        \n        // Cargar\n        try (ObjectInputStream ois = new ObjectInputStream(\n                new FileInputStream(\"alumnos.dat\"))) {\n            List<Alumno> cargados = (List<Alumno>) ois.readObject();\n            for (Alumno al : cargados) {\n                System.out.println(al.getNombre() + \": \" + al.getNotaMedia());\n            }\n        } catch (IOException | ClassNotFoundException e) { e.printStackTrace(); }\n    }\n}"
+        },
+        {
+          "id": "ex-14-4-3",
+          "difficulty": "advanced",
+          "title": "Sistema completo de persistencia",
+          "description": "Crea una clase `GestorPersistencia` que guarde y cargue un objeto completo que contenga: List<Alumno>, List<Curso>, String fechaUltimaActualizacion. Usa serialización. El gestor debe crear backup antes de sobrescribir.",
+          "solution": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class GestorPersistencia implements Serializable {\n    private static final long serialVersionUID = 1L;\n    \n    private List<Alumno> alumnos;\n    private List<Curso> cursos;\n    private String fechaActualizacion;\n    \n    public GestorPersistencia() {\n        this.alumnos = new ArrayList<>();\n        this.cursos = new ArrayList<>();\n        this.fechaActualizacion = \"Nunca\";\n    }\n    \n    public void guardar(String ruta) throws IOException {\n        // Crear backup\n        File original = new File(ruta);\n        if (original.exists()) {\n            File backup = new File(ruta + \".bak\");\n            original.renameTo(backup);\n        }\n        \n        this.fechaActualizacion = java.time.LocalDateTime.now().toString();\n        try (ObjectOutputStream oos = new ObjectOutputStream(\n                new FileOutputStream(ruta))) {\n            oos.writeObject(this);\n        }\n    }\n    \n    public static GestorPersistencia cargar(String ruta) throws IOException, ClassNotFoundException {\n        try (ObjectInputStream ois = new ObjectInputStream(\n                new FileInputStream(ruta))) {\n            return (GestorPersistencia) ois.readObject();\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar implementar Serializable: ObjectInputStream lanza InvalidClassException si la clase no implementa la interfaz.",
+        "No definir serialVersionUID: si la clase cambia, la deserialización puede fallar con InvalidClassException.",
+        "Intentar serializar campos que no son serializables: si un campo no implementa Serializable, la serialización falla. Usa transient.",
+        "Olvidar que String, Integer, Double, ArrayList, etc. ya implementan Serializable.",
+        "No usar try-with-resources con ObjectOutputStream/ObjectInputStream: los recursos no se cierran."
+      ],
+      "keyConcepts": [
+        "Serializable: interfaz de marcador para serialización",
+        "serialVersionUID: versión de la clase para compatibilidad",
+        "ObjectOutputStream:.writeObject() para guardar",
+        "ObjectInputStream:readObject() para cargar",
+        "Campo transient: excluir de la serialización",
+        "Serialización vs JSON vs CSV: cuándo usar cada formato"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.d",
+        "RA5.e"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Sistema de persistencia de notas con ficheros",
+    "description": "Crea un sistema completo que gestione alumnos, cursos y notas con persistencia en ficheros:\n\n1. **Modelo de datos serializable**:\n   - `Alumno implements Serializable` — nombre, email, notas\n   - `Curso implements Serializable` — nombre, capacidad, alumnos matriculados\n   - `GestorAcademico implements Serializable` — List<Alumno>, List<Curso>, fecha\n\n2. **Persistencia con serialización**:\n   - Guardar y cargar el gestor completo a/dat\n   - Crear backup automático antes de sobrescribir\n   - Comprobar si existe el fichero al iniciar\n\n3. **Persistencia con CSV**:\n   - Exportar alumnos a CSV (nombre, email, media)\n   - Importar alumnos desde CSV\n   - Generar informe de texto formateado\n\n4. **Persistencia con JSON** (opcional):\n   - Exportar a JSON con Gson\n   - Importar desde JSON\n\n5. **Menú completo**:\n   1. Añadir alumno\n   2. Añadir curso\n   3. Matricular alumno en curso\n   4. Asignar nota\n   5. Mostrar todos los alumnos\n   6. Mostrar informe por curso\n   7. Exportar a CSV\n   8. Importar desde CSV\n   9. Guardar datos (serialización)\n   10. Cargar datos (serialización)\n   0. Salir\n\n6. **Al salir**: preguntar si se quieren guardar los cambios.",
+    "learningOutcomes": [
+      "RA5"
+    ],
+    "assessmentCriteria": [
+      "RA5.a",
+      "RA5.b",
+      "RA5.c",
+      "RA5.d",
+      "RA5.e"
+    ]
+  }
+}

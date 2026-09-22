@@ -1,0 +1,524 @@
+{
+  "id": "mod-06",
+  "title": "POO — Clases y objetos",
+  "description": "Este módulo introduce los fundamentos de la Programación Orientada a Objetos en Java. Se aprende a definir clases como planos para crear objetos, a crear constructores para inicializar objetos, a definir métodos y propiedades, y a instanciar y utilizar objetos. Se utiliza un dominio coherente (Alumno, Curso, Matrícula) que se mantendrá a lo largo de los módulos de POO.",
+  "phase": "phase-4",
+  "position": 6,
+  "learningOutcomes": [
+    "RA2",
+    "RA4"
+  ],
+  "assessmentCriteria": [
+    "RA2.a",
+    "RA2.b",
+    "RA2.c",
+    "RA2.d",
+    "RA2.f",
+    "RA2.g",
+    "RA2.h",
+    "RA2.i",
+    "RA4.a",
+    "RA4.b",
+    "RA4.c",
+    "RA4.d",
+    "RA4.e"
+  ],
+  "officialContents": [
+    "Utilización de objetos",
+    "Desarrollo de clases"
+  ],
+  "duration": "12 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-05"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-06-1",
+      "title": "¿Por qué necesitamos objetos?",
+      "objectives": [
+        "Comprender la limitación de programar solo con variables y métodos estáticos",
+        "Entender qué es un objeto y por qué es la unidad fundamental de POO",
+        "Diferenciar entre clase (plano) y objeto (instancia)",
+        "Reconocer ejemplos de objetos en el día a día y en la API de Java"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "El problema de la programación procedural",
+          "content": "Hasta ahora hemos escrito programas usando variables sueltas y métodos estáticos. Funciona para tareas sencillas, pero cuando el programa crece aparecen problemas:\n\n• **Datos dispersos**: si gestionamos 10 alumnos, necesitamos 10 variables `nombre`, 10 variables `nota`, 10 variables `email`... Pronto es imposible de mantener.\n• **Código duplicado**: cada vez que necesitamos mostrar los datos de un alumno, repetimos el mismo código.\n• **Fragilidad**: cambiar la estructura de datos de un alumno implica modificar docenas de líneas repartidas por todo el programa.\n• **Falta de semántica**: no hay nada que conecte la variable `nombreAlumno1` con `notaAlumno1`. La relación es implícita.\n\nLa Programación Orientada a Objetos resuelve estos problemas encapsulando datos y comportamiento en una sola unidad: **el objeto**."
+        },
+        {
+          "type": "text",
+          "title": "¿Qué es un objeto?",
+          "content": "Un **objeto** es una entidad que combina datos (propiedades o atributos) y comportamiento (métodos) en una sola unidad.\n\nPiensa en un coche real:\n\n• **Propiedades**: marca, modelo, color, velocidad actual, nivel de combustible.\n• **Comportamiento**: arrancar, frenar, acelerar, repostar.\n\nEn Java, un objeto es una instancia de una **clase**. La clase es el plano o molde; el objeto es lo que se construye a partir de ese molde.\n\n| Concepto | Ejemplo real | Ejemplo en Java |\n|----------|-------------|------------------|\n| **Clase** (plano) | Plano de un coche | `class Coche` |\n| **Objeto** (instancia) | Mi coche concreto | `Coche miCoche = new Coche();` |\n| **Propiedad** | Color del coche | `String color;` |\n| **Método** | Arrancar el coche | `void arrancar()` |\n\nLa gran ventaja es que podemos crear tantos objetos como necesitemos a partir de la misma clase, cada uno con sus propios datos, pero compartiendo el mismo código."
+        },
+        {
+          "type": "code",
+          "title": "Antes vs. Después: gestión de alumnos",
+          "language": "java",
+          "content": "// === ANTES: programacion procedural ===\npublic class SinPOO {\n    public static void main(String[] args) {\n        // Datos sueltos de 3 alumnos\n        String nombre1 = \"Ana\";\n        String email1 = \"ana@email.com\";\n        double nota1 = 8.5;\n\n        String nombre2 = \"Carlos\";\n        String email2 = \"carlos@email.com\";\n        double nota2 = 7.0;\n\n        String nombre3 = \"Maria\";\n        String email3 = \"maria@email.com\";\n        double nota3 = 9.2;\n\n        // Mostrar datos (codigo repetido 3 veces)\n        System.out.println(nombre1 + \" - \" + email1 + \" - Nota: \" + nota1);\n        System.out.println(nombre2 + \" - \" + email2 + \" - Nota: \" + nota2);\n        System.out.println(nombre3 + \" - \" + email3 + \" - Nota: \" + nota3);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Después: con POO (vista previa)",
+          "language": "java",
+          "content": "// === DESPUES: con POO (vista previa de lo que aprenderemos) ===\npublic class ConPOO {\n    public static void main(String[] args) {\n        // Cada alumno es un objeto con sus propios datos\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.setNota(8.5);\n\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        a2.setNota(7.0);\n\n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n        a3.setNota(9.2);\n\n        // Cada objeto \"sabe\" mostrarse a si mismo\n        System.out.println(a1);\n        System.out.println(a2);\n        System.out.println(a3);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Objetos en la API de Java",
+          "content": "Ya has estado usando objetos sin saberlo. `String` es una clase, y cada texto que creas es un objeto:\n\n```java\nString nombre = \"Ana\"; // 'nombre' es una referencia a un objeto String\nnombre.length();       // Llamada a un metodo del objeto\nnombre.toUpperCase();  // Otro metodo del objeto\n```\n\n`Scanner` también es un objeto:\n\n```java\nScanner lector = new Scanner(System.in); // 'lector' es un objeto\nint edad = lector.nextInt();              // Metodo del objeto\n```\n\nLa diferencia es que hasta ahora solo **usabas** objetos de la API de Java. Ahora vas a **crear tus propias clases** y, a partir de ellas, tus propios objetos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-1-1",
+          "difficulty": "basic",
+          "title": "Identificar propiedades y comportamiento",
+          "description": "Piensa en un objeto 'Libro'. Escribe una lista de al menos 4 propiedades (atributos) y 3 comportamientos (métodos) que tendría. No escribas código, solo describe.",
+          "solution": "// Libro\n// Propiedades:\n// - titulo (String)\n// - autor (String)\n// - numPaginas (int)\n// - disponible (boolean)\n// - precio (double)\n//\n// Comportamiento:\n// - prestar(): cambia disponible a false\n// - devolver(): cambia disponible a true\n// - mostrarInfo(): imprime los datos del libro\n// - tieneMasDe100Paginas(): devuelve true/false"
+        },
+        {
+          "id": "ex-06-1-2",
+          "difficulty": "intermediate",
+          "title": "Clase vs. Objeto",
+          "description": "Explica con tus propias palabras la diferencia entre clase y objeto. Usa un ejemplo que no sea un coche ni un alumno.",
+          "solution": "// Una clase es como un molde de galleta: define la forma.\n// Un objeto es la galleta concreta que sacas del molde.\n//\n// Ejemplo: la clase 'RecetaPastel' define los ingredientes\n// y los pasos. Cada pastel que horneas es un objeto distinto\n// con sus propias cantidades exactas, pero siguiendo la misma receta."
+        },
+        {
+          "id": "ex-06-1-3",
+          "difficulty": "intermediate",
+          "title": "Programa procedural vs. POO (pseudocódigo)",
+          "description": "Escribe en pseudocódigo cómo guardarías los datos de 5 películas sin POO (variables sueltas) y luego con POO (usando objetos). No necesitas código Java válido.",
+          "solution": "// SIN POO:\n// titulo1 = \"Inception\"\n// director1 = \"Nolan\"\n// anio1 = 2010\n// titulo2 = \"Matrix\"\n// director2 = \"Wachowski\"\n// anio2 = 1999\n// ... (repetir para 5 peliculas)\n//\n// CON POO:\n// crear objeto Pelicula(\"Inception\", \"Nolan\", 2010)\n// crear objeto Pelicula(\"Matrix\", \"Wachowski\", 1999)\n// ... (5 objetos, misma clase)"
+        }
+      ],
+      "commonErrors": [
+        "Pensar que la clase ES el objeto. La clase es el plano; el objeto es la instancia concreta.",
+        "Crear una clase y luego no instanciar objetos, intentando usar directamente las propiedades (que no existen sin instanciar).",
+        "Confundir variables normales con objetos. `int x = 5` es un primitivo, no un objeto. `String s = \"hola\"` sí es un objeto.",
+        "Pensar que solo se puede crear un objeto por clase. De una clase puedes crear tantos objetos como quieras."
+      ],
+      "keyConcepts": [
+        "Limitaciones de la programación procedural con datos dispersos",
+        "Objeto como entidad que combina datos y comportamiento",
+        "Clase como plano o molde para crear objetos",
+        "Diferencia entre clase (definición) y objeto (instancia)",
+        "Propiedades (atributos) y métodos (comportamiento)",
+        "La API de Java ya usa objetos: String, Scanner, etc."
+      ],
+      "learningOutcomes": [
+        "RA2",
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA2.a",
+        "RA4.a"
+      ]
+    },
+    {
+      "id": "lesson-06-2",
+      "title": "Definición de clases",
+      "objectives": [
+        "Definir una clase en Java con su estructura básica",
+        "Declarar propiedades (campos) dentro de una clase",
+        "Entender la convención de nombres para clases",
+        "Reconocer la diferencia entre campo de instancia y variable local"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Estructura de una clase",
+          "content": "Una clase en Java se define con la palabra reservada `class` seguida del nombre. Todo el código de la clase va entre llaves `{}`.\n\n```java\npublic class Alumno {\n    // Propiedades (campos)\n    String nombre;\n    String email;\n    double nota;\n\n    // Metodos\n    void mostrarInfo() {\n        System.out.println(nombre + \" - \" + email);\n    }\n}\n```\n\n**Componentes de una clase:**\n\n1. **Nombre de la clase**: debe empezar por mayúscula (PascalCase). Ej: `Alumno`, `Curso`, `Matricula`.\n2. **Campos (propiedades)**: variables que definen los datos del objeto. Cada objeto tendrá su propio valor para cada campo.\n3. **Métodos**: funciones que definen el comportamiento del objeto.\n4. **Constructores**: métodos especiales para crear objetos (los veremos en la siguiente lección).\n\n**Convención**: el nombre de la clase debe coincidir con el nombre del archivo. Si la clase se llama `Alumno`, el archivo debe llamarse `Alumno.java`."
+        },
+        {
+          "type": "code",
+          "title": "Primera clase: Alumno",
+          "language": "java",
+          "content": "public class Alumno {\n    // --- Propiedades (campos de instancia) ---\n    String nombre;\n    String email;\n    double notaMedia;\n\n    // --- Metodos ---\n\n    /**\n     * Muestra por consola la informacion del alumno.\n     */\n    void mostrarInfo() {\n        System.out.println(\"Nombre: \" + nombre);\n        System.out.println(\"Email: \" + email);\n        System.out.println(\"Nota media: \" + notaMedia);\n    }\n\n    /**\n     * Comprueba si el alumno esta aprobado.\n     * @return true si la nota media es >= 5.0\n     */\n    boolean estaAprobado() {\n        return notaMedia >= 5.0;\n    }\n\n    /**\n     * Devuelve una descripcion textual del alumno.\n     * @return cadena con nombre y email\n     */\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \")\";\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Campos de instancia vs. variables locales",
+          "content": "Es fundamental distinguir entre **campos de instancia** y **variables locales**:\n\n| Característica | Campo de instancia | Variable local |\n|----------------|-------------------|----------------|\n| **Dónde se declara** | Dentro de la clase, fuera de métodos | Dentro de un método |\n| **Alcance** | Toda la clase | Solo dentro del método |\n| **Valor por defecto** | Sí (0, null, false) | No tiene, hay que inicializarla |\n| **Persistencia** | Vive mientras viva el objeto | Muere al salir del método |\n\n```java\npublic class Ejemplo {\n    int contador;  // Campo de instancia: tiene valor por defecto (0)\n\n    void incrementar() {\n        int paso = 1;  // Variable local: hay que inicializarla\n        contador += paso;\n    }\n}\n```\n\nSi intentas usar una variable local sin inicializarla, Java da error de compilación. Los campos de instancia sí tienen valor por defecto:"
+        },
+        {
+          "type": "text",
+          "title": "Valores por defecto de los campos",
+          "content": "Cuando creas un objeto, todos sus campos se inicializan automáticamente con valores por defecto:\n\n| Tipo | Valor por defecto |\n|------|-------------------|\n| `int`, `long`, `short`, `byte` | `0` |\n| `float`, `double` | `0.0` |\n| `boolean` | `false` |\n| `char` | `'\\u0000'` (carácter nulo) |\n| Referencias (`String`, objetos) | `null` |\n\nEsto significa que si creas un `Alumno` sin dar valores a sus campos, `nombre` será `null`, `email` será `null` y `notaMedia` será `0.0`. Por eso es importante usar constructores para inicializar los campos con valores significativos (lo veremos en la siguiente lección)."
+        },
+        {
+          "type": "code",
+          "title": "Valores por defecto en acción",
+          "language": "java",
+          "content": "public class ValoresPorDefecto {\n    public static void main(String[] args) {\n        Alumno alumno = new Alumno();\n\n        // Los campos tienen valores por defecto\n        System.out.println(\"Nombre: \" + alumno.nombre);    // null\n        System.out.println(\"Email: \" + alumno.email);      // null\n        System.out.println(\"Nota: \" + alumno.notaMedia);   // 0.0\n\n        // Asignar valores manualmente\n        alumno.nombre = \"Ana\";\n        alumno.email = \"ana@email.com\";\n        alumno.notaMedia = 8.5;\n\n        System.out.println(\"\\nDespues de asignar valores:\");\n        alumno.mostrarInfo();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Segunda clase: Curso",
+          "language": "java",
+          "content": "public class Curso {\n    // Propiedades\n    String nombre;\n    int horasTotales;\n    String profesor;\n    boolean estaActivo;\n\n    // Metodo para mostrar informacion\n    void mostrarInfo() {\n        System.out.println(\"Curso: \" + nombre);\n        System.out.println(\"Profesor: \" + profesor);\n        System.out.println(\"Horas: \" + horasTotales);\n        System.out.println(\"Activo: \" + (estaActivo ? \"Si\" : \"No\"));\n    }\n\n    // Metodo que devuelve un valor\n    boolean tieneMasDe100Horas() {\n        return horasTotales > 100;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Usando la clase Curso",
+          "language": "java",
+          "content": "public class GestionCursos {\n    public static void main(String[] args) {\n        // Crear un primer curso\n        Curso programacion = new Curso();\n        programacion.nombre = \"Programacion Java\";\n        programacion.horasTotales = 272;\n        programacion.profesor = \"Prof. Garcia\";\n        programacion.estaActivo = true;\n\n        // Crear un segundo curso\n        Curso basesDatos = new Curso();\n        basesDatos.nombre = \"Bases de Datos\";\n        basesDatos.horasTotales = 160;\n        basesDatos.profesor = \"Prof. Lopez\";\n        basesDatos.estaActivo = true;\n\n        // Usar los metodos\n        programacion.mostrarInfo();\n        System.out.println();\n        basesDatos.mostrarInfo();\n        System.out.println();\n\n        System.out.println(\"Programacion > 100h: \" + programacion.tieneMasDe100Horas());\n        System.out.println(\"Bases de Datos > 100h: \" + basesDatos.tieneMasDe100Horas());\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-2-1",
+          "difficulty": "basic",
+          "title": "Crear la clase Persona",
+          "description": "Crea una clase `Persona` con los campos: nombre (String), edad (int), email (String). Añade un método `mostrarInfo()` que imprima todos los datos y un método `esMayorDeEdad()` que devuelva true si la edad es >= 18.",
+          "solution": "public class Persona {\n    String nombre;\n    int edad;\n    String email;\n\n    void mostrarInfo() {\n        System.out.println(\"Nombre: \" + nombre);\n        System.out.println(\"Edad: \" + edad);\n        System.out.println(\"Email: \" + email);\n    }\n\n    boolean esMayorDeEdad() {\n        return edad >= 18;\n    }\n\n    public static void main(String[] args) {\n        Persona p = new Persona();\n        p.nombre = \"Laura\";\n        p.edad = 20;\n        p.email = \"laura@email.com\";\n        p.mostrarInfo();\n        System.out.println(\"Mayor de edad: \" + p.esMayorDeEdad());\n    }\n}"
+        },
+        {
+          "id": "ex-06-2-2",
+          "difficulty": "intermediate",
+          "title": "Crear la clase Coche",
+          "description": "Crea una clase `Coche` con campos: marca (String), modelo (String), anio (int), velocidadActual (int). Añade métodos: `acelerar(int incremento)` que aumente la velocidad, `frenar()` que ponga velocidad a 0, y `mostrarInfo()`.",
+          "solution": "public class Coche {\n    String marca;\n    String modelo;\n    int anio;\n    int velocidadActual;\n\n    void acelerar(int incremento) {\n        velocidadActual += incremento;\n        System.out.println(\"Velocidad actual: \" + velocidadActual + \" km/h\");\n    }\n\n    void frenar() {\n        velocidadActual = 0;\n        System.out.println(\"Coche detenido.\");\n    }\n\n    void mostrarInfo() {\n        System.out.println(marca + \" \" + modelo + \" (\" + anio + \")\");\n        System.out.println(\"Velocidad: \" + velocidadActual + \" km/h\");\n    }\n\n    public static void main(String[] args) {\n        Coche coche = new Coche();\n        coche.marca = \"Seat\";\n        coche.modelo = \"Ibiza\";\n        coche.anio = 2022;\n        coche.acelerar(50);\n        coche.acelerar(30);\n        coche.frenar();\n        coche.mostrarInfo();\n    }\n}"
+        },
+        {
+          "id": "ex-06-2-3",
+          "difficulty": "advanced",
+          "title": "Clase Matricula (vista previa)",
+          "description": "Crea una clase `Matricula` con campos: alumno (String), curso (String), fecha (String), estaActiva (boolean). Añade métodos: `activar()`, `desactivar()`, `mostrarInfo()`, y `getResumen()` que devuelva una cadena como 'Ana - Programacion Java'.",
+          "solution": "public class Matricula {\n    String alumno;\n    String curso;\n    String fecha;\n    boolean estaActiva;\n\n    void activar() {\n        estaActiva = true;\n        System.out.println(\"Matricula activada.\");\n    }\n\n    void desactivar() {\n        estaActiva = false;\n        System.out.println(\"Matricula desactivada.\");\n    }\n\n    void mostrarInfo() {\n        System.out.println(\"Alumno: \" + alumno);\n        System.out.println(\"Curso: \" + curso);\n        System.out.println(\"Fecha: \" + fecha);\n        System.out.println(\"Activa: \" + (estaActiva ? \"Si\" : \"No\"));\n    }\n\n    String getResumen() {\n        return alumno + \" - \" + curso;\n    }\n\n    public static void main(String[] args) {\n        Matricula m = new Matricula();\n        m.alumno = \"Ana\";\n        m.curso = \"Programacion Java\";\n        m.fecha = \"15/09/2026\";\n        m.activar();\n        m.mostrarInfo();\n        System.out.println(\"Resumen: \" + m.getResumen());\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar que el nombre de la clase debe coincidir con el nombre del archivo. `public class Alumno` debe estar en `Alumno.java`.",
+        "Intentar usar campos de instancia desde un método estático sin crear un objeto primero.",
+        "Declarar campos dentro de un método. Los campos van directamente en la clase, no dentro de métodos.",
+        "No inicializar variables locales antes de usarlas. Los campos sí tienen valor por defecto, las variables locales no.",
+        "Olvidar que Java es case-sensitive: `Alumno` y `alumno` son cosas distintas."
+      ],
+      "keyConcepts": [
+        "Definición de clases con la palabra reservada `class`",
+        "Campos de instancia (atributos/propiedades)",
+        "Métodos de instancia (comportamiento)",
+        "Diferencia entre campo de instancia y variable local",
+        "Valores por defecto de los campos según su tipo",
+        "Convención PascalCase para nombres de clases"
+      ],
+      "learningOutcomes": [
+        "RA2",
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA2.b",
+        "RA4.a",
+        "RA4.b",
+        "RA4.c"
+      ]
+    },
+    {
+      "id": "lesson-06-3",
+      "title": "Constructores",
+      "objectives": [
+        "Comprender la función de los constructores en Java",
+        "Crear constructores sin parámetros (por defecto)",
+        "Crear constructores con parámetros para inicializar objetos",
+        "Utilizar `this` para distinguir campos de parámetros",
+        "Sobrecargar constructores"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es un constructor?",
+          "content": "Un **constructor** es un método especial que se ejecuta automáticamente cuando creas un objeto con `new`. Su propósito es inicializar los campos del objeto con valores significativos.\n\n```java\nAlumno alumno = new Alumno(\"Ana\", \"ana@email.com\");\n//  ^                    ^\n//  variable             constructor llamado automaticamente\n```\n\n**Características de un constructor:**\n\n1. Se llama igual que la clase.\n2. No tiene tipo de retorno (ni siquiera `void`).\n3. Se ejecuta una sola vez, al crear el objeto.\n4. Puede tener parámetros para recibir valores iniciales.\n5. Si no escribes ninguno, Java crea uno vacío por defecto."
+        },
+        {
+          "type": "code",
+          "title": "Constructor por defecto (explícito)",
+          "language": "java",
+          "content": "public class Alumno {\n    String nombre;\n    String email;\n    double notaMedia;\n\n    // Constructor por defecto: sin parametros\n    public Alumno() {\n        nombre = \"Sin nombre\";\n        email = \"sin@email.com\";\n        notaMedia = 0.0;\n        System.out.println(\"Constructor por defecto llamado.\");\n    }\n\n    void mostrarInfo() {\n        System.out.println(nombre + \" - \" + email + \" - Nota: \" + notaMedia);\n    }\n\n    public static void main(String[] args) {\n        Alumno alumno = new Alumno(); // Llama al constructor automaticamente\n        alumno.mostrarInfo();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Constructor con parámetros",
+          "content": "Lo más útil es crear constructores que reciban valores para inicializar los campos. Así cada objeto nace con datos válidos:\n\n```java\npublic Alumno(String nombre, String email) {\n    this.nombre = nombre;\n    this.email = email;\n    this.notaMedia = 0.0;\n}\n```\n\nLa palabra reservada **`this`** se refiere al objeto actual. Se usa para distinguir el campo (`this.nombre`) del parámetro (`nombre`). Sin `this`, ambos se llamarían igual y Java no sabría a cuál te refieres.\n\nAhora podemos crear objetos así:\n\n```java\nAlumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\nAlumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n```\n\nCada objeto tiene sus propios valores en `nombre`, `email` y `notaMedia`."
+        },
+        {
+          "type": "code",
+          "title": "Alumno con constructor con parámetros",
+          "language": "java",
+          "content": "public class Alumno {\n    String nombre;\n    String email;\n    double notaMedia;\n\n    // Constructor con parametros\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;  // Valor por defecto\n    }\n\n    void mostrarInfo() {\n        System.out.println(nombre + \" - \" + email + \" - Nota: \" + notaMedia);\n    }\n\n    boolean estaAprobado() {\n        return notaMedia >= 5.0;\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \")\";\n    }\n\n    public static void main(String[] args) {\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n\n        // Asignar notas\n        a1.notaMedia = 8.5;\n        a2.notaMedia = 4.0;\n\n        a1.mostrarInfo();\n        System.out.println(\"Aprobado: \" + a1.estaAprobado());\n\n        a2.mostrarInfo();\n        System.out.println(\"Aprobado: \" + a2.estaAprobado());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Sobrecarga de constructores",
+          "content": "Java permite tener **varios constructores** en la misma clase, siempre que tengan diferentes números o tipos de parámetros. Esto se llama **sobrecarga**.\n\n```java\npublic class Alumno {\n    String nombre;\n    String email;\n    double notaMedia;\n\n    // Constructor completo\n    public Alumno(String nombre, String email, double notaMedia) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    // Constructor con nombre y email (nota por defecto)\n    public Alumno(String nombre, String email) {\n        this(nombre, email, 0.0); // Llama al otro constructor\n    }\n\n    // Constructor solo con nombre\n    public Alumno(String nombre) {\n        this(nombre, \"sin@email.com\"); // Llama al anterior\n    }\n}\n```\n\nLa línea `this(nombre, email, 0.0)` es una **llamada a otro constructor** de la misma clase. Permite evitar la duplicación de código y garantiza que todos los constructores pasan por uno solo que contiene la lógica real."
+        },
+        {
+          "type": "code",
+          "title": "Constructores sobrecargados en acción",
+          "language": "java",
+          "content": "public class Alumno {\n    String nombre;\n    String email;\n    double notaMedia;\n\n    // Constructor completo\n    public Alumno(String nombre, String email, double notaMedia) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    // Constructor con nota por defecto\n    public Alumno(String nombre, String email) {\n        this(nombre, email, 0.0);\n    }\n\n    // Constructor solo con nombre\n    public Alumno(String nombre) {\n        this(nombre, \"sin@email.com\");\n    }\n\n    void mostrarInfo() {\n        System.out.println(nombre + \" - \" + email + \" - Nota: \" + notaMedia);\n    }\n\n    public static void main(String[] args) {\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        Alumno a3 = new Alumno(\"Maria\");\n\n        a1.mostrarInfo();\n        a2.mostrarInfo();\n        a3.mostrarInfo();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Curso con constructor",
+          "language": "java",
+          "content": "public class Curso {\n    String nombre;\n    int horasTotales;\n    String profesor;\n    boolean estaActivo;\n\n    public Curso(String nombre, int horasTotales, String profesor) {\n        this.nombre = nombre;\n        this.horasTotales = horasTotales;\n        this.profesor = profesor;\n        this.estaActivo = true;  // Por defecto activo\n    }\n\n    void mostrarInfo() {\n        System.out.println(nombre + \" | \" + profesor + \" | \" + horasTotales + \"h | \" + (estaActivo ? \"Activo\" : \"Inactivo\"));\n    }\n\n    public static void main(String[] args) {\n        Curso java = new Curso(\"Programacion Java\", 272, \"Prof. Garcia\");\n        Curso bd = new Curso(\"Bases de Datos\", 160, \"Prof. Lopez\");\n\n        java.mostrarInfo();\n        bd.mostrarInfo();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-3-1",
+          "difficulty": "basic",
+          "title": "Constructor para la clase Persona",
+          "description": "Añade a la clase `Persona` del ejercicio anterior un constructor que reciba nombre, edad y email. Luego crea 3 personas en el main y muestra su información.",
+          "solution": "public class Persona {\n    String nombre;\n    int edad;\n    String email;\n\n    public Persona(String nombre, int edad, String email) {\n        this.nombre = nombre;\n        this.edad = edad;\n        this.email = email;\n    }\n\n    void mostrarInfo() {\n        System.out.println(nombre + \", \" + edad + \" anios - \" + email);\n    }\n\n    boolean esMayorDeEdad() {\n        return edad >= 18;\n    }\n\n    public static void main(String[] args) {\n        Persona p1 = new Persona(\"Ana\", 20, \"ana@email.com\");\n        Persona p2 = new Persona(\"Carlos\", 17, \"carlos@email.com\");\n        Persona p3 = new Persona(\"Maria\", 22, \"maria@email.com\");\n\n        p1.mostrarInfo();\n        p2.mostrarInfo();\n        p3.mostrarInfo();\n    }\n}"
+        },
+        {
+          "id": "ex-06-3-2",
+          "difficulty": "intermediate",
+          "title": "Constructores sobrecargados para Coche",
+          "description": "Añade a la clase `Coche` dos constructores: uno completo (marca, modelo, anio) y otro que solo reciba marca y modelo (anio por defecto 2024). Usa `this(...)` para que el segundo llame al primero.",
+          "solution": "public class Coche {\n    String marca;\n    String modelo;\n    int anio;\n    int velocidadActual;\n\n    public Coche(String marca, String modelo, int anio) {\n        this.marca = marca;\n        this.modelo = modelo;\n        this.anio = anio;\n        this.velocidadActual = 0;\n    }\n\n    public Coche(String marca, String modelo) {\n        this(marca, modelo, 2024);\n    }\n\n    void acelerar(int incremento) {\n        velocidadActual += incremento;\n    }\n\n    void mostrarInfo() {\n        System.out.println(marca + \" \" + modelo + \" (\" + anio + \") - \" + velocidadActual + \" km/h\");\n    }\n\n    public static void main(String[] args) {\n        Coche c1 = new Coche(\"Seat\", \"Ibiza\", 2022);\n        Coche c2 = new Coche(\"Renault\", \"Clio\");\n\n        c1.acelerar(60);\n        c1.mostrarInfo();\n        c2.mostrarInfo();\n    }\n}"
+        },
+        {
+          "id": "ex-06-3-3",
+          "difficulty": "advanced",
+          "title": "Sistema de alumnos con validación",
+          "description": "Crea la clase `Alumno` con un constructor que valide que el nombre no esté vacío y que la nota esté entre 0 y 10. Si la nota no se proporciona, que sea 0.0 por defecto. Usa sobrecarga de constructores.",
+          "solution": "public class Alumno {\n    String nombre;\n    String email;\n    double notaMedia;\n\n    public Alumno(String nombre, String email, double notaMedia) {\n        if (nombre == null || nombre.isBlank()) {\n            throw new IllegalArgumentException(\"El nombre no puede estar vacio\");\n        }\n        if (notaMedia < 0 || notaMedia > 10) {\n            throw new IllegalArgumentException(\"La nota debe estar entre 0 y 10\");\n        }\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    public Alumno(String nombre, String email) {\n        this(nombre, email, 0.0);\n    }\n\n    void mostrarInfo() {\n        System.out.println(nombre + \" - \" + email + \" - Nota: \" + notaMedia);\n    }\n\n    public static void main(String[] args) {\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n\n        a1.mostrarInfo();\n        a2.mostrarInfo();\n\n        // Esto lanzaria excepcion:\n        // Alumno a3 = new Alumno(\"\", \"x@email.com\");\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Poner un tipo de retorno en el constructor. `public void Alumno()` es un método normal, no un constructor.",
+        "Olvidar que si escribes un constructor, Java NO crea el constructor por defecto. Si necesitas ambos, debes escribir los dos.",
+        "No usar `this` cuando el parámetro se llama igual que el campo. Sin `this`, el parámetro se asigna a sí mismo.",
+        "Intentar llamar a un constructor desde un método normal. Solo se puede llamar a otro constructor con `this(...)` desde otro constructor.",
+        "Pensar que el constructor devuelve el objeto. El constructor inicializa; el operador `new` es el que devuelve la referencia."
+      ],
+      "keyConcepts": [
+        "Constructor como método especial para inicializar objetos",
+        "Constructor por defecto y constructor con parámetros",
+        "Uso de `this` para referirse a campos del objeto",
+        "Sobrecarga de constructores (múltiples firmas)",
+        "Cadena de constructores con `this(...)`",
+        "El operador `new` crea el objeto y el constructor lo inicializa"
+      ],
+      "learningOutcomes": [
+        "RA2",
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA2.h",
+        "RA4.d"
+      ]
+    },
+    {
+      "id": "lesson-06-4",
+      "title": "Métodos y propiedades",
+      "objectives": [
+        "Definir métodos de instancia que operen con los campos del objeto",
+        "Crear getters y setters para acceder y modificar campos",
+        "Distinguir entre métodos de acción y métodos de consulta",
+        "Aplicar la convención de nomenclatura para getters y setters"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Métodos de instancia vs. métodos estáticos",
+          "content": "Un **método de instancia** se ejecuta sobre un objeto concreto y puede acceder a sus campos. Un **método estático** pertenece a la clase y no tiene acceso a los campos de ningún objeto.\n\n```java\npublic class Alumno {\n    String nombre;\n\n    // Metodo de instancia: puede acceder a 'nombre'\n    void mostrar() {\n        System.out.println(nombre); // OK: accede al campo del objeto\n    }\n\n    // Metodo estatico: NO puede acceder a 'nombre'\n    static void saludo() {\n        // System.out.println(nombre); // ERROR: no hay objeto\n        System.out.println(\"Hola desde la clase Alumno\");\n    }\n}\n```\n\nPara llamar a un método de instancia necesitas un objeto: `alumno.mostrar()`. Para llamar a uno estático, usas la clase: `Alumno.saludo()`."
+        },
+        {
+          "type": "text",
+          "title": "Getters y setters",
+          "content": "Los **getters** y **setters** son métodos que permiten acceder y modificar los campos de un objeto de forma controlada. Son la base de la **encapsulación** (que veremos en detalle en el módulo siguiente).\n\n**Convención de nombres:**\n- Getter: `getNombre()` devuelve el valor del campo `nombre`.\n- Setter: `setNombre(String nombre)` establece un nuevo valor.\n- Para booleanos: `estaAprobado()` en lugar de `isEstaAprobado()` o `getEstaAprobado()`.\n\n```java\npublic String getNombre() {\n    return nombre;\n}\n\npublic void setNombre(String nombre) {\n    this.nombre = nombre;\n}\n```\n\nLos getters/setters son útiles porque:\n1. Permiten validar datos antes de asignarlos.\n2. Permiten calcular valores derivados.\n3. Protegen los campos (acceso controlado).\n4. Son el estándar en Java y los esperan las herramientas y frameworks."
+        },
+        {
+          "type": "code",
+          "title": "Alumno completo con getters y setters",
+          "language": "java",
+          "content": "public class Alumno {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = 0.0;\n    }\n\n    // --- Getters ---\n    public String getNombre() {\n        return nombre;\n    }\n\n    public String getEmail() {\n        return email;\n    }\n\n    public double getNotaMedia() {\n        return notaMedia;\n    }\n\n    // --- Setters ---\n    public void setNombre(String nombre) {\n        this.nombre = nombre;\n    }\n\n    public void setEmail(String email) {\n        this.email = email;\n    }\n\n    public void setNotaMedia(double notaMedia) {\n        if (notaMedia >= 0 && notaMedia <= 10) {\n            this.notaMedia = notaMedia;\n        } else {\n            System.out.println(\"Error: la nota debe estar entre 0 y 10.\");\n        }\n    }\n\n    // --- Metodos de accion ---\n    public boolean estaAprobado() {\n        return notaMedia >= 5.0;\n    }\n\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" (\" + email + \") - Nota: \" + notaMedia;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Usando getters y setters",
+          "language": "java",
+          "content": "public class GestionAlumnos {\n    public static void main(String[] args) {\n        Alumno alumno = new Alumno(\"Ana\", \"ana@email.com\");\n\n        // Usar getters\n        System.out.println(\"Nombre: \" + alumno.getNombre());\n        System.out.println(\"Email: \" + alumno.getEmail());\n        System.out.println(\"Nota: \" + alumno.getNotaMedia());\n\n        // Usar setters (con validacion)\n        alumno.setNotaMedia(8.5);\n        System.out.println(\"\\nNota actualizada: \" + alumno.getNotaMedia());\n        System.out.println(\"Aprobado: \" + alumno.estaAprobado());\n        System.out.println(\"Calificacion: \" + alumno.getCalificacion());\n\n        // Intentar poner nota invalida\n        alumno.setNotaMedia(15.0); // Muestra error\n        System.out.println(\"Nota sigue siendo: \" + alumno.getNotaMedia());\n\n        // toString() se llama automaticamente al imprimir\n        System.out.println(\"\\n\" + alumno);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Métodos de acción vs. métodos de consulta",
+          "content": "Los métodos se pueden clasificar en dos tipos:\n\n**Métodos de consulta (getters y más):**\n- Devuelven un valor.\n- No modifican el estado del objeto.\n- Son \"seguros\" para usar sin efectos secundarios.\n- Ejemplo: `getNombre()`, `estaAprobado()`, `getCalificacion()`.\n\n**Métodos de acción (setters y más):**\n- Modifican el estado del objeto (cambian campos).\n- Pueden tener efectos secundarios.\n- Deben validar datos antes de modificar.\n- Ejemplo: `setNotaMedia()`, `setNombre()`, `actualizarNota()`.\n\n```java\n// Consulta: no cambia nada\nboolean aprobado = alumno.estaAprobado();\n\n// Accion: cambia el estado\nalumno.setNotaMedia(9.0);\n```\n\nIdealmente, un método debería hacer **una sola cosa**: o consultar o modificar, no ambas."
+        },
+        {
+          "type": "code",
+          "title": "Clase Curso con métodos completos",
+          "language": "java",
+          "content": "public class Curso {\n    private String nombre;\n    private int horasTotales;\n    private String profesor;\n    private boolean estaActivo;\n    private int numAlumnos;\n\n    public Curso(String nombre, int horasTotales, String profesor) {\n        this.nombre = nombre;\n        this.horasTotales = horasTotales;\n        this.profesor = profesor;\n        this.estaActivo = true;\n        this.numAlumnos = 0;\n    }\n\n    // Getters\n    public String getNombre() { return nombre; }\n    public int getHorasTotales() { return horasTotales; }\n    public String getProfesor() { return profesor; }\n    public boolean isEstaActivo() { return estaActivo; }\n    public int getNumAlumnos() { return numAlumnos; }\n\n    // Setters validados\n    public void setNombre(String nombre) {\n        if (nombre != null && !nombre.isBlank()) {\n            this.nombre = nombre;\n        }\n    }\n\n    public void setProfesor(String profesor) {\n        this.profesor = profesor;\n    }\n\n    // Metodos de accion\n    public void activar() {\n        this.estaActivo = true;\n        System.out.println(\"Curso \\'\" + nombre + \"' activado.\");\n    }\n\n    public void desactivar() {\n        this.estaActivo = false;\n        System.out.println(\"Curso \\'\" + nombre + \"' desactivado.\");\n    }\n\n    public void matricularAlumno() {\n        if (estaActivo) {\n            numAlumnos++;\n        } else {\n            System.out.println(\"No se puede matricular: curso inactivo.\");\n        }\n    }\n\n    public String getResumen() {\n        return nombre + \" | \" + profesor + \" | \" + horasTotales + \"h | \" + numAlumnos + \" alumnos\";\n    }\n\n    public static void main(String[] args) {\n        Curso java = new Curso(\"Programacion Java\", 272, \"Prof. Garcia\");\n        java.matricularAlumno();\n        java.matricularAlumno();\n        java.matricularAlumno();\n        System.out.println(java.getResumen());\n\n        java.desactivar();\n        java.matricularAlumno(); // No se puede\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-4-1",
+          "difficulty": "basic",
+          "title": "Getters y setters para Persona",
+          "description": "Añade a la clase `Persona` getters y setters para todos sus campos. En el setter de `edad`, valida que sea un valor positivo.",
+          "solution": "public class Persona {\n    private String nombre;\n    private int edad;\n    private String email;\n\n    public Persona(String nombre, int edad, String email) {\n        this.nombre = nombre;\n        this.edad = edad;\n        this.email = email;\n    }\n\n    public String getNombre() { return nombre; }\n    public void setNombre(String nombre) { this.nombre = nombre; }\n\n    public int getEdad() { return edad; }\n    public void setEdad(int edad) {\n        if (edad >= 0) {\n            this.edad = edad;\n        }\n    }\n\n    public String getEmail() { return email; }\n    public void setEmail(String email) { this.email = email; }\n\n    public boolean esMayorDeEdad() { return edad >= 18; }\n\n    public static void main(String[] args) {\n        Persona p = new Persona(\"Ana\", 20, \"ana@email.com\");\n        System.out.println(p.getNombre() + \", \" + p.getEdad());\n        p.setEdad(-5); // Ignorado\n        System.out.println(\"Edad tras intento invalido: \" + p.getEdad());\n    }\n}"
+        },
+        {
+          "id": "ex-06-4-2",
+          "difficulty": "intermediate",
+          "title": "Clase CuentaBancaria",
+          "description": "Crea una clase `CuentaBancaria` con campos: titular (String), saldo (double). Constructor que reciba titular y saldo inicial. Métodos: `ingresar(double cantidad)`, `retirar(double cantidad)` (no permitir saldo negativo), `getSaldo()`, `mostrarInfo()`.",
+          "solution": "public class CuentaBancaria {\n    private String titular;\n    private double saldo;\n\n    public CuentaBancaria(String titular, double saldoInicial) {\n        this.titular = titular;\n        this.saldo = saldoInicial;\n    }\n\n    public String getTitular() { return titular; }\n    public double getSaldo() { return saldo; }\n\n    public void ingresar(double cantidad) {\n        if (cantidad > 0) {\n            saldo += cantidad;\n            System.out.println(\"Ingresado: \" + cantidad + \" EUR\");\n        }\n    }\n\n    public void retirar(double cantidad) {\n        if (cantidad > 0 && cantidad <= saldo) {\n            saldo -= cantidad;\n            System.out.println(\"Retirado: \" + cantidad + \" EUR\");\n        } else {\n            System.out.println(\"Saldo insuficiente.\");\n        }\n    }\n\n    public void mostrarInfo() {\n        System.out.println(titular + \" - Saldo: \" + saldo + \" EUR\");\n    }\n\n    public static void main(String[] args) {\n        CuentaBancaria cuenta = new CuentaBancaria(\"Ana\", 1000);\n        cuenta.ingresar(500);\n        cuenta.retirar(200);\n        cuenta.retirar(2000); // Saldo insuficiente\n        cuenta.mostrarInfo();\n    }\n}"
+        },
+        {
+          "id": "ex-06-4-3",
+          "difficulty": "advanced",
+          "title": "Clase Matricula completa",
+          "description": "Crea la clase `Matricula` con campos: alumno (Alumno), curso (Curso), fecha (String), estaActiva (boolean). Usa las clases Alumno y Curso de ejercicios anteriores. Métodos: `activar()`, `desactivar()`, `getResumen()`, `toString()`.",
+          "solution": "// Nota: esta solucion requiere las clases Alumno y Curso\npublic class Matricula {\n    private Alumno alumno;\n    private Curso curso;\n    private String fecha;\n    private boolean estaActiva;\n\n    public Matricula(Alumno alumno, Curso curso, String fecha) {\n        this.alumno = alumno;\n        this.curso = curso;\n        this.fecha = fecha;\n        this.estaActiva = false;\n    }\n\n    public void activar() {\n        estaActiva = true;\n        curso.matricularAlumno();\n    }\n\n    public void desactivar() {\n        estaActiva = false;\n    }\n\n    public String getResumen() {\n        return alumno.getNombre() + \" - \" + curso.getNombre();\n    }\n\n    @Override\n    public String toString() {\n        return \"Matricula{alumno=\" + alumno.getNombre()\n             + \", curso=\" + curso.getNombre()\n             + \", fecha=\" + fecha\n             + \", activa=\" + estaActiva + \"}\";\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar que los campos ahora son `private` y solo se accede con getters/setters.",
+        "No validar datos en los setters. Un setter que acepta cualquier valor es tan peligroso como un campo público.",
+        "Crear un getter que también modifica el estado. Los getters solo devuelven valores, no los cambian.",
+        "Poner lógica de negocio excesiva en getters/setters. Deben ser simples; la lógica compleja va en métodos de acción.",
+        "Olvidar que `this.nombre = nombre` solo funciona si el parámetro se llama igual que el campo."
+      ],
+      "keyConcepts": [
+        "Métodos de instancia vs. métodos estáticos",
+        "Getters para leer campos, setters para modificarlos",
+        "Validación de datos en setters",
+        "Métodos de acción (modifican estado) vs. consulta (solo leen)",
+        "Convención de nomenclatura: getNombre(), setNombre(), isActivo()",
+        "Métodos que devuelven valores derivados: getCalificacion(), getResumen()"
+      ],
+      "learningOutcomes": [
+        "RA2",
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA2.d",
+        "RA2.f",
+        "RA4.c"
+      ]
+    },
+    {
+      "id": "lesson-06-5",
+      "title": "Instantiación y uso de objetos",
+      "objectives": [
+        "Crear múltiples objetos a partir de una misma clase",
+        "Comprender las referencias y la memoria en Java",
+        "Usar arrays de objetos para gestionar colecciones simples",
+        "Aplicar todo lo aprendido en un ejemplo integrador"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Crear múltiples objetos",
+          "content": "De una misma clase puedes crear tantos objetos como necesites. Cada uno tiene sus propios valores en los campos, pero comparte la misma definición de métodos.\n\n```java\nAlumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\nAlumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\nAlumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n```\n\nCada `new` crea un objeto nuevo en memoria. `a1`, `a2` y `a3` son **referencias**: variables que \"apuntan\" a objetos en memoria. No contienen el objeto, sino la dirección donde está."
+        },
+        {
+          "type": "text",
+          "title": "Referencias y memoria",
+          "content": "En Java, los objetos viven en el **montón** (heap) y las referencias viven en la **pila** (stack).\n\n```java\nAlumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n```\n\n- `a1` es la referencia (variable en la pila).\n- `new Alumno(...)` crea el objeto real en el montón.\n- `a1` almacena la dirección del objeto en el montón.\n\nSi haces:\n\n```java\nAlumno a2 = a1; // a2 apunta al MISMO objeto que a1\n```\n\nAhora `a1` y `a2` apuntan al mismo objeto. Si modificas `a1.setNotaMedia(9.0)`, también se refleja en `a2`, porque son el mismo objeto.\n\nPara crear un objeto independiente con los mismos datos, necesitas un `new` nuevo:\n\n```java\nAlumno a3 = new Alumno(a1.getNombre(), a1.getEmail()); // Objeto nuevo\n```"
+        },
+        {
+          "type": "code",
+          "title": "Referencias: mismo objeto vs. objetos distintos",
+          "language": "java",
+          "content": "public class DemoReferencias {\n    public static void main(String[] args) {\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.setNotaMedia(8.5);\n\n        // a2 apunta al mismo objeto que a1\n        Alumno a2 = a1;\n        System.out.println(\"a1: \" + a1.getNombre() + \" - Nota: \" + a1.getNotaMedia());\n        System.out.println(\"a2: \" + a2.getNombre() + \" - Nota: \" + a2.getNotaMedia());\n\n        // Modificamos a traves de a2\n        a2.setNotaMedia(9.0);\n        System.out.println(\"\\nDespues de modificar a2:\");\n        System.out.println(\"a1 Nota: \" + a1.getNotaMedia()); // 9.0!\n        System.out.println(\"a2 Nota: \" + a2.getNotaMedia()); // 9.0\n\n        // a3 es un objeto independiente\n        Alumno a3 = new Alumno(a1.getNombre(), a1.getEmail());\n        a3.setNotaMedia(7.0);\n        System.out.println(\"\\nObjeto independiente a3:\");\n        System.out.println(\"a1 Nota: \" + a1.getNotaMedia()); // 9.0 (no cambia)\n        System.out.println(\"a3 Nota: \" + a3.getNotaMedia()); // 7.0\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Arrays de objetos",
+          "content": "Puedes crear arrays que contengan objetos, igual que arrays de primitivos:\n\n```java\nAlumno[] alumnos = new Alumno[3];\nalumnos[0] = new Alumno(\"Ana\", \"ana@email.com\");\nalumnos[1] = new Alumno(\"Carlos\", \"carlos@email.com\");\nalumnos[2] = new Alumno(\"Maria\", \"maria@email.com\");\n```\n\nCada posición del array contiene una referencia a un objeto. Para recorrer el array puedes usar un bucle `for` o `for-each`:\n\n```java\nfor (Alumno a : alumnos) {\n    System.out.println(a);\n}\n```\n\nEsto es mucho más limpio que tener variables separadas `alumno1`, `alumno2`, `alumno3`..."
+        },
+        {
+          "type": "code",
+          "title": "Gestión de alumnos con arrays",
+          "language": "java",
+          "content": "public class GestionAlumnos {\n    public static void main(String[] args) {\n        // Crear array de alumnos\n        Alumno[] alumnos = {\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\"),\n            new Alumno(\"Pedro\", \"pedro@email.com\"),\n            new Alumno(\"Laura\", \"laura@email.com\")\n        };\n\n        // Asignar notas\n        alumnos[0].setNotaMedia(8.5);\n        alumnos[1].setNotaMedia(7.0);\n        alumnos[2].setNotaMedia(9.2);\n        alumnos[3].setNotaMedia(4.5);\n        alumnos[4].setNotaMedia(6.8);\n\n        // Listar todos\n        System.out.println(\"=== LISTA DE ALUMNOS ===\");\n        for (Alumno a : alumnos) {\n            System.out.println(a);\n        }\n\n        // Contar aprobados\n        int aprobados = 0;\n        for (Alumno a : alumnos) {\n            if (a.estaAprobado()) {\n                aprobados++;\n            }\n        }\n        System.out.println(\"\\nAprobados: \" + aprobados + \"/\" + alumnos.length);\n\n        // Buscar un alumno por nombre\n        String busqueda = \"Maria\";\n        for (Alumno a : alumnos) {\n            if (a.getNombre().equals(busqueda)) {\n                System.out.println(\"\\nEncontrado: \" + a);\n            }\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo integrador: sistema de matrículas",
+          "language": "java",
+          "content": "public class SistemaMatriculas {\n    public static void main(String[] args) {\n        // Crear cursos\n        Curso java = new Curso(\"Programacion Java\", 272, \"Prof. Garcia\");\n        Curso bd = new Curso(\"Bases de Datos\", 160, \"Prof. Lopez\");\n\n        // Crear alumnos\n        Alumno ana = new Alumno(\"Ana\", \"ana@email.com\");\n        Alumno carlos = new Alumno(\"Carlos\", \"carlos@email.com\");\n\n        // Asignar notas\n        ana.setNotaMedia(8.5);\n        carlos.setNotaMedia(4.0);\n\n        // Matricular\n        System.out.println(\"=== MATRICULAS ===\");\n        System.out.println(ana.getNombre() + \" en \" + java.getNombre());\n        java.matricularAlumno();\n\n        System.out.println(carlos.getNombre() + \" en \" + bd.getNombre());\n        bd.matricularAlumno();\n\n        // Resumen\n        System.out.println(\"\\n=== RESUMEN CURSOS ===\");\n        System.out.println(java.getResumen());\n        System.out.println(bd.getResumen());\n\n        // Resumen alumnos\n        System.out.println(\"\\n=== RESUMEN ALUMNOS ===\");\n        System.out.println(ana);\n        System.out.println(carlos);\n        System.out.println(ana.getNombre() + \": \" + ana.getCalificacion());\n        System.out.println(carlos.getNombre() + \": \" + carlos.getCalificacion());\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-5-1",
+          "difficulty": "basic",
+          "title": "Crear 5 personas y buscar",
+          "description": "Crea un array de 5 objetos `Persona` con datos ficticios. Muestra todas por consola y busca una por nombre.",
+          "solution": "public class BuscarPersona {\n    public static void main(String[] args) {\n        Persona[] personas = {\n            new Persona(\"Ana\", 20, \"ana@email.com\"),\n            new Persona(\"Carlos\", 17, \"carlos@email.com\"),\n            new Persona(\"Maria\", 22, \"maria@email.com\"),\n            new Persona(\"Pedro\", 19, \"pedro@email.com\"),\n            new Persona(\"Laura\", 21, \"laura@email.com\")\n        };\n\n        for (Persona p : personas) {\n            System.out.println(p.getNombre() + \", \" + p.getEdad() + \" anios\");\n        }\n\n        String buscar = \"Maria\";\n        for (Persona p : personas) {\n            if (p.getNombre().equals(buscar)) {\n                System.out.println(\"\\nEncontrado: \" + p.getNombre());\n            }\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-06-5-2",
+          "difficulty": "intermediate",
+          "title": "Referencias: mismo objeto vs. copia",
+          "description": "Crea un objeto `Coche`, asigna su referencia a otra variable, modifica a través de la segunda referencia y demuestra que ambas reflejan el cambio. Luego crea una copia independiente y demuestra que es distinta.",
+          "solution": "public class DemoCopias {\n    public static void main(String[] args) {\n        Coche c1 = new Coche(\"Seat\", \"Ibiza\", 2022);\n        Coche c2 = c1; // Misma referencia\n\n        c2.acelerar(50);\n        c1.mostrarInfo(); // Muestra 50 km/h\n\n        // Copia independiente\n        Coche c3 = new Coche(c1.getMarca(), c1.getModelo(), c1.getAnio());\n        c3.acelerar(100);\n        c1.mostrarInfo(); // Sigue en 50\n        c3.mostrarInfo(); // 100\n    }\n}"
+        },
+        {
+          "id": "ex-06-5-3",
+          "difficulty": "advanced",
+          "title": "Sistema de gestión completo",
+          "description": "Crea un programa que gestione un instituto con 3 cursos y 6 alumnos. Cada alumno está matriculado en al menos un curso. El programa debe: mostrar todos los cursos con su número de alumnos, buscar alumnos aprobados, y calcular la nota media de cada curso.",
+          "solution": "public class Instituto {\n    public static void main(String[] args) {\n        Curso[] cursos = {\n            new Curso(\"Java\", 272, \"Garcia\"),\n            new Curso(\"BD\", 160, \"Lopez\"),\n            new Curso(\"Redes\", 120, \"Martinez\")\n        };\n\n        Alumno[] alumnos = {\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\"),\n            new Alumno(\"Pedro\", \"pedro@email.com\"),\n            new Alumno(\"Laura\", \"laura@email.com\"),\n            new Alumno(\"David\", \"david@email.com\")\n        };\n\n        double[] notas = {8.5, 4.0, 9.2, 7.0, 3.5, 6.8};\n        for (int i = 0; i < alumnos.length; i++) {\n            alumnos[i].setNotaMedia(notas[i]);\n        }\n\n        // Matricular alumnos en cursos\n        for (int i = 0; i < 3; i++) cursos[0].matricularAlumno();\n        for (int i = 0; i < 2; i++) cursos[1].matricularAlumno();\n        for (int i = 0; i < 2; i++) cursos[2].matricularAlumno();\n\n        // Resumen cursos\n        System.out.println(\"=== CURSOS ===\");\n        for (Curso c : cursos) System.out.println(c.getResumen());\n\n        // Alumnos aprobados\n        System.out.println(\"\\n=== APROBADOS ===\");\n        for (Alumno a : alumnos) {\n            if (a.estaAprobado()) System.out.println(a.getNombre() + \": \" + a.getNotaMedia());\n        }\n\n        // Media general\n        double suma = 0;\n        for (Alumno a : alumnos) suma += a.getNotaMedia();\n        System.out.println(\"\\nNota media general: \" + (suma / alumnos.length));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar usar `new` al crear un objeto. Sin `new`, solo creas una referencia null.",
+        "Intentar acceder a campos `private` directamente desde fuera de la clase. Debes usar getters/setters.",
+        "No inicializar las posiciones de un array de objetos. `new Alumno[3]` crea 3 referencias null, no 3 objetos.",
+        "Usar `==` para comparar objetos. `==` compara referencias, no contenido. Usa `.equals()` o compara campos concretos.",
+        "Olvidar que los arrays de objetos contienen referencias, no copias. Modificar un objeto del array modifica el original."
+      ],
+      "keyConcepts": [
+        "Crear múltiples objetos con `new`",
+        "Referencias: variables que apuntan a objetos en memoria",
+        "Asignación de referencias vs. creación de copias",
+        "Arrays de objetos y recorrido con for/for-each",
+        "Búsqueda en arrays de objetos",
+        "Ejemplo integrador con el dominio Alumno-Curso-Matrícula"
+      ],
+      "learningOutcomes": [
+        "RA2",
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA2.c",
+        "RA2.d",
+        "RA2.g",
+        "RA4.e"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Gestión de alumnos y cursos",
+    "description": "Crea un programa completo que:\n1. Defina las clases Alumno (nombre, email, notaMedia) y Curso (nombre, horas, profesor) con constructores, getters, setters y métodos de acción\n2. Crea un array de 5 alumnos y uno de 3 cursos\n3. Asigna notas a los alumnos y matricúlalos en cursos\n4. Muestra un informe de alumnos (nombre, nota, calificación, aprobado/no)\n5. Muestra un informe de cursos (nombre, profesor, horas, número de alumnos)\n6. Busca el alumno con la nota más alta\n7. Calcula la nota media de todos los alumnos\n8. Usa documentación Javadoc en al menos 2 métodos",
+    "learningOutcomes": [
+      "RA2",
+      "RA4"
+    ],
+    "assessmentCriteria": [
+      "RA2.a",
+      "RA2.b",
+      "RA2.c",
+      "RA2.d",
+      "RA2.f",
+      "RA2.h",
+      "RA4.a",
+      "RA4.b",
+      "RA4.c",
+      "RA4.d",
+      "RA4.e"
+    ]
+  }
+}

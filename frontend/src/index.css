@@ -1,0 +1,402 @@
+@import "tailwindcss";
+
+html {
+  scroll-behavior: smooth;
+}
+
+[id] {
+  scroll-margin-top: 80px;
+}
+
+/* Class-based dark mode (activated by .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ============================================================================
+   Semantic Text & Border Tokens — Light/Dark Mode
+   ============================================================================ */
+
+:root {
+  /* Light mode text */
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-muted: #6B7280;
+  --text-subtle: #9CA3AF;
+  /* Light mode borders */
+  --border-subtle: #E5E7EB;
+  --border-default: #D1D5DB;
+  /* Light mode surfaces */
+  --surface-base: #f8f9fc;
+  --surface-raised: #ffffff;
+  --surface-overlay: #f1f3f8;
+  --surface-subtle: #e8ebf0;
+  --surface-muted: #d5d9e2;
+  --surface-border: #d0d5e0;
+  --surface-border-subtle: #e2e6ee;
+}
+
+.dark {
+  /* Dark mode text */
+  --text-primary: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
+  /* Dark mode borders */
+  --border-subtle: #1E293B;
+  --border-default: #334155;
+  /* Dark mode surfaces */
+  --surface-base: #0a0a0f;
+  --surface-raised: #12121a;
+  --surface-overlay: #1a1a25;
+  --surface-subtle: #22222e;
+  --surface-muted: #2a2a38;
+  --surface-border: #2e2e3e;
+  --surface-border-subtle: #232333;
+}
+
+/* ============================================================================
+   Course Experience V2 — Schematic, Tech-Forward Visual System
+   ============================================================================ */
+
+/* Neon accent tokens */
+:root {
+  --neon-violet: #8B5CF6;
+  --neon-blue: #3B82F6;
+  --neon-cyan: #06B6D4;
+  --neon-magenta: #EC4899;
+  --neon-green: #22D3EE;
+}
+
+/* Neon glow utility */
+.neon-glow-violet { box-shadow: 0 0 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(139, 92, 246, 0.05); }
+.neon-glow-blue { box-shadow: 0 0 20px rgba(59, 130, 246, 0.15), 0 0 40px rgba(59, 130, 246, 0.05); }
+.neon-glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.15), 0 0 40px rgba(6, 182, 212, 0.05); }
+
+/* Node hover effect */
+.node-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.node-hover:hover {
+  transform: scale(1.05);
+}
+
+/* Sidebar active indicator */
+.sidebar-active {
+  position: relative;
+}
+.sidebar-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--neon-violet);
+  box-shadow: 0 0 8px var(--neon-violet);
+}
+
+/* ============================================================================
+   LMS Platform — Custom Visual Effects
+   ============================================================================ */
+
+/* Hero gradient mesh — multi-layer for depth */
+.hero-gradient {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.4), transparent),
+    radial-gradient(ellipse 60% 40% at 80% 50%, rgba(59, 130, 246, 0.2), transparent),
+    radial-gradient(ellipse 50% 50% at 20% 80%, rgba(139, 92, 246, 0.15), transparent),
+    linear-gradient(135deg, #0f172a 0%, #1e1b4b 30%, #1e3a5f 60%, #0f172a 100%);
+}
+
+/* Subtle animated glow behind hero */
+.hero-glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.15;
+  animation: hero-glow-pulse 6s ease-in-out infinite alternate;
+}
+
+@keyframes hero-glow-pulse {
+  0% { opacity: 0.1; transform: scale(1); }
+  100% { opacity: 0.2; transform: scale(1.1); }
+}
+
+/* Grid pattern overlay */
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* Floating animation for decorative elements */
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(1deg); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-1deg); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 7s ease-in-out 1s infinite;
+}
+
+/* Code snippet shimmer */
+@keyframes code-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.code-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: code-shimmer 3s linear infinite;
+}
+
+/* Button hover glow effect */
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+.btn-glow:hover::before {
+  opacity: 1;
+}
+
+/* Smooth section transitions — handled by [id] rule above */
+
+/* Tech card hover effect */
+.tech-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tech-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* Feature card icon pulse on hover */
+.feature-card:hover .feature-icon {
+  transform: scale(1.1);
+  transition: transform 0.3s ease;
+}
+
+.feature-icon {
+  transition: transform 0.3s ease;
+}
+
+/* Status dot animation */
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.status-pulse {
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+/* ============================================================================
+   ACCESSIBILITY — Skip to content, focus styles, reduced motion
+   ============================================================================ */
+
+/* Skip to main content link */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 1rem 2rem;
+  background: #4f46e5;
+  color: white;
+  font-weight: 600;
+  border-radius: 0 0 0.5rem 0.5rem;
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Focus visible for all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Prefers reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-float,
+  .animate-float-delayed,
+  .code-shimmer,
+  .status-pulse,
+  .hero-glow {
+    animation: none !important;
+  }
+
+  .tech-card-hover:hover,
+  .feature-card:hover .feature-icon,
+  .btn-glow:hover::before {
+    transform: none !important;
+  }
+}
+
+/* Custom scrollbar for code blocks */
+.code-block::-webkit-scrollbar {
+  height: 6px;
+}
+
+.code-block::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.code-block::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+/* ============================================================================
+   PrismJS Custom Theme — Slate Dark (matches CodeBlock bg-slate-900)
+   ============================================================================ */
+
+code[class*="language-"],
+pre[class*="language-"] {
+  color: #e2e8f0;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  tab-size: 4;
+  hyphens: none;
+  white-space: pre;
+  word-spacing: normal;
+  word-break: normal;
+  word-wrap: normal;
+}
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #64748b;
+  font-style: italic;
+}
+
+.token.punctuation {
+  color: #94a3b8;
+}
+
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol {
+  color: #fbbf24;
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin {
+  color: #34d399;
+}
+
+.token.operator,
+.token.entity,
+.token.url,
+.token.variable {
+  color: #94a3b8;
+}
+
+.token.atrule,
+.token.attr-value,
+.token.function,
+.token.class-name {
+  color: #60a5fa;
+}
+
+.token.keyword {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.token.regex,
+.token.important {
+  color: #fbbf24;
+}
+
+.token.deleted {
+  color: #f87171;
+}
+
+.token.inserted {
+  color: #34d399;
+}
+
+.token.annotation {
+  color: #fbbf24;
+}
+
+/* ============================================================================
+   Browser Autofill Dark Mode Support
+   ============================================================================ */
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark input:-webkit-autofill:active,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill:active,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus,
+.dark select:-webkit-autofill:active {
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 0 0 1000px #1f2937 inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #1f2937 inset !important;
+  border-color: #4b5563 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

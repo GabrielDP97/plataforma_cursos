@@ -1,0 +1,12 @@
+const fs = require('fs');
+const d = fs.readFileSync('courses/programming/modules/mod-18.json', 'utf8');
+let fixed = d;
+fixed = fixed.replace(/"id": "mod-15"/g, '"id": "mod-18"');
+fixed = fixed.replace(/"position": 15/g, '"position": 18');
+fixed = fixed.replace(/lesson-15-/g, 'lesson-18-');
+const parsed = JSON.parse(fixed);
+console.log('Fixed mod-18:');
+console.log('  ID:', parsed.id, 'Position:', parsed.position);
+console.log('  Lessons:', parsed.lessons.map(l => l.id).join(', '));
+fs.writeFileSync('courses/programming/modules/mod-18.json', fixed, 'utf8');
+console.log('Saved.');

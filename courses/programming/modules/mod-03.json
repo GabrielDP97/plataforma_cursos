@@ -1,0 +1,473 @@
+{
+  "id": "mod-03",
+  "title": "Estructuras de control — selección",
+  "description": "Este módulo introduce las estructuras de control de selección en Java: las sentencias if, else if y switch. Se aprende a tomar decisiones en el programa según se cumplan o no determinadas condiciones. Se incluye la depuración de código con estructuras condicionales y el uso del depurador del IDE (Eclipse IDE) para localizar y corregir errores de forma eficiente.",
+  "phase": "phase-2",
+  "position": 3,
+  "learningOutcomes": [
+    "RA3",
+    "RA5"
+  ],
+  "assessmentCriteria": [
+    "RA3.a",
+    "RA3.e",
+    "RA3.g",
+    "RA5.a"
+  ],
+  "officialContents": [
+    "Uso de estructuras de control (parcial: estructuras de selección)"
+  ],
+  "duration": "10 hours estimated",
+  "difficulty": "beginner",
+  "prerequisites": [
+    "mod-01",
+    "mod-02"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-03-1",
+      "title": "Sentencias if y else",
+      "objectives": [
+        "Escribir sentencias if para ejecutar código condicionalmente",
+        "Utilizar else para manejar el caso contrario",
+        "Anidar múltiples sentencias if/else para condiciones complejas",
+        "Comprender la diferencia entre `=` y `==` en las condiciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es una estructura de selección?",
+          "content": "Hasta ahora, nuestros programas ejecutaban las instrucciones siempre en el mismo orden, de arriba a abajo. Las **estructuras de selección** permiten que el programa \"elegir\" qué código ejecutar según se cumpla o no una condición.\n\nEn la vida diaria tomamos decisiones constantemente: \"si llueve, llevo paraguas; si no, no\". Las sentencias `if` y `else` hacen exactamente lo mismo en programación.\n\nLa condición que se evalúa siempre debe devolver un `boolean` (`true` o `false`). Si es `true`, se ejecuta el bloque de código entre las llaves. Si es `false`, se salta al siguiente bloque.\n\n```java\nif (condicion) {\n    // Este codigo se ejecuta SOLO si la condicion es true\n}\n```\n\nSi necesitas ejecutar algo cuando la condición es `false`, usas `else`:\n\n```java\nif (condicion) {\n    // Se ejecuta si la condicion es true\n} else {\n    // Se ejecuta si la condicion es false\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo básico: si es mayor de edad",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class MayorEdad {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu edad: \");\n        int edad = teclado.nextInt();\n\n        if (edad >= 18) {\n            System.out.println(\"Eres mayor de edad.\");\n        } else {\n            System.out.println(\"Eres menor de edad.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Condiciones compuestas con operadores lógicos",
+          "content": "Para comprobar múltiples condiciones a la vez, usamos los operadores lógicos `&&` (AND), `||` (OR) y `!` (NOT) que ya vimos en el módulo anterior:\n\n```java\n// AND: ambas deben cumplirse\nif (edad >= 18 && nota >= 5) {\n    System.out.println(\"Aprobado y mayor de edad\");\n}\n\n// OR: al menos una debe cumplirse\nif (nota < 5 || asistencia < 75) {\n    System.out.println(\"Suspension por nota o asistencia\");\n}\n\n// NOT: invierte la condicion\nif (!esta_suspendido) {\n    System.out.println(\"El alumno esta activo\");\n}\n```\n\nRecuerda que `&&` tiene **cortocircuito**: si la primera condición es `false`, no evalúa la segunda porque el resultado ya es `false`. Esto es útil para evitar errores (por ejemplo, comprobar que un número no es cero antes de dividir)."
+        },
+        {
+          "type": "code",
+          "title": "Condiciones compuestas en contexto",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class Comprobaciones {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu nota: \");\n        double nota = teclado.nextDouble();\n\n        System.out.print(\"Introduce tu asistencia (%%): \");\n        int asistencia = teclado.nextInt();\n\n        // Comprobacion con varias condiciones\n        if (nota >= 5 && asistencia >= 75) {\n            System.out.println(\"APROBADO: cumple nota y asistencia.\");\n        } else if (nota < 5 && asistencia < 75) {\n            System.out.println(\"SUSPENDIDO: no cumple ningun requisito.\");\n        } else if (nota < 5) {\n            System.out.println(\"SUSPENDIDO: nota insuficiente.\");\n        } else {\n            System.out.println(\"SUSPENDIDO: asistencia insuficiente.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Anidamiento de sentencias if/else",
+          "content": "Puedes poner un `if` dentro de otro `if` (o dentro de un `else`). Esto se llama **anidamiento** y se usa cuando necesitas comprobar una segunda condición solo si la primera ya se cumplió:\n\n```java\nif (edad >= 18) {\n    if (nota >= 7) {\n        System.out.println(\"Mayor de edad y nota alta\");\n    } else {\n        System.out.println(\"Mayor de edad pero nota baja\");\n    }\n} else {\n    System.out.println(\"Menor de edad\");\n}\n```\n\nSin embargo, un anidamiento excesivo dificulta la lectura del código. Cuando tengas más de 3 niveles de anidamiento, considera reestructurar la lógica o usar un `switch`."
+        },
+        {
+          "type": "code",
+          "title": "Programa completo: clasificación de notas",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class ClasificacionNotas {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce la nota del alumno (0-10): \");\n        double nota = teclado.nextDouble();\n\n        System.out.println();\n        System.out.println(\"=== RESULTADO ===\");\n\n        if (nota < 0 || nota > 10) {\n            System.out.println(\"Error: la nota debe estar entre 0 y 10.\");\n        } else if (nota >= 9) {\n            System.out.println(\"Sobresaliente (Matricula de Honor)\");\n        } else if (nota >= 7) {\n            System.out.println(\"Notable\");\n        } else if (nota >= 5) {\n            System.out.println(\"Aprobado\");\n        } else if (nota >= 3) {\n            System.out.println(\"Insuficiente\");\n        } else {\n            System.out.println(\"Muy deficiente\");\n        }\n\n        // Determinar si necesita recuperacion\n        if (nota < 5) {\n            System.out.println(\"El alumno debe presentarse a recuperacion.\");\n            if (nota < 3) {\n                System.out.println(\"Advertencia: resultado muy bajo.\");\n            }\n        } else {\n            System.out.println(\"El alumno ha superado la asignatura.\");\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-1-1",
+          "difficulty": "basic",
+          "title": "Par o impar",
+          "description": "Crea un programa que pida un número entero al usuario y muestre si es par o impar.",
+          "solution": "import java.util.Scanner;\n\npublic class ParImpar {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Introduce un numero: \");\n        int numero = teclado.nextInt();\n\n        if (numero % 2 == 0) {\n            System.out.println(numero + \" es par.\");\n        } else {\n            System.out.println(numero + \" es impar.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-03-1-2",
+          "difficulty": "intermediate",
+          "title": "Calificación según nota",
+          "description": "Crea un programa que pida una nota (0-10) y muestre la calificación: MH (>=9.5), SB (>=9), N (>=7), A (>=5), I (>=3), MDF (<3). Valida que la nota esté en rango.",
+          "solution": "import java.util.Scanner;\n\npublic class Calificacion {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Introduce la nota (0-10): \");\n        double nota = teclado.nextDouble();\n\n        if (nota < 0 || nota > 10) {\n            System.out.println(\"Error: nota fuera de rango.\");\n        } else if (nota >= 9.5) {\n            System.out.println(\"Matricula de Honor (MH)\");\n        } else if (nota >= 9) {\n            System.out.println(\"Sobresaliente (SB)\");\n        } else if (nota >= 7) {\n            System.out.println(\"Notable (N)\");\n        } else if (nota >= 5) {\n            System.out.println(\"Aprobado (A)\");\n        } else if (nota >= 3) {\n            System.out.println(\"Insuficiente (I)\");\n        } else {\n            System.out.println(\"Muy deficiente (MDF)\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-03-1-3",
+          "difficulty": "advanced",
+          "title": "Determinar el mayor de tres números",
+          "description": "Crea un programa que pida tres números enteros y muestre cuál es el mayor, usando solo sentencias if/else (sin usar Math.max).",
+          "solution": "import java.util.Scanner;\n\npublic class MayorDeTres {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Numero 1: \");\n        int a = teclado.nextInt();\n        System.out.print(\"Numero 2: \");\n        int b = teclado.nextInt();\n        System.out.print(\"Numero 3: \");\n        int c = teclado.nextInt();\n\n        int mayor;\n\n        if (a >= b && a >= c) {\n            mayor = a;\n        } else if (b >= a && b >= c) {\n            mayor = b;\n        } else {\n            mayor = c;\n        }\n\n        System.out.println(\"El mayor es: \" + mayor);\n\n        // Comprobar si hay empate\n        if (a == b && b == c) {\n            System.out.println(\"Los tres numeros son iguales.\");\n        } else if (a == b || a == c || b == c) {\n            System.out.println(\"Hay empate entre dos de ellos.\");\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar `=` (asignación) en vez de `==` (comparación) en la condición del if. `if (x = 5)` asigna 5 a x y siempre es true. Debe ser `if (x == 5)`.",
+        "Olvidar las llaves `{}` cuando el bloque if/else solo tiene una línea. Aunque es válido, es fuente de bugs si luego añades más líneas.",
+        "Poner punto y coma después del if: `if (x > 5);` — esto convierte el if en una sentencia vacía y el bloque siguiente se ejecuta siempre.",
+        "No cerrar el Scanner al terminar el programa.",
+        "Confundir `&&` (AND) con `||` (OR). `if (a && b)` solo es true si AMBOS son true. `if (a || b)` es true si AL MENOS UNO lo es."
+      ],
+      "keyConcepts": [
+        "Sentencia if para ejecución condicional",
+        "Sentencia else para el caso contrario",
+        "Condiciones compuestas: &&, ||, !",
+        "Cortocircuito lógico en && y ||",
+        "Anidamiento de sentencias if/else",
+        "Importancia de las llaves {} en los bloques"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.a",
+        "RA3.e"
+      ]
+    },
+    {
+      "id": "lesson-03-2",
+      "title": "Sentencias else if y switch",
+      "objectives": [
+        "Encadenar múltiples condiciones con else if",
+        "Usar la sentencia switch para selección por valor exacto",
+        "Diferenciar cuándo usar if/else if y cuándo switch",
+        "Manejar expresiones en switch con pattern matching (Java 21)"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Encadenar condiciones con else if",
+          "content": "Cuando necesitas comprobar múltiples condiciones en orden, usas `else if`. Este bloque solo se evalúa si los anteriores han sido `false`:\n\n```java\nif (nota >= 9) {\n    // Solo se evalua si nota < 9 no se cumplio arriba\n    System.out.println(\"Sobresaliente\");\n} else if (nota >= 7) {\n    // Solo se evalua si nota >= 9 es false\n    System.out.println(\"Notable\");\n} else if (nota >= 5) {\n    System.out.println(\"Aprobado\");\n} else {\n    System.out.println(\"Suspendido\");\n}\n```\n\n**Regla importante**: las condiciones se evalúan de arriba a abajo y en cuanto una es `true`, se ejecuta su bloque y se saltan todos los demás. Por eso el orden importa: si pones `nota >= 5` antes de `nota >= 9`, un alumno con nota 9.5 entraría en \"Aprobado\" en lugar de \"Sobresaliente\"."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo con else if",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class ClasificacionEdad {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu edad: \");\n        int edad = teclado.nextInt();\n\n        System.out.println();\n\n        if (edad < 0) {\n            System.out.println(\"Error: edad no valida.\");\n        } else if (edad < 12) {\n            System.out.println(\"Nino. Necesitas tutela legal.\");\n        } else if (edad < 18) {\n            System.out.println(\"Adolescente. Estas en la franja de obligatoriedad escolar.\");\n        } else if (edad < 25) {\n            System.out.println(\"Joven adulto. Puedes acceder a bonificaciones juveniles.\");\n        } else if (edad < 65) {\n            System.out.println(\"Adulto. En edad laboral plena.\");\n        } else {\n            System.out.println(\"Senior. En edad de jubilacion.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "La sentencia switch",
+          "content": "Cuando necesitas comprobar una variable contra múltiples valores concretos (no rangos), `switch` es más legible que una cadena de `else if`:\n\n```java\nswitch (expresion) {\n    case valor1:\n        // Codigo si expresion == valor1\n        break;\n    case valor2:\n        // Codigo si expresion == valor2\n        break;\n    default:\n        // Codigo si ningun case coincide\n        break;\n}\n```\n\n**Reglas de switch**:\n- La expresión debe ser de tipo `int`, `short`, `byte`, `char`, `String` o un `enum`.\n- Cada `case` compara con un valor exacto.\n- La palabra clave `break` sale del switch. Si la olvidas, se ejecutan todos los cases siguientes (\"fall-through\").\n- `default` es opcional y actúa como el \"else\" del switch.\n\n**Desde Java 14** (mejorado en Java 21), switch puede usarse como expresión con flechas (`->`) que no necesitan `break`:\n\n```java\nString resultado = switch (nota) {\n    case 9, 10 -> \"Sobresaliente\";\n    case 7, 8 -> \"Notable\";\n    case 5, 6 -> \"Aprobado\";\n    default -> \"Suspendido\";\n};\n```\n\nEsta forma moderna es más concisa y elimina el riesgo de olvidar el `break`."
+        },
+        {
+          "type": "code",
+          "title": "Switch clásico vs switch moderno (Java 21)",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploSwitch {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.println(\"Dia de la semana (1-7): \");\n        int dia = teclado.nextInt();\n\n        // --- SWITCH CLASICO ---\n        System.out.println();\n        System.out.println(\"--- Switch clasico ---\");\n        switch (dia) {\n            case 1:\n                System.out.println(\"Lunes\");\n                break;\n            case 2:\n                System.out.println(\"Martes\");\n                break;\n            case 3:\n                System.out.println(\"Miercoles\");\n                break;\n            case 4:\n                System.out.println(\"Jueves\");\n                break;\n            case 5:\n                System.out.println(\"Viernes\");\n                break;\n            case 6:\n                System.out.println(\"Sabado\");\n                break;\n            case 7:\n                System.out.println(\"Domingo\");\n                break;\n            default:\n                System.out.println(\"Dia no valido.\");\n        }\n\n        // --- SWITCH MODERNO (Java 14+) ---\n        System.out.println();\n        System.out.println(\"--- Switch moderno ---\");\n        String nombreDia = switch (dia) {\n            case 1 -> \"Lunes\";\n            case 2 -> \"Martes\";\n            case 3 -> \"Miercoles\";\n            case 4 -> \"Jueves\";\n            case 5 -> \"Viernes\";\n            case 6 -> \"Sabado\";\n            case 7 -> \"Domingo\";\n            default -> \"No valido\";\n        };\n        System.out.println(nombreDia);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "¿Cuándo usar if/else y cuándo switch?",
+          "content": "**Usa `if/else if` cuando:**\n- Necesitas comprobar rangos (ej: `nota >= 5 && nota < 7`).\n- Las condiciones son complejas y usan operadores lógicos.\n- Los valores a comparar no son literales directos.\n\n**Usa `switch` cuando:**\n- Compruebas una variable contra valores concretos (ej: días de la semana, opciones de menú).\n- Tienes muchos valores posibles (más de 3-4) — el switch es más legible.\n- Trabajas con enumeraciones (enum) o cadenas de texto.\n\n**Ejemplo decisional**:\n```java\n// Mejor con if/else if (rango)\nif (nota >= 9) { ... }\nelse if (nota >= 7) { ... }\n\n// Mejor con switch (valor exacto)\nswitch (diaSemana) {\n    case 1 -> \"Lunes\";\n    case 2 -> \"Martes\";\n    ...\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Menú interactivo con switch",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class MenuInteractivo {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        boolean salir = false;\n\n        while (!salir) {\n            System.out.println();\n            System.out.println(\"=== MENU PRINCIPAL ===\");\n            System.out.println(\"1 - Calcular area de un circulo\");\n            System.out.println(\"2 - Calcular area de un rectangulo\");\n            System.out.println(\"3 - Calcular area de un triangulo\");\n            System.out.println(\"0 - Salir\");\n            System.out.print(\"Elige una opcion: \");\n            int opcion = teclado.nextInt();\n\n            double resultado = 0;\n            boolean calculado = false;\n\n            switch (opcion) {\n                case 1:\n                    System.out.print(\"Radio: \");\n                    double radio = teclado.nextDouble();\n                    resultado = Math.PI * radio * radio;\n                    calculado = true;\n                    break;\n                case 2:\n                    System.out.print(\"Base: \");\n                    double base = teclado.nextDouble();\n                    System.out.print(\"Altura: \");\n                    double altura = teclado.nextDouble();\n                    resultado = base * altura;\n                    calculado = true;\n                    break;\n                case 3:\n                    System.out.print(\"Base: \");\n                    double baseTri = teclado.nextDouble();\n                    System.out.print(\"Altura: \");\n                    double alturaTri = teclado.nextDouble();\n                    resultado = (baseTri * alturaTri) / 2;\n                    calculado = true;\n                    break;\n                case 0:\n                    System.out.println(\"Hasta luego!\");\n                    salir = true;\n                    break;\n                default:\n                    System.out.println(\"Opcion no valida.\");\n            }\n\n            if (calculado) {\n                System.out.printf(\"Resultado: %.2f%n\", resultado);\n            }\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-2-1",
+          "difficulty": "basic",
+          "title": "Menú con switch",
+          "description": "Crea un programa que muestre un menú con 4 opciones (suma, resta, multiplicación, división). Usa switch para ejecutar la operación elegida.",
+          "solution": "import java.util.Scanner;\n\npublic class MenuCalculadora {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.println(\"1 - Suma\");\n        System.out.println(\"2 - Resta\");\n        System.out.println(\"3 - Multiplicacion\");\n        System.out.println(\"4 - Division\");\n        System.out.print(\"Opcion: \");\n        int op = teclado.nextInt();\n\n        System.out.print(\"Numero 1: \");\n        double a = teclado.nextDouble();\n        System.out.print(\"Numero 2: \");\n        double b = teclado.nextDouble();\n\n        switch (op) {\n            case 1:\n                System.out.println(a + \" + \" + b + \" = \" + (a + b));\n                break;\n            case 2:\n                System.out.println(a + \" - \" + b + \" = \" + (a - b));\n                break;\n            case 3:\n                System.out.println(a + \" * \" + b + \" = \" + (a * b));\n                break;\n            case 4:\n                if (b != 0) {\n                    System.out.println(a + \" / \" + b + \" = \" + (a / b));\n                } else {\n                    System.out.println(\"Error: division por cero.\");\n                }\n                break;\n            default:\n                System.out.println(\"Opcion no valida.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-03-2-2",
+          "difficulty": "intermediate",
+          "title": "Días de la semana con switch moderno",
+          "description": "Crea un programa que pida un número del 1 al 7 y devuelva el nombre del día usando switch moderno (con flechas ->). También debe indicar si es laborable o no.",
+          "solution": "import java.util.Scanner;\n\npublic class DiaSemana {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Dia (1-7): \");\n        int dia = teclado.nextInt();\n\n        String nombre = switch (dia) {\n            case 1 -> \"Lunes\";\n            case 2 -> \"Martes\";\n            case 3 -> \"Miercoles\";\n            case 4 -> \"Jueves\";\n            case 5 -> \"Viernes\";\n            case 6 -> \"Sabado\";\n            case 7 -> \"Domingo\";\n            default -> \"No valido\";\n        };\n\n        boolean laborable = (dia >= 1 && dia <= 5);\n        String tipo = laborable ? \"Laborable\" : \"No laborable\";\n\n        System.out.println(nombre + \" - \" + tipo);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-03-2-3",
+          "difficulty": "advanced",
+          "title": "Cálculo del imposto según tramo",
+          "description": "Crea un programa que pida una renta anual y calcule el impuesto según estos tramos: 0-12450: 19%, 12451-20200: 24%, 20201-35200: 30%, 35201-60000: 37%, >60000: 45%. Muestra el impuesto a pagar y el tipo medio efectivo.",
+          "solution": "import java.util.Scanner;\n\npublic class CalculoImpuesto {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Introduce la renta anual (EUR): \");\n        double renta = teclado.nextDouble();\n\n        double impuesto = 0;\n        double remaining = renta;\n        double tipoEfectivo;\n\n        // Tramos progresivos (cada tramo solo grava lo que entra en el)\n        if (remaining > 60000) {\n            impuesto += (remaining - 60000) * 0.45;\n            remaining = 60000;\n        }\n        if (remaining > 35200) {\n            impuesto += (remaining - 35200) * 0.37;\n            remaining = 35200;\n        }\n        if (remaining > 20200) {\n            impuesto += (remaining - 20200) * 0.30;\n            remaining = 20200;\n        }\n        if (remaining > 12450) {\n            impuesto += (remaining - 12450) * 0.24;\n            remaining = 12450;\n        }\n        impuesto += remaining * 0.19;\n\n        tipoEfectivo = (renta > 0) ? (impuesto / renta) * 100 : 0;\n\n        System.out.printf(\"Renta: %.2f EUR%n\", renta);\n        System.out.printf(\"Impuesto a pagar: %.2f EUR%n\", impuesto);\n        System.out.printf(\"Tipo medio efectivo: %.2f%%%n\", tipoEfectivo);\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar `break` en switch clásico. Si lo olvidas, se ejecutan todos los cases siguientes (\"fall-through\"). A veces es intencionado, pero normalmente es un error.",
+        "Poner `case` sin un valor constante. `case x + 1` no está permitido; el valor del case debe ser un literal o una constante.",
+        "Confundir `==` con `=` dentro del switch. Switch compara internamente con `==` implícito, no necesitas escribirlo.",
+        "No cubrir todos los casos posibles. Siempre incluye un `default` para manejar entradas inesperadas.",
+        "Usar switch con tipos no permitidos (double, long, boolean). Solo funciona con int, short, byte, char, String y enums.",
+        "Poner punto y coma después del switch: `switch (x) { ... };` — genera error."
+      ],
+      "keyConcepts": [
+        "Cadena de else if para múltiples condiciones",
+        "Orden de evaluación: de arriba a abajo, se detiene en el primero que cumple",
+        "Switch clásico con case, break y default",
+        "Switch moderno con flechas (->) desde Java 14+",
+        "Tipos permitidos en switch: int, char, String, enum",
+        "Cuándo usar if/else (rangos, condiciones complejas) vs switch (valores exactos)"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.a",
+        "RA3.e",
+        "RA3.g"
+      ]
+    },
+    {
+      "id": "lesson-03-3",
+      "title": "Depuración de código con estructuras condicionales",
+      "objectives": [
+        "Usar System.out.println() para depurar el flujo de un programa condicional",
+        "Identificar los errores más comunes en estructuras de selección",
+        "Aplicar estrategias sistemáticas para encontrar bugs en condicionales",
+        "Documentar código condicional con comentarios explicativos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es depurar?",
+          "content": "**Depurar** (del inglés *debug*, \"eliminar errores\") es el proceso de encontrar y corregir errores en un programa. Todo programador depura constantemente: incluso los profesionales experimentados pasan gran parte de su tiempo buscando por qué algo no funciona como esperaban.\n\nLas estructuras condicionales son una de las fuentes más comunes de errores. Los problemas típicos son:\n\n1. **Condiciones invertidas**: `if (nota < 5)` en lugar de `if (nota >= 5)`.\n2. **Rangos solapados**: dos condiciones que se superponen.\n3. **Operador incorrecto**: `=` en vez de `==`, o `&&` en vez de `||`.\n4. **Lógica incompleta**: olvidar un caso posible.\n5. **Punto y coma tras el if**: `if (x > 5);` ejecuta siempre el bloque siguiente.\n\nLa técnica más sencilla de depuración es insertar `System.out.println()` en puntos estratégicos para ver qué valores tienen las variables y por qué ramas del condicional pasa el programa."
+        },
+        {
+          "type": "code",
+          "title": "Depuración con System.out.println()",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class DepuracionBasica {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu nota: \");\n        double nota = teclado.nextDouble();\n\n        // --- DEPURACION: mostrar valores intermedios ---\n        System.out.println(\"[DEBUG] Nota introducida: \" + nota);\n        System.out.println(\"[DEBUG] nota >= 9 es: \" + (nota >= 9));\n        System.out.println(\"[DEBUG] nota >= 7 es: \" + (nota >= 7));\n        System.out.println(\"[DEBUG] nota >= 5 es: \" + (nota >= 5));\n\n        String calificacion;\n\n        if (nota >= 9) {\n            calificacion = \"Sobresaliente\";\n        } else if (nota >= 7) {\n            calificacion = \"Notable\";\n        } else if (nota >= 5) {\n            calificacion = \"Aprobado\";\n        } else {\n            calificacion = \"Suspendido\";\n        }\n\n        System.out.println(\"[DEBUG] Resultado: \" + calificacion);\n        System.out.println();\n        System.out.println(\"Calificacion: \" + calificacion);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Errores comunes y cómo evitarlos",
+          "content": "**Error 1: Punto y coma tras el if**\n```java\nif (nota >= 5);  // <-- ERROR: el punto y coma cierra el if\n{\n    System.out.println(\"Aprobado\");  // Se ejecuta SIEMPRE\n}\n```\nEste error es muy peligroso porque el programa compila sin errores, pero se comporta de forma inesperada.\n\n**Error 2: Asignación en vez de comparación**\n```java\nif (x = 5) {  // <-- ERROR: asigna 5 a x, siempre es true\n```\nSolución: `if (x == 5)`.\n\n**Error 3: Condiciones que no cubren todos los casos**\n```java\nif (nota >= 7) {\n    System.out.println(\"Aprobado\");\n} else if (nota >= 5) {\n    System.out.println(\"Suspendido\");  // nota 4.9 entra aqui incorrectamente\n}\n```\nSolución: incluir rangos explícitos o un `else` final.\n\n**Error 4: Orden incorrecto en else if**\n```java\nif (nota >= 5) {\n    System.out.println(\"Aprobado\");  // Si nota es 9.5, entra aqui y no en Sobresaliente\n} else if (nota >= 9) {\n    System.out.println(\"Sobresaliente\");  // NUNCA se alcanza\n}\n```\nSolución: ordenar de mayor a menor."
+        },
+        {
+          "type": "code",
+          "title": "Programa depurado: calculadora con validación",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class CalculadoraDepurada {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Numero 1: \");\n        double a = teclado.nextDouble();\n        System.out.print(\"Numero 2: \");\n        double b = teclado.nextDouble();\n        teclado.nextLine();\n        System.out.print(\"Operador (+, -, *, /): \");\n        String op = teclado.nextLine();\n\n        // Depuracion: mostrar valores de entrada\n        System.out.println(\"[DEBUG] a=\" + a + \", b=\" + b + \", op=\\\"\" + op + \"\\\"\");\n\n        double resultado = 0;\n        boolean operacionValida = true;\n        String operacion = \"\";\n\n        switch (op) {\n            case \"+\":\n                resultado = a + b;\n                operacion = a + \" + \" + b;\n                break;\n            case \"-\":\n                resultado = a - b;\n                operacion = a + \" - \" + b;\n                break;\n            case \"*\":\n                resultado = a * b;\n                operacion = a + \" * \" + b;\n                break;\n            case \"/\":\n                if (b == 0) {\n                    operacionValida = false;\n                    System.err.println(\"[ERROR] Division por cero.\");\n                } else {\n                    resultado = a / b;\n                    operacion = a + \" / \" + b;\n                }\n                break;\n            default:\n                operacionValida = false;\n                System.err.println(\"[ERROR] Operador no valido: \\\"\" + op + \"\\\"\");\n        }\n\n        // Depuracion: mostrar si la operacion fue valida\n        System.out.println(\"[DEBUG] operacionValida=\" + operacionValida);\n\n        if (operacionValida) {\n            System.out.printf(\"%s = %.4f%n\", operacion, resultado);\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Estrategia de depuración sistemática",
+          "content": "Cuando un programa condicional no funciona, sigue estos pasos:\n\n1. **Identificar el problema concreto**: ¿Qué resultado obtienes y cuál esperabas?\n\n2. **Aislar la zona del error**: ¿En qué parte del código ocurre el problema? ¿En qué condición exacta?\n\n3. **Imprimir valores intermedios**: Inserta `System.out.println()` o `System.out.printf()` para ver el valor de cada variable justo antes del condicional problemático.\n\n4. **Verificar cada condición por separado**: ¿Es `true` cuando debería serlo? ¿Es `false` cuando debería?\n\n5. **Revisar el orden**: ¿Están las condiciones en el orden correcto?\n\n6. **Corregir y probar con casos extremos**: No solo pruebes el caso que falla, sino también los límites (0, 1, valores negativos, etc.).\n\n7. **Eliminar los prints de depuración** una vez corregido el error, o refactóralos en comentarios si son útiles."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo de depuración paso a paso",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class DepuracionPasoAPaso {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Edad: \");\n        int edad = teclado.nextInt();\n        System.out.print(\"Nota media: \");\n        double nota = teclado.nextDouble();\n        teclado.nextLine();\n        System.out.print(\"Es trabajador? (s/n): \");\n        String respuesta = teclado.nextLine();\n        boolean trabajador = respuesta.equalsIgnoreCase(\"s\");\n\n        // Paso 1: Mostrar todos los valores de entrada\n        System.out.println(\"\\n=== VALORES DE ENTRADA ===\");\n        System.out.println(\"edad = \" + edad);\n        System.out.println(\"nota = \" + nota);\n        System.out.println(\"trabajador = \" + trabajador);\n\n        // Paso 2: Evaluar cada condicion por separado\n        System.out.println(\"\\n=== EVALUACION DE CONDICIONES ===\");\n        System.out.println(\"edad >= 18? \" + (edad >= 18));\n        System.out.println(\"nota >= 7? \" + (nota >= 7));\n        System.out.println(\"nota >= 5? \" + (nota >= 5));\n        System.out.println(\"trabajador? \" + trabajador);\n\n        // Paso 3: Aplicar la logica\n        System.out.println(\"\\n=== DECISION ===\");\n        if (edad >= 18 && nota >= 7 && trabajador) {\n            System.out.println(\"Perfil completo: acceso total.\");\n        } else if (edad >= 18 && nota >= 5) {\n            System.out.println(\"Perfil basico: acceso parcial.\");\n        } else if (edad < 18) {\n            System.out.println(\"Menor de edad: acceso restringido.\");\n        } else {\n            System.out.println(\"Perfil insuficiente: sin acceso.\");\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-3-1",
+          "difficulty": "basic",
+          "title": "Depurar un programa con errores",
+          "description": "El siguiente programa tiene 4 errores. Encuéntralos y corrígelos. Usa System.out.println() para depurar el flujo.\n\n```java\nimport java.util.Scanner;\npublic class Errores {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Nota: \");\n        int nota = teclado.nextInt();\n        if (nota = 5); {\n            System.out.println(\"Aprobado\");\n        } else\n            System.out.println(\"Suspendido\");\n        }\n    }\n}\n```",
+          "solution": "import java.util.Scanner;\n\npublic class ErroresCorregidos {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Nota: \");\n        int nota = teclado.nextInt();\n\n        // Error 1: nota = 5 debe ser nota == 5\n        // Error 2: punto y coma despues del if\n        // Error 3: else sin llave de cierre\n        // Error 4: doble llave de cierre\n        if (nota >= 5) {\n            System.out.println(\"Aprobado\");\n        } else {\n            System.out.println(\"Suspendido\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-03-3-2",
+          "difficulty": "intermediate",
+          "title": "Depurar con trazas deæ‰§è¡Œ",
+          "description": "Escribe un programa que pida un número del 1 al 12 y muestre el mes correspondiente. Añade System.out.println() de depuración que muestre en cada ramas del switch se ha entrado. Prueba con valores: 0, 5, 13, 7.",
+          "solution": "import java.util.Scanner;\n\npublic class DepuracionSwitch {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Mes (1-12): \");\n        int mes = teclado.nextInt();\n\n        System.out.println(\"[DEBUG] Valor de mes: \" + mes);\n\n        String nombreMes;\n        boolean valido = true;\n\n        switch (mes) {\n            case 1: nombreMes = \"Enero\"; break;\n            case 2: nombreMes = \"Febrero\"; break;\n            case 3: nombreMes = \"Marzo\"; break;\n            case 4: nombreMes = \"Abril\"; break;\n            case 5: nombreMes = \"Mayo\"; break;\n            case 6: nombreMes = \"Junio\"; break;\n            case 7: nombreMes = \"Julio\"; break;\n            case 8: nombreMes = \"Agosto\"; break;\n            case 9: nombreMes = \"Septiembre\"; break;\n            case 10: nombreMes = \"Octubre\"; break;\n            case 11: nombreMes = \"Noviembre\"; break;\n            case 12: nombreMes = \"Diciembre\"; break;\n            default:\n                nombreMes = \"No valido\";\n                valido = false;\n                System.out.println(\"[DEBUG] Entrando en default\");\n        }\n\n        if (valido) {\n            System.out.println(\"[DEBUG] Mes encontrado: \" + nombreMes);\n            System.out.println(\"El mes es: \" + nombreMes);\n        } else {\n            System.out.println(\"[DEBUG] Mes no encontrado\");\n            System.out.println(\"Error: valor no valido.\");\n        }\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "id": "ex-03-3-3",
+          "difficulty": "advanced",
+          "title": "Documentar con comentarios explicativos",
+          "description": "Reescribe el programa de clasificación de notas (Lección 3-1) añadiendo comentarios en cada bloque if/else if que expliquen:\n1. Por qué se comprueba esa condición en concreto\n2. Qué rango de valores entra en ese bloque\n3. Qué casos extremos se cubren",
+          "solution": "import java.util.Scanner;\n\npublic class NotasDocumentadas {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Nota (0-10): \");\n        double nota = teclado.nextDouble();\n\n        if (nota < 0 || nota > 10) {\n            // Rango invalido: la nota debe estar entre 0 y 10\n            // Cubre valores negativos y mayores de 10\n            System.out.println(\"Error: nota fuera de rango.\");\n        } else if (nota >= 9.5) {\n            // MH: notas de 9.5 a 10 (incluidos)\n            // Se comprueba primero porque es el rango mas alto\n            System.out.println(\"Matricula de Honor\");\n        } else if (nota >= 9) {\n            // SB: notas de 9.0 a 9.49\n            // Solo se alcanza si nota < 9.5\n            System.out.println(\"Sobresaliente\");\n        } else if (nota >= 7) {\n            // N: notas de 7.0 a 8.99\n            // Solo se alcanza si nota < 9.0\n            System.out.println(\"Notable\");\n        } else if (nota >= 5) {\n            // A: notas de 5.0 a 6.99\n            // Umbral minimo para aprobar\n            System.out.println(\"Aprobado\");\n        } else if (nota >= 3) {\n            // I: notas de 3.0 a 4.99\n            // Cerca del aprobado pero no alcanza\n            System.out.println(\"Insuficiente\");\n        } else {\n            // MDF: notas de 0 a 2.99\n            // Cubre todos los valores restantes (0 a 2.99)\n            System.out.println(\"Muy deficiente\");\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Poner punto y coma después de la condición del if: `if (x > 5);` — el bloque siguiente se ejecuta siempre sin condición.",
+        "Confundir `=` (asignación) con `==` (comparación) dentro de la condición.",
+        "No incluir las llaves `{}` cuando se tiene un solo statement. Si añades más código después, se ejecuta sin condición.",
+        "Olvidar que el orden de los else if importa. Si ponemos `nota >= 5` antes de `nota >= 9`, un alumno con 9.5 caería en el primer bloque.",
+        "No cubrir todos los casos posibles. Sin un `else` final, algunos valores pueden no ser procesados.",
+        "Mezclar `break` en switch moderno con flechas. El switch con `->` no necesita `break`."
+      ],
+      "keyConcepts": [
+        "Depuración con System.out.println() como herramienta de trazas",
+        "Errores comunes: = vs ==, punto y coma tras if, orden incorrecto",
+        "Estrategia de depuración: identificar, aislar, imprimir, corregir, probar",
+        "Importancia de cubrir todos los casos en condicionales",
+        "Documentación de código condicional con comentarios explicativos",
+        "Validación de rangos antes de procesar"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.a",
+        "RA3.e",
+        "RA3.g"
+      ]
+    },
+    {
+      "id": "lesson-03-4",
+      "title": "Depuración con el depurador del IDE",
+      "objectives": [
+        "Comprender las ventajas del depurador del IDE frente a System.out.println()",
+        "Crear puntos de interrupción (breakpoints) en líneas específicas del código",
+        "Ejecutar un programa en modo depuración desde Eclipse IDE",
+        "Utilizar Step Over, Step Into y Step Out para recorrer el código paso a paso",
+        "Inspeccionar valores de variables en tiempo de ejecución",
+        "Usar watches para monitorear expresiones mientras se depura",
+        "Interpretar la pila de llamadas (call stack) para entender el flujo de ejecución",
+        "Localizar y corregir un bug utilizando el depurador de forma sistemática"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Por qué usar el depurador del IDE?",
+          "content": "En la lección anterior aprendiste a depurar con `System.out.println()`. Es una técnica válida, pero tiene limitaciones importantes:\n\n- **No ves todo el estado**: solo lo que decides imprimir.\n- **Tienes que añadir y quitar código** cada vez que depuras.\n- **No puedes pausar** la ejecución en un punto concreto.\n- **No puedes cambiar valores** en tiempo de ejecución para probar \"qué pasaría si...\".\n\nEl **depurador del IDE** (en nuestro caso, el de Eclipse IDE) resuelve todos estos problemas. Te permite:\n\n1. **Pausar** la ejecución en cualquier línea (breakpoint).\n2. **Ver TODAS las variables** sin escribir un solo println.\n3. **Avanzar línea a línea** controlando exactamente qué se ejecuta.\n4. **Entrar dentro de métodos** para ver qué hacen paso a paso.\n5. **Añadir expresiones personalizadas** (watches) que se actualizan automáticamente.\n6. **Inspeccionar la pila de llamadas** para entender cómo has llegado a ese punto.\n\nUna vez que te acostumbres al depurador, nunca querrás volver a depurar solo con prints. Es como pasar de leer una descripción del terreno a tener un mapa en tiempo real."
+        },
+        {
+          "type": "text",
+          "title": "Puntos de interrupción (breakpoints)",
+          "content": "Un **breakpoint** es una marca que pones en una línea del código. Cuando el programa llega a esa línea, se detone automáticamente y el IDE te muestra el estado completo del programa.\n\n**Cómo crear un breakpoint en Eclipse IDE:**\n\n1. Haz clic en el **margen izquierdo** de la línea de código (donde aparecen los números de línea). Aparecerá un **círculo azul**.\n2. O usa el atajo de teclado **Ctrl + Shift + B** con el cursor en la línea deseada.\n3. Haz clic derecho en el círculo para configurar opciones avanzadas (condiciones, contadores, etc.).\n\n**Tipos de breakpoints:**\n\n- **Breakpoint normal**: se detiene siempre que la línea se ejecuta.\n- **Breakpoint condicional**: solo se detiene si se cumple una condición (clic derecho â†’ Add Condition). Ãštil cuando solo te interesa un caso concreto.\n- **Breakpoint deshabilitado**: no se detiene pero permanece marcado. Ãštil para no perder un punto que usarás más adelante.\n\n**Buena práctica**: pon breakpoints en la línea **justo antes** del condicional que quieres analizar, para poder ver el valor de las variables antes de que se evalúe la condición."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con breakpoints: ¿Dónde ponerlos?",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class ClasificacionNotas {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Nota (0-10): \");\n        double nota = teclado.nextDouble();  // <-- Breakpoint 1: ver qué valor introduce el usuario\n\n        String calificacion;\n\n        if (nota >= 9) {                      // <-- Breakpoint 2: justo antes de evaluar\n            calificacion = \"Sobresaliente\";\n        } else if (nota >= 7) {\n            calificacion = \"Notable\";\n        } else if (nota >= 5) {\n            calificacion = \"Aprobado\";\n        } else {\n            calificacion = \"Suspendido\";\n        }\n\n        System.out.println(\"Calificacion: \" + calificacion);  // <-- Breakpoint 3: ver el resultado\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Ejecutar en modo depuración",
+          "content": "Para iniciar la depuración en Eclipse IDE:\n\n1. **Añade al menos un breakpoint** (círculo azul en el margen).\n2. Haz clic en el botón **Debug** (el icono de insecto) en la barra superior, o usa el atajo **F11**.\n3. El programa se ejecuta hasta el primer breakpoint y se detiene.\n\n**La barra de depuración** aparece en la parte inferior con estos controles:\n\n| Botón | Atajo | Acción |\n|-------|-------|--------|\n| â–¶ï¸ Resume (F9) | F9 | Continuar hasta el siguiente breakpoint |\n| â­ï¸ Step Over | F8 | Ejecutar la línea actual y pasar a la siguiente |\n| â¬ï¸ Step Into | F7 | Entrar dentro del método que se está ejecutando |\n| â«ï¸ Step Out | Shift + F8 | Salir del método actual y volver a quien lo llamó |\n| ðŸ”„ Run to Cursor | Alt + F9 | Ejecutar hasta donde está el cursor |\n\nCuando el programa está pausado, el IDE resalta en **azul** la línea que se va a ejecutar a continuación."
+        },
+        {
+          "type": "text",
+          "title": "Step Over, Step Into, Step Out",
+          "content": "Estos tres comandos son la base de la depuración paso a paso:\n\n**Step Over (F6)** — Ejecuta la línea actual completa y pasa a la siguiente. Si la línea contiene una llamada a método, ejecuta todo el método de una vez sin entrar en él. Ãšsalo cuando **confías en que un método funciona bien** y solo quieres ver qué pasa después.\n\n**Step Into (F5)** — Si la línea tiene una llamada a método, entra dentro de ese método y se detiene en su primera línea. Ãšsalo cuando **quieres ver qué hace un método** o sospechas que el error está dentro.\n\n**Step Return (F7)** — Si estás dentro de un método y ya no necesitas seguir viéndolo, Step Return ejecuta el resto del método y vuelve a la línea que lo llamó. Ãšsalo cuando **ya viste lo que necesitabas** dentro del método.\n\n**Regla práctica**: empieza con Step Over. Si ves algo sospechoso en una llamada a método, usa Step Into para investigar. Cuando tengas la información, Step Return para volver."
+        },
+        {
+          "type": "text",
+          "title": "Inspeccionar variables",
+          "content": "Una vez que el programa está pausado en un breakpoint, Eclipse IDE muestra el **panel de Variables** en la parte inferior de la ventana de depuración.\n\nEn este panel ves:\n- **Nombre** de cada variable.\n- **Valor actual** en ese punto de la ejecución.\n- **Tipo** de cada variable.\n\nTambién puedes:\n- **Pasar el ratón** sobre cualquier variable en el código para ver su valor en un tooltip.\n- **Seleccionar una expresión** (como `nota >= 9`) y hacer clic en la lupa (Evaluate Expression) para ver su resultado.\n- **Expandir objetos** (como arrays o Strings) para ver su contenido interno.\n\nEsto te da una visión completa del estado del programa sin necesidad de escribir un solo `println`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo práctico: inspeccionando variables",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploVariables {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Edad: \");\n        int edad = teclado.nextInt();\n        System.out.print(\"Tiene ticket? (s/n): \");\n        char ticket = teclado.next().charAt(0);\n\n        boolean tieneTicket = (ticket == 's' || ticket == 'S');\n        boolean precioReducido = false;\n        double precio = 10.0;\n\n        if (edad < 12) {\n            precio = 0.0;                   // <-- Pones breakpoint aqui\n            precioReducido = true;\n        } else if (edad < 18) {\n            precio = 5.0;\n            precioReducido = true;\n        } else if (edad >= 65) {\n            precio = 4.0;\n            precioReducido = true;\n        }\n\n        if (tieneTicket) {\n            precio = precio * 0.8;           // 20% de descuento\n        }\n\n        System.out.printf(\"Precio: %.2f EUR%n\", precio);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Watches: monitorear expresiones personalizadas",
+          "content": "Los **watches** (observadores) son expresiones que añades manualmente y que se evalúan automáticamente cada vez que el programa se detiene. Son extremadamente útiles cuando quieres monitorear algo que no es una variable simple.\n\n**Cómo crear un watch:**\n1. En la pestaña **Watches** del panel de depuración, haz clic en **+**.\n2. Escribe la expresión que quieras monitorear.\n3. El IDE mostrará su valor cada vez que el programa se pause.\n\n**Ejemplos de watches útiles:**\n\n| Expresión | Qué te dice |\n|-----------|-------------|\n| `nota >= 9` | Si la condición es true o false en este punto |\n| `edad < 12 || edad >= 65` | Si el usuario entra en algún tramo de precio reducido |\n| `precio * 0.8` | El resultado del descuento sin tener que esperar a que se ejecute |\n| `calificacion` | El valor actual de una String mientras se va construyendo |\n\n**Ventaja sobre println**: el watch se actualiza **automáticamente** en cada paso. No tienes que recompilar ni volver a ejecutar el programa."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con watches",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploWatches {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Nota (0-10): \");\n        double nota = teclado.nextDouble();\n\n        // WATCH SUGERIDOS (los creas en el panel de depuración):\n        // Watch 1: nota >= 9       â†’ true/false\n        // Watch 2: nota >= 7       â†’ true/false\n        // Watch 3: nota >= 5       â†’ true/false\n        // Watch 4: nota * 10       â†’ valor numerico\n\n        String calificacion;\n\n        if (nota >= 9) {\n            calificacion = \"Sobresaliente\";\n        } else if (nota >= 7) {\n            calificacion = \"Notable\";\n        } else if (nota >= 5) {\n            calificacion = \"Aprobado\";\n        } else {\n            calificacion = \"Suspendido\";\n        }\n\n        // Watch 5: calificacion.equals(\"Aprobado\") â†’ true/false\n        // Watch 6: calificacion.length() â†’ longitud del texto\n\n        System.out.println(\"Calificacion: \" + calificacion);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "La pila de llamadas (Call Stack)",
+          "content": "El **Call Stack** es una lista que muestra cómo has llegado al punto actual de ejecución. Es como el \"historial de navegación\" del programa.\n\nCuando un método llama a otro método, se añade una entrada nueva al stack (se \"apila\"). Cuando el método termina, se elimina del stack (se \"desapila\").\n\n**En el panel de depuración de Eclipse IDE**, el Call Stack aparece en la pestaña **Debug** (o **Call Stack**). Cada entrada muestra:\n\n- El **nombre del método** que se está ejecutando.\n- La **clase** que contiene el método.\n- La **línea exacta** donde se encuentra la ejecución.\n\nCuando depuras con múltiples métodos, el Call Stack te permite:\n- **Entender el flujo**: ¿quién llamó a quién?\n- **Navegar entre métodos**: haz clic en cualquier entrada del stack para ver el estado de ese método.\n- **Detectar recursión infinita**: si ves el mismo método repetido muchas veces, tienes un problema de recursión sin caso base."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con Call Stack: dos métodos",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class EjemploCallStack {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Nota: \");\n        double nota = teclado.nextDouble();\n\n        // Llamamos a un metodo. Al hacer Step Into, el debugger\n        // \"salta\" al metodo y el Call Stack se actualiza.\n        String resultado = clasificar(nota);  // <-- Step Into aqui\n\n        System.out.println(\"Resultado: \" + resultado);\n        teclado.close();\n    }\n\n    public static String clasificar(double nota) {\n        // Call Stack ahora muestra: main â†’ clasificar\n        if (nota >= 9) {\n            return \"Sobresaliente\";   // <-- Step Out aqui vuelve a main\n        } else if (nota >= 7) {\n            return \"Notable\";\n        } else if (nota >= 5) {\n            return \"Aprobado\";\n        } else {\n            return \"Suspendido\";\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Localizar un bug con el depurador",
+          "content": "Ahora vamos a ver el proceso completo de depuración con un ejemplo real. Supongamos que tenemos un programa que clasifica notas, pero produce un resultado incorrecto.\n\n**El problema**: el programa dice que una nota 8.5 es \"Aprobado\" cuando debería ser \"Notable\".\n\n**Proceso de depuración paso a paso:**\n\n1. **Reproduce el problema**: ejecuta el programa con nota=8.5. Efectivamente, dice \"Aprobado\".\n\n2. **Añade un breakpoint** en la línea del primer `if` (justo antes de evaluar `nota >= 9`).\n\n3. **Ejecuta en modo depuración** con nota=8.5. El programa se pausa.\n\n4. **Inspecciona variables**: ves `nota = 8.5`. Correcto.\n\n5. **Step Over**: el IDE evalúa `nota >= 9`. Como 8.5 no es >= 9, es `false`. Correcto.\n\n6. **Step Over**: pasa al `else if (nota >= 7)`. Evalúa... y ves que el programa **NO entra** en ese bloque. ¡Raro!\n\n7. **Investiga**: miras el código con más cuidado y descubres que hay un error tipográfico: la condición es `nota >= 70` en lugar de `nota >= 7`.\n\n8. **Corrige** el error y vuelve a ejecutar en depuración para verificar."
+        },
+        {
+          "type": "code",
+          "title": "Código CON BUG: clasificación de notas",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class ClasificacionBug {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu nota (0-10): \");\n        double nota = teclado.nextDouble();\n\n        String calificacion;\n\n        if (nota >= 9) {\n            calificacion = \"Sobresaliente\";\n        } else if (nota >= 70) {   // <-- BUG: 70 en vez de 7\n            calificacion = \"Notable\";\n        } else if (nota >= 5) {\n            calificacion = \"Aprobado\";\n        } else {\n            calificacion = \"Suspendido\";\n        }\n\n        System.out.println(\"Calificacion: \" + calificacion);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Código CORREGIDO",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class ClasificacionCorregida {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu nota (0-10): \");\n        double nota = teclado.nextDouble();\n\n        String calificacion;\n\n        if (nota >= 9) {\n            calificacion = \"Sobresaliente\";\n        } else if (nota >= 7) {   // <-- CORREGIDO: 7 en vez de 70\n            calificacion = \"Notable\";\n        } else if (nota >= 5) {\n            calificacion = \"Aprobado\";\n        } else {\n            calificacion = \"Suspendido\";\n        }\n\n        System.out.println(\"Calificacion: \" + calificacion);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Errores comunes al usar el depurador",
+          "content": "**1. Poner breakpoints en líneas que no se ejecutan**\nSi pones un breakpoint en un `else` y el `if` es `true`, el breakpoint nunca se activará. Asegúrate de ponerlo en una línea que realmente se ejecuta.\n\n**2. Usar Step Into en código de la biblioteca estándar**\nSi haces Step Into en `System.out.println()` o `teclado.nextInt()`, el debugger entrará en código de Java que no necesitas ver. Usa **Step Over** en esas líneas.\n\n**3. Olvidarse de que el debugger está activo**\nSi ejecutas el programa normalmente y ves el panel de depuración, significa que lo estás ejecutando en modo depuración. Usa el botón â–¶ï¸ Run en vez de ðŸª² Debug.\n\n**4. No usar breakpoints condicionales cuando hay bucles**\nSi depuras un bucle de 1000 iteraciones, poner un breakpoint normal hará que se pause 1000 veces. Usa un breakpoint condicional (clic derecho â†’ Add Condition) para pausar solo en la iteración que te interesa.\n\n**5. No verificar el Call Stack**\nCuando un método devuelve algo inesperado, el Call Stack te dice **quién lo llamó** y con qué parámetros. Siempre revisa el Call Stack antes de asumir que el error está en el método actual.\n\n**6. Confiar solo en el depurador sin entender el código**\nEl depurador es una herramienta, no un sustituto del pensamiento. Primero lee el código y forma una hipótesis de dónde está el bug. Luego usa el depurador para **confirmar o refutar** esa hipótesis."
+        },
+        {
+          "type": "code",
+          "title": "Ejercicio: depura este programa",
+          "language": "java",
+          "content": "// El siguiente programa tiene un bug: con entrada 0, dice \"Bono medio\"\n// cuando deberia decir \"Sin bono\". Depura el programa con Eclipse IDE\n// y encuentra el error.\n\nimport java.util.Scanner;\n\npublic class EjercicioDepuracion {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Puntos de fidelidad: \");\n        int puntos = teclado.nextInt();\n\n        String bono;\n\n        if (puntos > 100) {\n            bono = \"Bono alto\";\n        } else if (puntos > 50) {\n            bono = \"Bono medio\";\n        } else if (puntos > 0) {          // <-- BUG: incluye 0\n            bono = \"Bono bajo\";\n        } else {\n            bono = \"Sin bono\";\n        }\n\n        System.out.println(\"Tu bono: \" + bono);\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-4-1",
+          "difficulty": "basic",
+          "title": "Primer breakpoint",
+          "description": "Abre el programa ClasificacionNotas de la lección 3-1 en Eclipse IDE. Añade un breakpoints en la línea del primer if. Ejecuta en modo depuración con nota=7.5. Observa en el panel de variables el valor de `nota` y todas las expresiones `nota >= 9`, `nota >= 7`, `nota >= 5`. Escribe un informe con lo que observaste.",
+          "solution": "// Informe esperado del alumno:\n//\n// Breakpoint en: if (nota >= 9)\n// Variables visibles:\n//   nota = 7.5\n//   teclado = Scanner\n//\n// Al hacer Step Over:\n//   nota >= 9 â†’ false (7.5 no es >= 9)\n//  nota >= 7 â†’ true  (7.5 es >= 7)\n//\n// Resultado: calificacion = \"Notable\"\n//\n// Paso a paso con el debugger:\n// 1. Pausa en if (nota >= 9): nota=7.5, calificacion=null\n// 2. Step Over: sale del if, entra en else if (nota >= 7)\n// 3. Step Over: nota >= 7 es true, entra al bloque\n// 4. Step Over: calificacion = \"Notable\"\n// 5. Continue (F9): imprime \"Calificacion: Notable\""
+        },
+        {
+          "id": "ex-03-4-2",
+          "difficulty": "intermediate",
+          "title": "Depurar con Step Into",
+          "description": "Crea un programa con dos métodos: `main` y `calcularDescuento(double precio, String tipo)`. El método calcularDescuento aplica un descuento según el tipo: \"normal\" (0%), \"vip\" (15%), \"premium\" (25%). Depura el programa haciendo Step Into en la llamada a calcularDescuento y observa cómo el Call Stack cambia. Documenta qué ves en cada paso.",
+          "solution": "import java.util.Scanner;\n\npublic class EjercicioStepInto {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        System.out.print(\"Precio: \");\n        double precio = teclado.nextDouble();\n        teclado.nextLine();\n        System.out.print(\"Tipo (normal/vip/premium): \");\n        String tipo = teclado.nextLine();\n\n        // STEP INTO AQUI para entrar al metodo\n        double precioFinal = calcularDescuento(precio, tipo);\n\n        System.out.printf(\"Precio final: %.2f EUR%n\", precioFinal);\n        teclado.close();\n    }\n\n    public static double calcularDescuento(double precio, String tipo) {\n        double descuento = 0;\n        if (tipo.equals(\"vip\")) {\n            descuento = 0.15;\n        } else if (tipo.equals(\"premium\")) {\n            descuento = 0.25;\n        }\n        return precio * (1 - descuento);\n    }\n}\n\n// Informe esperado del alumno:\n//\n// Call Stack al Step Into:\n//   calcularDescuento:14  EjercicioStepInto  â† Aquí estamos\n//   main:12               EjercicioStepInto  â† Quién llamó\n//\n// Variables en calcularDescuento:\n//   precio = 100.0\n//   tipo = \"vip\"\n//   descuento = 0.0 (aún no asignado)\n//\n// Step Over â†’ descuento = 0.15\n// Step Out â†’ vuelve a main con precioFinal = 85.0"
+        },
+        {
+          "id": "ex-03-4-3",
+          "difficulty": "advanced",
+          "title": "Depurar un bug complejo con watches",
+          "description": "El siguiente programa calcula la nota media de 3 exámenes y clasifica al alumno. Tiene un bug: con notas 8, 7, 6 la media sale como 6.0 en vez de 7.0. Usa el depurador con watches para encontrar exactamente dónde está el error. Documenta cada paso del proceso de depuración.",
+          "solution": "import java.util.Scanner;\n\npublic class EjercicioWatchBug {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Nota 1: \");\n        double n1 = teclado.nextDouble();\n        System.out.print(\"Nota 2: \");\n        double n2 = teclado.nextDouble();\n        System.out.print(\"Nota 3: \");\n        double n3 = teclado.nextDouble();\n\n        // WATCH: n1 + n2 + n3 (para ver la suma)\n        // WATCH: (n1 + n2) / 3  (BUG: divide entre 3 sin sumar n3)\n\n        double suma = n1 + n2;        // <-- BUG: falta + n3\n        double media = suma / 3;\n\n        // WATCH: media >= 9\n        // WATCH: media >= 7\n        // WATCH: media >= 5\n\n        String calificacion;\n        if (media >= 9) {\n            calificacion = \"Sobresaliente\";\n        } else if (media >= 7) {\n            calificacion = \"Notable\";\n        } else if (media >= 5) {\n            calificacion = \"Aprobado\";\n        } else {\n            calificacion = \"Suspendido\";\n        }\n\n        System.out.printf(\"Media: %.2f%n\", media);\n        System.out.println(\"Calificacion: \" + calificacion);\n\n        teclado.close();\n    }\n}\n\n// CORRECCION:\n// double suma = n1 + n2 + n3;  // anadir + n3\n//\n// Informe esperado del alumno:\n//\n// Watches creados:\n//   n1 + n2 + n3    â†’ 21.0  (suma real)\n//   (n1 + n2) / 3   â†’ 5.0   (suma incorrecta / 3)\n//   media            â†’ 5.0   (valor de media)\n//\n// Al pausar en double media = suma / 3:\n//   n1 = 8.0, n2 = 7.0, n3 = 6.0\n//   suma = 15.0 (solo n1 + n2, falta n3)\n//   media = 15.0 / 3 = 5.0\n//\n// Watch (n1 + n2 + n3) = 21.0 â†’ la suma real es 21\n// Watch media = 5.0 â†’ la media calculada es 5.0\n//\n// Diferencia: 21/3 = 7.0 (correcto) vs 15/3 = 5.0 (incorrecto)\n// Conclusión: falta + n3 en la suma"
+        }
+      ],
+      "commonErrors": [
+        "Poner breakpoints en líneas que nunca se ejecutan (por ejemplo, dentro de un else que no se alcanza). Si el debugger no se pausa donde esperas, revisa si esa línea realmente se ejecuta.",
+        "Hacer Step Into en métodos de la biblioteca estándar (System.out, Scanner, etc.). El debugger entrará en código de Java que no necesitas ver. Usa Step Over en esas líneas.",
+        "Olvidarse de que el debugger está activo y quedarse confundido por el panel de depuración. Si no quieres depurar, usa el botón Run (â–¶ï¸) en vez de Debug (ðŸª²).",
+        "No usar breakpoints condicionales en bucles. Si un bucle se ejecuta 1000 veces, el breakpoint se activará 1000 veces. Añade una condición (clic derecho â†’ Add Condition) como `i == 500`.",
+        "Confiar solo en el depurador sin leer el código primero. El depurador confirma hipótesis, no las genera. Primero lee el código, forma una teoría, y luego depura para verificar.",
+        "No revisar el Call Stack cuando un método devuelve un valor inesperado. El Call Stack te dice quién llamó al método y con qué parámetros."
+      ],
+      "keyConcepts": [
+        "Depurador del IDE como alternativa superior a System.out.println()",
+        "Breakpoints: creación, tipos (normal, condicional, deshabilitado)",
+        "Ejecución en modo depuración (F11 / Debug button)",
+        "Step Over (F6): ejecutar línea sin entrar en métodos",
+        "Step Into (F5): entrar dentro de un método para ver su ejecución",
+        "Step Return (F7): salir del método y volver al que lo llamó",
+        "Panel de Variables: inspección de valores en tiempo de ejecución",
+        "Watches: monitoreo de expresiones personalizadas",
+        "Call Stack (Frames): historial de llamadas a métodos",
+        "Proceso de depuración: reproducir â†’ breakpoints â†’ inspeccionar â†’ corregir â†’ verificar"
+      ],
+      "learningOutcomes": [
+        "RA3",
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA3.a",
+        "RA3.e",
+        "RA3.g",
+        "RA5.a"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Simulador de examen con calificación",
+    "description": "Crea un programa interactivo que:\n1. Pida al usuario 3 notas de exámenes parciales (Scanner)\n2. Valide que cada nota esté entre 0 y 10\n3. Calcule la nota media\n4. Clasifique la calificación usando if/else if (MH, SB, N, A, I, MDF)\n5. Use System.err para mostrar advertencias si alguna nota es inferior a 4\n6. Muestre un informe formateado con printf()\n7. Incluya comentarios que documenten la lógica de cada condición",
+    "learningOutcomes": [
+      "RA3",
+      "RA5"
+    ],
+    "assessmentCriteria": [
+      "RA3.a",
+      "RA3.e",
+      "RA3.g",
+      "RA5.a",
+      "RA5.b"
+    ]
+  }
+}

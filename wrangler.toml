@@ -1,0 +1,52 @@
+name = "lms-platform"
+main = "src/index.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./frontend/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+# Local development variables
+# These are available as process.env.* in the worker (with nodejs_compat).
+# For production, set these in the Cloudflare dashboard, NOT in this file.
+# NEVER commit real production secrets here.
+[vars]
+ENVIRONMENT = "development"
+BETTER_AUTH_URL = "http://localhost:8787"
+CORS_ORIGIN = "http://localhost:5173"
+# Secrets (NEON_DATABASE_URL, BETTER_AUTH_SECRET, ADMIN_BOOTSTRAP_SECRET, etc.)
+# are stored in .dev.vars for local dev, and in Cloudflare dashboard for staging/production.
+# NEVER put secrets in this file.
+
+# Staging
+[env.staging]
+name = "lms-platform-staging"
+routes = [
+  { pattern = "staging.lms-platform.workers.dev", zone_name = "workers.dev" }
+]
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+BETTER_AUTH_URL = "https://staging.lms-platform.workers.dev"
+CORS_ORIGIN = "https://staging.lms-platform.workers.dev"
+
+[env.staging.r2_buckets]
+BUCKET = { binding = "BUCKET", bucket_name = "lms-staging" }
+
+# Production
+[env.production]
+name = "lms-platform-production"
+routes = [
+  { pattern = "lms-platform.workers.dev", zone_name = "workers.dev" }
+]
+
+[env.production.vars]
+ENVIRONMENT = "production"
+BETTER_AUTH_URL = "https://lms-platform.workers.dev"
+CORS_ORIGIN = "https://lms-platform.workers.dev"
+
+[env.production.r2_buckets]
+BUCKET = { binding = "BUCKET", bucket_name = "lms-production" }

@@ -1,0 +1,51 @@
+# =============================================================================
+# LMS Platform — Local Development Environment Variables
+# =============================================================================
+# Copy this file to .dev.vars and fill in the values.
+# NEVER commit .dev.vars to version control.
+#
+# This file is loaded by Wrangler for local development (wrangler dev).
+# For Cloudflare deployment, set these as dashboard secrets.
+# =============================================================================
+
+# ─── REQUIRED ─────────────────────────────────────────────────────────────────
+
+# Neon PostgreSQL connection string
+# Get from: https://console.neon.tech → Project → Connection Details
+# Format: postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require
+NEON_DATABASE_URL="postgresql://user:password@ep-xxx.region.aws.neon.tech/dbname?sslmode=require"
+
+# Better Auth secret — used for session signing
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+BETTER_AUTH_SECRET="generate-with: node -e console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# ─── OPTIONAL — Admin Bootstrap ───────────────────────────────────────────────
+
+# Bootstrap secret for creating the first admin account
+# Only needed once. After first admin is created, this can be removed.
+ADMIN_BOOTSTRAP_SECRET=""
+
+# ─── OPTIONAL — Email (Resend) ────────────────────────────────────────────────
+
+# Resend API key for sending emails (welcome, notifications, contact form)
+# Get from: https://resend.com/api-keys
+# If not set, emails are silently skipped (app still works)
+RESEND_API_KEY=""
+
+# Contact form recipient (where contact form emails are sent)
+CONTACT_EMAIL="your-email@gmail.com"
+
+# Contact form sender address
+# For testing: use "onboarding@resend.dev" (Resend's default test sender)
+# For production: use a verified domain address like "contacto@yourdomain.com"
+CONTACT_FROM="onboarding@resend.dev"
+
+# ─── OPTIONAL — R2 Storage (Cloudflare) ───────────────────────────────────────
+
+# R2 credentials for file/video uploads
+# If not set, file uploads will fail gracefully (app still works)
+# Get from: https://dash.cloudflare.com → R2 → Manage R2 API Tokens
+R2_ACCOUNT_ID=""
+R2_ACCESS_KEY_ID=""
+R2_SECRET_ACCESS_KEY=""
+R2_BUCKET_NAME="lms-dev"

@@ -1,0 +1,617 @@
+{
+  "id": "mod-18",
+  "title": "Proyecto integrador final",
+  "description": "Módulo culmen del curso que integra TODOS los conceptos aprendidos en un proyecto completo: Sistema de Gestión de Notas. Se diseña, modela, implementa, testea y documenta un sistema que gestiona alumnos, cursos, calificaciones y persistencia de datos. Cada lección construye una fase del proyecto, culminando con una aplicación completa y funcional.",
+  "phase": "phase-7",
+  "position": 18,
+  "learningOutcomes": [
+    "RA1",
+    "RA2",
+    "RA3",
+    "RA4",
+    "RA5",
+    "RA6",
+    "RA7",
+    "RA8",
+    "RA9"
+  ],
+  "assessmentCriteria": [
+    "RA1.a",
+    "RA1.b",
+    "RA1.c",
+    "RA1.d",
+    "RA1.e",
+    "RA1.f",
+    "RA1.g",
+    "RA1.h",
+    "RA1.i",
+    "RA2.a",
+    "RA2.b",
+    "RA2.c",
+    "RA2.d",
+    "RA2.e",
+    "RA2.f",
+    "RA2.g",
+    "RA2.h",
+    "RA2.i",
+    "RA3.a",
+    "RA3.b",
+    "RA3.c",
+    "RA3.d",
+    "RA3.e",
+    "RA3.f",
+    "RA3.g",
+    "RA3.h",
+    "RA3.i",
+    "RA4.a",
+    "RA4.b",
+    "RA4.c",
+    "RA4.d",
+    "RA4.e",
+    "RA4.f",
+    "RA4.g",
+    "RA4.h",
+    "RA4.i",
+    "RA5.a",
+    "RA5.b",
+    "RA5.c",
+    "RA5.d",
+    "RA5.e",
+    "RA6.a",
+    "RA6.b",
+    "RA6.c",
+    "RA6.d",
+    "RA6.e",
+    "RA6.f",
+    "RA6.g",
+    "RA6.h",
+    "RA6.i",
+    "RA6.j",
+    "RA7.a",
+    "RA7.b",
+    "RA7.c",
+    "RA7.d",
+    "RA7.e",
+    "RA7.f",
+    "RA7.g",
+    "RA7.h",
+    "RA7.i",
+    "RA7.j"
+  ],
+  "officialContents": [
+    "Identificación de los elementos de un programa informático",
+    "Utilización de objetos",
+    "Uso de estructuras de control",
+    "Desarrollo de clases",
+    "Lectura y escritura de información",
+    "Aplicación de las estructuras de almacenamiento",
+    "Utilización avanzada de clases"
+  ],
+  "duration": "20 hours estimated",
+  "difficulty": "advanced",
+  "prerequisites": [
+    "mod-01",
+    "mod-02",
+    "mod-03",
+    "mod-04",
+    "mod-05",
+    "mod-06",
+    "mod-07",
+    "mod-08",
+    "mod-09",
+    "mod-10",
+    "mod-11",
+    "mod-12",
+    "mod-13",
+    "mod-14"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-18-1",
+      "title": "Planificación del proyecto y diseño del modelo",
+      "objectives": [
+        "Analizar los requisitos del Sistema de Gestión de Notas",
+        "Diseñar el modelo de clases con sus relaciones",
+        "Definir la arquitectura del proyecto en paquetes",
+        "Crear el diagrama de clases conceptual",
+        "Planificar las fases de implementación"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Requisitos del Sistema de Gestión de Notas",
+          "content": "**Nombre**: Sistema de Gestión de Notas (SGN)\n\n**Objetivo**: gestionar alumnos, cursos y calificaciones en un instituto, con persistencia de datos en fichero.\n\n**Requisitos funcionales:**\n\n1. **Gestión de Alumnos**:\n   - Crear alumno (nombre, email, NIE)\n   - Modificar datos de alumno\n   - Eliminar alumno\n   - Listar todos los alumnos\n   - Buscar alumno por nombre o email\n\n2. **Gestión de Cursos**:\n   - Crear curso (nombre, horas, capacidad máxima)\n   - Matricular alumno en curso (con control de capacidad)\n   - Desmatricular alumno\n   - Listar cursos con número de alumnos\n\n3. **Gestión de Calificaciones**:\n   - Asignar nota a alumno en curso (0-10)\n   - Modificar nota existente\n   - Calcular media por alumno\n   - Calcular media por asignatura\n   - Listar notas de un alumno\n\n4. **Informes**:\n   - Listado de alumnos aprobados/suspensos\n   - Ranking de alumnos por nota media\n   - Informe por curso con estadísticas\n\n5. **Persistencia**:\n   - Guardar datos en fichero (serialización)\n   - Cargar datos al iniciar\n   - Exportar a CSV\n   - Generar informe de texto\n\n**Requisitos no funcionales:**\n- Código documentado con Javadoc\n- Manejo de excepciones personalizadas\n- Validación de datos de entrada\n- Menú interactivo por consola"
+        },
+        {
+          "type": "text",
+          "title": "Diseño del modelo de clases",
+          "content": "El modelo se compone de las siguientes clases:\n\n```\ncom.sgn.modelos\nâ”œâ”€â”€ Persona (abstracta, Serializable)\nâ”‚   â”œâ”€â”€ Alumno\nâ”‚   â”‚   â””â”€â”€ tiene List<Nota>\nâ”‚   â””â”€â”€ Profesor\nâ”‚\nâ”œâ”€â”€ Curso (Serializable)\nâ”‚   â””â”€â”€ tiene List<Alumno> (matriculados)\nâ”‚\nâ”œâ”€â”€ Nota (Serializable)\nâ”‚   â”œâ”€â”€ tiene Curso (asignatura)\nâ”‚   â”œâ”€â”€ tiene double nota\nâ”‚   â””â”€â”€ tiene TipoEvaluacion (enum)\nâ”‚\nâ”œâ”€â”€ TipoEvaluacion (enum)\nâ”‚   â”œâ”€â”€ EXAMEN\nâ”‚   â”œâ”€â”€ EJERCICIO\nâ”‚   â”œâ”€â”€ PROYECTO\nâ”‚   â””â”€â”€ CONTINUA\nâ”‚\nâ””â”€â”€ HistorialAcademico\n    â””â”€â”€ tiene List<Nota>\n\ncom.sgn.excepciones\nâ”œâ”€â”€ NotaInvalidaException\nâ”œâ”€â”€ EmailInvalidoException\nâ”œâ”€â”€ CursoLlenoException\nâ”œâ”€â”€ AlumnoNoEncontradoException\nâ””â”€â”€ NombreInvalidoException\n\ncom.sgn.persistencia\nâ”œâ”€â”€ GestorPersistencia (serialización)\nâ”œâ”€â”€ ExportadorCSV\nâ””â”€â”€ GeneradorInformes\n\ncom.sgn.utilidades\nâ”œâ”€â”€ ValidadorDatos\nâ”œâ”€â”€ Logger\nâ””â”€â”€ Constantes\n\ncom.sgn.app\nâ””â”€â”€ AppPrincipal (menú y lógica)\n```\n\n**Relaciones:**\n- Alumno **tiene** Nota (composición)\n- Curso **contiene** Alumno (agregación)\n- Nota **referencia** a Curso y Alumno\n- Persona es **superclase** de Alumno y Profesor"
+        },
+        {
+          "type": "code",
+          "title": "Estructura de paquetes",
+          "language": "java",
+          "content": "// Estructura de carpetas del proyecto:\n// src/\n// â””â”€â”€ com/\n//     â””â”€â”€ sgn/\n//         â”œâ”€â”€ modelos/\n//         â”‚   â”œâ”€â”€ Persona.java\n//         â”‚   â”œâ”€â”€ Alumno.java\n//         â”‚   â”œâ”€â”€ Profesor.java\n//         â”‚   â”œâ”€â”€ Curso.java\n//         â”‚   â”œâ”€â”€ Nota.java\n//         â”‚   â”œâ”€â”€ TipoEvaluacion.java\n//         â”‚   â””â”€â”€ HistorialAcademico.java\n//         â”œâ”€â”€ excepciones/\n//         â”‚   â”œâ”€â”€ SGNException.java\n//         â”‚   â”œâ”€â”€ NotaInvalidaException.java\n//         â”‚   â”œâ”€â”€ EmailInvalidoException.java\n//         â”‚   â”œâ”€â”€ CursoLlenoException.java\n//         â”‚   â””â”€â”€ AlumnoNoEncontradoException.java\n//         â”œâ”€â”€ persistencia/\n//         â”‚   â”œâ”€â”€ GestorPersistencia.java\n//         â”‚   â”œâ”€â”€ ExportadorCSV.java\n//         â”‚   â””â”€â”€ GeneradorInformes.java\n//         â”œâ”€â”€ utilidades/\n//         â”‚   â”œâ”€â”€ ValidadorDatos.java\n//         â”‚   â””â”€â”€ Constantes.java\n//         â””â”€â”€ app/\n//             â””â”€â”€ AppPrincipal.java\n\n// Todas las clases usan el paquete:\npackage com.sgn.modelos;\n\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic abstract class Persona implements Serializable {\n    private static final long serialVersionUID = 1L;\n    protected String nombre;\n    protected String email;\n\n    public Persona(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n    }\n\n    public abstract String getRol();\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n\n    @Override\n    public String toString() {\n        return getRol() + \": \" + nombre + \" (\" + email + \")\";\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Planificación por fases",
+          "content": "El proyecto se construye en 5 fases:\n\n| Fase | Lección | Descripción | Conceptos clave |\n|------|---------|-------------|-----------------|\n| 1 | Lección 15-1 | Diseño del modelo | Clases, paquetes, diseño |\n| 2 | Lección 15-2 | Modelo completo | Herencia, composición, genéricos, enum |\n| 3 | Lección 15-3 | Implementación funcional | Colecciones, streams, validación |\n| 4 | Lección 15-4 | Persistencia y pruebas | Ficheros, serialización, testing |\n| 5 | Lección 15-5 | Documentación y entrega | Javadoc, README, presentación |\n\n**Cada fase es funcional**: al final de cada lección, el programa debe compilar y funcionar parcialmente."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-1-1",
+          "difficulty": "basic",
+          "title": "Crear la estructura de paquetes",
+          "description": "Crea la estructura de carpetas del proyecto en Eclipse IDE: com.sgn.modelos, com.sgn.excepciones, com.sgn.persistencia, com.sgn.utilidades, com.sgn.app.",
+          "solution": "// Crear en Eclipse IDE:\n// File > New > Package\n// Escribir: com.sgn.modelos\n// Repetir para cada paquete.\n// La estructura final sera:\n// src/\n// â””â”€â”€ com/sgn/\n//     â”œâ”€â”€ modelos/\n//     â”œâ”€â”€ excepciones/\n//     â”œâ”€â”€ persistencia/\n//     â”œâ”€â”€ utilidades/\n//     â””â”€â”€ app/"
+        },
+        {
+          "id": "ex-15-1-2",
+          "difficulty": "intermediate",
+          "title": "Crear las clases del modelo",
+          "description": "Crea las clases del modelo: Persona (abstracta), Alumno, Curso, Nota, TipoEvaluacion (enum). Solo con campos, constructores y getters/setters. Sin lógica aún.",
+          "solution": "// Ver seccion de codigo de la leccion 15-2 para la implementacion completa.\n// Por ahora, crear las clases vacias con la estructura basica."
+        },
+        {
+          "id": "ex-15-1-3",
+          "difficulty": "advanced",
+          "title": "Diseñar las excepciones personalizadas",
+          "description": "Crea la jerarquía de excepciones: SGNException (base) â†’ NotaInvalidaException, EmailInvalidoException, CursoLlenoException, AlumnoNoEncontradoException. Documenta cada una con Javadoc.",
+          "solution": "// Ver leccion 15-2 para la implementacion completa de excepciones."
+        }
+      ],
+      "commonErrors": [
+        "Empezar a codificar sin diseñar primero: el diseño previo ahorra horas de reestructuración.",
+        "Crear todas las clases a la vez: mejor crear una fase a la vez, verificando que compila.",
+        "No usar paquetes: sin paquetes, el proyecto se vuelve un desastreéš¾ç®¡ç†.",
+        "Ignorar los requisitos: implementar lo que se pide, no lo que se imagina.",
+        "No planificar la persistencia desde el inicio: añadirla al final es más difícil."
+      ],
+      "keyConcepts": [
+        "Análisis de requisitos: funcionales y no funcionales",
+        "Diseño del modelo de clases: herencia, composición, agregación",
+        "Estructura de paquetes: organizarción lógica del código",
+        "Planificación por fases: cada fase funcional",
+        "Clases abstractas: Persona como superclase",
+        "Enum para tipos fijos: TipoEvaluacion"
+      ],
+      "learningOutcomes": [
+        "RA1",
+        "RA4"
+      ],
+      "assessmentCriteria": [
+        "RA1.a",
+        "RA4.a",
+        "RA4.b"
+      ]
+    },
+    {
+      "id": "lesson-18-2",
+      "title": "Implementación del modelo completo",
+      "objectives": [
+        "Implementar la jerarquía de clases: Persona â†’ Alumno, Profesor",
+        "Crear la clase Curso con control de capacidad",
+        "Implementar la clase Nota con TipoEvaluacion",
+        "Crear la clase HistorialAcademico para agrupar notas",
+        "Implementar excepciones personalizadas del dominio"
+      ],
+      "contentBlocks": [
+        {
+          "type": "code",
+          "title": "Clase Alumno completa",
+          "language": "java",
+          "content": "package com.sgn.modelos;\n\nimport com.sgn.excepciones.*;\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.Objects;\n\n/**\n * Clase que representa un alumno del instituto.\n * \n * <p>Un Alumno tiene nombre, email, NIE y un historial\n * academico con todas sus notas.</p>\n * \n * @author Programacion 1. DAM/DAW\n * @version 1.0\n */\npublic class Alumno extends Persona implements Serializable, Comparable<Alumno> {\n\n    private static final long serialVersionUID = 1L;\n\n    /** Nota minima para estar aprobado */\n    public static final double NOTA_APROBADO = 5.0;\n\n    /** Nota maxima posible */\n    public static final double NOTA_MAXIMA = 10.0;\n\n    private String nie;\n    private final HistorialAcademico historial;\n\n    /**\n     * Crea un nuevo alumno.\n     * \n     * @param nombre nombre completo del alumno\n     * @param email direccion de correo electronico\n     * @param nie numero de identificacion del estudiante\n     * @throws NombreInvalidoException si el nombre no es valido\n     * @throws EmailInvalidoException si el email no es valido\n     */\n    public Alumno(String nombre, String email, String nie)\n            throws NombreInvalidoException, EmailInvalidoException {\n        super(nombre, email);\n        if (nombre == null || nombre.isBlank()) {\n            throw new NombreInvalidoException(nombre);\n        }\n        if (email == null || !email.contains(\"@\")) {\n            throw new EmailInvalidoException(email);\n        }\n        this.nie = nie;\n        this.historial = new HistorialAcademico();\n    }\n\n    @Override\n    public String getRol() { return \"Alumno\"; }\n\n    public String getNie() { return nie; }\n\n    /**\n     * Aniade una nota al historial del alumno.\n     * \n     * @param nota la nota a aniadir (0.0 - 10.0)\n     * @param curso el curso al que pertenece la nota\n     * @param tipo tipo de evaluacion\n     * @throws NotaInvalidaException si la nota no esta en el rango valido\n     */\n    public void addNota(double nota, Curso curso, TipoEvaluacion tipo)\n            throws NotaInvalidaException {\n        if (nota < 0 || nota > NOTA_MAXIMA) {\n            throw new NotaInvalidaException(nota, nombre);\n        }\n        historial.addNota(new Nota(curso, nota, tipo));\n    }\n\n    public double getNotaMedia() {\n        return historial.getMedia();\n    }\n\n    public int getNumNotas() {\n        return historial.getNumNotas();\n    }\n\n    public List<Nota> getNotas() {\n        return historial.getNotas();\n    }\n\n    public List<Nota> getNotasCurso(Curso curso) {\n        return historial.getNotasCurso(curso);\n    }\n\n    public boolean estaAprobado() {\n        return getNotaMedia() >= NOTA_APROBADO;\n    }\n\n    /**\n     * Obtiene un resumen del alumno.\n     * \n     * @return string con nombre, email y nota media\n     */\n    public String getResumen() {\n        return String.format(\"%s (%s) - Media: %.2f - %s\",\n            nombre, email, getNotaMedia(),\n            estaAprobado() ? \"Aprobado\" : \"Suspensa\");\n    }\n\n    @Override\n    public int compareTo(Alumno otro) {\n        return Double.compare(otro.getNotaMedia(), this.getNotaMedia());\n    }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (o == null || getClass() != o.getClass()) return false;\n        Alumno alumno = (Alumno) o;\n        return Objects.equals(nie, alumno.nie);\n    }\n\n    @Override\n    public int hashCode() {\n        return Objects.hash(nie);\n    }\n\n    @Override\n    public String toString() {\n        return String.format(\"%s [%s] - Media: %.2f\",\n            nombre, nie, getNotaMedia());\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Clase Nota y TipoEvaluacion",
+          "language": "java",
+          "content": "package com.sgn.modelos;\n\nimport java.io.Serializable;\n\n/**\n * Enum que representa los tipos de evaluacion.\n */\npublic enum TipoEvaluacion {\n    EXAMEN(\"Examen\"),\n    EJERCICIO(\"Ejercicio\"),\n    PROYECTO(\"Proyecto\"),\n    CONTINUA(\"Evaluacion continua\");\n\n    private final String descripcion;\n\n    TipoEvaluacion(String descripcion) {\n        this.descripcion = descripcion;\n    }\n\n    public String getDescripcion() { return descripcion; }\n\n    @Override\n    public String toString() { return descripcion; }\n}\n\n// === Clase Nota ===\npackage com.sgn.modelos;\n\nimport java.io.Serializable;\nimport java.time.LocalDate;\nimport java.time.format.DateTimeFormatter;\n\n/**\n * Representa una calificacion de un alumno en un curso.\n */\npublic class Nota implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n\n    private final Curso curso;\n    private final double valor;\n    private final TipoEvaluacion tipo;\n    private final LocalDate fecha;\n\n    public Nota(Curso curso, double valor, TipoEvaluacion tipo) {\n        this.curso = curso;\n        this.valor = valor;\n        this.tipo = tipo;\n        this.fecha = LocalDate.now();\n    }\n\n    public Nota(Curso curso, double valor, TipoEvaluacion tipo, LocalDate fecha) {\n        this.curso = curso;\n        this.valor = valor;\n        this.tipo = tipo;\n        this.fecha = fecha;\n    }\n\n    public Curso getCurso() { return curso; }\n    public double getValor() { return valor; }\n    public TipoEvaluacion getTipo() { return tipo; }\n    public LocalDate getFecha() { return fecha; }\n\n    public boolean estaAprobado() {\n        return valor >= Alumno.NOTA_APROBADO;\n    }\n\n    @Override\n    public String toString() {\n        return String.format(\"%s: %.1f (%s) [%s]\",\n            curso.getNombre(), valor, tipo,\n            fecha.format(DateTimeFormatter.ofPattern(\"dd/MM/yyyy\")));\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Clase Curso con control de capacidad",
+          "language": "java",
+          "content": "package com.sgn.modelos;\n\nimport com.sgn.excepciones.*;\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.List;\n\n/**\n * Representa un curso del instituto.\n */\npublic class Curso implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n\n    private String nombre;\n    private int horasTotales;\n    private int capacidadMaxima;\n    private final List<Alumno> alumnosMatriculados;\n\n    public Curso(String nombre, int horasTotales, int capacidadMaxima) {\n        this.nombre = nombre;\n        this.horasTotales = horasTotales;\n        this.capacidadMaxima = capacidadMaxima;\n        this.alumnosMatriculados = new ArrayList<>();\n    }\n\n    /**\n     * Matricula un alumno en el curso.\n     * \n     * @param alumno el alumno a matricular\n     * @throws CursoLlenoException si el curso esta lleno\n     */\n    public void matricular(Alumno alumno) throws CursoLlenoException {\n        if (alumnosMatriculados.size() >= capacidadMaxima) {\n            throw new CursoLlenoException(nombre, capacidadMaxima);\n        }\n        if (alumnosMatriculados.contains(alumno)) {\n            return; // Ya esta matriculado\n        }\n        alumnosMatriculados.add(alumno);\n    }\n\n    /**\n     * Desmatricula un alumno del curso.\n     */\n    public void desmatricular(Alumno alumno) {\n        alumnosMatriculados.remove(alumno);\n    }\n\n    public String getNombre() { return nombre; }\n    public int getHorasTotales() { return horasTotales; }\n    public int getCapacidadMaxima() { return capacidadMaxima; }\n    public int getNumAlumnos() { return alumnosMatriculados.size(); }\n    public boolean estaLleno() { return alumnosMatriculados.size() >= capacidadMaxima; }\n    public List<Alumno> getAlumnosMatriculados() {\n        return new ArrayList<>(alumnosMatriculados);\n    }\n\n    public double getNotaMediaCurso() {\n        if (alumnosMatriculados.isEmpty()) return 0;\n        double suma = 0;\n        for (Alumno a : alumnosMatriculados) {\n            suma += a.getNotaMedia();\n        }\n        return suma / alumnosMatriculados.size();\n    }\n\n    @Override\n    public String toString() {\n        return String.format(\"%s (%d h) [%d/%d alumnos]\",\n            nombre, horasTotales, getNumAlumnos(), capacidadMaxima);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "HistorialAcademico",
+          "language": "java",
+          "content": "package com.sgn.modelos;\n\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.List;\nimport java.util.stream.Collectors;\n\n/**\n * Historial academico de un alumno: agrupa todas sus notas.\n */\npublic class HistorialAcademico implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n\n    private final List<Nota> notas;\n\n    public HistorialAcademico() {\n        this.notas = new ArrayList<>();\n    }\n\n    public void addNota(Nota nota) {\n        notas.add(nota);\n    }\n\n    public double getMedia() {\n        if (notas.isEmpty()) return 0;\n        return notas.stream()\n            .mapToDouble(Nota::getValor)\n            .average()\n            .orElse(0);\n    }\n\n    public int getNumNotas() { return notas.size(); }\n\n    public List<Nota> getNotas() {\n        return new ArrayList<>(notas);\n    }\n\n    public List<Nota> getNotasCurso(Curso curso) {\n        return notas.stream()\n            .filter(n -> n.getCurso().equals(curso))\n            .collect(Collectors.toList());\n    }\n\n    public int getNumAprobadas() {\n        return (int) notas.stream()\n            .filter(Nota::estaAprobado)\n            .count();\n    }\n\n    public int getNumSuspensas() {\n        return notas.size() - getNumAprobadas();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Excepciones personalizadas del dominio",
+          "language": "java",
+          "content": "package com.sgn.excepciones;\n\n/**\n * Excepcion base del sistema SGN.\n */\npublic class SGNException extends Exception {\n    public SGNException(String mensaje) { super(mensaje); }\n    public SGNException(String mensaje, Throwable causa) { super(mensaje, causa); }\n}\n\n// === NotaInvalidaException ===\npackage com.sgn.excepciones;\n\npublic class NotaInvalidaException extends SGNException {\n    private final double notaInvalida;\n    private final String alumno;\n\n    public NotaInvalidaException(double nota, String alumno) {\n        super(String.format(\"Nota invalida: %.1f para '%s'. Debe estar entre 0.0 y 10.0.\",\n            nota, alumno));\n        this.notaInvalida = nota;\n        this.alumno = alumno;\n    }\n\n    public double getNotaInvalida() { return notaInvalida; }\n    public String getAlumno() { return alumno; }\n}\n\n// === EmailInvalidoException ===\npackage com.sgn.excepciones;\n\npublic class EmailInvalidoException extends SGNException {\n    private final String email;\n    public EmailInvalidoException(String email) {\n        super(\"Email invalido: \" + email);\n        this.email = email;\n    }\n    public String getEmail() { return email; }\n}\n\n// === CursoLlenoException ===\npackage com.sgn.excepciones;\n\npublic class CursoLlenoException extends SGNException {\n    private final String curso;\n    private final int capacidad;\n    public CursoLlenoException(String curso, int capacidad) {\n        super(\"Curso \" + curso + \" lleno (max: \" + capacidad + \" alumnos)\");\n        this.curso = curso;\n        this.capacidad = capacidad;\n    }\n}\n\n// === AlumnoNoEncontradoException ===\npackage com.sgn.excepciones;\n\npublic class AlumnoNoEncontradoException extends SGNException {\n    private final String nombre;\n    public AlumnoNoEncontradoException(String nombre) {\n        super(\"Alumno no encontrado: \" + nombre);\n        this.nombre = nombre;\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-2-1",
+          "difficulty": "basic",
+          "title": "Crear un Alumno y un Curso",
+          "description": "Crea un Alumno con nombre, email y NIE. Crea un Curso con nombre, horas y capacidad. Muestra ambos por consola.",
+          "solution": "package com.sgn.app;\nimport com.sgn.modelos.*;\nimport com.sgn.excepciones.*;\n\npublic class TestModeloBasico {\n    public static void main(String[] args) throws SGNException {\n        Alumno a = new Alumno(\"Ana Garcia\", \"ana@email.com\", \"Z1234567A\");\n        Curso prog = new Curso(\"Programacion\", 120, 30);\n        \n        System.out.println(a);\n        System.out.println(prog);\n    }\n}"
+        },
+        {
+          "id": "ex-15-2-2",
+          "difficulty": "intermediate",
+          "title": "Matricular y asignar notas",
+          "description": "Matricula 3 alumnos en un curso y asígnales notas de diferentes tipos. Muestra el historial de cada alumno.",
+          "solution": "package com.sgn.app;\nimport com.sgn.modelos.*;\nimport com.sgn.excepciones.*;\n\npublic class TestMatricula {\n    public static void main(String[] args) throws SGNException {\n        Curso prog = new Curso(\"Programacion\", 120, 30);\n        \n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\", \"Z111\");\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\", \"Z222\");\n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\", \"Z333\");\n        \n        prog.matricular(a1); prog.matricular(a2); prog.matricular(a3);\n        \n        a1.addNota(8.5, prog, TipoEvaluacion.EXAMEN);\n        a1.addNota(7.0, prog, TipoEvaluacion.EJERCICIO);\n        a2.addNota(6.0, prog, TipoEvaluacion.EXAMEN);\n        a3.addNota(9.0, prog, TipoEvaluacion.PROYECTO);\n        a3.addNota(8.0, prog, TipoEvaluacion.CONTINUA);\n        \n        System.out.println(\"Media Ana: \" + a1.getNotaMedia());\n        System.out.println(\"Media Carlos: \" + a2.getNotaMedia());\n        System.out.println(\"Media Maria: \" + a3.getNotaMedia());\n    }\n}"
+        },
+        {
+          "id": "ex-15-2-3",
+          "difficulty": "advanced",
+          "title": "Excepciones del dominio en acción",
+          "description": "Prueba todas las excepciones: crear alumno con email inválido, asignar nota fuera de rango, matricular en curso lleno, buscar alumno inexistente.",
+          "solution": "package com.sgn.app;\nimport com.sgn.modelos.*;\nimport com.sgn.excepciones.*;\n\npublic class TestExcepciones {\n    public static void main(String[] args) {\n        // 1. Email invalido\n        try {\n            Alumno a = new Alumno(\"Ana\", \"sin-arroba\", \"Z111\");\n        } catch (EmailInvalidoException e) {\n            System.out.println(e.getMessage());\n        } catch (SGNException e) {\n            System.out.println(e.getMessage());\n        }\n        \n        // 2. Nota invalida\n        try {\n            Alumno a = new Alumno(\"Carlos\", \"carlos@email.com\", \"Z222\");\n            Curso c = new Curso(\"Prog\", 120, 30);\n            a.addNota(15.0, c, TipoEvaluacion.EXAMEN);\n        } catch (SGNException e) {\n            System.out.println(e.getMessage());\n        }\n        \n        // 3. Curso lleno\n        try {\n            Curso c = new Curso(\"Prog\", 120, 1);\n            c.matricular(new Alumno(\"A\", \"a@e.com\", \"Z1\"));\n            c.matricular(new Alumno(\"B\", \"b@e.com\", \"Z2\"));\n        } catch (CursoLlenoException e) {\n            System.out.println(e.getMessage());\n        } catch (SGNException e) {\n            System.out.println(e.getMessage());\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "No usar Serializable en todas las clases del modelo: la serialización falla si falta en alguna.",
+        "Olvidar el serialVersionUID: puede causar InvalidClassException al cargar datos guardados.",
+        "No implementar equals() y hashCode() basados en identificador único (NIE, ID).",
+        "No validar en el constructor: lanzar excepciones al inicio, no después.",
+        "Olvidar que getNotas() debe devolver una copia: `return new ArrayList<>(notas)`."
+      ],
+      "keyConcepts": [
+        "Herencia: Persona â†’ Alumno, Profesor",
+        "Composición: Alumno tiene HistorialAcademico, HistorialAcademico tiene Nota",
+        "Agregación: Curso contiene Alumno",
+        "Enum: TipoEvaluacion con valores fijos",
+        "Comparable: Alumno se compara por nota media",
+        "Excepciones personalizadas del dominio",
+        "Serializable para persistencia"
+      ],
+      "learningOutcomes": [
+        "RA4",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA4.a",
+        "RA4.b",
+        "RA4.c",
+        "RA4.d",
+        "RA4.e",
+        "RA7.a",
+        "RA7.b",
+        "RA7.c",
+        "RA7.d"
+      ]
+    },
+    {
+      "id": "lesson-18-3",
+      "title": "Implementación funcional: lógica del negocio",
+      "objectives": [
+        "Crear el GestorAcademico con toda la lógica de negocio",
+        "Usar colecciones (List, Map) para almacenar datos",
+        "Aplicar operaciones agregadas (filter, map, reduce) con Stream",
+        "Implementar el menú interactivo con Scanner",
+        "Validar datos de entrada con expresiones regulares"
+      ],
+      "contentBlocks": [
+        {
+          "type": "code",
+          "title": "GestorAcademico: lógica central",
+          "language": "java",
+          "content": "package com.sgn.modelos;\n\nimport com.sgn.excepciones.*;\nimport java.io.Serializable;\nimport java.util.ArrayList;\nimport java.util.Comparator;\nimport java.util.List;\nimport java.util.Optional;\nimport java.util.stream.Collectors;\n\n/**\n * Clase central que gestiona alumnos, cursos y notas.\n * Implementa Serializable para persistencia.\n */\npublic class GestorAcademico implements Serializable {\n\n    private static final long serialVersionUID = 1L;\n\n    private final List<Alumno> alumnos;\n    private final List<Curso> cursos;\n\n    public GestorAcademico() {\n        this.alumnos = new ArrayList<>();\n        this.cursos = new ArrayList<>();\n    }\n\n    // === GESTION DE ALUMNOS ===\n\n    public Alumno addAlumno(String nombre, String email, String nie)\n            throws SGNException {\n        Alumno alumno = new Alumno(nombre, email, nie);\n        if (alumnos.contains(alumno)) {\n            throw new SGNException(\"Ya existe un alumno con NIE: \" + nie);\n        }\n        alumnos.add(alumno);\n        return alumno;\n    }\n\n    public Alumno buscarAlumno(String nombre) throws AlumnoNoEncontradoException {\n        Optional<Alumno> encontrado = alumnos.stream()\n            .filter(a -> a.getNombre().equalsIgnoreCase(nombre))\n            .findFirst();\n        return encontrado.orElseThrow(() ->\n            new AlumnoNoEncontradoException(nombre));\n    }\n\n    public void eliminarAlumno(String nombre) throws AlumnoNoEncontradoException {\n        Alumno alumno = buscarAlumno(nombre);\n        // Desmatricular de todos los cursos\n        for (Curso c : cursos) {\n            c.desmatricular(alumno);\n        }\n        alumnos.remove(alumno);\n    }\n\n    public List<Alumno> getAlumnos() {\n        return new ArrayList<>(alumnos);\n    }\n\n    public List<Alumno> getAlumnosAprobados() {\n        return alumnos.stream()\n            .filter(Alumno::estaAprobado)\n            .sorted()\n            .collect(Collectors.toList());\n    }\n\n    public List<Alumno> getAlumnosSuspensos() {\n        return alumnos.stream()\n            .filter(a -> !a.estaAprobado())\n            .sorted()\n            .collect(Collectors.toList());\n    }\n\n    // === GESTION DE CURSOS ===\n\n    public Curso addCurso(String nombre, int horas, int capacidad) {\n        Curso curso = new Curso(nombre, horas, capacidad);\n        cursos.add(curso);\n        return curso;\n    }\n\n    public Curso buscarCurso(String nombre) throws SGNException {\n        Optional<Curso> encontrado = cursos.stream()\n            .filter(c -> c.getNombre().equalsIgnoreCase(nombre))\n            .findFirst();\n        return encontrado.orElseThrow(() ->\n            new SGNException(\"Curso no encontrado: \" + nombre));\n    }\n\n    public void matricular(String nombreAlumno, String nombreCurso)\n            throws SGNException {\n        Alumno alumno = buscarAlumno(nombreAlumno);\n        Curso curso = buscarCurso(nombreCurso);\n        curso.matricular(alumno);\n    }\n\n    public void desmatricular(String nombreAlumno, String nombreCurso)\n            throws SGNException {\n        Alumno alumno = buscarAlumno(nombreAlumno);\n        Curso curso = buscarCurso(nombreCurso);\n        curso.desmatricular(alumno);\n    }\n\n    public List<Curso> getCursos() {\n        return new ArrayList<>(cursos);\n    }\n\n    // === GESTION DE CALIFICACIONES ===\n\n    public void asignarNota(String nombreAlumno, String nombreCurso,\n            double nota, TipoEvaluacion tipo) throws SGNException {\n        Alumno alumno = buscarAlumno(nombreAlumno);\n        Curso curso = buscarCurso(nombreCurso);\n        alumno.addNota(nota, curso, tipo);\n    }\n\n    // === ESTADISTICAS ===\n\n    public double getMediaGlobal() {\n        return alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .average()\n            .orElse(0);\n    }\n\n    public Alumno getMejorAlumno() {\n        return alumnos.stream()\n            .max(Comparator.naturalOrder())\n            .orElse(null);\n    }\n\n    public Alumno getPeorAlumno() {\n        return alumnos.stream()\n            .min(Comparator.naturalOrder())\n            .orElse(null);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Validador de datos con regex",
+          "language": "java",
+          "content": "package com.sgn.utilidades;\n\nimport java.util.regex.Pattern;\n\n/**\n * Validador de datos del sistema SGN.\n */\npublic class ValidadorDatos {\n\n    private static final Pattern PATRON_NOMBRE =\n        Pattern.compile(\"^[A-ZÁÃ‰ÍÃ“ÃšÃ‘][a-záéíóúñ]+( [A-ZÁÃ‰ÍÃ“ÃšÃ‘][a-záéíóúñ]+)*$\");\n\n    private static final Pattern PATRON_EMAIL =\n        Pattern.compile(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\+.[a-zA-Z]{2,}$\");\n\n    private static final Pattern PATRON_NIE =\n        Pattern.compile(\"^[XYZ]\\\\+.\\d{7,8}[A-Z]$\");\n\n    public static boolean validarNombre(String nombre) {\n        return nombre != null && !nombre.isBlank() &&\n               PATRON_NOMBRE.matcher(nombre).matches();\n    }\n\n    public static boolean validarEmail(String email) {\n        return email != null && PATRON_EMAIL.matcher(email).matches();\n    }\n\n    public static boolean validarNIE(String nie) {\n        return nie != null && PATRON_NIE.matcher(nie).matches();\n    }\n\n    public static boolean validarNota(double nota) {\n        return nota >= 0 && nota <= 10;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Menú interactivo por consola",
+          "language": "java",
+          "content": "package com.sgn.app;\n\nimport com.sgn.modelos.*;\nimport com.sgn.excepciones.*;\nimport com.sgn.persistencia.*;\nimport java.util.Scanner;\n\n/**\n * Aplicacion principal del Sistema de Gestion de Notas.\n */\npublic class AppPrincipal {\n\n    private static final GestorAcademico gestor = new GestorAcademico();\n    private static final Scanner sc = new Scanner(System.in);\n\n    public static void main(String[] args) {\n        System.out.println(\"=== SISTEMA DE GESTION DE NOTAS ===\");\n        System.out.println(\" Curso 2026/2027\");\n        System.out.println();\n\n        boolean salir = false;\n        while (!salir) {\n            mostrarMenu();\n            int opcion = leerEntero(\"Opcion: \");\n\n            try {\n                switch (opcion) {\n                    case 1 -> addAlumno();\n                    case 2 -> addCurso();\n                    case 3 -> matricular();\n                    case 4 -> asignarNota();\n                    case 5 -> mostrarAlumnos();\n                    case 6 -> mostrarCursos();\n                    case 7 -> mostrarEstadisticas();\n                    case 8 -> exportarCSV();\n                    case 9 -> guardarDatos();\n                    case 10 -> cargarDatos();\n                    case 0 -> salir = true;\n                    default -> System.out.println(\"Opcion no valida\");\n                }\n            } catch (SGNException e) {\n                System.out.println(\"ERROR: \" + e.getMessage());\n            } catch (Exception e) {\n                System.out.println(\"Error inesperado: \" + e.getMessage());\n            }\n            System.out.println();\n        }\n\n        // Preguntar si guardar antes de salir\n        System.out.print(\"Desea guardar los datos? (s/n): \");\n        String resp = sc.nextLine().trim().toLowerCase();\n        if (resp.equals(\"s\")) {\n            guardarDatos();\n        }\n        System.out.println(\"Hasta pronto!\");\n    }\n\n    private static void mostrarMenu() {\n        System.out.println(\"--- MENU PRINCIPAL ---\");\n        System.out.println(\"1. Aniadir alumno\");\n        System.out.println(\"2. Aniadir curso\");\n        System.out.println(\"3. Matricular alumno\");\n        System.out.println(\"4. Asignar nota\");\n        System.out.println(\"5. Mostrar alumnos\");\n        System.out.println(\"6. Mostrar cursos\");\n        System.out.println(\"7. Estadisticas\");\n        System.out.println(\"8. Exportar a CSV\");\n        System.out.println(\"9. Guardar datos\");\n        System.out.println(\"10. Cargar datos\");\n        System.out.println(\"0. Salir\");\n        System.out.println();\n    }\n\n    private static void addAlumno() throws SGNException {\n        System.out.print(\"Nombre: \");\n        String nombre = sc.nextLine().trim();\n        System.out.print(\"Email: \");\n        String email = sc.nextLine().trim();\n        System.out.print(\"NIE: \");\n        String nie = sc.nextLine().trim();\n        gestor.addAlumno(nombre, email, nie);\n        System.out.println(\"Alumno creado correctamente\");\n    }\n\n    private static void addCurso() {\n        System.out.print(\"Nombre del curso: \");\n        String nombre = sc.nextLine().trim();\n        System.out.print(\"Horas totales: \");\n        int horas = leerEntero(\"\");\n        System.out.print(\"Capacidad maxima: \");\n        int capacidad = leerEntero(\"\");\n        gestor.addCurso(nombre, horas, capacidad);\n        System.out.println(\"Curso creado correctamente\");\n    }\n\n    private static void matricular() throws SGNException {\n        System.out.print(\"Nombre del alumno: \");\n        String alumno = sc.nextLine().trim();\n        System.out.print(\"Nombre del curso: \");\n        String curso = sc.nextLine().trim();\n        gestor.matricular(alumno, curso);\n        System.out.println(\"Alumno matriculado correctamente\");\n    }\n\n    private static void asignarNota() throws SGNException {\n        System.out.print(\"Nombre del alumno: \");\n        String alumno = sc.nextLine().trim();\n        System.out.print(\"Nombre del curso: \");\n        String curso = sc.nextLine().trim();\n        System.out.print(\"Nota (0-10): \");\n        double nota = Double.parseDouble(sc.nextLine().trim());\n        System.out.print(\"Tipo (EXAMEN/EJERCICIO/PROYECTO/CONTINUA): \");\n        TipoEvaluacion tipo = TipoEvaluacion.valueOf(sc.nextLine().trim().toUpperCase());\n        gestor.asignarNota(alumno, curso, nota, tipo);\n        System.out.println(\"Nota asignada correctamente\");\n    }\n\n    private static void mostrarAlumnos() {\n        System.out.println(\"\\n=== LISTADO DE ALUMNOS ===\");\n        for (Alumno a : gestor.getAlumnos()) {\n            System.out.println(\"  \" + a.getResumen());\n        }\n        System.out.println(\"Total: \" + gestor.getAlumnos().size() + \" alumnos\");\n    }\n\n    private static void mostrarCursos() {\n        System.out.println(\"\\n=== LISTADO DE CURSOS ===\");\n        for (Curso c : gestor.getCursos()) {\n            System.out.println(\"  \" + c);\n        }\n    }\n\n    private static void mostrarEstadisticas() {\n        System.out.println(\"\\n=== ESTADISTICAS ===\");\n        System.out.printf(\"Media global: %.2f%n\", gestor.getMediaGlobal());\n        Alumno mejor = gestor.getMejorAlumno();\n        Alumno peor = gestor.getPeorAlumno();\n        if (mejor != null) System.out.println(\"Mejor alumno: \" + mejor.getResumen());\n        if (peor != null) System.out.println(\"Peor alumno: \" + peor.getResumen());\n        System.out.println(\"Aprobados: \" + gestor.getAlumnosAprobados().size());\n        System.out.println(\"Suspensos: \" + gestor.getAlumnosSuspensos().size());\n    }\n\n    private static void exportarCSV() {\n        System.out.print(\"Ruta del fichero CSV: \");\n        String ruta = sc.nextLine().trim();\n        try {\n            ExportadorCSV.exportar(gestor.getAlumnos(), ruta);\n            System.out.println(\"Exportado correctamente: \" + ruta);\n        } catch (Exception e) {\n            System.out.println(\"Error exportando: \" + e.getMessage());\n        }\n    }\n\n    private static void guardarDatos() {\n        try {\n            GestorPersistencia.guardar(gestor, \"datos.dat\");\n            System.out.println(\"Datos guardados correctamente\");\n        } catch (Exception e) {\n            System.out.println(\"Error guardando: \" + e.getMessage());\n        }\n    }\n\n    private static void cargarDatos() {\n        try {\n            GestorAcademico cargado = GestorPersistencia.cargar(\"datos.dat\");\n            gestor.getAlumnos().addAll(cargado.getAlumnos());\n            gestor.getCursos().addAll(cargado.getCursos());\n            System.out.println(\"Datos cargados correctamente\");\n        } catch (Exception e) {\n            System.out.println(\"Error cargando: \" + e.getMessage());\n        }\n    }\n\n    private static int leerEntero(String mensaje) {\n        System.out.print(mensaje);\n        try {\n            return Integer.parseInt(sc.nextLine().trim());\n        } catch (NumberFormatException e) {\n            return 0;\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-3-1",
+          "difficulty": "basic",
+          "title": "Añadir datos de prueba",
+          "description": "Usando el GestorAcademico, añade 5 alumnos de prueba y 3 cursos. Matricula a los alumnos en los cursos.",
+          "solution": "package com.sgn.app;\nimport com.sgn.modelos.*;\nimport com.sgn.excepciones.*;\n\npublic class DatosPrueba {\n    public static void main(String[] args) throws SGNException {\n        GestorAcademico gestor = new GestorAcademico();\n        \n        gestor.addAlumno(\"Ana Garcia\", \"ana@email.com\", \"Z1111111A\");\n        gestor.addAlumno(\"Carlos Ruiz\", \"carlos@email.com\", \"Z2222222B\");\n        gestor.addAlumno(\"Maria Lopez\", \"maria@email.com\", \"Z3333333C\");\n        \n        gestor.addCurso(\"Programacion\", 120, 30);\n        gestor.addCurso(\"Base de Datos\", 100, 25);\n        \n        gestor.matricular(\"Ana Garcia\", \"Programacion\");\n        gestor.matricular(\"Ana Garcia\", \"Base de Datos\");\n        gestor.matricular(\"Carlos Ruiz\", \"Programacion\");\n        \n        gestor.asignarNota(\"Ana Garcia\", \"Programacion\", 8.5, TipoEvaluacion.EXAMEN);\n        gestor.asignarNota(\"Ana Garcia\", \"Base de Datos\", 7.0, TipoEvaluacion.EJERCICIO);\n        gestor.asignarNota(\"Carlos Ruiz\", \"Programacion\", 6.0, TipoEvaluacion.PROYECTO);\n        \n        System.out.println(\"Datos de prueba creados\");\n    }\n}"
+        },
+        {
+          "id": "ex-15-3-2",
+          "difficulty": "intermediate",
+          "title": "Exportar a CSV y generar informe",
+          "description": "Usando el GestorAcademico con datos de prueba, exporta los alumnos a CSV y genera un informe de texto formateado.",
+          "solution": "// Usar ExportadorCSV y GeneradorInformes de la leccion 15-4"
+        },
+        {
+          "id": "ex-15-3-3",
+          "difficulty": "advanced",
+          "title": "Añadir búsqueda avanzada",
+          "description": "Implementa en GestorAcademico: buscar por email, buscar por rango de notas, y buscar alumnos en un curso específico.",
+          "solution": "// Añadir al GestorAcademico:\n// public Alumno buscarPorEmail(String email)\n// public List<Alumno> buscarPorRangoNota(double min, double max)\n// public List<Alumno> getAlumnosCurso(String nombreCurso)"
+        }
+      ],
+      "commonErrors": [
+        "No copiar las colecciones al devolverlas: `return alumnos` expone el estado interno.",
+        "No manejar el caso de colecciones vacías: un Stream sobre lista vacía puede devolver Optional vacío.",
+        "Olvidar tratar las excepciones checked en el menú: usar try-catch en cada opción.",
+        "No usar Scanner.nextLine() después de nextInt(): el buffer queda sucio.",
+        "No validar la entrada del usuario: un dato mal formateado puede cascar el programa."
+      ],
+      "keyConcepts": [
+        "GestorAcademico: clase central con toda la lógica de negocio",
+        "List y Map para almacenar datos en memoria",
+        "Stream API: filter, map, reduce, collect, sorting",
+        "Validación con regex: nombre, email, NIE, nota",
+        "Menú interactivo: Scanner, switch-case, try-catch",
+        "Separación de responsabilidades: modelo, lógica, persistencia, UI"
+      ],
+      "learningOutcomes": [
+        "RA3",
+        "RA5",
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA3.a",
+        "RA3.b",
+        "RA3.e",
+        "RA5.a",
+        "RA6.c",
+        "RA6.j"
+      ]
+    },
+    {
+      "id": "lesson-18-4",
+      "title": "Persistencia de datos y pruebas",
+      "objectives": [
+        "Implementar la persistencia con serialización de objetos",
+        "Crear la clase GestorPersistencia con guardar/cargar",
+        "Exportar datos a CSV con ExportadorCSV",
+        "Generar informes de texto con GeneradorInformes",
+        "Probar el sistema completo de principio a fin"
+      ],
+      "contentBlocks": [
+        {
+          "type": "code",
+          "title": "GestorPersistencia: serialización del dominio",
+          "language": "java",
+          "content": "package com.sgn.persistencia;\n\nimport com.sgn.modelos.GestorAcademico;\nimport java.io.*;\n\n/**\n * Gestor de persistencia con serialización de objetos.\n */\npublic class GestorPersistencia {\n\n    private static final String RUTA_BACKUP = \"datos.dat.bak\";\n\n    /**\n     * Guarda el GestorAcademico en un fichero.\n     * Crea un backup del fichero anterior si existe.\n     */\n    public static void guardar(GestorAcademico gestor, String ruta)\n            throws IOException {\n        File fichero = new File(ruta);\n\n        // Crear backup si existe\n        if (fichero.exists()) {\n            File backup = new File(RUTA_BACKUP);\n            if (backup.exists()) backup.delete();\n            fichero.renameTo(backup);\n        }\n\n        try (ObjectOutputStream oos = new ObjectOutputStream(\n                new FileOutputStream(ruta))) {\n            oos.writeObject(gestor);\n        }\n    }\n\n    /**\n     * Carga un GestorAcademico desde un fichero.\n     * Devuelve un GestorAcademico vacio si no existe el fichero.\n     */\n    public static GestorAcademico cargar(String ruta) {\n        try (ObjectInputStream ois = new ObjectInputStream(\n                new FileInputStream(ruta))) {\n            return (GestorAcademico) ois.readObject();\n        } catch (FileNotFoundException e) {\n            System.out.println(\"No se encontro fichero de datos. Iniciando vacio.\");\n            return new GestorAcademico();\n        } catch (IOException | ClassNotFoundException e) {\n            System.out.println(\"Error cargando datos: \" + e.getMessage());\n            return new GestorAcademico();\n        }\n    }\n\n    /**\n     * Comprueba si existe un fichero de datos.\n     */\n    public static boolean existeFichero(String ruta) {\n        return new File(ruta).exists();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "ExportadorCSV: exportar a formato CSV",
+          "language": "java",
+          "content": "package com.sgn.persistencia;\n\nimport com.sgn.modelos.Alumno;\nimport java.io.*;\nimport java.util.List;\n\n/**\n * Exportador de alumnos a formato CSV.\n */\npublic class ExportadorCSV {\n\n    /**\n     * Exporta una lista de alumnos a un fichero CSV.\n     * \n     * @param alumnos lista de alumnos a exportar\n     * @param ruta ruta del fichero CSV de salida\n     * @throws IOException si hay error de escritura\n     */\n    public static void exportar(List<Alumno> alumnos, String ruta)\n            throws IOException {\n        try (PrintWriter pw = new PrintWriter(new BufferedWriter(\n                new FileWriter(ruta)))) {\n\n            // Cabecera CSV\n            pw.println(\"Nombre,Email,NIE,Notas,Media,Estado\");\n\n            // Datos\n            for (Alumno a : alumnos) {\n                pw.printf(\"%s,%s,%s,%d,%.2f,%s%n\",\n                    a.getNombre(),\n                    a.getEmail(),\n                    a.getNie(),\n                    a.getNumNotas(),\n                    a.getNotaMedia(),\n                    a.estaAprobado() ? \"Aprobado\" : \"Suspensa\");\n            }\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "GeneradorInformes: informes de texto",
+          "language": "java",
+          "content": "package com.sgn.persistencia;\n\nimport com.sgn.modelos.*;\nimport java.io.*;\nimport java.time.LocalDateTime;\nimport java.time.format.DateTimeFormatter;\n\n/**\n * Generador de informes de texto formateados.\n */\npublic class GeneradorInformes {\n\n    /**\n     * Genera un informe completo del sistema.\n     */\n    public static void generarInforme(GestorAcademico gestor, String ruta)\n            throws IOException {\n        try (PrintWriter pw = new PrintWriter(new BufferedWriter(\n                new FileWriter(ruta)))) {\n\n            String fecha = LocalDateTime.now()\n                .format(DateTimeFormatter.ofPattern(\"dd/MM/yyyy HH:mm\"));\n\n            pw.println(\"=\".repeat(60));\n            pw.println(\"         INFORME ACADEMICO - SISTEMA DE GESTION DE NOTAS\");\n            pw.println(\"         Fecha: \" + fecha);\n            pw.println(\"=\".repeat(60));\n            pw.println();\n\n            // Resumen general\n            pw.println(\"--- RESUMEN GENERAL ---\");\n            pw.printf(\"Total alumnos: %d%n\", gestor.getAlumnos().size());\n            pw.printf(\"Total cursos: %d%n\", gestor.getCursos().size());\n            pw.printf(\"Media global: %.2f%n\", gestor.getMediaGlobal());\n            pw.printf(\"Aprobados: %d%n\", gestor.getAlumnosAprobados().size());\n            pw.printf(\"Suspensos: %d%n\", gestor.getAlumnosSuspensos().size());\n            pw.println();\n\n            // Listado de alumnos\n            pw.println(\"--- LISTADO DE ALUMNOS ---\");\n            pw.printf(\"%-20s %-25s %8s %10s %10s%n\",\n                \"Alumno\", \"Email\", \"Notas\", \"Media\", \"Estado\");\n            pw.printf(\"%-20s %-25s %8s %10s %10s%n\",\n                \"-\".repeat(20), \"-\".repeat(25), \"-\".repeat(8),\n                \"-\".repeat(10), \"-\".repeat(10));\n\n            for (Alumno a : gestor.getAlumnos()) {\n                pw.printf(\"%-20s %-25s %8d %10.2f %10s%n\",\n                    a.getNombre(), a.getEmail(), a.getNumNotas(),\n                    a.getNotaMedia(),\n                    a.estaAprobado() ? \"Aprobado\" : \"Suspensa\");\n            }\n            pw.println();\n\n            // Estadisticas por curso\n            pw.println(\"--- ESTADISTICAS POR CURSO ---\");\n            for (Curso c : gestor.getCursos()) {\n                pw.printf(\"%s: %d alumnos, media %.2f%n\",\n                    c.getNombre(), c.getNumAlumnos(), c.getNotaMediaCurso());\n            }\n            pw.println();\n\n            // Ranking\n            pw.println(\"--- RANKING DE ALUMNOS ---\");\n            java.util.List<Alumno> ranking = gestor.getAlumnos();\n            ranking.sort(java.util.Comparator.naturalOrder());\n            int pos = 1;\n            for (Alumno a : ranking) {\n                pw.printf(\"%d. %s (%.2f)%n\", pos++, a.getNombre(), a.getNotaMedia());\n            }\n\n            pw.println();\n            pw.println(\"=\".repeat(60));\n            pw.println(\"         Fin del informe\");\n            pw.println(\"=\".repeat(60));\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Prueba completa del sistema",
+          "language": "java",
+          "content": "package com.sgn.app;\n\nimport com.sgn.modelos.*;\nimport com.sgn.excepciones.*;\nimport com.sgn.persistencia.*;\n\n/**\n * Prueba completa del Sistema de Gestion de Notas.\n */\npublic class PruebaCompleta {\n\n    public static void main(String[] args) {\n        System.out.println(\"=== PRUEBA COMPLETA DEL SISTEMA ===\");\n        GestorAcademico gestor = new GestorAcademico();\n\n        try {\n            // 1. Crear alumnos\n            gestor.addAlumno(\"Ana Garcia\", \"ana@email.com\", \"Z1111111A\");\n            gestor.addAlumno(\"Carlos Ruiz\", \"carlos@email.com\", \"Z2222222B\");\n            gestor.addAlumno(\"Maria Lopez\", \"maria@email.com\", \"Z3333333C\");\n            gestor.addAlumno(\"Pedro Sanchez\", \"pedro@email.com\", \"Z4444444D\");\n            gestor.addAlumno(\"Laura Martinez\", \"laura@email.com\", \"Z5555555E\");\n            System.out.println(\"Alumnos creados: \" + gestor.getAlumnos().size());\n\n            // 2. Crear cursos\n            gestor.addCurso(\"Programacion\", 120, 30);\n            gestor.addCurso(\"Base de Datos\", 100, 25);\n            gestor.addCurso(\"Desarrollo Web\", 140, 20);\n            System.out.println(\"Cursos creados: \" + gestor.getCursos().size());\n\n            // 3. Matricular\n            gestor.matricular(\"Ana Garcia\", \"Programacion\");\n            gestor.matricular(\"Ana Garcia\", \"Base de Datos\");\n            gestor.matricular(\"Carlos Ruiz\", \"Programacion\");\n            gestor.matricular(\"Carlos Ruiz\", \"Desarrollo Web\");\n            gestor.matricular(\"Maria Lopez\", \"Programacion\");\n            gestor.matricular(\"Maria Lopez\", \"Base de Datos\");\n            gestor.matricular(\"Pedro Sanchez\", \"Programacion\");\n            gestor.matricular(\"Laura Martinez\", \"Programacion\");\n            System.out.println(\"Matriculas realizadas\");\n\n            // 4. Asignar notas\n            gestor.asignarNota(\"Ana Garcia\", \"Programacion\", 8.5, TipoEvaluacion.EXAMEN);\n            gestor.asignarNota(\"Ana Garcia\", \"Programacion\", 7.0, TipoEvaluacion.EJERCICIO);\n            gestor.asignarNota(\"Ana Garcia\", \"Base de Datos\", 9.0, TipoEvaluacion.PROYECTO);\n            gestor.asignarNota(\"Carlos Ruiz\", \"Programacion\", 6.0, TipoEvaluacion.EXAMEN);\n            gestor.asignarNota(\"Carlos Ruiz\", \"Desarrollo Web\", 7.5, TipoEvaluacion.CONTINUA);\n            gestor.asignarNota(\"Maria Lopez\", \"Programacion\", 9.5, TipoEvaluacion.EXAMEN);\n            gestor.asignarNota(\"Maria Lopez\", \"Base de Datos\", 8.0, TipoEvaluacion.EJERCICIO);\n            gestor.asignarNota(\"Pedro Sanchez\", \"Programacion\", 4.0, TipoEvaluacion.EXAMEN);\n            gestor.asignarNota(\"Laura Martinez\", \"Programacion\", 8.0, TipoEvaluacion.PROYECTO);\n            System.out.println(\"Notas asignadas\");\n\n            // 5. Mostrar estadisticas\n            System.out.println(\"\\n--- ESTADISTICAS ---\");\n            System.out.printf(\"Media global: %.2f%n\", gestor.getMediaGlobal());\n            Alumno mejor = gestor.getMejorAlumno();\n            if (mejor != null) System.out.println(\"Mejor: \" + mejor.getResumen());\n            System.out.println(\"Aprobados: \" + gestor.getAlumnosAprobados().size());\n            System.out.println(\"Suspensos: \" + gestor.getAlumnosSuspensos().size());\n\n            // 6. Guardar datos\n            GestorPersistencia.guardar(gestor, \"datos.dat\");\n            System.out.println(\"\\nDatos guardados\");\n\n            // 7. Exportar CSV\n            ExportadorCSV.exportar(gestor.getAlumnos(), \"alumnos.csv\");\n            System.out.println(\"CSV exportado\");\n\n            // 8. Generar informe\n            GeneradorInformes.generarInforme(gestor, \"informe.txt\");\n            System.out.println(\"Informe generado\");\n\n            // 9. Cargar datos (demo)\n            GestorAcademico cargado = GestorPersistencia.cargar(\"datos.dat\");\n            System.out.println(\"\\nDatos cargados: \" + cargado.getAlumnos().size() + \" alumnos\");\n\n            System.out.println(\"\\n=== PRUEBA COMPLETADA CON EXITO ===\");\n\n        } catch (SGNException e) {\n            System.out.println(\"ERROR DE NEGOCIO: \" + e.getMessage());\n        } catch (Exception e) {\n            System.out.println(\"ERROR INESPERADO: \" + e.getMessage());\n            e.printStackTrace();\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-4-1",
+          "difficulty": "basic",
+          "title": "Guardar y cargar datos",
+          "description": "Usando GestorPersistencia, guarda un GestorAcademico con 3 alumnos y luego cárgalo de vuelta. Verifica que los datos son correctos.",
+          "solution": "package com.sgn.app;\nimport com.sgn.modelos.*;\nimport com.sgn.persistencia.*;\n\npublic class TestPersistencia {\n    public static void main(String[] args) throws Exception {\n        GestorAcademico g = new GestorAcademico();\n        g.addAlumno(\"Ana\", \"ana@e.com\", \"Z111\");\n        g.addAlumno(\"Carlos\", \"carlos@e.com\", \"Z222\");\n        \n        GestorPersistencia.guardar(g, \"test.dat\");\n        System.out.println(\"Guardado\");\n        \n        GestorAcademico cargado = GestorPersistencia.cargar(\"test.dat\");\n        System.out.println(\"Cargados: \" + cargado.getAlumnos().size());\n        for (Alumno a : cargado.getAlumnos()) {\n            System.out.println(\"  \" + a.getNombre());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-15-4-2",
+          "difficulty": "intermediate",
+          "title": "Generar informe y exportar CSV",
+          "description": "Con datos de prueba, genera un informe de texto y exporta a CSV. Abre ambos ficheros y verifica el contenido.",
+          "solution": "// Ejecutar la clase PruebaCompleta y abrir:\n// - informe.txt (abrir con bloc de notas)\n// - alumnos.csv (abrir con Excel o similar)"
+        },
+        {
+          "id": "ex-15-4-3",
+          "difficulty": "advanced",
+          "title": "Prueba con datos erróneos",
+          "description": "Ejecuta el programa con datos que causan errores: email inválido, nota 15, curso sin capacidad. Verifica que las excepciones se manejan correctamente y el programa no se cae.",
+          "solution": "// El sistema debe:\n// 1. Mostrar \"Email invalido\" y seguir funcionando\n// 2. Mostrar \"Nota invalida: 15.0\" y seguir funcionando\n// 3. Mostrar \"Curso lleno\" y seguir funcionando\n// 4. No cerrarse nunca por un error de datos"
+        }
+      ],
+      "commonErrors": [
+        "No serializar todas las clases del modelo: falta Serializable en una y toda la cadena falla.",
+        "Olvidar serialVersionUID en todas las clases: puede causar problemas al cargar datos de versiones anteriores.",
+        "No hacer backup antes de sobrescribir el fichero de datos.",
+        "No manejar FileNotFoundException en la carga: si el fichero no existe, el programa debe iniciar vacío.",
+        "No comprobar que el CSV tiene cabecera al importar."
+      ],
+      "keyConcepts": [
+        "Serialización del dominio completo: GestorAcademico",
+        "Backup automático antes de sobrescribir",
+        "Exportación a CSV: PrintWriter con formato",
+        "Generación de informes: texto formateado con estadísticas",
+        "Carga segura: manejo de FileNotFoundException",
+        "Prueba completa: crear, guardar, cargar, exportar"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.d",
+        "RA5.e"
+      ]
+    },
+    {
+      "id": "lesson-18-5",
+      "title": "Documentación y entrega del proyecto",
+      "objectives": [
+        "Documentar todas las clases con Javadoc completo",
+        "Crear un README.md con instrucciones de uso",
+        "Refactorizar el código para mejorar la legibilidad",
+        "Hacer una presentación del proyecto",
+        "Entregar el proyecto final completo y funcional"
+      ],
+      "contentBlocks": [
+        {
+          "type": "code",
+          "title": "Javadoc del proyecto completo",
+          "language": "java",
+          "content": "/**\n * Sistema de Gestion de Notas (SGN)\n * \n * <p>Aplicacion de consola para gestionar alumnos, cursos\n * y calificaciones en un instituto.</p>\n * \n * <p>Caracteristicas principales:</p>\n * <ul>\n *   <li>Gestion de alumnos con validacion de datos</li>\n *   <li>Gestion de cursos con control de capacidad</li>\n *   <li>Asignacion de notas con diferentes tipos de evaluacion</li>\n *   <li>Persistencia con serialización de objetos</li>\n *   <li>Exportacion a CSV</li>\n *   <li>Generacion de informes de texto</li>\n * </ul>\n * \n * <p>Tecnologias utilizadas:</p>\n * <ul>\n *   <li>Java 21 LTS</li>\n *   <li>Collections Framework (List, Stream)</li>\n *   <li>Serialización de objetos</li>\n *   <li>Expresiones regulares (Pattern, Matcher)</li>\n * </ul>\n * \n * @author Alumno de 1. DAM/DAW\n * @version 1.0\n * @since 2026-09\n * @see com.sgn.modelos.GestorAcademico\n */\npublic class AppPrincipal {\n    // ...\n}\n\n// === Documentacion de Alumno ===\n\n/**\n * Clase que representa un alumno en el sistema.\n * \n * <p>Un Alumno tiene nombre, email, NIE y un historial\n * academico que almacena todas sus calificaciones.</p>\n * \n * <p>Implementa {@link Comparable} para ordenar por nota media\n * (de mayor a menor).</p>\n * \n * @author Alumno de 1. DAM/DAW\n * @version 1.0\n * @since 1.0\n * @see HistorialAcademico\n * @see Nota\n */\npublic class Alumno extends Persona implements Serializable, Comparable<Alumno> {\n    // ...\n}"
+        },
+        {
+          "type": "code",
+          "title": "README.md del proyecto",
+          "language": "markdown",
+          "content": "# Sistema de Gestion de Notas (SGN)\n\n## Descripcion\n\nAplicacion de consola para gestionar alumnos, cursos y calificaciones\nen un instituto. Persistencia de datos con serialización.\n\n## Requisitos\n\n- Java 21 LTS\n- Eclipse IDE for Java Developers (recomendado)\n\n## Compilacion y ejecucion\n\n```bash\n# Compilar\njavac -d out src/com/sgn/app/*.java src/com/sgn/modelos/*.java\n\n# Ejecutar\njava -cp out com.sgn.app.AppPrincipal\n```\n\n## Estructura del proyecto\n\n```\nsrc/com/sgn/\nâ”œâ”€â”€ app/              # Clase principal\nâ”œâ”€â”€ modelos/           # Alumno, Curso, Nota, etc.\nâ”œâ”€â”€ excepciones/       # Excepciones personalizadas\nâ”œâ”€â”€ persistencia/      # Guardar/cargar datos\nâ””â”€â”€ utilidades/        # Validacion, constantes\n```\n\n## Funcionalidades\n\n1. **Gestion de alumnos**: crear, modificar, eliminar, buscar\n2. **Gestion de cursos**: crear, matricular, desmatricular\n3. **Calificaciones**: asignar nota, calcular medias, estadisticas\n4. **Informes**: listado de alumnos, ranking, informe por curso\n5. **Persistencia**: guardar/cargar en fichero .dat\n6. **Exportacion**: CSV, informe de texto\n\n## Controles\n\n- Las notas se introducen entre 0.0 y 10.0\n- El email debe tener formato valido\n- El NIE debe tener formato Z1234567A\n- La capacidad de los cursos es fija\n\n## Autor\n\nAlumno de 1. DAM/DAW - Programacion 2026/2027\n"
+        },
+        {
+          "type": "code",
+          "title": "Refactoring: mejorar legibilidad",
+          "language": "java",
+          "content": "// ANTES (codigo malo):\npublic class Alumno {\n    String n; e; nie;\n    double[] not; int nn;\n    public Alumno(String n, String e, String nie) {\n        this.n = n; this.e = e; this.nie = nie;\n    }\n    public double m() {\n        double s=0; for(int i=0;i<nn;i++) s+=not[i];\n        return nn>0?s/nn:0;\n    }\n}\n\n// DESPUES (codigo refactorizado):\n/**\n * Representa un alumno con su historial academico.\n */\npublic class Alumno extends Persona implements Serializable, Comparable<Alumno> {\n\n    private static final long serialVersionUID = 1L;\n    public static final double NOTA_APROBADO = 5.0;\n    public static final double NOTA_MAXIMA = 10.0;\n\n    private final String nie;\n    private final HistorialAcademico historial;\n\n    public Alumno(String nombre, String email, String nie)\n            throws NombreInvalidoException, EmailInvalidoException {\n        super(nombre, email);\n        this.nie = nie;\n        this.historial = new HistorialAcademico();\n    }\n\n    public double getNotaMedia() {\n        return historial.getMedia();\n    }\n\n    @Override\n    public int compareTo(Alumno otro) {\n        return Double.compare(otro.getNotaMedia(), this.getNotaMedia());\n    }\n}\n\n// Principios aplicados:\n// 1. Nombres descriptivos (no abreviar)\n// 2. Campos final cuando es posible\n// 3. Constantes para valores magicos\n// 4. Composicion (HistorialAcademico)\n// 5. Javadoc en la clase\n// 6. Separacion de responsabilidades"
+        },
+        {
+          "type": "code",
+          "title": "Lista de verificación final",
+          "language": "text",
+          "content": "=== LISTA DE VERIFICACION DEL PROYECTO ===\n\n[ ] Estructura de paquetes correcta (com.sgn.*)\n[ ] Todas las clases implementan Serializable\n[ ] serialVersionUID definido en todas las clases serializables\n[ ] Excepciones personalizadas del dominio\n[ ] Validación de datos en constructores\n[ ] Javadoc en todas las clases públicas\n[ ] Javadoc en todos los métodos públicos\n[ ] @param, @return, @throws documentados\n[ ] Menú interactivo funcional\n[ ] Opción de guardar datos\n[ ] Opción de cargar datos\n[ ] Exportación a CSV\n[ ] Generación de informe de texto\n[ ] Manejo de excepciones en cada opción del menú\n[ ] Código refactorizado (nombres claros, sin código muerto)\n[ ] Prueba completa con datos de prueba\n[ ] README.md con instrucciones de uso\n[ ] El programa nunca se cierra por un error de datos"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-5-1",
+          "difficulty": "basic",
+          "title": "Documentar una clase con Javadoc",
+          "description": "Toma la clase Alumno y añade Javadoc completo: en la clase, en el constructor, en todos los métodos públicos, con @param, @return y @throws.",
+          "solution": "// Ver ejemplo de Javadoc en el bloque de codigo de la leccion.\n// Recuerda documentar:\n// - Clase: descripcion general, @author, @version, @see\n// - Constructor: @param para cada parametro, @throws\n// - Metodos: descripcion, @param, @return, @throws\n// - Constantes: descripcion del valor"
+        },
+        {
+          "id": "ex-15-5-2",
+          "difficulty": "intermediate",
+          "title": "Crear README.md",
+          "description": "Crea un README.md completo con: descripción, requisitos, compilación, estructura, funcionalidades, controles y autor.",
+          "solution": "// Ver ejemplo de README.md en el bloque de codigo de la leccion.\n// Incluir al menos:\n// - Titulo y descripcion\n// - Requisitos (Java 21)\n// - Como compilar y ejecutar\n// - Estructura de carpetas\n// - Lista de funcionalidades\n// - Autor y fecha"
+        },
+        {
+          "id": "ex-15-5-3",
+          "difficulty": "advanced",
+          "title": "Presentación del proyecto",
+          "description": "Prepara una presentación de 5 minutos del proyecto: muestra el modelo de clases, una demo en vivo del menú, explica las decisiones de diseño y muestra el Javadoc generado.",
+          "solution": "guion de presentacion:\n\n1. INTRODUCCION (1 min)\n   - Que es el SGN\n   - Que tecnologias usa\n   - Que conceptos integra\n\n2. MODELO DE CLASES (1 min)\n   - Jerarquia: Persona â†’ Alumno, Profesor\n   - Composicion: HistorialAcademico, Nota\n   - Enum: TipoEvaluacion\n   - Excepciones personalizadas\n\n3. DEMO EN VIVO (2 min)\n   - Crear alumno\n   - Crear curso\n   - Matricular\n   - Asignar notas\n   - Ver estadisticas\n   - Guardar datos\n   - Generar informe\n\n4. DECISIONES DE DISENO (1 min)\n   - Por que paquetes separados\n   - Por que serialización\n   - Por que excepciones personalizadas\n   - Mejores practicas aplicadas"
+        }
+      ],
+      "commonErrors": [
+        "Entregar el proyecto sin Javadoc: la documentación es parte de la evaluación.",
+        "Olvidar el README.md: sin instrucciones de uso, el evaluador no sabe cómo ejecutar el proyecto.",
+        "No refactoring: código con nombres de variables como `a`, `n`, `x` es inaceptable en un proyecto final.",
+        "No hacer una demo previa: la presentación en vivo debe ser fluida, sin errores.",
+        "No comprobar que todo compila antes de entregar."
+      ],
+      "keyConcepts": [
+        "Javadoc completo: clases, métodos, constructores, constantes",
+        "README.md: instrucciones de uso del proyecto",
+        "Refactoring: nombres claros, código limpio, sin duplicación",
+        "Lista de verificación: comprobar todos los requisitos",
+        "Presentación del proyecto: modelo, demo, decisiones",
+        "Entrega final: proyecto completo, documentado y funcional"
+      ],
+      "learningOutcomes": [
+        "RA1",
+        "RA2",
+        "RA3",
+        "RA4",
+        "RA5",
+        "RA6",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA1.i",
+        "RA3.g",
+        "RA7.h"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Sistema de Gestión de Notas — Proyecto final completo",
+    "description": "El proyecto final del curso. Desarrolla el **Sistema de Gestión de Notas (SGN)** de forma completa:\n\n**Modelo de datos (lección 15-2):**\n- Persona (abstracta) â†’ Alumno, Profesor\n- Curso con control de capacidad\n- Nota con TipoEvaluacion (enum)\n- HistorialAcademico (composición)\n- Excepciones: NotaInvalidaException, EmailInvalidoException, CursoLlenoException, AlumnoNoEncontradoException, NombreInvalidoException\n\n**Funcionalidad (lección 15-3):**\n- GestorAcademico con toda la lógica\n- Menú interactivo por consola\n- CRUD de alumnos y cursos\n- Asignación de notas con validación\n- Estadísticas: medias, ranking, aprobados/suspensos\n- Búsqueda por nombre, email, rango de notas\n\n**Persistencia (lección 15-4):**\n- Serialización de GestorAcademico con backup\n- Exportación a CSV\n- Generación de informe de texto formateado\n\n**Documentación (lección 15-5):**\n- Javadoc completo en todas las clases y métodos públicos\n- README.md con instrucciones de uso\n- Código refactorizado y limpio\n\n**Tecnologías integradas:**\n- Clases y objetos (Alumno, Curso, Nota)\n- Herencia (Persona â†’ Alumno, Profesor)\n- Polimorfismo (getRol(), toString())\n- Composición (Alumno â†’ HistorialAcademico â†’ Nota)\n- Genéricos (List<T>, Optional<T>)\n- Enum (TipoEvaluacion)\n- Colecciones (List, ArrayList, Stream)\n- Excepciones checked y unchecked\n- Ficheros (serialización, CSV)\n- Expresiones regulares (validación)\n- Documentación (Javadoc)\n- Comparable y equals/hashCode",
+    "learningOutcomes": [
+      "RA1",
+      "RA2",
+      "RA3",
+      "RA4",
+      "RA5",
+      "RA6",
+      "RA7"
+    ],
+    "assessmentCriteria": [
+      "RA1.a",
+      "RA1.b",
+      "RA1.c",
+      "RA1.d",
+      "RA1.e",
+      "RA1.f",
+      "RA1.g",
+      "RA1.h",
+      "RA1.i",
+      "RA2.a",
+      "RA2.b",
+      "RA2.c",
+      "RA2.d",
+      "RA2.e",
+      "RA2.f",
+      "RA2.g",
+      "RA2.h",
+      "RA2.i",
+      "RA3.a",
+      "RA3.b",
+      "RA3.c",
+      "RA3.d",
+      "RA3.e",
+      "RA3.f",
+      "RA3.g",
+      "RA3.h",
+      "RA3.i",
+      "RA4.a",
+      "RA4.b",
+      "RA4.c",
+      "RA4.d",
+      "RA4.e",
+      "RA4.f",
+      "RA4.g",
+      "RA4.h",
+      "RA4.i",
+      "RA5.a",
+      "RA5.b",
+      "RA5.c",
+      "RA5.d",
+      "RA5.e",
+      "RA6.a",
+      "RA6.b",
+      "RA6.c",
+      "RA6.d",
+      "RA6.e",
+      "RA6.f",
+      "RA6.g",
+      "RA6.h",
+      "RA6.i",
+      "RA6.j",
+      "RA7.a",
+      "RA7.b",
+      "RA7.c",
+      "RA7.d",
+      "RA7.e",
+      "RA7.f",
+      "RA7.g",
+      "RA7.h",
+      "RA7.i",
+      "RA7.j"
+    ]
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "id": "programming-0485",
+  "title": "Programación",
+  "officialName": "Programación",
+  "moduleCode": "0485",
+  "description": "Curso completo de programación para 1.º DAM/DAW. Aprende Java desde cero hasta programación orientada a objetos, colecciones, excepciones, ficheros, GUI, bases de datos y proyecto integrador.",
+  "degrees": ["DAM", "DAW"],
+  "year": 1,
+  "ects": 14,
+  "stateMinimumHours": 135,
+  "andalusiaHoursPendingVerification": "272h",
+  "status": "draft",
+  "language": "es-ES",
+  "programmingLanguage": "Java 21 LTS",
+  "jdk": "Eclipse Temurin 21",
+  "ide": "Eclipse IDE for Java Developers",
+  "sources": [
+    {"id": "BOE-A-2023-13221", "url": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-13221"}
+  ],
+  "phases": [
+    {
+      "id": "phase-1",
+      "title": "Fundamentos",
+      "description": "Primer contacto con la programación. Variables, tipos, operadores, E/S básica.",
+      "modules": ["mod-01", "mod-02"]
+    },
+    {
+      "id": "phase-2",
+      "title": "Control del programa",
+      "description": "Estructuras de control: selección, repetición, excepciones básicas.",
+      "modules": ["mod-03", "mod-04"]
+    },
+    {
+      "id": "phase-3",
+      "title": "Estructuración del código",
+      "description": "Métodos, parámetros, retorno, scope, sobrecarga.",
+      "modules": ["mod-05"]
+    },
+    {
+      "id": "phase-4",
+      "title": "Programación orientada a objetos",
+      "description": "Clases, objetos, herencia, polimorfismo, interfaces.",
+      "modules": ["mod-06", "mod-07", "mod-08", "mod-09", "mod-10"]
+    },
+    {
+      "id": "phase-5",
+      "title": "Estructuras y colecciones",
+      "description": "Arrays, matrices, List, ArrayList, genéricos, expresiones regulares, Stream API.",
+      "modules": ["mod-11", "mod-12"]
+    },
+    {
+      "id": "phase-6",
+      "title": "Persistencia y herramientas",
+      "description": "Excepciones avanzadas, ficheros, interfaces gráficas, bases de datos.",
+      "modules": ["mod-13", "mod-14", "mod-15", "mod-16", "mod-17"]
+    },
+    {
+      "id": "phase-7",
+      "title": "Aplicación integrada",
+      "description": "Proyecto final que integra todos los conceptos.",
+      "modules": ["mod-18"]
+    }
+  ],
+  "curriculumMapping": {
+    "RA1": ["mod-01"],
+    "RA2": ["mod-01", "mod-06"],
+    "RA3": ["mod-03", "mod-04"],
+    "RA4": ["mod-06", "mod-07", "mod-08", "mod-09"],
+    "RA5": ["mod-02", "mod-14", "mod-15"],
+    "RA6": ["mod-11", "mod-12"],
+    "RA7": ["mod-08", "mod-09", "mod-10"],
+    "RA8": ["mod-16"],
+    "RA9": ["mod-17"]
+  },
+  "estimatedHours": {
+    "contentTime": 55,
+    "practiceTime": 70,
+    "projectTime": 30,
+    "totalEstimatedLearnerTime": 155
+  }
+}

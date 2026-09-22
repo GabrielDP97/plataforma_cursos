@@ -1,0 +1,301 @@
+{
+  "id": "mod-13",
+  "title": "Excepciones avanzadas",
+  "description": "Módulo de refuerzo sobre excepciones en Java: jerarquía completa de excepciones, creación de excepciones personalizadas para reglas de negocio, try-with-resources y AutoCloseable. Se refuerzan los conceptos de RA3 y RA7 con un enfoque práctico en el dominio de gestión académica.",
+  "phase": "phase-6",
+  "position": 13,
+  "learningOutcomes": [
+    "RA3",
+    "RA7"
+  ],
+  "assessmentCriteria": [
+    "RA3.d",
+    "RA3.h",
+    "RA7.h"
+  ],
+  "officialContents": [
+    "Uso de estructuras de control",
+    "Utilización avanzada de clases"
+  ],
+  "duration": "10 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-10"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-13-1",
+      "title": "Jerarquía de excepciones en Java",
+      "objectives": [
+        "Conocer la jerarquía completa de excepciones: Throwable, Error, Exception, RuntimeException",
+        "Diferenciar entre checked y unchecked exceptions",
+        "Entender cuándo usar try-catch y cuándo propagar con throws",
+        "Usar finally para limpieza de recursos",
+        "Aplicar excepciones al dominio de gestión académica"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "La jerarquía de excepciones",
+          "content": "En Java, todas las excepciones y errores heredan de `Throwable`. La jerarquía es:\n\n```\nThrowable\nâ”œâ”€â”€ Error (no se capturan — problemas del sistema)\nâ”‚   â”œâ”€â”€ OutOfMemoryError\nâ”‚   â”œâ”€â”€ StackOverflowError\nâ”‚   â””â”€â”€ VirtualMachineError\nâ”‚\nâ””â”€â”€ Exception (se capturan y gestionan)\n    â”œâ”€â”€ RuntimeException (UNCHECKED — no obligatorio capturar)\n    â”‚   â”œâ”€â”€ NullPointerException\n    â”‚   â”œâ”€â”€ ArrayIndexOutOfBoundsException\n    â”‚   â”œâ”€â”€ IllegalArgumentException\n    â”‚   â”œâ”€â”€ ArithmeticException\n    â”‚   â”œâ”€â”€ ClassCastException\n    â”‚   â””â”€â”€ NoSuchElementException\n    â”‚\n    â””â”€â”€ checked exceptions (OBLIGATORIO capturar o propagar)\n        â”œâ”€â”€ IOException\n        â”œâ”€â”€ FileNotFoundException\n        â”œâ”€â”€ SQLException\n        â”œâ”€â”€ ClassNotFoundException\n        â””â”€â”€ ParseException\n```\n\n**Reglas importantes:**\n- **Unchecked exceptions** (RuntimeException y subclases): el compilador NO obliga a capturarlas. Son errores de programación.\n- **Checked exceptions** (Exception y subclases, NO RuntimeException): el compilador OBLIGA a capturarlas con try-catch o propagarlas con `throws`.\n- **Error**: problemas graves del JVM (OutOfMemory, StackOverflow). No se deben capturar."
+        },
+        {
+          "type": "code",
+          "title": "Try-catch-finally completo",
+          "language": "java",
+          "content": "import java.io.*;\nimport java.util.Scanner;\n\npublic class TryCatchFinally {\n    public static void main(String[] args) {\n        // === ESTRUCTURA BASICA ===\n        try {\n            int resultado = 10 / 0; // ArithmeticException\n            System.out.println(\"Resultado: \" + resultado);\n        } catch (ArithmeticException e) {\n            System.out.println(\"Error aritmetico: \" + e.getMessage());\n        } finally {\n            System.out.println(\"Se ejecuta SIEMPRE\");\n        }\n\n        // === MULTI-CATCH ===\n        try {\n            String texto = null;\n            texto.length(); // NullPointerException\n        } catch (NullPointerException | ArrayIndexOutOfBoundsException e) {\n            System.out.println(\"Error de acceso: \" + e.getClass().getSimpleName());\n        }\n\n        // === PROPAGACION CON THROWS ===\n        try {\n            leerArchivo(\"datos.txt\");\n        } catch (FileNotFoundException e) {\n            System.out.println(\"No se encontro: \" + e.getMessage());\n        } catch (IOException e) {\n            System.out.println(\"Error de E/S: \" + e.getMessage());\n        }\n    }\n\n    // Metodo que propaga la excepcion (no la captura)\n    static void leerArchivo(String ruta) throws FileNotFoundException, IOException {\n        try (Scanner sc = new Scanner(new File(ruta))) {\n            while (sc.hasNextLine()) {\n                System.out.println(sc.nextLine());\n            }\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Excepciones en el dominio académico",
+          "language": "java",
+          "content": "public class GestionAcademicaExcepciones {\n\n    // Metodo que lanza una excepcion checked\n    public static double calcularMedia(double[] notas) throws IllegalArgumentException {\n        if (notas == null || notas.length == 0) {\n            throw new IllegalArgumentException(\"El array de notas no puede estar vacio\");\n        }\n        double suma = 0;\n        for (double nota : notas) {\n            if (nota < 0 || nota > 10) {\n                throw new IllegalArgumentException(\n                    \"Nota invalida: \" + nota + \". Debe estar entre 0 y 10.\");\n            }\n            suma += nota;\n        }\n        return suma / notas.length;\n    }\n\n    // Metodo que captura y relanza\n    public static void procesarAlumno(String nombre, double[] notas) {\n        try {\n            double media = calcularMedia(notas);\n            System.out.printf(\"%s: media = %.2f%n\", nombre, media);\n        } catch (IllegalArgumentException e) {\n            System.out.println(\"Error procesando \" + nombre + \": \" + e.getMessage());\n        }\n    }\n\n    public static void main(String[] args) {\n        procesarAlumno(\"Ana\", new double[]{8.5, 7.0, 9.2});\n        procesarAlumno(\"Carlos\", new double[]{7.0, -1.0, 8.0}); // Nota invalida\n        procesarAlumno(\"Maria\", new double[]{});                  // Array vacio\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Cuándo usar try-catch vs throws",
+          "content": "| Situación | Enfoque | Ejemplo |\n|-----------|---------|----------|\n| Error recuperable | try-catch | Archivo no encontrado â†’ mostrar mensaje |\n| Error de programación | Dejar que falle | NullPointerException â†’ corregir el código |\n| Excepción checked heredada | try-catch o throws | Depende del contexto |\n| método main | try-catch | Capturar errores globales |\n| método utilitario | throws | Dejar que el llamador decida |\n\n**Principios:**\n1. **No ignores excepciones**: un catch vacío es peor que no tener try-catch.\n2. **Captura lo más específico posible**: `FileNotFoundException` en lugar de `Exception`.\n3. **No uses excepciones para flujo de control**: `if` es más rápido y legible.\n4. **Propaga si no puedes manejar**: si no sabes qué hacer con el error, propágalo."
+        },
+        {
+          "type": "code",
+          "title": "Excepciones con stack trace completa",
+          "language": "java",
+          "content": "public class StackTraceEjemplo {\n\n    public static void nivel3() {\n        throw new RuntimeException(\"Error en nivel 3\");\n    }\n\n    public static void nivel2() {\n        nivel3(); // La excepcion se propaga\n    }\n\n    public static void nivel1() {\n        nivel2(); // La excepcion se propaga\n    }\n\n    public static void main(String[] args) {\n        try {\n            nivel1();\n        } catch (RuntimeException e) {\n            // Mostrar stack trace completa\n            System.out.println(\"Mensaje: \" + e.getMessage());\n            System.out.println(\"\\nStack trace:\");\n            e.printStackTrace();\n\n            // Obtener solo los elementos relevantes\n            StackTraceElement[] trace = e.getStackTrace();\n            System.out.println(\"\\nElementos relevantes:\");\n            for (StackTraceElement elem : trace) {\n                System.out.printf(\"  %s.%s (linea %d)%n\",\n                    elem.getClassName(),\n                    elem.getMethodName(),\n                    elem.getLineNumber());\n            }\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-1-1",
+          "difficulty": "basic",
+          "title": "Capturar diferentes tipos de excepción",
+          "description": "Crea un programa que lance intencionadamente: ArithmeticException, ArrayIndexOutOfBoundsException y NullPointerException. Captura cada una con un mensaje específico.",
+          "solution": "public class CapturarExcepciones {\n    public static void main(String[] args) {\n        // ArithmeticException\n        try {\n            int r = 10 / 0;\n        } catch (ArithmeticException e) {\n            System.out.println(\"Aritmetica: \" + e.getMessage());\n        }\n        \n        // ArrayIndexOutOfBoundsException\n        try {\n            int[] arr = {1, 2, 3};\n            int x = arr[10];\n        } catch (ArrayIndexOutOfBoundsException e) {\n            System.out.println(\"Indice: \" + e.getMessage());\n        }\n        \n        // NullPointerException\n        try {\n            String s = null;\n            s.length();\n        } catch (NullPointerException e) {\n            System.out.println(\"Nulo: \" + e.getClass().getSimpleName());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-13-1-2",
+          "difficulty": "intermediate",
+          "title": "Validar entrada con excepciones",
+          "description": "Crea un método que pida la edad al usuario (simulado) y lance una IllegalArgumentException si la edad no está entre 0 y 120. Captura la excepción y vuelve a pedir.",
+          "solution": "public class ValidarEdad {\n    public static int pedirEdad(int edadSimulada) throws IllegalArgumentException {\n        if (edadSimulada < 0 || edadSimulada > 120) {\n            throw new IllegalArgumentException(\n                \"Edad invalida: \" + edadSimulada + \". Debe estar entre 0 y 120.\");\n        }\n        return edadSimulada;\n    }\n    \n    public static void main(String[] args) {\n        int[] edadesSimuladas = {-5, 150, 25, 0, 120};\n        \n        for (int edad : edadesSimuladas) {\n            try {\n                int resultado = pedirEdad(edad);\n                System.out.println(\"Edad valida: \" + resultado);\n            } catch (IllegalArgumentException e) {\n                System.out.println(\"Error: \" + e.getMessage());\n            }\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-13-1-3",
+          "difficulty": "advanced",
+          "title": "Sistema de gestión con manejo de excepciones",
+          "description": "Crea un método que dado un array de notas y un nombre de alumno, calcule la media. Debe lanzar excepciones para: array null, array vacío, notas fuera de rango [0,10]. Usa finally para mostrar un mensaje de \"proceso completado\" siempre.",
+          "solution": "public class SistemaNotas {\n    public static double calcularMedia(String nombre, double[] notas)\n            throws IllegalArgumentException {\n        try {\n            if (notas == null) {\n                throw new IllegalArgumentException(\"El array de notas es null\");\n            }\n            if (notas.length == 0) {\n                throw new IllegalArgumentException(\"El array de notas esta vacio\");\n            }\n            double suma = 0;\n            for (double nota : notas) {\n                if (nota < 0 || nota > 10) {\n                    throw new IllegalArgumentException(\n                        \"Nota invalida: \" + nota + \" (debe ser 0-10)\");\n                }\n                suma += nota;\n            }\n            return suma / notas.length;\n        } finally {\n            System.out.println(\"Proceso completado para: \" + nombre);\n        }\n    }\n    \n    public static void main(String[] args) {\n        String[] alumnos = {\"Ana\", \"Carlos\", \"Maria\"};\n        double[][] notas = {\n            {8.5, 7.0, 9.2},\n            {7.0, -1.0, 8.0},\n            {}\n        };\n        \n        for (int i = 0; i < alumnos.length; i++) {\n            try {\n                double media = calcularMedia(alumnos[i], notas[i]);\n                System.out.printf(\"%s: media = %.2f%n\", alumnos[i], media);\n            } catch (IllegalArgumentException e) {\n                System.out.println(\"Error para \" + alumnos[i] + \": \" + e.getMessage());\n            }\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Capturar Exception en lugar de la excepción específica: pierdes información sobre el tipo de error.",
+        "Crear catch vacío: `catch (Exception e) {}` oculta errores y hace imposible depurar.",
+        "Usar exceptions para flujo de control: `if-else` es más eficiente que try-catch.",
+        "Olvidar que finally se ejecuta incluso con return: puede causar comportamientos inesperados.",
+        "Lanzar NullPointerException en lugar de validar parámetros: usa IllegalArgumentException."
+      ],
+      "keyConcepts": [
+        "Jerarquía: Throwable â†’ Error, Exception â†’ RuntimeException",
+        "Checked exceptions: obligatorio capturar o propagar con throws",
+        "Unchecked exceptions (RuntimeException): no obligatorio capturar",
+        "Try-catch-finally: manejo completo de excepciones",
+        "Multi-catch: capturar múltiples excepciones en un solo catch",
+        "Propagación con throws: delegar el manejo al llamador",
+        "Stack trace: información completa del error"
+      ],
+      "learningOutcomes": [
+        "RA3"
+      ],
+      "assessmentCriteria": [
+        "RA3.d"
+      ]
+    },
+    {
+      "id": "lesson-13-2",
+      "title": "Excepciones personalizadas",
+      "objectives": [
+        "Crear excepciones checked heredando de Exception",
+        "Crear excepciones unchecked heredando de RuntimeException",
+        "Añadir campos y constructores personalizados a las excepciones",
+        "Diseñar un sistema de excepciones para el dominio de gestión académica",
+        "Usar causas (chained exceptions) para depurar errores complejos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Por qué crear excepciones propias?",
+          "content": "Las excepciones de Java (`IllegalArgumentException`, `NullPointerException`...) son genéricas. En aplicaciones reales, necesitas excepciones que describan **errores específicos del negocio**:\n\n- Un alumno no puede tener nota negativa â†’ `NotaInvalidaException`\n- No se puede matricular en un curso lleno â†’ `CursoLlenoException`\n- El email del alumno no tiene formato válido â†’ `EmailInvalidoException`\n\n**Ventajas de las excepciones personalizadas:**\n1. **Semántica**: el nombre describe exactamente qué salió mal.\n2. **Datos**: puedes incluir información relevante (el valor inválido, el alumno, etc.).\n3. **Manejo específico**: puedes capturar solo ese tipo de error.\n4. **Legibilidad**: `catch (NotaInvalidaException e)` es más claro que `catch (IllegalArgumentException e)`."
+        },
+        {
+          "type": "code",
+          "title": "Excepción personalizada checked: NotaInvalidaException",
+          "language": "java",
+          "content": "/**\n * Excepcion que se lanza cuando se intenta asignar una nota\n * fuera del rango valido (0.0 - 10.0).\n */\npublic class NotaInvalidaException extends Exception {\n\n    private final double notaInvalida;\n    private final String alumno;\n\n    /**\n     * Crea una NotaInvalidaException con la nota y el alumno.\n     * \n     * @param notaInvalida la nota que causo el error\n     * @param alumno nombre del alumno afectado\n     */\n    public NotaInvalidaException(double notaInvalida, String alumno) {\n        super(String.format(\n            \"Nota invalida: %.1f para el alumno '%s'. Debe estar entre 0.0 y 10.0.\",\n            notaInvalida, alumno));\n        this.notaInvalida = notaInvalida;\n        this.alumno = alumno;\n    }\n\n    /** Obtiene la nota que causo el error */\n    public double getNotaInvalida() { return notaInvalida; }\n\n    /** Obtiene el nombre del alumno */\n    public String getAlumno() { return alumno; }\n}\n\n// Uso:\npublic class Alumno {\n    private String nombre;\n    private double notaMedia;\n\n    public void setNotaMedia(double nota) throws NotaInvalidaException {\n        if (nota < 0 || nota > 10) {\n            throw new NotaInvalidaException(nota, nombre);\n        }\n        this.notaMedia = nota;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Excepción unchecked: CursoLlenoException",
+          "language": "java",
+          "content": "/**\n * Excepcion unchecked que se lanza cuando se intenta matricular\n * en un curso que ya tiene el maximo de alumnos.\n */\npublic class CursoLlenoException extends RuntimeException {\n\n    private final String curso;\n    private final int capacidadMaxima;\n    private final int alumnosActuales;\n\n    public CursoLlenoException(String curso, int capacidad, int actuales) {\n        super(String.format(\n            \"El curso '%s' esta lleno (%d/%d alumnos).\",\n            curso, actuales, capacidad));\n        this.curso = curso;\n        this.capacidadMaxima = capacidad;\n        this.alumnosActuales = actuales;\n    }\n\n    public String getCurso() { return curso; }\n    public int getCapacidadMaxima() { return capacidadMaxima; }\n    public int getAlumnosActuales() { return alumnosActuales; }\n}\n\n// Uso:\npublic class Curso {\n    private String nombre;\n    private int capacidadMaxima;\n    private List<Alumno> alumnos;\n\n    public void matricular(Alumno alumno) {\n        if (alumnos.size() >= capacidadMaxima) {\n            throw new CursoLlenoException(nombre, capacidadMaxima, alumnos.size());\n        }\n        alumnos.add(alumno);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Excepciones con causa (chained exceptions)",
+          "language": "java",
+          "content": "import java.io.*;\n\n/**\n * Excepcion que se lanza al procesar datos de un alumno.\n */\npublic class ErrorProcesamientoException extends Exception {\n    public ErrorProcesamientoException(String mensaje, Throwable causa) {\n        super(mensaje, causa); // Guarda la causa original\n    }\n}\n\npublic class ProcesadorAlumnos {\n\n    public static void procesarArchivo(String ruta) throws ErrorProcesamientoException {\n        try {\n            BufferedReader reader = new BufferedReader(new FileReader(ruta));\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                // Procesar cada linea...\n            }\n            reader.close();\n        } catch (FileNotFoundException e) {\n            // Relanzar con causa\n            throw new ErrorProcesamientoException(\n                \"No se encontro el archivo: \" + ruta, e);\n        } catch (IOException e) {\n            throw new ErrorProcesamientoException(\n                \"Error leyendo el archivo: \" + ruta, e);\n        } catch (Exception e) {\n            throw new ErrorProcesamientoException(\n                \"Error procesando datos del archivo\", e);\n        }\n    }\n\n    public static void main(String[] args) {\n        try {\n            procesarArchivo(\"alumnos.txt\");\n        } catch (ErrorProcesamientoException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n            System.out.println(\"Causa original: \" + e.getCause().getClass().getSimpleName());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Sistema completo de excepciones del dominio",
+          "language": "java",
+          "content": "// === Jerarquia de excepciones del dominio ===\n\n// Excepcion base del dominio\npublic class GestionAcademicaException extends Exception {\n    public GestionAcademicaException(String mensaje) { super(mensaje); }\n    public GestionAcademicaException(String mensaje, Throwable causa) { super(mensaje, causa); }\n}\n\n// Excepciones de validacion\npublic class NotaInvalidaException extends GestionAcademicaException {\n    private final double nota;\n    public NotaInvalidaException(double nota) {\n        super(\"Nota invalida: \" + nota + \" (debe ser 0-10)\");\n        this.nota = nota;\n    }\n    public double getNota() { return nota; }\n}\n\npublic class EmailInvalidoException extends GestionAcademicaException {\n    private final String email;\n    public EmailInvalidoException(String email) {\n        super(\"Email invalido: \" + email);\n        this.email = email;\n    }\n    public String getEmail() { return email; }\n}\n\n// Excepciones de negocio\npublic class CursoLlenoException extends GestionAcademicaException {\n    private final String curso;\n    private final int capacidad;\n    public CursoLlenoException(String curso, int capacidad) {\n        super(\"Curso \" + curso + \" lleno (\" + capacidad + \" alumnos max)\");\n        this.curso = curso;\n        this.capacidad = capacidad;\n    }\n}\n\npublic class AlumnoNoEncontradoException extends GestionAcademicaException {\n    private final String nombre;\n    public AlumnoNoEncontradoException(String nombre) {\n        super(\"Alumno no encontrado: \" + nombre);\n        this.nombre = nombre;\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-2-1",
+          "difficulty": "basic",
+          "title": "Crear una excepción personalizada",
+          "description": "Crea una excepción `EdadInvalidaException` que se lance cuando la edad no esté entre 0 y 150. Debe incluir el valor de la edad inválida.",
+          "solution": "public class EdadInvalidaException extends Exception {\n    private final int edad;\n    \n    public EdadInvalidaException(int edad) {\n        super(\"Edad invalida: \" + edad + \" (debe ser 0-150)\");\n        this.edad = edad;\n    }\n    \n    public int getEdad() { return edad; }\n    \n    public static void main(String[] args) {\n        int[] edades = {25, -5, 200, 0, 150};\n        for (int edad : edades) {\n            try {\n                if (edad < 0 || edad > 150) throw new EdadInvalidaException(edad);\n                System.out.println(\"Edad valida: \" + edad);\n            } catch (EdadInvalidaException e) {\n                System.out.println(e.getMessage());\n            }\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-13-2-2",
+          "difficulty": "intermediate",
+          "title": "Jerarquía de excepciones del dominio",
+          "description": "Crea una jerarquía de excepciones: `InscripcionException` (base) â†’ `CursoLlenoException`, `AlumnoYaInscritoException`, `AlumnoNoEncontradoException`. Usa cada una en un programa de matriculación.",
+          "solution": "public class InscripcionException extends Exception {\n    public InscripcionException(String msg) { super(msg); }\n}\n\npublic class CursoLlenoException extends InscripcionException {\n    public CursoLlenoException(String curso, int max) {\n        super(\"Curso \" + curso + \" lleno (max: \" + max + \")\");\n    }\n}\n\npublic class AlumnoYaInscritoException extends InscripcionException {\n    public AlumnoYaInscritoException(String alumno, String curso) {\n        super(alumno + \" ya esta inscrito en \" + curso);\n    }\n}\n\n// Uso:\npublic class SistemaInscripcion {\n    public static void inscribir(String alumno, String curso, int numAlumnos, int capacidad)\n            throws InscripcionException {\n        if (numAlumnos >= capacidad) throw new CursoLlenoException(curso, capacidad);\n        // Simular que ya esta inscrito\n        throw new AlumnoYaInscritoException(alumno, curso);\n    }\n    \n    public static void main(String[] args) {\n        try {\n            inscribir(\"Ana\", \"Prog\", 25, 25);\n        } catch (InscripcionException e) {\n            System.out.println(e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-13-2-3",
+          "difficulty": "advanced",
+          "title": "Sistema de validación completo con excepciones",
+          "description": "Crea un validador que use excepciones personalizadas para validar un objeto Alumno completo: nombre (no vacío, primera mayúscula), email (regex), edad (0-150). Cada campo con su excepción específica.",
+          "solution": "import java.util.regex.Pattern;\n\npublic class ValidadorAlumno {\n    private static final Pattern PATRON_EMAIL =\n        Pattern.compile(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\+.[a-zA-Z]{2,}$\");\n    \n    public static void validar(String nombre, String email, int edad)\n            throws NombreInvalidoException, EmailInvalidoException, EdadInvalidaException {\n        if (nombre == null || nombre.isBlank() ||\n            !Character.isUpperCase(nombre.charAt(0))) {\n            throw new NombreInvalidoException(nombre);\n        }\n        if (email == null || !PATRON_EMAIL.matcher(email).matches()) {\n            throw new EmailInvalidoException(email);\n        }\n        if (edad < 0 || edad > 150) {\n            throw new EdadInvalidaException(edad);\n        }\n    }\n    \n    public static void main(String[] args) {\n        String[][] alumnos = {\n            {\"Ana\", \"ana@email.com\", \"20\"},\n            {\"ana\", \"ana@email.com\", \"20\"},\n            {\"Carlos\", \"sin@\", \"22\"},\n            {\"Maria\", \"maria@email.com\", \"-5\"}\n        };\n        \n        for (String[] a : alumnos) {\n            try {\n                validar(a[0], a[1], Integer.parseInt(a[2]));\n                System.out.println(\"OK: \" + a[0]);\n            } catch (NombreInvalidoException | EmailInvalidoException | EdadInvalidaException e) {\n                System.out.println(\"ERROR: \" + e.getMessage());\n            }\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Crear unchecked exceptions para errores recuperables: los clientes pueden ignorarlas fácilmente.",
+        "No incluir información útil en la excepción: nombre del campo, valor inválido, contexto.",
+        "Heredar de Exception para todo: si es un error de programación, usa RuntimeException.",
+        "No crear una jerarquía coherente: todas las excepciones del dominio deben heredar de una base común.",
+        "Olvidar el constructor con Throwable causa para chained exceptions."
+      ],
+      "keyConcepts": [
+        "Excepciones checked: heredar de Exception, obligatorio capturar",
+        "Excepciones unchecked: heredar de RuntimeException, opcional capturar",
+        "Campos personalizados: guardar información del error",
+        "Constructores con causa: Throwable para chained exceptions",
+        "Jerarquía de excepciones: base del dominio â†’ excepciones específicas",
+        "Principio: semántica clara en el nombre de la excepción"
+      ],
+      "learningOutcomes": [
+        "RA3",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA3.h",
+        "RA7.h"
+      ]
+    },
+    {
+      "id": "lesson-13-3",
+      "title": "try-with-resources y AutoCloseable",
+      "objectives": [
+        "Comprender el problema de la gestión manual de recursos",
+        "Usar try-with-resources para gestión automática de recursos",
+        "Implementar la interfaz AutoCloseable en clases propias",
+        "Aplicar try-with-resources a archivos, conexiones y objetos del dominio",
+        "Comparar try-with-resources con try-finally"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "El problema de la gestión manual de recursos",
+          "content": "Antes de Java 7, para liberar recursos (archivos, conexiones, streams) se usaba `try-finally`:\n\n```java\nBufferedReader reader = null;\ntry {\n    reader = new BufferedReader(new FileReader(\"datos.txt\"));\n    String linea = reader.readLine();\n    System.out.println(linea);\n} catch (IOException e) {\n    e.printStackTrace();\n} finally {\n    if (reader != null) {\n        try {\n            reader.close(); // Liberar el recurso\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n}\n```\n\n**Problemas:**\n1. Mucho código repetitivo y verboso.\n2. Fácil olvidar cerrar el recurso (memory leak).\n3. Manejo doble de excepciones: una en try, otra en finally.\n\nLa solución es **try-with-resources** (Java 7+): el recurso se cierra automáticamente."
+        },
+        {
+          "type": "code",
+          "title": "try-with-resources: la forma moderna",
+          "language": "java",
+          "content": "import java.io.*;\n\npublic class TryWithResources {\n    public static void main(String[] args) {\n\n        // === ARCHIVO: leer con try-with-resources ===\n        // El recurso se declara entre parentesis y se cierra automaticamente\n        try (BufferedReader reader = new BufferedReader(new FileReader(\"datos.txt\"))) {\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                System.out.println(linea);\n            }\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Archivo no encontrado: \" + e.getMessage());\n        } catch (IOException e) {\n            System.out.println(\"Error de lectura: \" + e.getMessage());\n        }\n        // reader.close() se ejecuta AUTOMATICAMENTE al salir del try\n\n        // === ESCRIBIR con try-with-resources ===\n        try (BufferedWriter writer = new BufferedWriter(new FileWriter(\"resultado.txt\"))) {\n            writer.write(\"Primera linea\");\n            writer.newLine();\n            writer.write(\"Segunda linea\");\n            writer.newLine();\n            writer.write(\"Tercera linea\");\n        } catch (IOException e) {\n            System.out.println(\"Error de escritura: \" + e.getMessage());\n        }\n\n        // === MULTIPLES recursos ===\n        try (BufferedReader reader = new BufferedReader(new FileReader(\"entrada.txt\"));\n             BufferedWriter writer = new BufferedWriter(new FileWriter(\"salida.txt\"))) {\n\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                writer.write(linea.toUpperCase());\n                writer.newLine();\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "AutoCloseable: implementar en nuestras clases",
+          "language": "java",
+          "content": "/**\n * Clase que representa una conexion simulada a una base de datos.\n * Implementa AutoCloseable para poder usarse en try-with-resources.\n */\npublic class ConexionBD implements AutoCloseable {\n    private String url;\n    private boolean conectada;\n\n    public ConexionBD(String url) {\n        this.url = url;\n        this.conectada = true;\n        System.out.println(\"Conexion abierta a: \" + url);\n    }\n\n    public void ejecutarConsulta(String sql) {\n        if (!conectada) {\n            throw new IllegalStateException(\"Conexion cerrada\");\n        }\n        System.out.println(\"Ejecutando: \" + sql);\n    }\n\n    /**\n     * Cierra la conexion. Se ejecuta automaticamente en try-with-resources.\n     */\n    @Override\n    public void close() {\n        if (conectada) {\n            conectada = false;\n            System.out.println(\"Conexion cerrada: \" + url);\n        }\n    }\n}\n\n// Uso:\npublic class EjemploConexion {\n    public static void main(String[] args) {\n        try (ConexionBD conn = new ConexionBD(\"jdbc:mysql://localhost:3306/mibase\")) {\n            conn.ejecutarConsulta(\"SELECT * FROM alumnos\");\n            conn.ejecutarConsulta(\"SELECT * FROM cursos\");\n        } // close() se ejecuta automaticamente\n        System.out.println(\"Conexion liberada\");\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "AutoCloseable en el dominio académico",
+          "language": "java",
+          "content": "/**\n * Sesion de gestion academica que puede abrirse y cerrarse.\n */\npublic class SesionAcademica implements AutoCloseable {\n    private String id;\n    private boolean abierta;\n    private java.util.List<String> operaciones;\n\n    public SesionAcademica(String id) {\n        this.id = id;\n        this.abierta = true;\n        this.operaciones = new java.util.ArrayList<>();\n        System.out.println(\"Sesion \" + id + \" abierta\");\n    }\n\n    public void registrarOperacion(String operacion) {\n        if (!abierta) throw new IllegalStateException(\"Sesion cerrada\");\n        operaciones.add(operacion);\n        System.out.println(\"  [\" + id + \"] \" + operacion);\n    }\n\n    @Override\n    public void close() {\n        if (abierta) {\n            abierta = false;\n            System.out.println(\"Sesion \" + id + \" cerrada. \" +\n                operaciones.size() + \" operaciones registradas.\");\n        }\n    }\n}\n\n// Uso:\npublic class EjemploSesion {\n    public static void main(String[] args) {\n        try (SesionAcademica sesion = new SesionAcademica(\"S001\")) {\n            sesion.registrarOperacion(\"Alumno Ana creado\");\n            sesion.registrarOperacion(\"Nota 8.5 asignada\");\n            sesion.registrarOperacion(\"Curso Programacion matriculado\");\n        }\n        // La sesion se cierra automaticamente aqui\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Comparación try-finally vs try-with-resources",
+          "content": "| Característica | try-finally | try-with-resources |\n|----------------|-------------|--------------------|\n| Cierre manual | Sí, en finally | Automático |\n| Código verboso | Mucho | Poco |\n| Riesgo de olvido | Alto | Ninguno |\n| Múltiples recursos | Tratamiento anidado | Lista entre paréntesis |\n| Requiere AutoCloseable | No | Sí |\n| Excepciones en close | Se pierden | Se agregan como suppressed |\n\n**Clases que implementan AutoCloseable:**\n- `InputStream`, `OutputStream` (todas las variantes)\n- `Reader`, `Writer` (todas las variantes)\n- `Connection`, `Statement`, `ResultSet` (JDBC)\n- `Scanner`\n- Cualquier clase que libere recursos que tú crees"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-3-1",
+          "difficulty": "basic",
+          "title": "Leer un archivo con try-with-resources",
+          "description": "Usa try-with-resources para leer un archivo de texto línea a línea y mostrarlo por consola. Maneja FileNotFoundException e IOException.",
+          "solution": "import java.io.*;\n\npublic class LeerArchivo {\n    public static void main(String[] args) {\n        try (BufferedReader reader = new BufferedReader(new FileReader(\"datos.txt\"))) {\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                System.out.println(linea);\n            }\n        } catch (FileNotFoundException e) {\n            System.out.println(\"Archivo no encontrado: \" + e.getMessage());\n        } catch (IOException e) {\n            System.out.println(\"Error de lectura: \" + e.getMessage());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-13-3-2",
+          "difficulty": "intermediate",
+          "title": "Recurso personalizado: TemporizadorAcademico",
+          "description": "Crea una clase `TemporizadorAcademico implements AutoCloseable` que mida el tiempo que tarda una operación académica. Al cerrarse, muestra el tiempo transcurrido.",
+          "solution": "public class TemporizadorAcademico implements AutoCloseable {\n    private String operacion;\n    private long inicio;\n    \n    public TemporizadorAcademico(String operacion) {\n        this.operacion = operacion;\n        this.inicio = System.currentTimeMillis();\n        System.out.println(\"Iniciando: \" + operacion);\n    }\n    \n    @Override\n    public void close() {\n        long fin = System.currentTimeMillis();\n        long duracion = fin - inicio;\n        System.out.printf(\"%s completada en %d ms%n\", operacion, duracion);\n    }\n    \n    public static void main(String[] args) {\n        try (TemporizadorAcademico timer = new TemporizadorAcademico(\"Calcular medias\")) {\n            // Simular trabajo\n            try {\n                Thread.sleep(150);\n            } catch (InterruptedException e) {\n                Thread.currentThread().interrupt();\n                System.out.println(\"Hilo interrumpido\");\n            }\n            System.out.println(\"Medias calculadas\");\n        }\n        // Timer se cierra y muestra el tiempo\n    }\n}"
+        },
+        {
+          "id": "ex-13-3-3",
+          "difficulty": "advanced",
+          "title": "Pipeline de procesamiento con recursos",
+          "description": "Crea un programa que lea un archivo de notas, procese cada línea (nombre,nota), calcule estadísticas y escriba el resultado en otro archivo. Usa try-with-resources con múltiples recursos y excepciones personalizadas.",
+          "solution": "import java.io.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class PipelineProcesamiento {\n    record Resultado(String nombre, double nota, String estado) {}\n    \n    public static void main(String[] args) {\n        List<Resultado> resultados = new ArrayList<>();\n        \n        // Leer notas\n        try (BufferedReader reader = new BufferedReader(new FileReader(\"notas.txt\"))) {\n            String linea;\n            while ((linea = reader.readLine()) != null) {\n                String[] partes = linea.split(\",\");\n                if (partes.length == 2) {\n                    String nombre = partes[0].trim();\n                    double nota = Double.parseDouble(partes[1].trim());\n                    String estado = nota >= 5 ? \"Aprobado\" : \"Suspensa\";\n                    resultados.add(new Resultado(nombre, nota, estado));\n                }\n            }\n        } catch (IOException e) {\n            System.out.println(\"Error leyendo: \" + e.getMessage());\n        }\n        \n        // Escribir resultados\n        try (BufferedWriter writer = new BufferedWriter(new FileWriter(\"resultados.txt\"))) {\n            writer.write(\"Nombre,Nota,Estado\");\n            writer.newLine();\n            for (Resultado r : resultados) {\n                writer.write(r.nombre() + \",\" + r.nota() + \",\" + r.estado());\n                writer.newLine();\n            }\n            System.out.println(\"Procesados \" + resultados.size() + \" registros\");\n        } catch (IOException e) {\n            System.out.println(\"Error escribiendo: \" + e.getMessage());\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Declarar el recurso fuera del try-with-resources: no se cerrará automáticamente.",
+        "Usar try-with-resources con clases que no implementan AutoCloseable: error de compilación.",
+        "Olvidar que try-with-resources también maneja las excepciones de close(): se agregan como suppressed.",
+        "No usar try-with-resources en operaciones de archivo: siempre es mejor que try-finally manual.",
+        "Crear recursos dentro del try sin declararlos entre paréntesis: no se cerrarán automáticamente."
+      ],
+      "keyConcepts": [
+        "AutoCloseable: interfaz con método close()",
+        "try-with-resources: declaración entre paréntesis, cierre automático",
+        "Múltiples recursos: lista separada por punto y coma",
+        "Excepciones suppressed: excepciones de close() que se agregan a la principal",
+        "Comparación con try-finally: menos código, más seguro",
+        "Clases útiles: BufferedReader, BufferedWriter, Scanner, Connection"
+      ],
+      "learningOutcomes": [
+        "RA3",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA3.d",
+        "RA7.h"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Sistema de gestión académica con manejo de excepciones",
+    "description": "Crea un sistema completo que gestione alumnos y cursos con un manejo robusto de excepciones:\n\n1. **Jerarquía de excepciones personalizadas**:\n   - `GestionAcademicaException` (base, checked)\n   - `NotaInvalidaException` — nota fuera de rango\n   - `EmailInvalidoException` — formato de email incorrecto\n   - `CursoLlenoException` — curso sin capacidad\n   - `AlumnoNoEncontradoException` — alumno inexistente\n   - `NombreInvalidoException` — nombre vacío o formato incorrecto\n\n2. **Clase Alumno validada**:\n   - Constructor que lance excepciones si los datos no son válidos\n   - Setter de nota que valide el rango\n   - Email validado con regex\n\n3. **Clase Curso con validación**:\n   - Capacidad máxima configurada\n   - Método matricular() que lance CursoLlenoException\n   - Método buscarAlumno() que lance AlumnoNoEncontradoException\n\n4. **Clase GestorAcademico con try-with-resources**:\n   - Implementa AutoCloseable\n   - Registra todas las operaciones realizadas\n   - Al cerrarse, muestra un resumen de operaciones\n\n5. **Procesador de archivos**:\n   - Leer notas desde archivo con try-with-resources\n   - Escribir informe en archivo con try-with-resources\n   - Manejar errores de archivo con excepciones personalizadas\n\n6. **Programa principal** con menú que:\n   - Cree alumnos validando datos\n   - Matricule en cursos con control de capacidad\n   - Asigne notas con validación\n   - Procese archivos de notas\n   - Muestre informes con estadísticas\n   - Use GestorAcademico en try-with-resources",
+    "learningOutcomes": [
+      "RA3",
+      "RA7"
+    ],
+    "assessmentCriteria": [
+      "RA3.d",
+      "RA3.h",
+      "RA7.h"
+    ]
+  }
+}

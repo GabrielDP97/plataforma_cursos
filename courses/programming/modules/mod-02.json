@@ -1,0 +1,316 @@
+{
+  "id": "mod-02",
+  "title": "Entrada/salida básica y formateo",
+  "description": "En este módulo se aprende a leer datos del teclado y a mostrar información formateada por consola. Se domina la clase Scanner para entrada de datos, se estudian las opciones de formateo de salida (printf, String.format) y se presenta una visión general de las librerías de E/S de Java.",
+  "phase": "phase-1",
+  "position": 2,
+  "learningOutcomes": [
+    "RA5"
+  ],
+  "assessmentCriteria": [
+    "RA5.a",
+    "RA5.b",
+    "RA5.c"
+  ],
+  "officialContents": [
+    "Lectura y escritura de información (parcial: entrada desde teclado, salida a pantalla, formatos)"
+  ],
+  "duration": "8 hours estimated",
+  "difficulty": "beginner",
+  "prerequisites": [
+    "mod-01"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-02-1",
+      "title": "Lectura de datos con Scanner",
+      "objectives": [
+        "Importar y crear un objeto Scanner para leer datos del teclado",
+        "Leer enteros, decimales, caracteres y cadenas de texto",
+        "Gestionar el salto de línea pendiente tras leer números",
+        "Crear programas interactivos que pidan datos al usuario"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Por qué necesitamos entrada de datos?",
+          "content": "Hasta ahora, todos nuestros programas tenían los datos escritos directamente en el código (hardcoded). Esto es útil para aprender, pero un programa real necesita recibir información del usuario en tiempo de ejecución.\n\nLa clase `Scanner`, que forma parte del paquete `java.util`, permite leer datos que el usuario escribe por teclado. Para usarla, primero debemos importarla:\n\n```java\nimport java.util.Scanner;\n```\n\nLuego creamos un objeto `Scanner` indicando de dónde leer (en nuestro caso, la entrada estándar, que es el teclado):\n\n```java\nScanner teclado = new Scanner(System.in);\n```\n\nUna vez creado, podemos usar sus métodos para leer diferentes tipos de datos.\n\n**Nota importante**: `Scanner` está en el paquete `java.util`, que forma parte de la API estándar de Java. No necesitas instalar nada adicional."
+        },
+        {
+          "type": "text",
+          "title": "Métodos de lectura de Scanner",
+          "content": "Scanner ofrece varios métodos para leer distintos tipos de datos:\n\n| Método | Tipo que lee | Ejemplo de entrada |\n|--------|-------------|--------------------|\n| `nextInt()` | `int` | `25` |\n| `nextLong()` | `long` | `3000000000L` |\n| `nextDouble()` | `double` | `8.5` |\n| `nextFloat()` | `float` | `3.14f` |\n| `nextByte()` | `byte` | `127` |\n| `nextBoolean()` | `boolean` | `true` |\n| `next()` | `String` (una palabra) | `hola` |\n| `nextLine()` | `String` (línea completa) | `hola mundo` |\n\n**Diferencia crucial entre `next()` y `nextLine()`**:\n- `next()` lee solo hasta el siguiente espacio en blanco. Si el usuario escribe `María García`, `next()` devuelve `María` y deja `García` en el buffer.\n- `nextLine()` lee toda la línea hasta el salto de línea. Si el usuario escribe `María García`, devuelve `María García` completa.\n\n**Problema común**: después de leer un número con `nextInt()` o `nextDouble()`, el salto de línea que el usuario pulsa al pulsar Enter queda en el buffer. Si随后 leemos con `nextLine()`, obtendremos una cadena vacía. La solución es llamar a un `nextLine()` adicional para limpiar el buffer."
+        },
+        {
+          "type": "code",
+          "title": "Programa interactivo con Scanner",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class LecturaDatos {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        // Leer una cadena\n        System.out.print(\"Introduce tu nombre: \");\n        String nombre = teclado.nextLine();\n\n        // Leer un entero\n        System.out.print(\"Introduce tu edad: \");\n        int edad = teclado.nextInt();\n\n        // Limpiar el buffer despues de nextInt()\n        teclado.nextLine();\n\n        // Leer una cadena completa\n        System.out.print(\"Introduce tu ciudad: \");\n        String ciudad = teclado.nextLine();\n\n        // Leer un decimal\n        System.out.print(\"Introduce tu nota media: \");\n        double nota = teclado.nextDouble();\n\n        // Mostrar los datos\n        System.out.println();\n        System.out.println(\"=== FICHA DEL ALUMNO ===\");\n        System.out.println(\"Nombre: \" + nombre);\n        System.out.println(\"Edad: \" + edad + \" anios\");\n        System.out.println(\"Ciudad: \" + ciudad);\n        System.out.println(\"Nota media: \" + nota);\n\n        teclado.close();\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "El problema del buffer y nextLine()",
+          "content": "Este es uno de los errores más frecuentes cuando se trabaja con Scanner. Veamos por qué ocurre:\n\nCuando el usuario escribe un número y pulsa Enter, Scanner lee el número pero deja el carácter de salto de línea (`\\n`) en el buffer interno. Si la siguiente lectura es `nextLine()`, este método lee todo hasta encontrar `\\n`, que es justo lo que queda en el buffer, por lo que devuelve una cadena vacía.\n\n**Solución 1**: Llamar a `teclado.nextLine()` inmediatamente después de leer el número para \"consumir\" el salto de línea pendiente.\n\n```java\nSystem.out.print(\"Edad: \");\nint edad = teclado.nextInt();\ntelemetro.nextLine(); // Limpia el buffer\n```\n\n**Solución 2**: Leer todo como String y convertir después.\n\n```java\nString entrada = teclado.nextLine();\nint edad = Integer.parseInt(entrada);\n```\n\nLa Solución 1 es más común y práctica. Siempre que leas un número y antes de leer texto, añade un `nextLine()` limpio."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo: calculadora interactiva",
+          "language": "java",
+          "content": "import java.util.Scanner;\n\npublic class CalculadoraInteractiva {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.println(\"=== CALCULADORA INTERACTIVA ===\");\n        System.out.println();\n\n        // Primer numero\n        System.out.print(\"Introduce el primer numero: \");\n        double num1 = teclado.nextDouble();\n\n        // Limpiar buffer\n        teclado.nextLine();\n\n        // Segundo numero\n        System.out.print(\"Introduce el segundo numero: \");\n        double num2 = teclado.nextDouble();\n\n        // Operacion\n        teclado.nextLine(); // limpiar buffer\n        System.out.println();\n        System.out.println(\"Operaciones disponibles:\");\n        System.out.println(\"  + Suma\");\n        System.out.println(\"  - Resta\");\n        System.out.println(\"  * Multiplicacion\");\n        System.out.println(\"  / Division\");\n        System.out.print(\"Introduce el operador: \");\n        String operador = teclado.nextLine();\n\n        // Calcular resultado\n        System.out.println();\n        double resultado = 0;\n        boolean operacionValida = true;\n\n        switch (operador) {\n            case \"+\":\n                resultado = num1 + num2;\n                break;\n            case \"-\":\n                resultado = num1 - num2;\n                break;\n            case \"*\":\n                resultado = num1 * num2;\n                break;\n            case \"/\":\n                if (num2 != 0) {\n                    resultado = num1 / num2;\n                } else {\n                    System.out.println(\"Error: No se puede dividir por cero.\");\n                    operacionValida = false;\n                }\n                break;\n            default:\n                System.out.println(\"Operador no valido.\");\n                operacionValida = false;\n        }\n\n        if (operacionValida) {\n            System.out.println(num1 + \" \" + operador + \" \" + num2 + \" = \" + resultado);\n        }\n\n        teclado.close();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-1-1",
+          "difficulty": "basic",
+          "title": "Saludo personalizado",
+          "description": "Crea un programa que pida al usuario su nombre y edad por teclado, y muestre un saludo personalizado como: 'Hola María, tienes 20 años'.",
+          "solution": "import java.util.Scanner;\n\npublic class SaludoPersonalizado {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu nombre: \");\n        String nombre = teclado.nextLine();\n\n        System.out.print(\"Introduce tu edad: \");\n        int edad = teclado.nextInt();\n\n        System.out.println(\"Hola \" + nombre + \", tienes \" + edad + \" anios.\");\n\n        teclado.close();\n    }\n}",
+          "validationType": "TEST_CASES",
+          "sampleInput": "Maria\n20",
+          "expectedOutput": "Introduce tu nombre: Introduce tu edad: Hola Maria, tienes 20 anios."
+        },
+        {
+          "id": "ex-02-1-2",
+          "difficulty": "intermediate",
+          "title": "Calculadora de IMC",
+          "description": "Crea un programa que pida al usuario su peso (kg) y altura (m), calcule su Índice de Masa Corporal (IMC = peso / altura²) y muestre la categoría: bajo peso (<18.5), normal (18.5-24.9), sobrepeso (25-29.9) u obesidad (>=30).",
+          "solution": "import java.util.Scanner;\n\npublic class CalculadoraIMC {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce tu peso en kg: \");\n        double peso = teclado.nextDouble();\n\n        System.out.print(\"Introduce tu altura en metros: \");\n        double altura = teclado.nextDouble();\n\n        double imc = peso / (altura * altura);\n\n        System.out.println();\n        System.out.println(\"Tu IMC es: \" + String.format(\"%.2f\", imc));\n\n        if (imc < 18.5) {\n            System.out.println(\"Categoria: Bajo peso\");\n        } else if (imc < 25.0) {\n            System.out.println(\"Categoria: Peso normal\");\n        } else if (imc < 30.0) {\n            System.out.println(\"Categoria: Sobrepeso\");\n        } else {\n            System.out.println(\"Categoria: Obesidad\");\n        }\n\n        teclado.close();\n    }\n}",
+          "validationType": "TEST_CASES",
+          "sampleInput": "70\n1.75",
+          "expectedOutput": "Introduce tu peso en kg: Introduce tu altura en metros: \nTu IMC es: 22.86\nCategoria: Peso normal"
+        },
+        {
+          "id": "ex-02-1-3",
+          "difficulty": "advanced",
+          "title": "Conversor de divisas interactivo",
+          "description": "Crea un conversor de divisas que pida al usuario una cantidad en euros, y muestre su equivalente en dólares, libras esterlinas y yenes usando tasas de cambio fijas. Incluye un menú para elegir la divisa destino.",
+          "solution": "import java.util.Scanner;\n\npublic class ConversorDivisas {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        final double EURO_A_DOLAR = 1.08;\n        final double EURO_A_LIBRA = 0.86;\n        final double EURO_A_YEN = 163.5;\n\n        System.out.println(\"=== CONVERSOR DE DIVISAS ===\");\n        System.out.print(\"Introduce la cantidad en euros: \");\n        double euros = teclado.nextDouble();\n\n        teclado.nextLine();\n\n        System.out.println();\n        System.out.println(\"Divisas disponibles:\");\n        System.out.println(\"1 - Dolares\");\n        System.out.println(\"2 - Libras esterlinas\");\n        System.out.println(\"3 - Yenes\");\n        System.out.println(\"4 - Todas\");\n        System.out.print(\"Elige una opcion: \");\n        int opcion = teclado.nextInt();\n\n        System.out.println();\n        System.out.println(euros + \" EUR equivalen a:\");\n\n        switch (opcion) {\n            case 1:\n                System.out.println(String.format(\"%.2f USD\", euros * EURO_A_DOLAR));\n                break;\n            case 2:\n                System.out.println(String.format(\"%.2f GBP\", euros * EURO_A_LIBRA));\n                break;\n            case 3:\n                System.out.println(String.format(\"%.2f JPY\", euros * EURO_A_YEN));\n                break;\n            case 4:\n                System.out.println(String.format(\"%.2f USD\", euros * EURO_A_DOLAR));\n                System.out.println(String.format(\"%.2f GBP\", euros * EURO_A_LIBRA));\n                System.out.println(String.format(\"%.2f JPY\", euros * EURO_A_YEN));\n                break;\n            default:\n                System.out.println(\"Opcion no valida.\");\n        }\n\n        teclado.close();\n    }\n}",
+          "validationType": "TEST_CASES",
+          "sampleInput": "100\n4",
+          "expectedOutput": "=== CONVERSOR DE DIVISAS ===\nIntroduce la cantidad en euros: \nDivisas disponibles:\n1 - Dolares\n2 - Libras esterlinas\n3 - Yenes\n4 - Todas\nElige una opcion: \n100.0 EUR equivalen a:\n108.00 USD\n86.00 GBP\n16350.00 JPY"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar importar `java.util.Scanner`. Sin el import, el compilador no reconoce la clase Scanner.",
+        "No limpiar el buffer después de `nextInt()` o `nextDouble()`. Esto causa que `nextLine()` lea una cadena vacía.",
+        "Usar `next()` cuando se necesita `nextLine()`. `next()` solo lee una palabra, no toda la línea.",
+        "Cerrar el Scanner prematurely con `teclado.close()` antes de terminar de leer datos.",
+        "No comprobar si el usuario introduce un tipo de dato correcto (por ejemplo, un número cuando se espera un entero)."
+      ],
+      "keyConcepts": [
+        "Importación de clases con `import`",
+        "La clase Scanner y su constructor con System.in",
+        "Métodos de lectura: nextInt(), nextDouble(), nextLine(), next()",
+        "El problema del buffer y la solución con nextLine() limpio",
+        "Cierre del Scanner con close()",
+        "Programas interactivos que responden a entrada del usuario"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.a"
+      ]
+    },
+    {
+      "id": "lesson-02-2",
+      "title": "Salida formateada con printf y String.format",
+      "objectives": [
+        "Utilizar System.out.printf() para mostrar datos con formato controlado",
+        "Aplicar formatos numéricos: decimales, alineación, relleno",
+        "Formatear cadenas de texto con anchos fijos",
+        "Usar String.format() para crear cadenas formateadas sin imprimir",
+        "Comprender los especificadores de formato más comunes de Java"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Por qué formatear la salida?",
+          "content": "Cuando usamos `System.out.println()` con concatenación, el resultado no siempre es limpio. Por ejemplo, si calculamos `10.0 / 3`, el resultado puede mostrar muchos decimales: `3.3333333333333335`. O si mostramos una tabla de datos, las columnas no están alineadas.\n\nLa salida formateada (`printf`) nos permite controlar exactamente cómo se muestran los datos:\n- Número de decimales visibles\n- Ancho fijo de campos (para tablas alineadas)\n- Relleno con ceros o espacios\n- Formato de fechas y porcentajes\n\nEl método `printf()` funciona igual que en C: recibe una cadena de formato con **especificadores** (como `%d`, `%f`, `%s`) y los valores a sustituir."
+        },
+        {
+          "type": "text",
+          "title": "Especificadores de formato más comunes",
+          "content": "| Especificador | Tipo | Ejemplo | Resultado |\n|---------------|------|---------|----------|\n| `%d` | entero (int, long) | `printf(\"%d\", 42)` | `42` |\n| `%f` | decimal (float, double) | `printf(\"%f\", 3.14)` | `3.140000` |\n| `%.2f` | decimal con 2 decimales | `printf(\"%.2f\", 3.14159)` | `3.14` |\n| `%s` | String (texto) | `printf(\"%s\", \"hola\")` | `hola` |\n| `%c` | char | `printf(\"%c\", 'A')` | `A` |\n| `%b` | boolean | `printf(\"%b\", true)` | `true` |\n| `%n` | Salto de línea (plataforma) | `printf(\"hola%n\")` | `hola\\n` |\n| `%%` | Literal del carácter % | `printf(\"100%%\")` | `100%` |\n\n**Sintaxis completa de un especificador**:\n```\n%[flags][ancho][.precision]tipo\n```\n\nPor ejemplo, `%10.2f` significa: ancho mínimo de 10 caracteres, 2 decimales, tipo float/double. Si el número es más corto, se rellena con espacios por la izquierda."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplos de printf",
+          "language": "java",
+          "content": "public class EjemploPrintf {\n    public static void main(String[] args) {\n        String nombre = \"Ana\";\n        int edad = 20;\n        double nota = 8.756;\n\n        // Formato basico\n        System.out.printf(\"Nombre: %s, Edad: %d, Nota: %.1f%n\", nombre, edad, nota);\n\n        // Ancho fijo y alineacion\n        System.out.printf(\"%10s | %5d | %6.2f%n\", nombre, edad, nota);\n\n        // Relleno con ceros\n        System.out.printf(\"Codigo: %05d%n\", 42);\n\n        // Alineacion a la izquierda con -\n        System.out.printf(\"%-10s | %5d | %6.2f%n\", nombre, edad, nota);\n\n        // Multiples valores\n        System.out.printf(\"La nota de %s es %.2f y tiene %d anios.%n\", nombre, nota, edad);\n\n        // Porcentaje\n        double porcentaje = 0.857;\n        System.out.printf(\"Progreso: %.1f%%%n\", porcentaje * 100);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "String.format(): formatear sin imprimir",
+          "content": "A veces necesitamos crear una cadena formateada sin imprimirla directamente. El método estático `String.format()` funciona igual que `printf()`, pero devuelve una `String` en lugar de imprimir por consola.\n\nEsto es útil para:\n- Guardar el texto formateado en una variable\n- Pasarlo como parámetro a otro método\n- Crear mensajes de error detallados\n- Construir líneas de un fichero CSV o de un informe\n\n```java\nString mensaje = String.format(\"El alumno %s tiene una nota de %.2f\", nombre, nota);\n```\n\nTambién es muy usado para formatear fechas y otras estructuras de datos."
+        },
+        {
+          "type": "code",
+          "title": "String.format() y creación de tablas",
+          "language": "java",
+          "content": "public class FormateoAvanzado {\n    public static void main(String[] args) {\n        // String.format() para crear cadenas formateadas\n        String nombre = \"Carlos\";\n        double nota = 7.856;\n        String mensaje = String.format(\"%s ha obtenido %.2f puntos\", nombre, nota);\n        System.out.println(mensaje);\n\n        // Crear una tabla de notas formateada\n        System.out.println();\n        System.out.printf(\"%n=== NOTAS DEL ALUMNO ===%n%n\");\n        System.out.printf(\"%-20s | %6s | %8s%n\", \"Asignatura\", \"Nota\", \"Estado\");\n        System.out.printf(\"%-20s-+-%6s-+-%8s%n\", \"--------------------\", \"------\", \"--------\");\n\n        String[] asignaturas = {\"Programacion\", \"Base de Datos\", \"Ingles\", \"Sistemas\"};\n        double[] notas = {8.5, 7.0, 6.75, 9.25};\n\n        for (int i = 0; i < asignaturas.length; i++) {\n            String estado = notas[i] >= 5.0 ? \"Aprobado\" : \"Suspendido\";\n            System.out.printf(\"%-20s | %6.2f | %8s%n\", asignaturas[i], notas[i], estado);\n        }\n\n        System.out.println();\n\n        // Formato con relleno de ceros\n        System.out.println(\"Codigos de alumno:\");\n        for (int i = 1; i <= 5; i++) {\n            System.out.printf(\"  Alumno %03d%n\", i);\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-2-1",
+          "difficulty": "basic",
+          "title": "Tabla de multiplicar formateada",
+          "description": "Crea un programa que pida un número al usuario y muestre su tabla de multiplicar del 1 al 10 usando `printf()` con formato alineado.",
+          "solution": "import java.util.Scanner;\n\npublic class TablaMultiplicar {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n\n        System.out.print(\"Introduce un numero: \");\n        int numero = teclado.nextInt();\n\n        System.out.printf(\"%nTabla del %d:%n%n\", numero);\n        System.out.printf(\"%-5s | %6s%n\", \"Mult\", \"Resultado\");\n        System.out.printf(\"------+--------%n\");\n\n        for (int i = 1; i <= 10; i++) {\n            System.out.printf(\"%5d | %6d%n\", i, numero * i);\n        }\n\n        teclado.close();\n    }\n}",
+          "validationType": "TEST_CASES",
+          "sampleInput": "5",
+          "expectedOutput": "Introduce un numero: \nTabla del 5:\n\nMult | Resultado\n------+--------\n    1 |      5\n    2 |     10\n    3 |     15\n    4 |     20\n    5 |     25\n    6 |     30\n    7 |     35\n    8 |     40\n    9 |     45\n   10 |     50"
+        },
+        {
+          "id": "ex-02-2-2",
+          "difficulty": "intermediate",
+          "title": "Informe de notas con String.format",
+          "description": "Crea un programa que tenga arrays de nombres y notas de 4 alumnos. Usa `String.format()` para generar una línea por alumno con nombre (20 chars alineado a la izquierda), nota (6 chars con 2 decimales) y estado (aprobado/suspendido). Muestra todo en una tabla formateada.",
+          "solution": "public class InformeNotas {\n    public static void main(String[] args) {\n        String[] nombres = {\"Ana Garcia\", \"Carlos Ruiz\", \"Maria Lopez\", \"Pedro Sanchez\"};\n        double[] notas = {8.5, 4.7, 7.3, 9.1};\n\n        System.out.printf(\"%n=== INFORME DE NOTAS ===%n%n\");\n        System.out.printf(\"%-20s | %6s | %10s%n\", \"ALUMNO\", \"NOTA\", \"ESTADO\");\n        System.out.printf(\"%s-+-%s-+-%s%n\",\n            \"--------------------\", \"------\", \"----------\");\n\n        for (int i = 0; i < nombres.length; i++) {\n            String estado = notas[i] >= 5.0 ? \"Aprobado\" : \"Suspendido\";\n            String linea = String.format(\"%-20s | %6.2f | %10s\",\n                nombres[i], notas[i], estado);\n            System.out.println(linea);\n        }\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "\n=== INFORME DE NOTAS ===\n\nALUMNO               |   NOTA |     ESTADO\n--------------------+--------+-----------\nAna Garcia           |   8.50 |   Aprobado\nCarlos Ruiz          |   4.70 |  Suspendido\nMaria Lopez          |   7.30 |   Aprobado\nPedro Sanchez        |   9.10 |   Aprobado"
+        },
+        {
+          "id": "ex-02-2-3",
+          "difficulty": "advanced",
+          "title": "Recibo de compra formateado",
+          "description": "Crea un programa que genere un recibo de compra con productos, cantidades, precios unitarios y total. Usa `printf()` para alinear columnas y calcular subtotales. Incluye IVA del 21%.",
+          "solution": "public class ReciboCompra {\n    public static void main(String[] args) {\n        String[] productos = {\"Leche\", \"Pan\", \"Huevos\", \"Manzanas\"};\n        int[] cantidades = {2, 1, 12, 3};\n        double[] precios = {1.20, 0.95, 2.50, 1.80};\n        double iva = 0.21;\n\n        System.out.println();\n        System.out.println(\"+---------------------------------------+\");\n        System.out.println(\"|          RECIBO DE COMPRA             |\");\n        System.out.println(\"+---------------------------------------+\");\n        System.out.printf(\"| %-12s | %4s | %6s | %7s |%n\", \"Producto\", \"Cant\", \"P.Uni\", \"Subtotal\");\n        System.out.println(\"+---------------------------------------+\");\n\n        double totalSinIva = 0;\n\n        for (int i = 0; i < productos.length; i++) {\n            double subtotal = cantidades[i] * precios[i];\n            totalSinIva += subtotal;\n            System.out.printf(\"| %-12s | %4d | %6.2f | %7.2f |%n\",\n                productos[i], cantidades[i], precios[i], subtotal);\n        }\n\n        double importeIva = totalSinIva * iva;\n        double totalConIva = totalSinIva + importeIva;\n\n        System.out.println(\"+---------------------------------------+\");\n        System.out.printf(\"|                 SUBTOTAL:   %8.2f |%n\", totalSinIva);\n        System.out.printf(\"|                 IVA (21%%):   %8.2f |%n\", importeIva);\n        System.out.printf(\"|                 TOTAL:      %8.2f |%n\", totalConIva);\n        System.out.println(\"+---------------------------------------+\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "\n+---------------------------------------+\n|          RECIBO DE COMPRA             |\n+---------------------------------------+\n| Producto     | Cant |  P.Uni | Subtotal |\n+---------------------------------------+\n| Leche        |    2 |   1.20 |     2.40 |\n| Pan          |    1 |   0.95 |     0.95 |\n| Huevos       |   12 |   2.50 |    30.00 |\n| Manzanas     |    3 |   1.80 |     5.40 |\n+---------------------------------------+\n|                 SUBTOTAL:     38.75 |\n|                 IVA (21%):     8.14 |\n|                 TOTAL:        46.89 |\n+---------------------------------------+"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar que `%f` muestra 6 decimales por defecto. Usa `%.2f` si quieres solo 2 decimales.",
+        "Usar `%d` con un double o `%f` con un int. Cada especificador tiene un tipo asignado: `%d` solo para enteros, `%f` solo para decimales.",
+        "Confundir `printf` (imprime) con `String.format` (devuelve String). No son intercambiables.",
+        "Olvidar el `%n` al final de cada línea en `printf`. El salto de línea no se añade automáticamente como en `println`.",
+        "No calcular el ancho suficiente para los campos. Si el texto es más largo que el ancho especificado, se amplía automáticamente pero se pierde la alineación."
+      ],
+      "keyConcepts": [
+        "Sistema.out.printf() para salida formateada",
+        "Especificadores de formato: %d, %f, %s, %c, %b, %n",
+        "Control de decimales: %.2f para 2 decimales",
+        "Alineación y relleno: %10s, %-10s, %05d",
+        "String.format() para crear cadenas formateadas",
+        "Creación de tablas alineadas con printf"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.b"
+      ]
+    },
+    {
+      "id": "lesson-02-3",
+      "title": "Librerías de E/S de Java: visión general",
+      "objectives": [
+        "Comprender la arquitectura de streams en Java (bytes vs caracteres)",
+        "Reconocer las clases principales de E/S del paquete java.io y java.nio",
+        "Conocer la diferencia entre System.in, System.out y System.err",
+        "Saber cuándo usar cada tipo de flujo según el tipo de dato"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "La arquitectura de streams en Java",
+          "content": "Java organiza las operaciones de entrada y salida (E/S) en torno al concepto de **flujos** (streams). Un stream es un canal por el que fluyen datos, como el agua por una tubería. Estos flujos se clasifican en dos grandes categorías:\n\n**1. Flujos de bytes** (`InputStream` / `OutputStream`)\n- Trabajan con datos crudos: secuencias de 0 y 1.\n- Ideales para archivos binarios: imágenes, vídeos, archivos comprimidos.\n- Las clases principales terminan en `Stream`: `FileInputStream`, `FileOutputStream`, `BufferedInputStream`.\n\n**2. Flujos de caracteres** (`Reader` / `Writer`)\n- Trabajan con texto: caracteres en codificaciones como UTF-8 o ISO-8859-1.\n- Ideales para archivos de texto: `.txt`, `.java`, `.csv`, `.json`.\n- Las clases principales terminan en `Reader` o `Writer`: `FileReader`, `FileWriter`, `BufferedReader`, `BufferedWriter`.\n\nLa razón de esta división es que un byte no es lo mismo que un carácter. En ASCII, 1 byte = 1 carácter. Pero en codificaciones modernas como UTF-8, un carácter puede ocupar de 1 a 4 bytes (por ejemplo, la letra `ñ` ocupa 2 bytes en UTF-8)."
+        },
+        {
+          "type": "text",
+          "title": "Clases principales de E/S",
+          "content": "Java ofrece dos familias de clases para E/S:\n\n**Paquete `java.io` (clásico)**:\n- `FileInputStream` / `FileOutputStream` — Lectura/escritura de bytes en ficheros.\n- `FileReader` / `FileWriter` — Lectura/escritura de caracteres en ficheros.\n- `BufferedReader` / `BufferedWriter` — Lectura/escritura con buffer (más eficiente).\n- `PrintWriter` — Escritura formateada (similar a `printf`).\n- `ObjectInputStream` / `ObjectOutputStream` — Serialización de objetos Java.\n\n**Paquete `java.nio` (moderno, desde Java 7)**:\n- `Files` — Métodos estáticos para operaciones con ficheros.\n- `Path` — Representación de rutas de ficheros.\n- `FileChannel` — Acceso de bajo nivel a ficheros.\n- `BufferedReader` moderno con `Files.newBufferedReader()`.\n\n**Las 3 salidas estándar** (todas en `System`):\n- `System.out` — Salida estándar (consola, pantalla).\n- `System.err` — Salida de errores (también consola, pero diferenciada).\n- `System.in` — Entrada estándar (teclado), que es lo que usa `Scanner`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con BufferedReader (lectura eficiente)",
+          "language": "java",
+          "content": "import java.io.BufferedReader;\nimport java.io.InputStreamReader;\nimport java.io.IOException;\n\npublic class EjemploBufferedReader {\n    public static void main(String[] args) {\n        /*\n         * BufferedReader es mas eficiente que Scanner para\n         * leer grandes volumenes de datos del teclado.\n         * Internamente usa un buffer para reducir accesos al SO.\n         */\n        try {\n            BufferedReader lector = new BufferedReader(\n                new InputStreamReader(System.in)\n            );\n\n            System.out.print(\"Introduce tu nombre: \");\n            String nombre = lector.readLine();\n\n            System.out.print(\"Introduce tu edad: \");\n            int edad = Integer.parseInt(lector.readLine());\n\n            System.out.printf(\"Hola %s, tienes %d anios.%n\", nombre, edad);\n\n            lector.close();\n\n        } catch (IOException e) {\n            System.err.println(\"Error de lectura: \" + e.getMessage());\n        } catch (NumberFormatException e) {\n            System.err.println(\"Error: no se pudo convertir a numero.\");\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "BufferedReader vs Scanner: ¿cuándo usar cada uno?",
+          "content": "**Scanner**:\n- Más fácil de usar para principiantes.\n- Soporta tipos primitivos directamente (`nextInt()`, `nextDouble()`).\n- Más lento para grandes volúmenes de datos (no usa buffer interno de forma óptima).\n- Ideal para programas sencillos y ejercicios de clase.\n\n**BufferedReader**:\n- Más eficiente en rendimiento (usa un buffer de 8KB por defecto).\n- Solo lee String; hay que convertir manualmente con `Integer.parseInt()`, `Double.parseDouble()`, etc.\n- Requiere manejo de excepciones (`IOException`).\n- Ideal para aplicaciones reales o cuando se procesan muchos datos.\n\n**Recomendación para este curso**: empezaremos con `Scanner` por su simplicidad. Conforme avancemos y necesitemos más rendimiento, pasaremos a `BufferedReader`."
+        },
+        {
+          "type": "text",
+          "title": "Resumen: ¿qué necesitas saber ahora?",
+          "content": "En este punto, lo más importante es:\n\n1. **`Scanner`** es suficiente para todos los ejercicios de este curso hasta que lleguemos a ficheros.\n2. **`printf()` y `String.format()`** son herramientas imprescindibles para mostrar datos de forma legible.\n3. Java distingue entre **flujos de bytes** (datos crudos) y **flujos de caracteres** (texto).\n4. El paquete **`java.io`** es el clásico; **`java.nio`** es la versión moderna.\n5. **`System.out`** y **`System.err`** son las dos salidas estándar. La segunda se usa para errores.\n\nCuando lleguemos al módulo de ficheros, profundizaremos en estas clases y veremos cómo leer y escribir archivos."
+        },
+        {
+          "type": "code",
+          "title": "Demostración de las tres salidas estándar",
+          "language": "java",
+          "content": "public class SalidasEstandar {\n    public static void main(String[] args) {\n        // System.out: salida normal (por defecto, se muestra en color negro)\n        System.out.println(\"Esto es una salida normal.\");\n\n        // System.err: salida de errores (en muchos terminales se muestra en rojo)\n        System.err.println(\"Esto es un mensaje de error.\");\n\n        // Diferencia en la practica:\n        // Ambos van a la consola, pero System.err se puede redirigir\n        // independientemente en la linea de comandos:\n        // java MiPrograma 2> errores.txt  (redirige solo System.err)\n\n        System.out.println(\"Ambos mensajes aparecen en consola,\");\n        System.out.println(\"pero System.err se puede separar en la terminal.\");\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-3-1",
+          "difficulty": "basic",
+          "title": "Demostrar las tres salidas",
+          "description": "Crea un programa que imprima mensajes usando System.out, System.err y System.out de nuevo. Ejecútalo desde la terminal y redirige la salida de error a un fichero.",
+          "solution": "public class TresSalidas {\n    public static void main(String[] args) {\n        System.out.println(\"Mensaje de salida normal.\");\n        System.err.println(\"Mensaje de error.\");\n        System.out.println(\"Otro mensaje normal.\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Mensaje de salida normal.\nOtro mensaje normal."
+        },
+        {
+          "id": "ex-02-3-2",
+          "difficulty": "intermediate",
+          "title": "Scanner con validación de entrada",
+          "description": "Crea un programa que pida al usuario un número entero positivo. Si el usuario introduce un valor no numérico o negativo, muestra un error con `System.err` y vuelve a pedir hasta obtener un valor válido.",
+          "solution": "import java.util.Scanner;\n\npublic class EntradaValidada {\n    public static void main(String[] args) {\n        Scanner teclado = new Scanner(System.in);\n        int numero = -1;\n\n        while (numero <= 0) {\n            System.out.print(\"Introduce un numero entero positivo: \");\n            if (teclado.hasNextInt()) {\n                numero = teclado.nextInt();\n                if (numero <= 0) {\n                    System.err.println(\"Error: el numero debe ser positivo.\");\n                }\n            } else {\n                System.err.println(\"Error: no has introducido un numero valido.\");\n                teclado.next();\n            }\n        }\n\n        System.out.println(\"Numero valido: \" + numero);\n        teclado.close();\n    }\n}",
+          "validationType": "TEST_CASES",
+          "sampleInput": "abc\n-5\n7",
+          "expectedOutput": "Introduce un numero entero positivo: Error: no has introducido un numero valido.\nIntroduce un numero entero positivo: Error: el numero debe ser positivo.\nIntroduce un numero entero positivo: Numero valido: 7"
+        },
+        {
+          "id": "ex-02-3-3",
+          "difficulty": "advanced",
+          "title": "Comparar Scanner y BufferedReader",
+          "description": "Crea un programa que lea 1000 números enteros del teclado usando primero Scanner y luego BufferedReader. Mide y compara el tiempo que tarda cada método (usa `System.nanoTime()`).",
+          "solution": "import java.io.BufferedReader;\nimport java.io.InputStreamReader;\nimport java.io.IOException;\nimport java.util.Scanner;\n\npublic class CompararLectura {\n    public static void main(String[] args) throws IOException {\n        System.out.println(\"Este programa compara Scanner y BufferedReader.\");\n        System.out.println(\"Introduce 10 numeros enteros separados por espacios:\");\n\n        BufferedReader lector = new BufferedReader(new InputStreamReader(System.in));\n        String linea = lector.readLine();\n        String[] partes = linea.split(\" \");\n\n        long inicio1 = System.nanoTime();\n        Scanner sc = new Scanner(linea);\n        int[] numeros = new int[partes.length];\n        for (int i = 0; i < partes.length; i++) {\n            numeros[i] = sc.nextInt();\n        }\n        long fin1 = System.nanoTime();\n        sc.close();\n\n        System.out.println(\"Tiempo Scanner: \" + (fin1 - inicio1) + \" nanosegundos\");\n        System.out.println(\"Numeros leidos: \" + numeros.length);\n\n        for (int n : numeros) {\n            System.out.print(n + \" \");\n        }\n        System.out.println();\n    }\n}",
+          "validationType": "TEST_CASES",
+          "sampleInput": "1 2 3 4 5 6 7 8 9 10",
+          "expectedOutput": "Este programa compara Scanner y BufferedReader.\nIntroduce 10 numeros enteros separados por espacios:\nTiempo Scanner: nanosegundos\nNumeros leidos: 10\n1 2 3 4 5 6 7 8 9 10"
+        }
+      ],
+      "commonErrors": [
+        "Confundir `System.out` con `System.err`. Ambos van a la consola, pero `err` es para errores y se puede redirigir independientemente.",
+        "Pensar que BufferedReader es siempre mejor. Para programas sencillos, Scanner es más práctico y legible.",
+        "Olvidar que `BufferedReader.readLine()` puede lanzar `IOException` y hay que manejarla con try-catch.",
+        "Usar `Integer.parseInt(teclado.nextLine())` en lugar de `teclado.nextInt()` sin entender la diferencia. Ambos son válidos, pero el primero es más seguro contra entradas no numéricas.",
+        "No cerrar los flujos de E/S al terminar. Aunque en programas pequeños no causa problemas, es buena práctica usar try-with-resources."
+      ],
+      "keyConcepts": [
+        "Flujos de bytes (InputStream/OutputStream) vs flujos de caracteres (Reader/Writer)",
+        "Paquete java.io (clásico) y java.nio (moderno)",
+        "Las tres salidas estándar: System.out, System.err, System.in",
+        "Scanner vs BufferedReader: simplicidad vs rendimiento",
+        "Lectura con BufferedReader y conversión manual de tipos",
+        "Manejo de excepciones en operaciones de E/S"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.c"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Registro de alumnos interactivo",
+    "description": "Crea un programa que permita al usuario registrar los datos de 3 alumnos:\n1. Pedir nombre, edad, nota media y ciclo formativo usando Scanner\n2. Mostrar los datos formateados en una tabla usando printf\n3. Calcular y mostrar la nota media del grupo\n4. Usar System.err para mostrar advertencias si la nota es inferior a 5\n5. Usar String.format() para generar una línea resumen por cada alumno\n6. Documentar el código con comentarios que expliquen cada sección",
+    "learningOutcomes": [
+      "RA5"
+    ],
+    "assessmentCriteria": [
+      "RA5.a",
+      "RA5.b",
+      "RA5.c"
+    ]
+  }
+}

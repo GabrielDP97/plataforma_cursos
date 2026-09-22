@@ -1,0 +1,554 @@
+{
+  "id": "mod-12",
+  "title": "Colecciones y genéricos",
+  "description": "Módulo completo sobre las colecciones de Java: List, ArrayList, iterators, generics, expresiones regulares, introducción a JSON/XML y operaciones agregadas (filter, map, reduce). Se completa el RA6 con todos sus criterios de evaluación, aplicando el dominio Alumno/Curso.",
+  "phase": "phase-5",
+  "position": 12,
+  "learningOutcomes": [
+    "RA6"
+  ],
+  "assessmentCriteria": [
+    "RA6.c",
+    "RA6.d",
+    "RA6.e",
+    "RA6.f",
+    "RA6.g",
+    "RA6.h",
+    "RA6.i",
+    "RA6.j"
+  ],
+  "officialContents": [
+    "Aplicación de las estructuras de almacenamiento"
+  ],
+  "duration": "18 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-11"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-12-1",
+      "title": "List y ArrayList",
+      "objectives": [
+        "Comprender la diferencia entre interfaces y implementaciones en el framework Collections",
+        "Crear y manipular ArrayList para almacenar colecciones dinámicas",
+        "Aplicar métodos fundamentales: add, remove, get, set, size, contains, indexOf",
+        "Usar List para gestionar colecciones de Alumnos y Cursos",
+        "Comprender por qué ArrayList reemplaza a los arrays en la mayoría de casos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "El framework Collections de Java",
+          "content": "Java ofrece un conjunto de interfaces y clases para gestionar colecciones de objetos. A diferencia de los arrays (tamaño fijo), las colecciones son **dinámicas**: pueden crecer y reducirse en tiempo de ejecución.\n\n**Jerarquía principal:**\n```\nIterable\nâ””â”€â”€ Collection\n    â”œâ”€â”€ List (ordered, duplicates allowed)\n    â”‚   â”œâ”€â”€ ArrayList  â† el más usado\n    â”‚   â”œâ”€â”€ LinkedList\n    â”‚   â””â”€â”€ Vector\n    â”œâ”€â”€ Set (no duplicates)\n    â”‚   â”œâ”€â”€ HashSet\n    â”‚   â”œâ”€â”€ TreeSet\n    â”‚   â””â”€â”€ LinkedHashSet\n    â””â”€â”€ Queue (FIFO)\n        â”œâ”€â”€ PriorityQueue\n        â””â”€â”€ ArrayDeque\n\nMap (key-value pairs)\nâ”œâ”€â”€ HashMap\nâ”œâ”€â”€ TreeMap\nâ””â”€â”€ LinkedHashMap\n```\n\n**Interfaces vs Implementaciones:**\n- **Interfaz** (`List`, `Set`, `Map`): define QUÃ‰ se puede hacer (add, remove, get...).\n- **Implementación** (`ArrayList`, `HashMap`): define CÃ“MO se hace internamente.\n\nPor eso se declara siempre con la interfaz:\n```java\nList<Alumno> alumnos = new ArrayList<>(); // BIEN\nArrayList<Alumno> alumnos = new ArrayList<>(); // MAL (acopla a la implementación)\n```"
+        },
+        {
+          "type": "code",
+          "title": "ArrayList: crear y añadir elementos",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ArrayListBasico {\n    public static void main(String[] args) {\n        // Crear una lista vacía de Strings\n        List<String> nombres = new ArrayList<>();\n\n        // add() — añade al final\n        nombres.add(\"Ana\");\n        nombres.add(\"Carlos\");\n        nombres.add(\"Maria\");\n        nombres.add(\"Pedro\");\n        System.out.println(\"Lista: \" + nombres);\n        System.out.println(\"Tamano: \" + nombres.size());\n\n        // add(indice, elemento) — inserta en una posicion\n        nombres.add(1, \"Laura\"); // Inserta antes de Carlos\n        System.out.println(\"Despues de insertar Laura: \" + nombres);\n\n        // get(indice) — obtiene un elemento\n        System.out.println(\"Primero: \" + nombres.get(0));\n        System.out.println(\"Tercero: \" + nombres.get(2));\n\n        // set(indice, elemento) — reemplaza un elemento\n        nombres.set(2, \"Laura2\");\n        System.out.println(\"Despues de set: \" + nombres);\n\n        // remove(indice) — elimina por posicion\n        String eliminado = nombres.remove(3);\n        System.out.println(\"Eliminado: \" + eliminado);\n        System.out.println(\"Lista final: \" + nombres);\n\n        // contains() — busca un elemento\n        System.out.println(\"Contiene Ana: \" + nombres.contains(\"Ana\"));\n        System.out.println(\"Contiene Pedro: \" + nombres.contains(\"Pedro\"));\n\n        // indexOf() — posicion de un elemento\n        System.out.println(\"Indice de Maria: \" + nombres.indexOf(\"Maria\"));\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Lista de objetos: ArrayList de Alumnos",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ListaAlumnos {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = new ArrayList<>();\n\n        // Añadir alumnos\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.addNota(8.5); a1.addNota(7.0);\n        alumnos.add(a1);\n\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        a2.addNota(6.0); a2.addNota(5.5);\n        alumnos.add(a2);\n\n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n        a3.addNota(9.0); a3.addNota(8.5);\n        alumnos.add(a3);\n\n        System.out.println(\"Total alumnos: \" + alumnos.size());\n\n        // Recorrer con for-each\n        for (Alumno a : alumnos) {\n            System.out.printf(\"%s - Media: %.2f%n\",\n                a.getNombre(), a.getNotaMedia());\n        }\n\n        // Buscar un alumno\n        for (Alumno a : alumnos) {\n            if (a.getNombre().equals(\"Maria\")) {\n                System.out.println(\"Maria tiene \" + a.getNumNotas() + \" notas\");\n            }\n        }\n\n        // Eliminar un alumno\n        alumnos.remove(a2);\n        System.out.println(\"Despues de eliminar Carlos: \" + alumnos.size() + \" alumnos\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Métodos principales de List",
+          "content": "| Método | Descripción | Ejemplo |\n|--------|-------------|----------|\n| `add(e)` | Añade al final | `lista.add(\"Ana\")` |\n| `add(i, e)` | Inserta en posición i | `lista.add(0, \"Ana\")` |\n| `get(i)` | Elemento en posición i | `String s = lista.get(0)` |\n| `set(i, e)` | Reemplaza en posición i | `lista.set(0, \"Ana2\")` |\n| `remove(i)` | Elimina y devuelve elemento | `String s = lista.remove(0)` |\n| `remove(o)` | Elimina primera ocurrencia | `lista.remove(\"Ana\")` |\n| `size()` | Número de elementos | `lista.size()` |\n| `contains(o)` | ¿Contiene el elemento? | `lista.contains(\"Ana\")` |\n| `indexOf(o)` | Posición del elemento | `lista.indexOf(\"Ana\")` |\n| `isEmpty()` | ¿Está vacía? | `lista.isEmpty()` |\n| `clear()` | Elimina todos | `lista.clear()` |\n| `toArray()` | Convierte a array | `lista.toArray()` |\n\n**ArrayList vs LinkedList:**\n- **ArrayList**: mejor para acceso por índice, peor para inserciones/eliminaciones frecuentes.\n- **LinkedList**: mejor para inserciones/eliminaciones frecuentes, peor para acceso por índice.\n\nEn la práctica, **ArrayList es la opción por defecto** en el 90% de los casos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-1-1",
+          "difficulty": "basic",
+          "title": "Crear una lista de cursos",
+          "description": "Crea una `List<String>` con los nombres de 5 cursos. Muestra el tamaño, el primer y último elemento, y comprueba si contiene un curso específico.",
+          "solution": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class ListaCursos {\n    public static void main(String[] args) {\n        List<String> cursos = new ArrayList<>();\n        cursos.add(\"Programacion\");\n        cursos.add(\"Base de Datos\");\n        cursos.add(\"Desarrollo Web\");\n        cursos.add(\"Sistemas\");\n        cursos.add(\"FOL\");\n        \n        System.out.println(\"Cursos: \" + cursos);\n        System.out.println(\"Tamano: \" + cursos.size());\n        System.out.println(\"Primero: \" + cursos.get(0));\n        System.out.println(\"Ultimo: \" + cursos.get(cursos.size() - 1));\n        System.out.println(\"Contiene BD: \" + cursos.contains(\"Base de Datos\"));\n    }\n}"
+        },
+        {
+          "id": "ex-12-1-2",
+          "difficulty": "intermediate",
+          "title": "Gestión dinámica de alumnos",
+          "description": "Crea un programa que gestione una lista de alumnos. Implementa: añadir alumno, eliminar por nombre, buscar por nombre, mostrar todos, contar cuántos tienen nota media >= 5.",
+          "solution": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class GestionAlumnos {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = new ArrayList<>();\n        \n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.addNota(8.5); a1.addNota(7.0);\n        alumnos.add(a1);\n        \n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        a2.addNota(3.0); a2.addNota(4.0);\n        alumnos.add(a2);\n        \n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n        a3.addNota(9.0); a3.addNota(8.0);\n        alumnos.add(a3);\n        \n        // Mostrar todos\n        System.out.println(\"=== TODOS ===\");\n        for (Alumno a : alumnos) {\n            System.out.printf(\"%s - %.2f%n\", a.getNombre(), a.getNotaMedia());\n        }\n        \n        // Contar aprobados\n        long aprobados = 0;\n        for (Alumno a : alumnos) {\n            if (a.getNotaMedia() >= 5.0) aprobados++;\n        }\n        System.out.println(\"Aprobados: \" + aprobados);\n        \n        // Eliminar por nombre\n        alumnos.removeIf(a -> a.getNombre().equals(\"Carlos\"));\n        System.out.println(\"Despues de eliminar Carlos: \" + alumnos.size());\n    }\n}"
+        },
+        {
+          "id": "ex-12-1-3",
+          "difficulty": "advanced",
+          "title": "Sistema de matriculación",
+          "description": "Crea un sistema que gestione matrículas usando ArrayList: `List<Matricula>` donde Matricula tiene Alumno, Curso y fecha. Implementa: matricular, desmatricular, buscar por alumno, buscar por curso, y contar alumnos por curso.",
+          "solution": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class SistemaMatriculacion {\n    record Matricula(Alumno alumno, String curso, String fecha) {}\n    \n    public static void main(String[] args) {\n        List<Matricula> matriculas = new ArrayList<>();\n        \n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n        \n        matriculas.add(new Matricula(a1, \"Programacion\", \"2026-09-01\"));\n        matriculas.add(new Matricula(a1, \"Base de Datos\", \"2026-09-01\"));\n        matriculas.add(new Matricula(a2, \"Programacion\", \"2026-09-01\"));\n        matriculas.add(new Matricula(a3, \"Programacion\", \"2026-09-02\"));\n        matriculas.add(new Matricula(a3, \"Desarrollo Web\", \"2026-09-02\"));\n        \n        // Contar alumnos por curso\n        String cursoBuscar = \"Programacion\";\n        long count = matriculas.stream()\n            .filter(m -> m.curso().equals(cursoBuscar))\n            .count();\n        System.out.println(cursoBuscar + \": \" + count + \" alumnos\");\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Declarar con la implementación en lugar de la interfaz: `ArrayList<String> lista = new ArrayList<>();` — acopla el código innecesariamente.",
+        "Usar `lista.get(i)` sin comprobar que `i < size()`: lanza IndexOutOfBoundsException.",
+        "Intentar añadir un null en un ArrayList: técnicamente es posible, pero causa NullPointerException al acceder al elemento.",
+        "Confundir `remove(Object)` con `remove(int)`: `lista.remove(0)` elimina el elemento en posición 0, no busca el objeto 0.",
+        "No tener en cuenta que ArrayList no acepta tipos primitivos: `List<int>` no compila, hay que usar `List<Integer>`."
+      ],
+      "keyConcepts": [
+        "Framework Collections: interfaces (List, Set, Map) vs implementaciones",
+        "ArrayList como implementación dinámica del array",
+        "Métodos fundamentales: add, remove, get, set, size, contains, indexOf",
+        "Declaración con interfaz: `List<T> lista = new ArrayList<>()`",
+        "Tipos wrapper: Integer, Double en lugar de int, double",
+        "Diferencias ArrayList vs LinkedList y cuándo usar cada uno"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.c"
+      ]
+    },
+    {
+      "id": "lesson-12-2",
+      "title": "Iteradores y recorrido de colecciones",
+      "objectives": [
+        "Usar la interfaz Iterator para recorrer colecciones",
+        "Eliminar elementos de forma segura mientras se recorre una colección",
+        "Comprender la diferencia entre for-each e Iterator",
+        "Usar listIterator para recorrido bidireccional y modificación",
+        "Aplicar iteradores a colecciones de Alumnos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es un iterador?",
+          "content": "Un **Iterator** es un objeto que permite recorrer una colección elemento por elemento, sin conocer su estructura interna. Es la forma **estándar** de recorrer cualquier colección en Java.\n\n**Interfaz Iterator:**\n- `hasNext()` â†’ devuelve `true` si hay más elementos.\n- `next()` â†’ devuelve el siguiente elemento y avanza el puntero.\n- `remove()` â†’ elimina el último elemento devuelto por `next()`.\n\n**¿Cuándo usar Iterator?**\n1. Cuando necesitas **eliminar elementos** durante el recorrido.\n2. Cuando necesitas **recorrer sin saber el tamaño** de la colección.\n3. Cuando trabajas con interfaces que solo garantizan `Iterable`.\n\n**¿Por qué no basta con for-each?**\nEl bucle `for-each` es más limpio, pero tiene una limitación: si intentas eliminar un elemento con `lista.remove()` dentro de un for-each, obtienes un `ConcurrentModificationException`. Iterator lo permite de forma segura con `iterator.remove()`."
+        },
+        {
+          "type": "code",
+          "title": "Iterator básico",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.Iterator;\nimport java.util.List;\n\npublic class IteratorBasico {\n    public static void main(String[] args) {\n        List<String> frutas = new ArrayList<>();\n        frutas.add(\"Manzana\");\n        frutas.add(\"Platano\");\n        frutas.add(\"Naranja\");\n        frutas.add(\"Pera\");\n        frutas.add(\"Uva\");\n\n        // Obtener el iterador\n        Iterator<String> it = frutas.iterator();\n\n        // Recorrer con hasNext() y next()\n        while (it.hasNext()) {\n            String fruta = it.next();\n            System.out.println(\"Fruta: \" + fruta);\n        }\n\n        System.out.println();\n\n        // Eliminar elementos durante el recorrido\n        Iterator<String> it2 = frutas.iterator();\n        while (it2.hasNext()) {\n            String fruta = it2.next();\n            if (fruta.startsWith(\"P\")) {\n                it2.remove(); // Elimina de forma segura\n            }\n        }\n        System.out.println(\"Sin frutas que empiezan por P: \" + frutas);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Iterator con objetos Alumno",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.Iterator;\nimport java.util.List;\n\npublic class IteratorAlumnos {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = new ArrayList<>();\n\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\");\n        a1.addNota(8.5); a1.addNota(7.0);\n        alumnos.add(a1);\n\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\");\n        a2.addNota(3.0); a2.addNota(4.0);\n        alumnos.add(a2);\n\n        Alumno a3 = new Alumno(\"Maria\", \"maria@email.com\");\n        a3.addNota(9.0); a3.addNota(8.5);\n        alumnos.add(a3);\n\n        Alumno a4 = new Alumno(\"Pedro\", \"pedro@email.com\");\n        a4.addNota(4.5); a4.addNota(3.5);\n        alumnos.add(a4);\n\n        System.out.println(\"Antes: \" + alumnos.size() + \" alumnos\");\n\n        // Eliminar alumnos suspensos (media < 5)\n        Iterator<Alumno> it = alumnos.iterator();\n        while (it.hasNext()) {\n            Alumno a = it.next();\n            if (a.getNotaMedia() < 5.0) {\n                System.out.println(\"Eliminando: \" + a.getNombre()\n                    + \" (\" + String.format(\"%.1f\", a.getNotaMedia()) + \")\");\n                it.remove();\n            }\n        }\n\n        System.out.println(\"Despues: \" + alumnos.size() + \" alumnos\");\n        for (Alumno a : alumnos) {\n            System.out.printf(\"%s - Media: %.2f%n\",\n                a.getNombre(), a.getNotaMedia());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "ListIterator: recorrido bidireccional",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\nimport java.util.ListIterator;\n\npublic class ListIteratorEjemplo {\n    public static void main(String[] args) {\n        List<String> colores = new ArrayList<>();\n        colores.add(\"Rojo\");\n        colores.add(\"Verde\");\n        colores.add(\"Azul\");\n\n        // ListIterator permite ir hacia adelante y hacia atras\n        ListIterator<String> it = colores.listIterator();\n\n        // Hacia adelante\n        System.out.println(\"Hacia adelante:\");\n        while (it.hasNext()) {\n            System.out.println(it.next());\n        }\n\n        // Hacia atras (el puntero esta al final)\n        System.out.println(\"Hacia atras:\");\n        while (it.hasPrevious()) {\n            System.out.println(it.previous());\n        }\n\n        // Modificar un elemento durante el recorrido\n        ListIterator<String> it2 = colores.listIterator();\n        while (it2.hasNext()) {\n            String color = it2.next();\n            if (color.equals(\"Verde\")) {\n                it2.set(\"Morado\"); // Reemplaza el ultimo next()\n            }\n        }\n        System.out.println(\"Despues de modificar: \" + colores);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Comparación de formas de recorrer",
+          "content": "| Forma | Uso | Ventaja | Limitación |\n|-------|-----|---------|------------|\n| `for (int i=0; i<list.size(); i++)` | Acceso por índice | Puedes usar el índice | No se puede modificar la lista |\n| `for (T elem : list)` | Recorrido simple | Código limpio | No se puede eliminar |\n| `Iterator<T> it = list.iterator()` | Eliminar durante recorrido | Seguro | Código más verboso |\n| `ListIterator<T>` | Recorrido bidireccional | Hacia adelante y atrás | Solo para List |\n\n**Regla práctica:**\n- Solo lectura â†’ `for-each`\n- Necesitas el índice â†’ `for` clásico\n- Eliminar durante el recorrido â†’ `Iterator`\n- Recorrer en ambas direcciones â†’ `ListIterator`"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-2-1",
+          "difficulty": "basic",
+          "title": "Recorrer con Iterator",
+          "description": "Crea una lista de 5 Strings y recórrela con un Iterator. Muestra cada elemento.",
+          "solution": "import java.util.ArrayList;\nimport java.util.Iterator;\nimport java.util.List;\n\npublic class RecorrerIterator {\n    public static void main(String[] args) {\n        List<String> meses = new ArrayList<>();\n        meses.add(\"Enero\");\n        meses.add(\"Febrero\");\n        meses.add(\"Marzo\");\n        meses.add(\"Abril\");\n        meses.add(\"Mayo\");\n        \n        Iterator<String> it = meses.iterator();\n        while (it.hasNext()) {\n            System.out.println(it.next());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-12-2-2",
+          "difficulty": "intermediate",
+          "title": "Eliminar duplicados con Iterator",
+          "description": "Crea una lista con elementos duplicados. Usa un Iterator para eliminar los duplicados, dejando solo la primera ocurrencia de cada uno.",
+          "solution": "import java.util.ArrayList;\nimport java.util.Iterator;\nimport java.util.List;\n\npublic class EliminarDuplicados {\n    public static void main(String[] args) {\n        List<String> lista = new ArrayList<>();\n        lista.add(\"Ana\");\n        lista.add(\"Carlos\");\n        lista.add(\"Ana\");\n        lista.add(\"Maria\");\n        lista.add(\"Carlos\");\n        lista.add(\"Pedro\");\n        \n        List<String> vistos = new ArrayList<>();\n        Iterator<String> it = lista.iterator();\n        \n        while (it.hasNext()) {\n            String elem = it.next();\n            if (vistos.contains(elem)) {\n                it.remove();\n            } else {\n                vistos.add(elem);\n            }\n        }\n        \n        System.out.println(\"Sin duplicados: \" + lista);\n    }\n}"
+        },
+        {
+          "id": "ex-12-2-3",
+          "difficulty": "advanced",
+          "title": "Filtrar y transformar con Iterator",
+          "description": "Dada una lista de alumnos, usa un Iterator para eliminar los suspensos y otro para crear una nueva lista con los nombres de los aprobados en mayúsculas.",
+          "solution": "import java.util.ArrayList;\nimport java.util.Iterator;\nimport java.util.List;\n\npublic class FiltrarYTransformar {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = new ArrayList<>();\n        // ... crear alumnos con notas ...\n        \n        // Eliminar suspensos con Iterator\n        Iterator<Alumno> it = alumnos.iterator();\n        while (it.hasNext()) {\n            if (it.next().getNotaMedia() < 5.0) {\n                it.remove();\n            }\n        }\n        \n        // Crear lista de nombres en mayusculas\n        List<String> nombresMayusculas = new ArrayList<>();\n        for (Alumno a : alumnos) {\n            nombresMayusculas.add(a.getNombre().toUpperCase());\n        }\n        System.out.println(\"Aprobados (mayusculas): \" + nombresMayusculas);\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar `lista.remove()` dentro de un for-each: lanza ConcurrentModificationException.",
+        "Olvidar llamar a `it.next()` antes de `it.remove()`: remove elimina el último next(), no el siguiente.",
+        "No comprobar `hasNext()` antes de `next()`: NoSuchElementException si no hay más elementos.",
+        "Usar Iterator para una lista que solo necesitas recorrer en lectura: for-each es más limpio.",
+        "Intentar modificar el tamaño de la colección durante el recorrido sin usar Iterator."
+      ],
+      "keyConcepts": [
+        "Interfaz Iterator: hasNext(), next(), remove()",
+        "Eliminación segura durante el recorrido con iterator.remove()",
+        "ConcurrentModificationException y cómo evitarla",
+        "ListIterator para recorrido bidireccional y modificación",
+        "Comparación de formas de recorrer: for, for-each, Iterator, ListIterator",
+        "Uso práctico: eliminar suspensos, filtrar, transformar"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.d"
+      ]
+    },
+    {
+      "id": "lesson-12-3",
+      "title": "Genéricos: clases y métodos parametrizados",
+      "objectives": [
+        "Comprender qué son los genéricos y por qué existen",
+        "Crear clases genéricas parametrizadas",
+        "Crear métodos genéricos estáticos",
+        "Usar bounded types para limitar tipos genéricos",
+        "Crear una versión genérica de nuestro dominio Alumno/Curso"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué son los genéricos?",
+          "content": "Los **genéricos** permiten crear clases, interfaces y métodos que trabajan con **tipos parametrizados**. En lugar de escribir código para un tipo concreto, escribes código que funciona con CUALQUIER tipo.\n\n**El problema sin genéricos:**\n```java\n// Sin genéricos, necesitamos Object y casting\nList lista = new ArrayList();\nlista.add(\"Ana\");\nlista.add(25);\nString nombre = (String) lista.get(0);  // Casting manual\nint edad = (int) lista.get(1);          // Risky cast!\n```\n\n**La solución con genéricos:**\n```java\n// Con genéricos, el tipo se verifica en compilacion\nList<String> lista = new ArrayList<>();\nlista.add(\"Ana\");\n// lista.add(25);  // ERROR de compilacion: no puede añadir int\nString nombre = lista.get(0); // No necesita casting\n```\n\n**Ventajas:**\n1. **Seguridad de tipos**: el compilador detecta errores de tipo en tiempo de compilación.\n2. **No casting**: no necesitas convertir tipos al obtener elementos.\n3. **Legibilidad**: el código es más claro y autoexplicativo.\n4. **Reutilización**: una sola clase funciona con muchos tipos."
+        },
+        {
+          "type": "code",
+          "title": "Clase genérica: Recipiente<T>",
+          "language": "java",
+          "content": "// Clase genérica con un tipo parametrizado T\npublic class Recipiente<T> {\n    private T contenido;\n    private boolean vacio;\n\n    public Recipiente() {\n        this.vacio = true;\n    }\n\n    public Recipiente(T contenido) {\n        this.contenido = contenido;\n        this.vacio = false;\n    }\n\n    public void guardar(T contenido) {\n        this.contenido = contenido;\n        this.vacio = false;\n    }\n\n    public T obtener() {\n        if (vacio) throw new IllegalStateException(\"Recipiente vacio\");\n        return contenido;\n    }\n\n    public boolean estaVacio() { return vacio; }\n\n    public void vaciar() {\n        this.contenido = null;\n        this.vacio = true;\n    }\n\n    @Override\n    public String toString() {\n        return vacio ? \"[vacio]\" : \"[\" + contenido + \"]\";\n    }\n}\n\n// Uso:\nRecipiente<String> cajaTexto = new Recipiente<>(\"Hola\");\nRecipiente<Integer> cajaNumero = new Recipiente<>(42);\nRecipiente<Alumno> cajaAlumno = new Recipiente<>(new Alumno(\"Ana\", \"ana@email.com\"));\n\nSystem.out.println(cajaTexto.obtener());  // \"Hola\"\nSystem.out.println(cajaNumero.obtener()); // 42\nSystem.out.println(cajaAlumno.obtener().getNombre()); // \"Ana\""
+        },
+        {
+          "type": "code",
+          "title": "Clase genérica con dos tipos: Par<K, V>",
+          "language": "java",
+          "content": "// Clase con dos tipos parametrizados\npublic class Par<K, V> {\n    private K clave;\n    private V valor;\n\n    public Par(K clave, V valor) {\n        this.clave = clave;\n        this.valor = valor;\n    }\n\n    public K getClave() { return clave; }\n    public V getValor() { return valor; }\n    public void setValor(V valor) { this.valor = valor; }\n\n    @Override\n    public String toString() {\n        return clave + \" = \" + valor;\n    }\n}\n\n// Uso:\nPar<String, Double> nota = new Par<>(\"Matematicas\", 8.5);\nPar<Integer, String> alumno = new Par<>(1, \"Ana Garcia\");\nPar<String, Alumno> registro = new Par<>(\"A001\", new Alumno(\"Ana\", \"ana@email.com\"));\n\nSystem.out.println(nota.getClave() + \": \" + nota.getValor()); // Matematicas: 8.5"
+        },
+        {
+          "type": "code",
+          "title": "Métodos genéricos estáticos",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class UtilidadesGenericas {\n\n    // Metodo generico: funciona con cualquier tipo\n    public static <T> boolean contiene(List<T> lista, T elemento) {\n        for (T elem : lista) {\n            if (elem.equals(elemento)) {\n                return true;\n            }\n        }\n        return false;\n    }\n\n    // Metodo generico con bounded type: solo Number o sus subtipos\n    public static <T extends Number> double sumar(List<T> numeros) {\n        double suma = 0;\n        for (T num : numeros) {\n            suma += num.doubleValue();\n        }\n        return suma;\n    }\n\n    // Metodo generico que intercambia dos elementos\n    public static <T> void intercambiar(List<T> lista, int i, int j) {\n        T temp = lista.get(i);\n        lista.set(i, lista.get(j));\n        lista.set(j, temp);\n    }\n\n    public static void main(String[] args) {\n        // contains con Strings\n        List<String> frutas = List.of(\"Manzana\", \"Platano\", \"Naranja\");\n        System.out.println(\"Tiene Platano: \" + contiene(frutas, \"Platano\"));\n\n        // sumar con Doubles\n        List<Double> notas = List.of(8.5, 7.0, 9.2);\n        System.out.println(\"Suma: \" + sumar(notas));\n\n        // sumar con Integers\n        List<Integer> edades = List.of(20, 22, 19);\n        System.out.println(\"Suma edades: \" + sumar(edades));\n\n        // intercambiar\n        List<String> lista = new ArrayList<>(List.of(\"A\", \"B\", \"C\"));\n        intercambiar(lista, 0, 2);\n        System.out.println(\"Intercambiado: \" + lista); // [C, B, A]\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Bounded types: limitar los genéricos",
+          "content": "A veces necesitas que el tipo genérico no sea **cualquier cosa**, sino que extienda de una clase o implemente una interfaz específica. Para eso se usa la palabra clave `extends`:\n\n```java\n// T debe ser Number o cualquier subclase (Integer, Double, etc.)\npublic static <T extends Number> double sumar(List<T> numeros) { ... }\n\n// T debe implementar Comparable\npublic static <T extends Comparable<T>> T maximo(List<T> lista) { ... }\n\n// T debe ser una subclase de Persona\npublic static <T extends Persona> void mostrarInfo(T persona) { ... }\n```\n\n**Tipos de bounded:**\n- `<T extends Number>` — T es Number o subclase.\n- `<T extends Comparable<T>>` — T implementa Comparable.\n- `<T extends Number & Comparable<T>>` — T es Number Y Comparable.\n\n**Regla**: siempre se usa `extends` (nunca `implements`) para bounded types genéricos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-3-1",
+          "difficulty": "basic",
+          "title": "Crear una clase genérica Caja<T>",
+          "description": "Crea una clase genérica `Caja<T>` con métodos `guardar(T)`, `obtener()` y `estaVacio()`. Prueba con String, Integer y una clase propia.",
+          "solution": "public class Caja<T> {\n    private T contenido;\n    \n    public void guardar(T contenido) { this.contenido = contenido; }\n    public T obtener() { return contenido; }\n    public boolean estaVacio() { return contenido == null; }\n    \n    public static void main(String[] args) {\n        Caja<String> texto = new Caja<>();\n        texto.guardar(\"Hola Mundo\");\n        System.out.println(texto.obtener());\n        \n        Caja<Integer> numero = new Caja<>();\n        numero.guardar(42);\n        System.out.println(numero.obtener());\n    }\n}"
+        },
+        {
+          "id": "ex-12-3-2",
+          "difficulty": "intermediate",
+          "title": "Método genérico para encontrar el máximo",
+          "description": "Crea un método genérico `maximo(List<T extends Comparable<T>>)` que devuelva el mayor elemento de una lista. Pruébalo con Integer y String.",
+          "solution": "import java.util.List;\n\npublic class Maximo {\n    public static <T extends Comparable<T>> T maximo(List<T> lista) {\n        T max = lista.get(0);\n        for (int i = 1; i < lista.size(); i++) {\n            if (lista.get(i).compareTo(max) > 0) {\n                max = lista.get(i);\n            }\n        }\n        return max;\n    }\n    \n    public static void main(String[] args) {\n        List<Integer> numeros = List.of(3, 7, 1, 9, 4);\n        System.out.println(\"Maximo: \" + maximo(numeros)); // 9\n        \n        List<String> nombres = List.of(\"Ana\", \"Pedro\", \"Carlos\");\n        System.out.println(\"Maximo: \" + maximo(nombres)); // Pedro\n    }\n}"
+        },
+        {
+          "id": "ex-12-3-3",
+          "difficulty": "advanced",
+          "title": "ListaGenérica<T> completa",
+          "description": "Crea una clase `ListaGenerica<T>` que envuelva un array y proporcione: add, get, size, remove, contiene, indiceDe. Debe crecer dinámicamente cuando se llene.",
+          "solution": "public class ListaGenerica<T> {\n    private Object[] elementos;\n    private int tamano;\n    private static final int CAPACIDAD_INICIAL = 10;\n    \n    public ListaGenerica() {\n        this.elementos = new Object[CAPACIDAD_INICIAL];\n        this.tamano = 0;\n    }\n    \n    public void add(T elemento) {\n        if (tamano == elementos.length) {\n            Object[] nuevo = new Object[elementos.length * 2];\n            System.arraycopy(elementos, 0, nuevo, 0, tamano);\n            elementos = nuevo;\n        }\n        elementos[tamano++] = elemento;\n    }\n    \n    @SuppressWarnings(\"unchecked\")\n    public T get(int indice) {\n        if (indice < 0 || indice >= tamano) throw new IndexOutOfBoundsException();\n        return (T) elementos[indice];\n    }\n    \n    public int size() { return tamano; }\n    \n    public static void main(String[] args) {\n        ListaGenerica<String> lista = new ListaGenerica<>();\n        lista.add(\"Ana\");\n        lista.add(\"Carlos\");\n        System.out.println(lista.get(0)); // Ana\n        System.out.println(lista.size()); // 2\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar genéricos con tipos primitivos: `List<int>` no compila, hay que usar `List<Integer>`.",
+        "No entender que los genéricos se 'borran' en tiempo de ejecución (type erasure): `List<String>` y `List<Integer>` son el mismo tipo en runtime.",
+        "Crear instancias de tipos genéricos: `new T()` no compila porque T no se conoce en runtime.",
+        "No usar bounded types cuando es necesario: un método que ordena necesita `<T extends Comparable<T>>`.",
+        "Usar `@SuppressWarnings(\"unchecked\")` para eliminar advertencias sin entender el riesgo."
+      ],
+      "keyConcepts": [
+        "Genéricos para type safety en tiempo de compilación",
+        "Clases genéricas: `class Recipiente<T>`",
+        "Métodos genéricos estáticos: `<T> metodo(T param)`",
+        "Bounded types: `<T extends Number>`",
+        "Type erasure: los genéricos desaparecen en runtime",
+        "Ventajas: seguridad, legibilidad, reutilización"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.f"
+      ]
+    },
+    {
+      "id": "lesson-12-4",
+      "title": "Expresiones regulares y tratamiento de cadenas",
+      "objectives": [
+        "Comprender qué son las expresiones regulares y para qué sirven",
+        "Usar la clase Pattern y Matcher de Java",
+        "Validar emails, teléfonos y otros patrones de texto",
+        "Aplicar regex al dominio de gestión académica (validar datos)",
+        "Conocer las clases de la API para tratamiento de cadenas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Expresiones regulares: patrones en texto",
+          "content": "Una **expresión regular** (regex) es un patrón que describe un conjunto de cadenas de texto. Se usan para:\n- **Validar**: ¿este email tiene un formato correcto?\n- **Buscar**: encontrar todas las palabras que empiezan por mayúscula.\n- **Extraer**: sacar números de un texto.\n- **Reemplazar**: cambiar todas las apariciones de un patrón.\n\n**Sintaxis básica:**\n| Símbolo | Significado | Ejemplo |\n|---------|-------------|----------|\n| `.` | Cualquier carácter | `a.c` â†’ abc, axC |\n| `\\\\+.d` | Dígito [0-9] | `\\\\+.d\\\\+.d` â†’ 42 |\n| `\\\\+.w` | Alfanumérico [a-zA-Z0-9_] | `\\\\+.w+` â†’ Ana_123 |\n| `\\\\+.s` | Espacio en blanco | |\n| `+` | Una o más veces | `a+` â†’ a, aa, aaa |\n| `*` | Cero o más veces | `a*` â†’ \"\", a, aa |\n| `?` | Cero o una vez | `colou?r` â†’ color, colour |\n| `{n}` | Exactamente n veces | `\\\\+.d{3}` â†’ 123 |\n| `{n,m}` | Entre n y m veces | `\\\\+.d{2,4}` â†’ 12, 1234 |\n| `[abc]` | Cualquier carácter de la lista | `[aeiou]` â†’ vocal |\n| `[^abc]` | Cualquier carácter NO de la lista | `[^0-9]` â†’ no dígito |\n| `^` | Inicio de cadena | `^Ana` â†’ empieza por Ana |\n| `$` | Fin de cadena | `@email$` â†’ termina en @email |\n| `|` | O (alternativa) | `cat|dog` â†’ cat o dog |\n| `()` | Grupo | `(\\\\+.d{3})` â†’ captura 3 dígitos |"
+        },
+        {
+          "type": "code",
+          "title": "Validar email con regex",
+          "language": "java",
+          "content": "import java.util.regex.Matcher;\nimport java.util.regex.Pattern;\n\npublic class ValidarEmail {\n    public static void main(String[] args) {\n        // Patron para email simple\n        String patronEmail = \"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\+.[a-zA-Z]{2,}$\";\n        Pattern pattern = Pattern.compile(patronEmail);\n\n        String[] emails = {\n            \"ana@email.com\",        // valido\n            \"carlos@gmail.com\",     // valido\n            \"maria@\",               // invalido\n            \"@dominio.com\",         // invalido\n            \"pedro@email.co.uk\",    // valido\n            \"sin-arroba.com\"        // invalido\n        };\n\n        for (String email : emails) {\n            Matcher matcher = pattern.matcher(email);\n            System.out.printf(\"%s -> %s%n\", email,\n                matcher.matches() ? \"VALIDO\" : \"INVALIDO\");\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Extraer información de un texto",
+          "language": "java",
+          "content": "import java.util.regex.Matcher;\nimport java.util.regex.Pattern;\n\npublic class ExtraerInfo {\n    public static void main(String[] args) {\n        String texto = \"Los alumnos Ana (8.5), Carlos (7.0) y Maria (9.2) \" +\n                        \"aprobaron Programacion.\";\n\n        // Extraer nombres (palabras que empiezan por mayuscula)\n        Pattern patronNombres = Pattern.compile(\"[A-Z][a-z]+\");\n        Matcher matcherNombres = patronNombres.matcher(texto);\n\n        System.out.println(\"Nombres encontrados:\");\n        while (matcherNombres.find()) {\n            System.out.println(\"  \" + matcherNombres.group());\n        }\n\n        // Extraer numeros (decimales)\n        Pattern patronNotas = Pattern.compile(\"\\\\d+\\\\.\\\\d+\");\n        Matcher matcherNotas = patronNotas.matcher(texto);\n\n        System.out.println(\"\\nNotas encontradas:\");\n        while (matcherNotas.find()) {\n            System.out.println(\"  \" + matcherNotas.group());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Validar datos de alumno",
+          "language": "java",
+          "content": "import java.util.regex.Pattern;\n\npublic class ValidarAlumno {\n\n    private static final Pattern PATRON_NOMBRE =\n        Pattern.compile(\"^[A-ZÁÃ‰ÍÃ“ÃšÃ‘][a-záéíóúñ]+( [A-ZÁÃ‰ÍÃ“ÃšÃ‘][a-záéíóúñ]+)*$\");\n\n    private static final Pattern PATRON_EMAIL =\n        Pattern.compile(\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\\\+.[a-zA-Z]{2,}$\");\n\n    private static final Pattern PATRON_TELEFONO =\n        Pattern.compile(\"^\\\\+?\\\\d{9,12}$\");\n\n    private static final Pattern PATRON_NIE =\n        Pattern.compile(\"^[XYZ]\\\\d{7,8}[A-Z]$\");\n\n    public static boolean validarNombre(String nombre) {\n        return nombre != null && PATRON_NOMBRE.matcher(nombre).matches();\n    }\n\n    public static boolean validarEmail(String email) {\n        return email != null && PATRON_EMAIL.matcher(email).matches();\n    }\n\n    public static boolean validarTelefono(String telefono) {\n        return telefono != null && PATRON_TELEFONO.matcher(telefono).matches();\n    }\n\n    public static boolean validarNIE(String nie) {\n        return nie != null && PATRON_NIE.matcher(nie).matches();\n    }\n\n    public static void main(String[] args) {\n        System.out.println(\"Nombre 'Ana Garcia': \" + validarNombre(\"Ana Garcia\"));\n        System.out.println(\"Nombre 'ana': \" + validarNombre(\"ana\"));\n        System.out.println(\"Email 'ana@email.com': \" + validarEmail(\"ana@email.com\"));\n        System.out.println(\"Email 'sin@': \" + validarEmail(\"sin@\"));\n        System.out.println(\"Telefono '+34600123456': \" + validarTelefono(\"+34600123456\"));\n        System.out.println(\"NIE 'Z1234567A': \" + validarNIE(\"Z1234567A\"));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-4-1",
+          "difficulty": "basic",
+          "title": "Validar formato de nota",
+          "description": "Crea un método que use regex para validar que una cadena tiene formato de nota (número entre 0 y 10, con hasta 2 decimales): '8.5', '10.0', '0', '7.25'.",
+          "solution": "import java.util.regex.Pattern;\n\npublic class ValidarNota {\n    private static final Pattern PATRON = Pattern.compile(\"^(10(\\\\+.0{1,2})?|[0-9](\\\\+.[0-9]{1,2})?)$\");\n    \n    public static boolean validar(String nota) {\n        return nota != null && PATRON.matcher(nota).matches();\n    }\n    \n    public static void main(String[] args) {\n        String[] notas = {\"8.5\", \"10.0\", \"0\", \"7.25\", \"11\", \"-1\", \"abc\"};\n        for (String n : notas) {\n            System.out.printf(\"'%s' -> %s%n\", n, validar(n) ? \"valida\" : \"invalida\");\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-12-4-2",
+          "difficulty": "intermediate",
+          "title": "Extraer menciones de un texto",
+          "description": "Dado un texto con menciones a alumnos entre '@' (ej: '@Ana @Carlos'), extrae todos los nombres de alumno. Usa regex.",
+          "solution": "import java.util.regex.Matcher;\nimport java.util.regex.Pattern;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class ExtraerMenciones {\n    public static List<String> extraerMenciones(String texto) {\n        Pattern patron = Pattern.compile(\"@[A-ZÁÃ‰ÍÃ“ÃšÃ‘][a-záéíóúñ]+\");\n        Matcher matcher = patron.matcher(texto);\n        List<String> menciones = new ArrayList<>();\n        while (matcher.find()) {\n            menciones.add(matcher.group().substring(1)); // Sin el @\n        }\n        return menciones;\n    }\n    \n    public static void main(String[] args) {\n        String texto = \"Hola @Ana y @Carlos, revisad las notas de @Maria.\";\n        System.out.println(\"Menciones: \" + extraerMenciones(texto));\n    }\n}"
+        },
+        {
+          "id": "ex-12-4-3",
+          "difficulty": "advanced",
+          "title": "Analizador de logs académicos",
+          "description": "Crea un analizador que extraiga información de líneas de log con formato: '[2026-09-15 10:30:45] ACCION alumno:Ana curso:Prog nota:8.5'. Debe extraer fecha, acción, alumno, curso y nota.",
+          "solution": "import java.util.regex.Matcher;\nimport java.util.regex.Pattern;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class AnalizadorLogs {\n    record LogEntry(String fecha, String accion, String alumno, String curso, double nota) {}\n    \n    private static final Pattern PATRON = Pattern.compile(\n        \"\\\\[(\\\\d{4}-\\\\d{2}-\\\\d{2} \\\\d{2}:\\\\d{2}:\\\\d{2})\\\\] (\\\\w+) alumno:(\\\\w+) curso:(\\\\w+) nota:(\\\\d+\\\\.?\\\\d*)\"\n    );\n    \n    public static List<LogEntry> analizar(String[] lineas) {\n        List<LogEntry> entradas = new ArrayList<>();\n        for (String linea : lineas) {\n            Matcher m = PATRON.matcher(linea);\n            if (m.matches()) {\n                entradas.add(new LogEntry(\n                    m.group(1), m.group(2), m.group(3),\n                    m.group(4), Double.parseDouble(m.group(5))\n                ));\n            }\n        }\n        return entradas;\n    }\n    \n    public static void main(String[] args) {\n        String[] logs = {\n            \"[2026-09-15 10:30:45] MATRICULA alumno:Ana curso:Prog nota:8.5\",\n            \"[2026-09-15 10:31:00] MATRICULA alumno:Carlos curso:Prog nota:7.0\"\n        };\n        for (LogEntry e : analizar(logs)) {\n            System.out.println(e);\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar escapar barra invertida en Java: `\\\\+.d` debe ser `\"\\\\+.\\d\"` en el String.",
+        "No compilar el patrón antes de usarlo: `Pattern.compile()` devuelve un Pattern que se reutiliza.",
+        "Usar `matches()` en lugar de `find()`: matches() requiere que toda la cadena coincida, find() busca parcialmente.",
+        "No precompilar el patrón en una constante: compilarlo en cada llamada es ineficiente.",
+        "Olvidar que los grupos de captura empiezan en 1, no en 0 (grupo 0 es toda la coincidencia)."
+      ],
+      "keyConcepts": [
+        "Expresiones regulares: patrones para validar y extraer texto",
+        "Sintaxis: \\\\+.d, \\\\+.w, +, *, ?, [], {}, ^, $, |, ()",
+        "Clase Pattern: compilar y reutilizar patrones",
+        "Clase Matcher: find(), group(), matches()",
+        "Validación de datos: email, teléfono, nombre, nota",
+        "Extracción de información de textos con grupos de captura"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.g"
+      ]
+    },
+    {
+      "id": "lesson-12-5",
+      "title": "Introducción a JSON y XML",
+      "objectives": [
+        "Comprender qué son los formatos JSON y XML y para qué sirven",
+        "Crear y parsear objetos JSON con la librería Gson o Jackson",
+        "Leer y escribir archivos XML con la API de Java",
+        "Serializar y deserializar objetos del dominio Alumno/Curso",
+        "Comparar JSON vs XML: cuándo usar cada uno"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "JSON: JavaScript Object Notation",
+          "content": "**JSON** es un formato de intercambio de datos ligero, fácil de leer y escribir para personas, y fácil de parsear y generar para máquinas.\n\n**Estructura JSON:**\n```json\n{\n  \"nombre\": \"Ana\",\n  \"email\": \"ana@email.com\",\n  \"edad\": 20,\n  \"notas\": [8.5, 7.0, 9.2],\n  \"activo\": true,\n  \"direccion\": {\n    \"calle\": \"Calle Mayor 1\",\n    \"ciudad\": \"Sevilla\"\n  }\n}\n```\n\n**Tipos JSON:**\n| JSON | Java |\n|------|------|\n| `\"texto\"` | `String` |\n| `42` | `int` o `long` |\n| `3.14` | `double` o `float` |\n| `true/false` | `boolean` |\n| `[1, 2, 3]` | `List<T>` o array |\n| `{...}` | `Map<String, Object>` |\n| `null` | `null` |\n\nJSON es el formato más usado en APIs REST y archivos de configuración."
+        },
+        {
+          "type": "code",
+          "title": "Crear JSON con Gson",
+          "language": "java",
+          "content": "// Requiere la libreria Gson: com.google.code.gson:gson:2.10.1\nimport com.google.gson.Gson;\nimport com.google.gson.GsonBuilder;\nimport java.util.List;\n\npublic class CrearJSON {\n    public static void main(String[] args) {\n        // Crear un objeto Alumno\n        Alumno alumno = new Alumno(\"Ana\", \"ana@email.com\");\n        alumno.addNota(8.5);\n        alumno.addNota(7.0);\n        alumno.addNota(9.2);\n\n        // Convertir a JSON\n        Gson gson = new GsonBuilder()\n            .setPrettyFormatting() // Formateo legible\n            .create();\n\n        String json = gson.toJson(alumno);\n        System.out.println(json);\n\n        // Convertir una lista a JSON\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\")\n        );\n        String jsonLista = gson.toJson(alumnos);\n        System.out.println(jsonLista);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Parsear JSON con Gson",
+          "language": "java",
+          "content": "import com.google.gson.Gson;\nimport com.google.gson.reflect.TypeToken;\nimport java.lang.reflect.Type;\nimport java.util.List;\n\npublic class ParsearJSON {\n    public static void main(String[] args) {\n        // JSON de ejemplo\n        String json = \"\"\"\n            {\n                \"nombre\": \"Ana\",\n                \"email\": \"ana@email.com\"\n            }\n            \"\"\";\n\n        Gson gson = new Gson();\n\n        // Parsear un objeto\n        Alumno alumno = gson.fromJson(json, Alumno.class);\n        System.out.println(alumno.getNombre()); // Ana\n        System.out.println(alumno.getEmail());  // ana@email.com\n\n        // Parsear una lista\n        String jsonLista = \"\"\"\n            [\n                {\"nombre\": \"Ana\", \"email\": \"ana@email.com\"},\n                {\"nombre\": \"Carlos\", \"email\": \"carlos@email.com\"}\n            ]\n            \"\"\";\n\n        Type tipoLista = new TypeToken<List<Alumno>>(){}.getType();\n        List<Alumno> alumnos = gson.fromJson(jsonLista, tipoLista);\n\n        for (Alumno a : alumnos) {\n            System.out.println(a.getNombre());\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "XML con la API nativa de Java",
+          "language": "java",
+          "content": "import javax.xml.parsers.DocumentBuilder;\nimport javax.xml.parsers.DocumentBuilderFactory;\nimport org.w3c.dom.Document;\nimport org.w3c.dom.Element;\nimport org.w3c.dom.NodeList;\nimport java.io.File;\n\npublic class LeerXML {\n    public static void main(String[] args) throws Exception {\n        // Crear un archivo XML de ejemplo\n        String xml = \"\"\"\n            <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n            <alumnos>\n                <alumno>\n                    <nombre>Ana</nombre>\n                    <email>ana@email.com</email>\n                    <nota>8.5</nota>\n                </alumno>\n                <alumno>\n                    <nombre>Carlos</nombre>\n                    <email>carlos@email.com</email>\n                    <nota>7.0</nota>\n                </alumno>\n            </alumnos>\n            \"\"\";\n\n        // Escribir el XML a un archivo temporal\n        java.nio.file.Files.writeString(\n            java.nio.file.Path.of(\"alumnos.xml\"), xml);\n\n        // Leer el XML\n        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();\n        DocumentBuilder builder = factory.newDocumentBuilder();\n        Document doc = builder.parse(new File(\"alumnos.xml\"));\n\n        // Obtener todos los nodos \"alumno\"\n        NodeList alumnos = doc.getElementsByTagName(\"alumno\");\n\n        for (int i = 0; i < alumnos.getLength(); i++) {\n            Element alumno = (Element) alumnos.item(i);\n            String nombre = alumno.getElementsByTagName(\"nombre\")\n                .item(0).getTextContent();\n            String email = alumno.getElementsByTagName(\"email\")\n                .item(0).getTextContent();\n            String nota = alumno.getElementsByTagName(\"nota\")\n                .item(0).getTextContent();\n            System.out.printf(\"%s (%s) - Nota: %s%n\", nombre, email, nota);\n        }\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "JSON vs XML: ¿cuándo usar cada uno?",
+          "content": "| Característica | JSON | XML |\n|----------------|------|-----|\n| Legibilidad | Más ligero y legible | Más verboso |\n| Tamaño | Más pequeño | Más grande |\n| Tipos de datos | Nativos (string, int, bool) | Todo es texto |\n| Uso principal | APIs REST, configuración | Documentos, SOAP, config Java |\n| Parseo en Java | Gson, Jackson, org.json | DOM, SAX, JAXB |\n| Comentarios | No soportados | Sí soportados |\n| Esquema | JSON Schema | XSD, DTD |\n\n**Regla práctica:**\n- **APIs y configuración moderna** â†’ JSON\n- **Documentos estructurados con metadatos** â†’ XML\n- **En nuestro curso** â†’ usaremos JSON por simplicidad, pero conoceremos ambos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-5-1",
+          "difficulty": "basic",
+          "title": "Crear JSON de un Curso",
+          "description": "Usando Gson, crea un objeto Curso y conviértelo a JSON formateado. Muestra el resultado por consola.",
+          "solution": "import com.google.gson.Gson;\nimport com.google.gson.GsonBuilder;\n\npublic class CursoAJSON {\n    public static void main(String[] args) {\n        Curso curso = new Curso(\"Programacion\", 120, \"Prof. Garcia\");\n        \n        Gson gson = new GsonBuilder().setPrettyFormatting().create();\n        String json = gson.toJson(curso);\n        System.out.println(json);\n    }\n}"
+        },
+        {
+          "id": "ex-12-5-2",
+          "difficulty": "intermediate",
+          "title": "Parsear JSON de alumnos",
+          "description": "Dado un String JSON con un array de alumnos, conviértelo a `List<Alumno>` usando Gson.",
+          "solution": "import com.google.gson.Gson;\nimport com.google.gson.reflect.TypeToken;\nimport java.lang.reflect.Type;\nimport java.util.List;\n\npublic class ParsearAlumnos {\n    public static void main(String[] args) {\n        String json = \"[{\\\\+.nombre\\\\+.:\\\\+.Ana\\\\+.,\\\\+.email\\\\+.:\\\\+.ana@email.com\\\\+.},\" +\n                       \"{\\\\+.nombre\\\\+.:\\\\+.Carlos\\\\+.,\\\\+.email\\\\+.:\\\\+.carlos@email.com\\\\+.}]\";\n        \n        Gson gson = new Gson();\n        Type tipoLista = new TypeToken<List<Alumno>>(){}.getType();\n        List<Alumno> alumnos = gson.fromJson(json, tipoLista);\n        \n        for (Alumno a : alumnos) {\n            System.out.println(a.getNombre() + \" - \" + a.getEmail());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-12-5-3",
+          "difficulty": "advanced",
+          "title": "Persistencia JSON: guardar y cargar alumnos",
+          "description": "Crea un programa que guarde una lista de alumnos en un archivo JSON y que pueda cargarlos de vuelta. Usa Gson y archivos de texto.",
+          "solution": "import com.google.gson.Gson;\nimport com.google.gson.GsonBuilder;\nimport com.google.gson.reflect.TypeToken;\nimport java.io.*;\nimport java.lang.reflect.Type;\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class PersistenciaJSON {\n    private static final String ARCHIVO = \"alumnos.json\";\n    private static final Gson gson = new GsonBuilder().setPrettyFormatting().create();\n    \n    public static void guardar(List<Alumno> alumnos) throws IOException {\n        try (Writer writer = new FileWriter(ARCHIVO)) {\n            gson.toJson(alumnos, writer);\n        }\n    }\n    \n    public static List<Alumno> cargar() throws IOException {\n        try (Reader reader = new FileReader(ARCHIVO)) {\n            Type tipoLista = new TypeToken<List<Alumno>>(){}.getType();\n            return gson.fromJson(reader, tipoLista);\n        }\n    }\n    \n    public static void main(String[] args) throws IOException {\n        List<Alumno> alumnos = new ArrayList<>();\n        alumnos.add(new Alumno(\"Ana\", \"ana@email.com\"));\n        alumnos.add(new Alumno(\"Carlos\", \"carlos@email.com\"));\n        \n        guardar(alumnos);\n        System.out.println(\"Guardados \" + alumnos.size() + \" alumnos\");\n        \n        List<Alumno> cargados = cargar();\n        System.out.println(\"Cargados \" + cargados.size() + \" alumnos\");\n        for (Alumno a : cargados) {\n            System.out.println(a.getNombre());\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "No agregar la dependencia Gson al proyecto: sin ella, el código no compila.",
+        "Usar `gson.toJson(objeto)` sin `setPrettyFormatting()`: el JSON queda en una sola línea ilegible.",
+        "Olvidar que `fromJson()` necesita TypeToken para List<Alumno>: sin él, Gson devuelve List<LinkedTreeMap>.",
+        "Mezclar JSON y XML en el mismo archivo: son formatos incompatibles.",
+        "No manejar excepciones de I/O al leer/escribir archivos JSON."
+      ],
+      "keyConcepts": [
+        "JSON: formato ligero para intercambio de datos",
+        "Gson: crear JSON con toJson(), parsear con fromJson()",
+        "TypeToken para deserializar List<T> y otros tipos genéricos",
+        "XML: formato estructurado con tags y atributos",
+        "API DOM de Java para leer XML: DocumentBuilder, Element, NodeList",
+        "JSON vs XML: cuándo usar cada formato"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.h",
+        "RA6.i"
+      ]
+    },
+    {
+      "id": "lesson-12-6",
+      "title": "Operaciones agregadas: filter, map, reduce",
+      "objectives": [
+        "Comprender el concepto de operaciones agregadas sobre colecciones",
+        "Usar Stream API: filter(), map(), reduce(), collect()",
+        "Encadenar operaciones para transformar y resumir datos",
+        "Aplicar operaciones agregadas al dominio Alumno/Curso",
+        "Comparar el enfoque imperativo (bucles) con el declarativo (streams)"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Operaciones agregadas: ¿qué son?",
+          "content": "Las **operaciones agregadas** son operaciones que procesan una colección completa y devuelven un único resultado. Son como un \"resumen\" de los datos.\n\nLas tres operaciones fundamentales son:\n\n1. **Filter** (filtrado): selecciona elementos que cumplen una condición.\n   - Ej: \"dame solo los alumnos aprobados\"\n\n2. **Map** (transformación): convierte cada elemento en otro valor.\n   - Ej: \"convierte cada alumno en su nombre\"\n\n3. **Reduce** (reducción): combina todos los elementos en un único valor.\n   - Ej: \"suma todas las notas\"\n\nEn Java 8+, estas operaciones se implementan con la **Stream API**:\n```java\nList<Alumno> alumnos = ...;\n\n// Filter: alumnos aprobados\nList<Alumno> aprobados = alumnos.stream()\n    .filter(a -> a.getNotaMedia() >= 5.0)\n    .toList();\n\n// Map: solo nombres\nList<String> nombres = alumnos.stream()\n    .map(Alumno::getNombre)\n    .toList();\n\n// Reduce: suma de todas las notas\ndouble suma = alumnos.stream()\n    .mapToDouble(Alumno::getNotaMedia)\n    .reduce(0.0, Double::sum);\n```"
+        },
+        {
+          "type": "code",
+          "title": "Filter: filtrar elementos",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\n\npublic class FilterEjemplo {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = new ArrayList<>();\n        // ... crear alumnos con diferentes notas ...\n\n        // === ENFOQUE IMPERATIVO (bucles) ===\n        List<Alumno> aprobadosImperativo = new ArrayList<>();\n        for (Alumno a : alumnos) {\n            if (a.getNotaMedia() >= 5.0) {\n                aprobadosImperativo.add(a);\n            }\n        }\n\n        // === ENFOQUE DECLARATIVO (stream + filter) ===\n        List<Alumno> aprobadosDeclarativo = alumnos.stream()\n            .filter(a -> a.getNotaMedia() >= 5.0)\n            .toList(); // Java 16+\n\n        // Mostrar aprobados\n        System.out.println(\"Aprobados:\");\n        for (Alumno a : aprobadosDeclarativo) {\n            System.out.printf(\"  %s (%.1f)%n\", a.getNombre(), a.getNotaMedia());\n        }\n\n        // Filtrar por multiple condicion\n        List<Alumno> excelentes = alumnos.stream()\n            .filter(a -> a.getNotaMedia() >= 8.0)\n            .filter(a -> a.getNumNotas() >= 2)\n            .toList();\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Map: transformar elementos",
+          "language": "java",
+          "content": "import java.util.List;\n\npublic class MapEjemplo {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\")\n        );\n\n        // Obtener solo los nombres\n        List<String> nombres = alumnos.stream()\n            .map(Alumno::getNombre)        // Referencia a metodo\n            .toList();\n        System.out.println(\"Nombres: \" + nombres);\n\n        // Obtener emails en mayusculas\n        List<String> emailsMayusculas = alumnos.stream()\n            .map(a -> a.getEmail().toUpperCase())\n            .toList();\n        System.out.println(\"Emails: \" + emailsMayusculas);\n\n        // Transformar: \"Ana\" -> \"Ana (aprobado/suspensa)\"\n        List<String> estadoAlumnos = alumnos.stream()\n            .map(a -> a.getNombre() + \" (\" +\n                (a.getNotaMedia() >= 5 ? \"aprobado\" : \"suspensa\") + \")\")\n            .toList();\n        estadoAlumnos.forEach(System.out::println);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Reduce: combinar elementos en un resultado",
+          "language": "java",
+          "content": "import java.util.List;\n\npublic class ReduceEjemplo {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\")\n        );\n\n        // === REDUCE BASICO: sumar notas ===\n        double suma = alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .reduce(0.0, Double::sum);\n        System.out.println(\"Suma total: \" + suma);\n\n        // === MEDIA: suma / count ===\n        double media = alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .average()\n            .orElse(0.0);\n        System.out.println(\"Media: \" + media);\n\n        // === MAXIMO y MINIMO ===\n        double maxima = alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .max()\n            .orElse(0.0);\n        System.out.println(\"Maxima: \" + maxima);\n\n        double minima = alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .min()\n            .orElse(0.0);\n        System.out.println(\"Minima: \" + minima);\n\n        // === CONTAR: cuantos aprobados ===\n        long numAprobados = alumnos.stream()\n            .filter(a -> a.getNotaMedia() >= 5.0)\n            .count();\n        System.out.println(\"Aprobados: \" + numAprobados);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Encadenar operaciones: pipeline completo",
+          "language": "java",
+          "content": "import java.util.List;\nimport java.util.Map;\nimport java.util.stream.Collectors;\n\npublic class PipelineCompleto {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\"),\n            new Alumno(\"Pedro\", \"pedro@email.com\"),\n            new Alumno(\"Laura\", \"laura@email.com\")\n        );\n        // Suponiendo que cada alumno tiene notas asignadas\n\n        // Pipeline 1: Nombres de aprobados, ordenados\n        System.out.println(\"=== Aprobados ordenados ===\");\n        List<String> aprobadosOrdenados = alumnos.stream()\n            .filter(a -> a.getNotaMedia() >= 5.0)\n            .map(Alumno::getNombre)\n            .sorted()\n            .toList();\n        aprobadosOrdenados.forEach(System.out::println);\n\n        // Pipeline 2: Estadisticas\n        System.out.println(\"\\n=== Estadisticas ===\");\n        var estadisticas = alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .summaryStatistics();\n        System.out.println(\"Media: \" + estadisticas.getAverage());\n        System.out.println(\"Maxima: \" + estadisticas.getMax());\n        System.out.println(\"Minima: \" + estadisticas.getMin());\n        System.out.println(\"Total: \" + estadisticas.getCount());\n\n        // Pipeline 3: Agrupar por estado\n        System.out.println(\"\\n=== Agrupados ===\");\n        Map<Boolean, List<Alumno>> agrupados = alumnos.stream()\n            .collect(Collectors.partitioningBy(a -> a.getNotaMedia() >= 5.0));\n        System.out.println(\"Aprobados: \" + agrupados.get(true).size());\n        System.out.println(\"Suspensos: \" + agrupados.get(false).size());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Resumen: imperativo vs declarativo",
+          "content": "| Operación | Imperativo (bucles) | Declarativo (Stream) |\n|-----------|--------------------|--------------------|\n| Filtrar | `for` + `if` + `add` | `.filter(a -> condicion)` |\n| Transformar | `for` + `map/convertir` + `add` | `.map(a -> transformacion)` |\n| Sumar | `for` + `suma +=` | `.reduce(0, Double::sum)` |\n| Contar | `for` + `contador++` | `.filter().count()` |\n| Buscar max | `for` + comparar | `.max(Comparator)` |\n\n**Ventajas de Stream:**\n- Más conciso y legible.\n- Menos código = menos bugs.\n- Parallelizable con `.parallelStream()`.\n\n**Cuándo usar Stream:**\n- Transformaciones y resúmenes de colecciones.\n- Cuando el código es más legible con streams.\n\n**Cuándo usar bucles:**\n- Operaciones simples (imprimir, contar).\n- Cuando necesitas `break` o `continue`.\n- Cuando el código con streams queda confuso."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-6-1",
+          "difficulty": "basic",
+          "title": "Filter y count: contar aprobados",
+          "description": "Dada una lista de alumnos, cuenta cuántos tienen nota media >= 5 usando Stream.",
+          "solution": "import java.util.List;\n\npublic class ContarAprobados {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\")\n        );\n        // Asumiendo notas asignadas\n        \n        long aprobados = alumnos.stream()\n            .filter(a -> a.getNotaMedia() >= 5.0)\n            .count();\n        System.out.println(\"Aprobados: \" + aprobados);\n    }\n}"
+        },
+        {
+          "id": "ex-12-6-2",
+          "difficulty": "intermediate",
+          "title": "Map y Reduce: calcular la nota media",
+          "description": "Usa mapToDouble y average para calcular la nota media de una lista de alumnos.",
+          "solution": "import java.util.List;\n\npublic class MediaConStream {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\")\n        );\n        \n        double media = alumnos.stream()\n            .mapToDouble(Alumno::getNotaMedia)\n            .average()\n            .orElse(0.0);\n        System.out.printf(\"Media global: %.2f%n\", media);\n    }\n}"
+        },
+        {
+          "id": "ex-12-6-3",
+          "difficulty": "advanced",
+          "title": "Pipeline completo de análisis",
+          "description": "Crea un pipeline completo que:\n1. Filtre aprobados\n2. Mapee a \"Nombre: media\" \n3. Ordene alfabéticamente\n4. Recolecte en un String separado por comas",
+          "solution": "import java.util.List;\n\npublic class PipelineAnalisis {\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\"),\n            new Alumno(\"Carlos\", \"carlos@email.com\"),\n            new Alumno(\"Maria\", \"maria@email.com\")\n        );\n        \n        String resultado = alumnos.stream()\n            .filter(a -> a.getNotaMedia() >= 5.0)\n            .map(a -> a.getNombre() + \": \" +\n                      String.format(\"%.1f\", a.getNotaMedia()))\n            .sorted()\n            .reduce(\"\", (a, b) -> a.isEmpty() ? b : a + \", \" + b);\n        \n        System.out.println(\"Aprobados: \" + resultado);\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Intentar modificar la colección original dentro de un stream: los streams son inmutables.",
+        "Usar .toList() en Java < 16: en versiones anteriores se usa .collect(Collectors.toList()).",
+        "Olvidar que filter() no modifica el stream: devuelve un nuevo stream filtrado.",
+        "Usar reduce() sin valor inicial: puede devolver Optional, no un valor directo.",
+        "Confundir map() con mapToDouble(): map devuelve Stream<T>, mapToDouble devuelve DoubleStream."
+      ],
+      "keyConcepts": [
+        "Stream API: procesamiento declarativo de colecciones",
+        "filter(): seleccionar elementos por condición",
+        "map(): transformar cada elemento",
+        "reduce(): combinar elementos en un único valor",
+        "average(), max(), min(), count(): agregaciones directas",
+        "collect(), Collectors: recolectar resultados en colecciones",
+        "Comparación imperativo (bucles) vs declarativo (streams)"
+      ],
+      "learningOutcomes": [
+        "RA6"
+      ],
+      "assessmentCriteria": [
+        "RA6.j"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Sistema completo de gestión académica con colecciones",
+    "description": "Crea un programa que gestione un sistema académico completo usando colecciones y todas las técnicas del módulo:\n\n1. **Modelo de datos**:\n   - `List<Alumno> alumnos` — lista dinámica de alumnos\n   - `List<Curso> cursos` — lista de cursos\n   - `Map<String, List<Double>> notasPorAlumno` — mapa de notas por nombre de alumno\n\n2. **Operaciones con List**:\n   - Añadir y eliminar alumnos dinámicamente\n   - Buscar alumno por nombre con Iterator\n   - Eliminar alumnos suspensos con Iterator.remove()\n   - Crear sublistas (aprobados, suspensos)\n\n3. **Genéricos**:\n   - Crear una clase `Repositorio<T>` con add, get, getAll, size\n   - Crear un método genérico `maximo(List<T extends Comparable<T>>)`\n\n4. **Expresiones regulares**:\n   - Validar email con regex\n   - Validar nombre (solo letras, primera mayúscula)\n\n5. **JSON**:\n   - Guardar la lista de alumnos en un archivo JSON\n   - Cargar la lista desde el archivo\n\n6. **Operaciones agregadas**:\n   - Filtrar aprobados con filter()\n   - Obtener lista de nombres con map()\n   - Calcular media global con reduce()\n   - Obtener estadísticas con summaryStatistics()\n   - Agrupar por estado (aprobado/suspensa)\n\n7. **Menú interactivo** con todas las opciones.",
+    "learningOutcomes": [
+      "RA6"
+    ],
+    "assessmentCriteria": [
+      "RA6.c",
+      "RA6.d",
+      "RA6.e",
+      "RA6.f",
+      "RA6.g",
+      "RA6.h",
+      "RA6.i",
+      "RA6.j"
+    ]
+  }
+}

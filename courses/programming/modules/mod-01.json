@@ -1,0 +1,558 @@
+{
+  "id": "mod-01",
+  "title": "Introducción a la programación y el entorno",
+  "description": "Primer contacto con la programación. Se aprende qué es un programa informático, se configura el entorno de desarrollo integrado (IDE) y se introducen las bases fundamentales: variables, tipos de datos, operadores, expresiones y comentarios.",
+  "phase": "phase-1",
+  "position": 1,
+  "learningOutcomes": [
+    "RA1",
+    "RA2"
+  ],
+  "assessmentCriteria": [
+    "RA1.a",
+    "RA1.b",
+    "RA1.c",
+    "RA1.d",
+    "RA1.e",
+    "RA1.f",
+    "RA1.g",
+    "RA1.h",
+    "RA1.i",
+    "RA2.b",
+    "RA2.i"
+  ],
+  "officialContents": [
+    "Identificación de los elementos de un programa informático"
+  ],
+  "duration": "10 hours estimated",
+  "difficulty": "beginner",
+  "prerequisites": [],
+  "lessons": [
+    {
+      "id": "lesson-01-1",
+      "title": "¿Qué es un programa informático?",
+      "objectives": [
+        "Definir qué es un programa informático y en qué se diferencia de una aplicación",
+        "Identificar los bloques fundamentales que componen un programa",
+        "Comprender el proceso de compilación e interpretación",
+        "Reconocer el papel del lenguaje de programación como intermediario"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es un programa?",
+          "content": "Un programa informático es un conjunto ordenado de instrucciones que un ordenador puede ejecutar para realizar una tarea específica. Estas instrucciones están escritas en un lenguaje de programación, que es un lenguaje formal comprensible tanto por los programadores como —tras un proceso de traducción— por el hardware del ordenador.\n\nUn programa se compone de varios bloques fundamentales:\n\n• **Datos**: la información que el programa necesita para trabajar (nombres, números, listas, etc.).\n• **Instrucciones**: las operaciones que el programa realiza sobre los datos (calcular, comparar, mostrar, almacenar...).\n• **Estructura de control**: el orden en que se ejecutan las instrucciones (de arriba a abajo, repitiendo bloques, saltando según condiciones).\n• **Funciones o métodos**: bloques de código reutilizables que realizan una tarea concreta.\n\nEn Java, todo programa comienza con al menos una clase que contiene un método especial llamado `main`. Este método es el punto de entrada: aquí es donde el ordenador comienza a ejecutar las instrucciones.\n\nPara que un programa Java pueda ejecutarse, el código fuente (texto escrito por el programador) debe traducirse a un formato que la máquina entienda. Este proceso se llama **compilación**. Java utiliza un compilador (`javac`) que convierte el código fuente en **bytecode** (archivos con extensión `.class`). Este bytecode no se ejecuta directamente en el procesador, sino en la **Máquina Virtual Java (JVM)**, que lo traduce a instrucciones específicas del sistema operativo en el que se está ejecutando.\n\nEsta doble capa (compilación + JVM) es lo que hace que Java sea **multiplataforma**: el mismo bytecode puede ejecutarse en Windows, Linux o macOS sin modificar el código fuente."
+        },
+        {
+          "type": "code",
+          "title": "Mi primer programa: Hola, mundo",
+          "language": "java",
+          "content": "public class HolaMundo {\n    public static void main(String[] args) {\n        System.out.println(\"¡Hola, mundo!\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Análisis del código anterior",
+          "content": "Desglosemos cada línea del programa anterior:\n\n• `public class HolaMundo` — Declara una clase llamada `HolaMundo`. En Java, todo el código debe vivir dentro de una clase. La palabra `public` indica que esta clase es accesible desde cualquier otra clase del programa. El nombre de la clase debe coincidir con el nombre del archivo (`HolaMundo.java`).\n\n• `{` y `}` — Las llaves abiertas y cerradas delimitan el cuerpo de la clase. Todo lo que esté entre ellas pertenece a esa clase.\n\n• `public static void main(String[] args)` — Es la firma del método `main`. Vamos a analizarla palabra por palabra:\n  - `public`: el método es accesible desde cualquier parte.\n  - `static`: el método pertenece a la clase, no a una instancia concreta. Esto permite que JVM lo ejecute sin crear un objeto previamente.\n  - `void`: el método no devuelve ningún valor.\n  - `main`: es el nombre convencional que JVM busca como punto de entrada.\n  - `String[] args`: un array de cadenas de texto que contiene los argumentos que se pasen al programa por línea de comandos.\n\n• `System.out.println(\"¡Hola, mundo!\");` — Esta línea imprime el texto `¡Hola, mundo!` en la consola y añade un salto de línea al final. `System` es una clase del paquete `java.lang`, `out` es un objeto de tipo `PrintStream` que representa la salida estándar (la consola), y `println` es el método que imprime el texto.\n\nPara ejecutar este programa, abrimos una terminal, nos situamos en la carpeta donde está el archivo y ejecutamos:\n\n```\njavac HolaMundo.java\njava HolaMundo\n```\n\nEl primer comando compila el archivo `.java` y genera `HolaMundo.class`. El segundo ejecuta el bytecode usando la JVM."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con múltiples salidas",
+          "language": "java",
+          "content": "public class MiPrimeraApp {\n    public static void main(String[] args) {\n        System.out.println(\"=== Mi primera aplicacion ===\");\n        System.out.println();\n        System.out.println(\"Nombre: Programacion I\");\n        System.out.println(\"Lenguaje: Java 21\");\n        System.out.println(\"Curso: 1. DAM/DAW\");\n        System.out.println();\n        System.out.println(\"Bienvenido al mundo de la programacion.\");\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-1-1",
+          "difficulty": "basic",
+          "title": "Hola mundo personalizado",
+          "description": "Crea un programa Java que imprima tu nombre y apellidos en la consola. El resultado debe ser algo como: 'Mi nombre es María García López'.",
+          "solution": "public class HolaNombre {\n    public static void main(String[] args) {\n        System.out.println(\"Mi nombre es Maria Garcia Lopez\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Mi nombre es Maria Garcia Lopez"
+        },
+        {
+          "id": "ex-01-1-2",
+          "difficulty": "basic",
+          "title": "Múltiples líneas de salida",
+          "description": "Crea un programa que imprima una tabla con tu información personal: nombre, edad, ciudad y ciclo formativo. Usa un `println` distinto para cada línea.",
+          "solution": "public class InfoPersonal {\n    public static void main(String[] args) {\n        System.out.println(\"Nombre: Carlos Ruiz\");\n        System.out.println(\"Edad: 17\");\n        System.out.println(\"Ciudad: Sevilla\");\n        System.out.println(\"Ciclo: DAW\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Nombre: Carlos Ruiz\nEdad: 17\nCiudad: Sevilla\nCiclo: DAW"
+        },
+        {
+          "id": "ex-01-1-3",
+          "difficulty": "intermediate",
+          "title": "Salida multilinea con espaciado",
+          "description": "Crea un programa que muestre por consola un recuadro de texto usando guiones y barras verticales. El recuadro debe contener el texto 'Programacion en Java' y debe tener al menos 4 líneas de alto.",
+          "solution": "public class Recuadro {\n    public static void main(String[] args) {\n        System.out.println(\"+-------------------------+\");\n        System.out.println(\"|                         |\");\n        System.out.println(\"|  Programacion en Java   |\");\n        System.out.println(\"|                         |\");\n        System.out.println(\"+-------------------------+\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "+-------------------------+\n|                         |\n|  Programacion en Java   |\n|                         |\n+-------------------------+"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar los puntos y coma al final de las instrucciones. Java es sensible a los puntos y coma: cada instrucción termina con `;`.",
+        "Confundir mayúsculas y minúsculas. Java es case-sensitive: `HolaMundo`, `holaMundo` y `holamundo` son tres nombres distintos.",
+        "No poner el nombre de la clase igual al nombre del archivo. Si la clase se llama `HolaMundo`, el archivo debe llamarse `HolaMundo.java`.",
+        "Escribir `System.out.print` en lugar de `System.out.println` sin darse cuenta de que no se añade salto de línea.",
+        "Olvidar las comillas alrededor del texto que se imprime. `System.out.println(Hola)` dará error porqueJava busca una variable llamada `Hola`.",
+        "Mezclar `public` y clases sin modificador en archivos que contienen una clase pública."
+      ],
+      "keyConcepts": [
+        "Programa informático como conjunto de instrucciones",
+        "Bloques fundamentales: datos, instrucciones, estructura de control, funciones",
+        "Clase como contenedor del código en Java",
+        "Método main como punto de entrada del programa",
+        "Proceso de compilación: código fuente → bytecode → ejecución en JVM",
+        "Sensibilidad a mayúsculas y minúsculas (case-sensitive)"
+      ],
+      "learningOutcomes": [
+        "RA1",
+        "RA2"
+      ],
+      "assessmentCriteria": [
+        "RA1.a",
+        "RA1.b",
+        "RA2.b",
+        "RA2.i"
+      ]
+    },
+    {
+      "id": "lesson-01-2",
+      "title": "El entorno de desarrollo integrado (IDE)",
+      "objectives": [
+        "Instalar y configurar Eclipse IDE for Java Developers",
+        "Crear un proyecto Java nuevo en el IDE",
+        "Entender la estructura de un proyecto en Eclipse IDE",
+        "Compilar y ejecutar programas desde el IDE",
+        "Usar las herramientas básicas del IDE: editor, consola, errores"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es un IDE y por qué lo usamos?",
+          "content": "Un **IDE** (Entorno de Desarrollo Integrado) es una aplicación que reúne todas las herramientas necesarias para programar en un solo lugar. Un IDE típico incluye:\n\n• **Editor de código**: un editor avanzado con resaltado de sintaxis, autocompletado y detección de errores en tiempo real.\n• **Compilador integrado**: permite compilar el código sin salir del programa.\n• **Ejecutor**: ejecuta el programa y muestra los resultados.\n• **Depurador**: herramienta para encontrar errores paso a paso.\n• **Gestor de proyectos**: organiza los archivos del proyecto de forma automática.\n\nAunque podríamos escribir código en cualquier editor de texto y compilar desde la línea de comandos, un IDE nos ahorra mucho tiempo y reduce errores. Para este curso utilizaremos **Eclipse IDE for Java Developers**, que es gratuita y está específicamente diseñada para Java."
+        },
+        {
+          "type": "text",
+          "title": "Instalación de Eclipse IDE for Java Developers",
+          "content": "Para instalar Eclipse IDE for Java Developers:\n\n1. Ve a la página oficial: `https://www.eclipse.org/downloads/packages/`\n2. Descarga **Eclipse IDE for Java Developers** (la versión gratuita).\n3. Ejecuta el instalador y selecciona la carpeta de instalación.\n4. Selecciona un directorio de trabajo (workspace) donde se guardarán tus proyectos.\n5. Al abrir Eclipse por primera vez, verás la pantalla de bienvenida del workspace.\n\n**Requisitos previos**: Eclipse necesita tener instalado un **JDK** (Java Development Kit). Eclipse detectará automáticamente cualquier JDK instalado en el sistema. Te recomendamos usar **Eclipse Temurin JDK 21** (gratuito) o el JDK de Oracle."
+        },
+        {
+          "type": "text",
+          "title": "Estructura de un proyecto en Eclipse IDE",
+          "content": "Cuando creas un nuevo proyecto en Eclipse IDE (`File > New > Java Project`), el IDE genera automáticamente una estructura de carpetas:\n\n```\nMiProyecto/\n├── .settings/            ← Configuración del IDE (no tocar)\n├── bin/                  ← Archivos compilados (.class)\n├── src/                  ← Código fuente (aquí escribimos)\n│   └── Main.java\n├── .project              ← Fichero de proyecto de Eclipse\n└── .classpath            ← Configuración de classpath\n```\n\nLo que nos interesa es la carpeta **`src/`**. Allí es donde crearemos los archivos `.java` con nuestro código. El IDE se encarga del resto: al guardar el archivo, Eclipse lo compila automáticamente y podemos ejecutarlo con un clic en el botón verde de \"play\".\n\nPara crear un nuevo archivo Java:\n1. Botón derecho sobre la carpeta `src`\n2. `New > Class`\n3. Escribe el nombre de la clase (sin extensión)\n4. Eclipse genera la estructura básica con el método `main`\n\nEl atajo de teclado `Ctrl + Shift + T` te permite buscar cualquier clase de forma muy rápida."
+        },
+        {
+          "type": "text",
+          "title": "Compilar y ejecutar desde el IDE",
+          "content": "Eclipse IDE compila el código automáticamente cuando guardas los archivos. Para ejecutar un programa:\n\n1. Haz clic en el botón verde ▶ situado en la barra superior (o `Run > Run As > Java Application`).\n2. O usa el atajo `Ctrl + F11`.\n3. La consola inferior mostrará los resultados de `System.out.println()` y cualquier error que se haya producido.\n\nSi hay errores de compilación:\n• El IDE los muestra en rojo en el editor y en la consola.\n• Al hacer clic en un error, Eclipse te lleva directamente a la línea problemática.\n• Muchas veces ofrece **correcciones rápidas** (icono de bombilla o `Ctrl + 1`).\n\nSi el código tiene errores, Eclipse no compilará hasta que los corrijas. Esto es una ventaja: detectas errores antes de ejecutar."
+        },
+        {
+          "type": "code",
+          "title": "Prueba de ejecución en Eclipse",
+          "language": "java",
+          "content": "public class PrimeraApp {\n    public static void main(String[] args) {\n        System.out.println(\"Eclipse IDE funciona correctamente.\");\n        System.out.println(\"Java version: \" + System.getProperty(\"java.version\"));\n        System.out.println(\"Sistema operativo: \" + System.getProperty(\"os.name\"));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-2-1",
+          "difficulty": "basic",
+          "title": "Configurar el IDE y ejecutar",
+          "description": "Instala Eclipse IDE for Java Developers, crea un proyecto nuevo, escribe el programa HolaMundo y ejecútalo. Verifica que aparece el resultado en la consola del IDE.",
+          "solution": "// La solución es crear y ejecutar este programa en Eclipse IDE:\npublic class HolaMundo {\n    public static void main(String[] args) {\n        System.out.println(\"Hola, mundo desde Eclipse IDE!\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Hola, mundo desde Eclipse IDE!"
+        },
+        {
+          "id": "ex-01-2-2",
+          "difficulty": "basic",
+          "title": "Explorar el IDE",
+          "description": "Crea un segundo programa en el mismo proyecto que muestre la versión de Java y el sistema operativo. Usa `System.getProperty(\"java.version\")` y `System.getProperty(\"os.name\")`.",
+          "solution": "public class InfoSistema {\n    public static void main(String[] args) {\n        System.out.println(\"Java version: \" + System.getProperty(\"java.version\"));\n        System.out.println(\"Sistema operativo: \" + System.getProperty(\"os.name\"));\n        System.out.println(\"Directorio de usuario: \" + System.getProperty(\"user.home\"));\n    }\n}",
+          "validationType": "NOT_APPLICABLE"
+        },
+        {
+          "id": "ex-01-2-3",
+          "difficulty": "intermediate",
+          "title": "Detectar y corregir errores",
+          "description": "El siguiente código tiene 3 errores. Encuéntralos y corrígelos:\n\n```java\npublic class errores {\n    public static void Main(String[] args) {\n        system.out.println(Hola)\n    }\n}\n```",
+          "solution": "public class Errores {\n    public static void main(String[] args) {\n        System.out.println(\"Hola\");\n    }\n}\n// Error 1: 'errores' debe empezar por mayúscula (Errores)\n// Error 2: 'Main' debe ser 'main' (minúsculas)\n// Error 3: 'system' debe ser 'System' (con S mayúscula)\n// Error 4: 'Hola' necesita comillas y punto y coma",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Hola"
+        }
+      ],
+      "commonErrors": [
+        "Intentar ejecutar sin tener el JDK instalado. Eclipse mostrará un error indicando que no se encontró el JDK.",
+        "No abrir la carpeta `src` para crear los archivos. Si creas archivos fuera de `src`, Eclipse no los compilará como parte del proyecto.",
+        "Cambiar el nombre del archivo sin cambiar el nombre de la clase o viceversa. Ambos deben coincidir exactamente.",
+        "No cerrar el método `main` o la clase con `}`. El IDE indicará un error de sintaxis.",
+        "Ejecutar el programa anterior sin compilar. En Eclipse IDE esto no suele pasar porque compila automáticamente, pero es importante entender el proceso."
+      ],
+      "keyConcepts": [
+        "IDE como entorno integrado: editor + compilador + ejecutor + depurador",
+        "Eclipse IDE for Java Developers como IDE para Java",
+        "Estructura de proyecto: carpeta `src` para código fuente",
+        "Compilación automática y ejecución con el botón ▶",
+        "Detección de errores en tiempo real por el IDE",
+        "Relación entre nombre de clase y nombre de archivo"
+      ],
+      "learningOutcomes": [
+        "RA1",
+        "RA2"
+      ],
+      "assessmentCriteria": [
+        "RA1.b",
+        "RA1.c",
+        "RA2.b",
+        "RA2.i"
+      ]
+    },
+    {
+      "id": "lesson-01-3",
+      "title": "Variables y tipos de datos",
+      "objectives": [
+        "Explicar qué es una variable y para qué sirve",
+        "Declarar e inicializar variables de los tipos primitivos en Java",
+        "Diferenciar entre tipos primitivos y tipos de referencia",
+        "Utilizar la clase String para cadenas de texto",
+        "Conocer las reglas de nomenclatura de variables en Java"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es una variable?",
+          "content": "Una **variable** es un espacio en memoria donde almacenamos un dato. Piensa en ella como una caja etiquetada: la etiqueta es el nombre de la variable, y el contenido es el valor que guarda.\n\nEn Java, para crear una variable necesitamos especificar:\n1. **El tipo de dato**: qué clase de valor guardará (un número entero, un texto, un decimal...)\n2. **El nombre**: un identificador único que usaremos para referirnos a esa variable.\n3. **Opcionalmente, un valor inicial**: el dato que queremos almacenar desde el principio.\n\nEjemplo:\n```java\nint edad = 20;\n```\n\n- `int` es el tipo de dato (número entero)\n- `edad` es el nombre de la variable\n- `20` es el valor inicial\n- `;` cierra la instrucción\n\nLas variables en Java son **tipadas de forma estática**, lo que significa que una vez declarado el tipo, no puede cambiar. Si `edad` es un `int`, nunca podrá contener un texto como `\"veinte\"`."
+        },
+        {
+          "type": "text",
+          "title": "Tipos de datos primitivos en Java",
+          "content": "Java ofrece 8 tipos de datos primitivos. Cada uno ocupa un número fijo de bytes en memoria y tiene un rango de valores determinado:\n\n| Tipo | Bytes | Rango / Descripción | Ejemplo |\n|------|-------|---------------------|--------|\n| `byte` | 1 | -128 a 127 | `byte nivel = 5;` |\n| `short` | 2 | -32.768 a 32.767 | `short temperatura = -10;` |\n| `int` | 4 | -2.147.483.648 a 2.147.483.647 | `int edad = 20;` |\n| `long` | 8 | Muy grande | `long poblacion = 47_000_000L;` |\n| `float` | 4 | Decimal de precisión simple (7 dígitos) | `float ratio = 3.14f;` |\n| `double` | 8 | Decimal de precisión doble (15 dígitos) | `double nota = 8.5;` |\n| `char` | 2 | Un carácter Unicode | `char letra = 'A';` |\n| `boolean` | 1 | `true` o `false` | `boolean aprobado = true;` |\n\n**Notas importantes:**\n- El tipo más usado es `int` para enteros y `double` para decimales.\n- Los valores `long` terminan en `L` (ej: `100L`).\n- Los valores `float` terminan en `f` (ej: `3.14f`).\n- Los caracteres `char` usan comillas simples: `'A'`, `'7'`, `'ñ'`.\n- Los textos (strings) NO son primitivos, son objetos de la clase `String`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo de variables primitivas",
+          "language": "java",
+          "content": "public class VariablesPrimitivas {\n    public static void main(String[] args) {\n        // Enteros\n        byte nivel = 5;\n        short temperatura = -10;\n        int edad = 20;\n        long poblacion = 47_000_000L;\n\n        // Decimales\n        float ratio = 3.14f;\n        double nota = 8.75;\n\n        // Caracter y booleano\n        char inicial = 'M';\n        boolean aprobado = true;\n\n        // Mostrar valores\n        System.out.println(\"Nivel: \" + nivel);\n        System.out.println(\"Temperatura: \" + temperatura);\n        System.out.println(\"Edad: \" + edad);\n        System.out.println(\"Poblacion: \" + poblacion);\n        System.out.println(\"Ratio: \" + ratio);\n        System.out.println(\"Nota: \" + nota);\n        System.out.println(\"Inicial: \" + inicial);\n        System.out.println(\"Aprobado: \" + aprobado);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "La clase String y los literales de texto",
+          "content": "Aunque `String` no es un tipo primitivo, es tan used que merece una mención especial. `String` es una clase de Java que representa una secuencia de caracteres (texto).\n\n```java\nString nombre = \"Maria\";\nString apellido = \"Garcia\";\nString mensaje = \"Hola, \" + nombre + \" \" + apellido;\n```\n\nEn Java, las cadenas de texto se crean con **comillas dobles** (`\"`). A diferencia de los `char` que usan comillas simples y solo contienen un carácter, las `String` pueden contener cualquier cantidad de texto.\n\nEl operador `+` con `String` realiza **concatenación**: une dos textos en uno solo.\n\n**Líneas multilinea**: desde Java 15, puedes usar comillas triples `\"\"\"` para textos que ocupan varias líneas:\n\n```java\nString texto = \"\"\"\n        Este es un texto\n        que ocupa varias líneas\n        en el codigo fuente.\n        \"\"\";\n```\n\n**Importante**: `String` es inmutable. Cada vez que \"modificas\" un String, en realidad estás creando uno nuevo."
+        },
+        {
+          "type": "code",
+          "title": "Uso de String en un programa",
+          "language": "java",
+          "content": "public class UsoString {\n    public static void main(String[] args) {\n        String nombre = \"Carlos\";\n        String apellido = \"Ruiz\";\n        int edad = 18;\n\n        // Concatenación de String con +\n        String mensaje = \"Me llamo \" + nombre + \" \" + apellido;\n        System.out.println(mensaje);\n\n        // Concatenación con número (se convierte automáticamente)\n        String info = nombre + \" tiene \" + edad + \" anios\";\n        System.out.println(info);\n\n        // Longitud del texto\n        int longitud = nombre.length();\n        System.out.println(\"El nombre tiene \" + longitud + \" caracteres\");\n\n        // Convertir a mayúsculas y minúsculas\n        System.out.println(nombre.toUpperCase());\n        System.out.println(nombre.toLowerCase());\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Convenciones de nomenclatura en Java",
+          "content": "Java tiene reglas estrictas sobre cómo deben llamarse las variables (identificadores):\n\n**Reglas obligatorias:**\n- Debe empezar por letra, `$` o `_`.\n- Puede contener letras, números, `$` y `_`.\n- No puede ser una palabra reservada (`int`, `class`, `public`, `if`, etc.).\n- Es case-sensitive: `edad`, `Edad` y `EDAD` son tres variables distintas.\n\n**Convenciones de estilo (recomendadas):**\n- Variables y métodos: **camelCase** → `nombreCompleto`, `calcularNota`\n- Clases: **PascalCase** → `MiClase`, `Persona`\n- Constantes: **SCREAMING_SNAKE_CASE** → `MAXIMO_INTENTOS`, `PI`\n- No empezar por mayúscula ni con números.\n- Nombres descriptivos: `edad` es mejor que `e`, `notaMedia` es mejor que `nm`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo de convenciones de nomenclatura",
+          "language": "java",
+          "content": "public class Convenciones {\n    public static void main(String[] args) {\n        // Nombres correctos (camelCase para variables)\n        int edadEstudiante = 20;\n        double notaMedia = 8.5;\n        String nombreCompleto = \"Ana Lopez\";\n        boolean estaAprobado = true;\n\n        // Constante (SCREAMING_SNAKE_CASE)\n        final int MAXIMO_INTENTOS = 3;\n        final double PI = 3.14159265;\n\n        // Nombres incorrectos (NO hacer esto)\n        // int 2edad = 20;       // Error: empieza por numero\n        // String nombre@ = \"x\"; // Error: caracter no permitido\n        // int class = 5;        // Error: palabra reservada\n\n        System.out.println(\"Edad: \" + edadEstudiante);\n        System.out.println(\"Nota: \" + notaMedia);\n        System.out.println(\"Max intentos: \" + MAXIMO_INTENTOS);\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-3-1",
+          "difficulty": "basic",
+          "title": "Declarar variables de cada tipo",
+          "description": "Crea un programa que declare una variable de cada tipo primitivo (byte, short, int, long, float, double, char, boolean) con valores realistas y muestre cada una por consola.",
+          "solution": "public class TiposPrimitivos {\n    public static void main(String[] args) {\n        byte nivel = 5;\n        short temperatura = -5;\n        int edad = 20;\n        long distancia = 150_000_000L;\n        float presion = 1.013f;\n        double nota = 7.75;\n        char inicial = 'L';\n        boolean encendido = true;\n\n        System.out.println(\"Nivel (byte): \" + nivel);\n        System.out.println(\"Temperatura (short): \" + temperatura);\n        System.out.println(\"Edad (int): \" + edad);\n        System.out.println(\"Distancia (long): \" + distancia);\n        System.out.println(\"Presion (float): \" + presion);\n        System.out.println(\"Nota (double): \" + nota);\n        System.out.println(\"Inicial (char): \" + inicial);\n        System.out.println(\"Encendido (boolean): \" + encendido);\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Nivel (byte): 5\nTemperatura (short): -5\nEdad (int): 20\nDistancia (long): 150000000\nPresion (float): 1.013\nNota (double): 7.75\nInicial (char): L\nEncendido (boolean): true"
+        },
+        {
+          "id": "ex-01-3-2",
+          "difficulty": "basic",
+          "title": "Ficha personal con String",
+          "description": "Crea un programa que declare variables String para nombre, apellidos y ciudad, y un int para la edad. Muestra una ficha personal completa con esa información.",
+          "solution": "public class FichaPersonal {\n    public static void main(String[] args) {\n        String nombre = \"Maria\";\n        String apellidos = \"Garcia Lopez\";\n        String ciudad = \"Malaga\";\n        int edad = 19;\n\n        System.out.println(\"=== FICHA PERSONAL ===\");\n        System.out.println(\"Nombre: \" + nombre + \" \" + apellidos);\n        System.out.println(\"Ciudad: \" + ciudad);\n        System.out.println(\"Edad: \" + edad + \" anios\");\n        System.out.println(\"======================\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "=== FICHA PERSONAL ===\nNombre: Maria Garcia Lopez\nCiudad: Malaga\nEdad: 19 anios\n======================"
+        },
+        {
+          "id": "ex-01-3-3",
+          "difficulty": "intermediate",
+          "title": "Intercambio de valores con variable auxiliar",
+          "description": "Declara dos variables int con valores distintos. Intercambia sus valores usando una tercera variable auxiliar y muestra el resultado.",
+          "solution": "public class Intercambio {\n    public static void main(String[] args) {\n        int a = 10;\n        int b = 25;\n\n        System.out.println(\"Antes: a=\" + a + \", b=\" + b);\n\n        int auxiliar = a;\n        a = b;\n        b = auxiliar;\n\n        System.out.println(\"Despues: a=\" + a + \", b=\" + b);\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Antes: a=10, b=25\nDespues: a=25, b=10"
+        },
+        {
+          "id": "ex-01-3-4",
+          "difficulty": "advanced",
+          "title": "Conversiones de tipo implícitas y explícitas",
+          "description": "Crea un programa que declare un int y un double, los sume y muestre el resultado. Luego usa un cast explícito para convertir el resultado a int y muestra la diferencia. Explica en comentarios qué sucede con la precisión.",
+          "solution": "public class Conversiones {\n    public static void main(String[] args) {\n        int enteros = 10;\n        double decimales = 3.7;\n\n        double resultado = enteros + decimales;\n        System.out.println(\"Suma como double: \" + resultado);\n\n        int truncado = (int) resultado;\n        System.out.println(\"Suma como int (truncada): \" + truncado);\n\n        int grande = 2_000_000_000;\n        float aproximado = grande;\n        System.out.println(\"Int: \" + grande);\n        System.out.println(\"Float: \" + aproximado);\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Suma como double: 13.7\nSuma como int (truncada): 13\nInt: 2000000000\nFloat: 2.0E9"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar que los decimales por defecto son `double`, no `float`. Si quieres un float, añade `f`: `3.14f`.",
+        "Usar comillas dobles en `char`. `'A'` es correcto (char), pero `\"A\"` es un String.",
+        "No usar `L` al final de literales long grandes: `1000000000` se interpreta como int y puede causar error de compilación.",
+        "Cambiar el tipo de una variable después de declararla. Java es tipado estático: `int edad = 20; edad = \"veinte\";` genera error.",
+        "Nombres de variables con espacios o caracteres especiales: `mi variable`, `mi-variable` no están permitidos.",
+        "Confundir `=` (asignación) con `==` (comparación). En asignación se guarda un valor; en comparación se comprueba si son iguales."
+      ],
+      "keyConcepts": [
+        "Variable como espacio de memoria con nombre y tipo",
+        "Los 8 tipos primitivos de Java y sus rangos",
+        "String como tipo de referencia (no primitivo)",
+        "Concatenación de cadenas con el operador +",
+        "Convenciones de nomenclatura: camelCase, PascalCase, SCREAMING_SNAKE_CASE",
+        "Palabras reservadas de Java que no pueden usarse como nombres"
+      ],
+      "learningOutcomes": [
+        "RA1"
+      ],
+      "assessmentCriteria": [
+        "RA1.d",
+        "RA1.e",
+        "RA1.f"
+      ]
+    },
+    {
+      "id": "lesson-01-4",
+      "title": "Operadores y expresiones",
+      "objectives": [
+        "Identificar y usar los operadores aritméticos de Java",
+        "Aplicar operadores de asignación para modificar variables",
+        "Utilizar operadores relacionales para comparar valores",
+        "Combinar condiciones con operadores lógicos",
+        "Comprender la precedencia de operadores en expresiones complejas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es una expresión?",
+          "content": "Una **expresión** es cualquier combinación de valores, variables y operadores que el lenguaje puede evaluar para producir un resultado. Por ejemplo:\n\n- `5 + 3` → resultado: `8`\n- `edad >= 18` → resultado: `true` o `false`\n- `nombre + \" \" + apellido` → resultado: una nueva cadena de texto\n\nLos operadores son los símbolos que indican qué operación realizar sobre los operandos (los valores o variables). Java organiza los operadores en varias categorías."
+        },
+        {
+          "type": "text",
+          "title": "Operadores aritméticos",
+          "content": "Los operadores aritméticos realizan cálculos matemáticos:\n\n| Operador | Nombre | Ejemplo | Resultado |\n|----------|--------|---------|----------|\n| `+` | Suma | `5 + 3` | `8` |\n| `-` | Resta | `10 - 4` | `6` |\n| `*` | Multiplicación | `3 * 4` | `12` |\n| `/` | División | `10 / 3` | `3` (división entera) |\n| `%` | Módulo (resto) | `10 % 3` | `1` |\n\n**Atención con la división entera**: cuando dividimos dos `int`, el resultado es un `int` y se trunca la parte decimal. `10 / 3` da `3`, no `3.333`. Para obtener un resultado decimal, al menos uno de los operandos debe ser `double`:\n\n```java\nint a = 10, b = 3;\ndouble resultado = (double) a / b; // 3.333...\n```\n\nEl operador **módulo** (`%`) devuelve el resto de la división entera. Es muy útil para comprobar si un número es par o impar:\n\n```java\nint numero = 7;\nboolean esPar = (numero % 2 == 0); // false\n```\n\nEn Java 21, el operador `%` también funciona con decimales: `7.5 % 2` da `1.5`."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplos de operadores aritméticos",
+          "language": "java",
+          "content": "public class OperadoresAritmeticos {\n    public static void main(String[] args) {\n        int a = 15;\n        int b = 4;\n\n        System.out.println(a + \" + \" + b + \" = \" + (a + b));\n        System.out.println(a + \" - \" + b + \" = \" + (a - b));\n        System.out.println(a + \" * \" + b + \" = \" + (a * b));\n        System.out.println(a + \" / \" + b + \" = \" + (a / b));\n        System.out.println(a + \" % \" + b + \" = \" + (a % b));\n\n        // Division con decimales\n        double resultado = (double) a / b;\n        System.out.println(\"Division exacta: \" + resultado);\n\n        // Ejercicio practico: es par o impar?\n        int numero = 7;\n        System.out.println(\"El numero \" + numero + \" es \" +\n            (numero % 2 == 0 ? \"par\" : \"impar\"));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Operadores de asignación",
+          "content": "Los operadores de asignación guardan un valor en una variable. Ya conocemos el operador `=` (asignación simple). Pero Java ofrece versiones abreviadas:\n\n| Operador | Ejemplo | Equivalente a |\n|----------|---------|---------------|\n| `=` | `x = 5` | `x = 5` |\n| `+=` | `x += 3` | `x = x + 3` |\n| `-=` | `x -= 2` | `x = x - 2` |\n| `*=` | `x *= 4` | `x = x * 4` |\n| `/=` | `x /= 2` | `x = x / 2` |\n| `%=` | `x %= 3` | `x = x % 3` |\n\nEstos operadores son más concisos y se usan frecuentemente para acumular valores o incrementar contadores.\n\nAdemás, Java tiene los operadores de **incremento** (`++`) y **decremento** (`--`), que suman o restan 1 a una variable:\n\n```java\nint contador = 0;\ncontador++;    // Ahora vale 1\ncontador++;    // Ahora vale 2\ncontador--;    // Ahora vuelve a valer 1\n```\n\nEstos operadores son especialmente útiles en bucles, que veremos en módulos posteriores."
+        },
+        {
+          "type": "text",
+          "title": "Operadores relacionales (de comparación)",
+          "content": "Los operadores relacionales comparan dos valores y devuelven un `boolean` (`true` o `false`):\n\n| Operador | Nombre | Ejemplo | Resultado |\n|----------|--------|---------|----------|\n| `==` | Igual a | `5 == 5` | `true` |\n| `!=` | Distinto de | `5 != 3` | `true` |\n| `>` | Mayor que | `7 > 3` | `true` |\n| `<` | Menor que | `2 < 5` | `true` |\n| `>=` | Mayor o igual | `5 >= 5` | `true` |\n| `<=` | Menor o igual | `3 <= 5` | `true` |\n\n**Error muy común**: confundir `=` (asignación) con `==` (comparación). `x = 5` guarda el valor 5 en x, mientras que `x == 5` comprueba si x vale 5."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplos de operadores relacionales",
+          "language": "java",
+          "content": "public class OperadoresRelacionales {\n    public static void main(String[] args) {\n        int edad = 20;\n        double nota = 7.5;\n        String nombre = \"Ana\";\n\n        // Comparaciones numericas\n        System.out.println(\"Edad >= 18: \" + (edad >= 18));\n        System.out.println(\"Nota > 5: \" + (nota > 5));\n        System.out.println(\"Edad == 20: \" + (edad == 20));\n        System.out.println(\"Edad != 25: \" + (edad != 25));\n\n        // Comparacion de cadenas (usando equals, no ==)\n        System.out.println(\"Nombre es Ana: \" + nombre.equals(\"Ana\"));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Operadores lógicos",
+          "content": "Los operadores lógicos combinan expresiones booleanas. Son fundamentales para construir condiciones complejas:\n\n| Operador | Nombre | Descripción |\n|----------|--------|-------------|\n| `&&` | AND lógico | `true` solo si AMBOS operandos son `true` |\n| `||` | OR lógico | `true` si AL MENOS UNO de los operandos es `true` |\n| `!` | NOT lógico | Invierte el valor: `!true` es `false` |\n\n**Ejemplos:**\n\n```java\nint edad = 20;\nboolean tienePermiso = true;\n\n// AND: ambas condiciones deben ser verdaderas\nboolean puedeEntrar = (edad >= 18) && tienePermiso; // true\n\n// OR: al menos una debe ser verdadera\nboolean esEstudianteOCrece = (edad < 25) || (edad > 65); // true\n\n// NOT: invierte el valor\nboolean noTienePermiso = !tienePermiso; // false\n```\n\n**Cortocircuito**: Java evalúa los operadores lógicos de izquierda a derecha y deja de evaluar cuando ya sabe el resultado. Por ejemplo, en `condicion1 && condicion2`, si `condicion1` es `false`, no se evalúa `condicion2` porque el resultado ya es `false`."
+        },
+        {
+          "type": "code",
+          "title": "Operadores lógicos en contexto",
+          "language": "java",
+          "content": "public class OperadoresLogicos {\n    public static void main(String[] args) {\n        int edad = 20;\n        double nota = 7.5;\n        boolean trabajador = false;\n\n        // AND: ambas condiciones deben cumplirse\n        boolean accesoCompleto = (edad >= 18) && (nota >= 5);\n        System.out.println(\"Acceso completo: \" + accesoCompleto);\n\n        // OR: al menos una debe cumplirse\n        boolean tieneBeneficio = (edad < 25) || trabajador;\n        System.out.println(\"Tiene beneficio: \" + tieneBeneficio);\n\n        // NOT: invierte el valor\n        boolean noTrabaja = !trabajador;\n        System.out.println(\"No trabaja: \" + noTrabaja);\n\n        // Combinaciones complejas\n        boolean puedeAcceder = (edad >= 18) && (nota >= 5) && !trabajador;\n        System.out.println(\"Puede acceder: \" + puedeAcceder);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Precedencia de operadores",
+          "content": "Cuando una expresión contiene varios operadores, Java sigue un orden de precedencia (igual que en matemáticas). Los operadores de mayor precedencia se evalúan primero:\n\n1. `()` — Paréntesis (mayor prioridad)\n2. `++`, `--`, `!` — Unarios\n3. `*`, `/`, `%` — Multiplicación, división, módulo\n4. `+`, `-` — Suma y resta\n5. `<`, `<=`, `>`, `>=` — Relacionales\n6. `==`, `!=` — Igualdad\n7. `&&` — AND lógico\n8. `||` — OR lógico\n9. `=` — Asignación (menor prioridad)\n\n**Consejo práctico**: cuando tengas dudas sobre la precedencia, usa paréntesis para dejar claro qué quieres que se evalúe primero. Es mejor ser explícito que depender de la precedencia implícita."
+        },
+        {
+          "type": "code",
+          "title": "Precedencia y paréntesis",
+          "language": "java",
+          "content": "public class Precedencia {\n    public static void main(String[] args) {\n        int a = 5, b = 3, c = 2;\n\n        // Sin parentesis: multiplicacion primero\n        int resultado1 = a + b * c;  // 5 + 6 = 11\n        System.out.println(\"a + b * c = \" + resultado1);\n\n        // Con parentesis: suma primero\n        int resultado2 = (a + b) * c;  // 8 * 2 = 16\n        System.out.println(\"(a + b) * c = \" + resultado2);\n\n        // Combinacion de operadores relacionales y logicos\n        int edad = 25;\n        double nota = 6.0;\n        boolean apto = edad >= 18 && nota >= 5.0;\n        System.out.println(\"Apto: \" + apto);\n\n        // Misma expresion con parentesis explicitos (mas legible)\n        boolean aptoExplicito = (edad >= 18) && (nota >= 5.0);\n        System.out.println(\"Apto (explicito): \" + aptoExplicito);\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-4-1",
+          "difficulty": "basic",
+          "title": "Calculadora básica",
+          "description": "Declara dos variables int con valores distintos y muestra el resultado de cada operación aritmética: suma, resta, multiplicación, división y módulo.",
+          "solution": "public class Calculadora {\n    public static void main(String[] args) {\n        int a = 20;\n        int b = 6;\n\n        System.out.println(a + \" + \" + b + \" = \" + (a + b));\n        System.out.println(a + \" - \" + b + \" = \" + (a - b));\n        System.out.println(a + \" * \" + b + \" = \" + (a * b));\n        System.out.println(a + \" / \" + b + \" = \" + (a / b));\n        System.out.println(a + \" % \" + b + \" = \" + (a % b));\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "20 + 6 = 26\n20 - 6 = 14\n20 * 6 = 120\n20 / 6 = 3\n20 % 6 = 2"
+        },
+        {
+          "id": "ex-01-4-2",
+          "difficulty": "intermediate",
+          "title": "Calcular el área de un rectángulo",
+          "description": "Crea un programa que declare variables para la base y la altura de un rectángulo (usa double), calcule el área y el perímetro, y muestre ambos resultados formateados.",
+          "solution": "public class Rectangulo {\n    public static void main(String[] args) {\n        double base = 10.5;\n        double altura = 5.0;\n\n        double area = base * altura;\n        double perimetro = 2 * (base + altura);\n\n        System.out.println(\"Base: \" + base);\n        System.out.println(\"Altura: \" + altura);\n        System.out.println(\"Area: \" + area);\n        System.out.println(\"Perimetro: \" + perimetro);\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Base: 10.5\nAltura: 5.0\nArea: 52.5\nPerimetro: 31.0"
+        },
+        {
+          "id": "ex-01-4-3",
+          "difficulty": "intermediate",
+          "title": "Conversor de temperatura",
+          "description": "Declara una variable con una temperatura en grados Celsius (int). Calcula y muestra la temperatura en Fahrenheit usando la fórmula: F = C × 9/5 + 32. Muestra también si es temperatura de congelación, normal o de calor.",
+          "solution": "public class ConversionTemperatura {\n    public static void main(String[] args) {\n        int celsius = 25;\n        double fahrenheit = celsius * 9.0 / 5 + 32;\n\n        System.out.println(\"Temperatura: \" + celsius + \"°C = \" + fahrenheit + \"°F\");\n\n        if (celsius <= 0) {\n            System.out.println(\"Condicion: Congelacion\");\n        } else if (celsius <= 20) {\n            System.out.println(\"Condicion: Frio\");\n        } else if (celsius <= 35) {\n            System.out.println(\"Condicion: Normal\");\n        } else {\n            System.out.println(\"Condicion: Calor\");\n        }\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Temperatura: 25°C = 77.0°F\nCondicion: Normal"
+        },
+        {
+          "id": "ex-01-4-4",
+          "difficulty": "advanced",
+          "title": "Verificar par o impar y múltiplo",
+          "description": "Declara una variable int con un número cualquiera. Comprueba si es par o impar usando el módulo. Luego comprueba si es múltiplo de 3 y de 5. Muestra todos los resultados.",
+          "solution": "public class Multiplos {\n    public static void main(String[] args) {\n        int numero = 15;\n\n        boolean esPar = (numero % 2 == 0);\n        boolean multiplo3 = (numero % 3 == 0);\n        boolean multiplo5 = (numero % 5 == 0);\n\n        System.out.println(\"Numero: \" + numero);\n        System.out.println(\"Es par: \" + esPar);\n        System.out.println(\"Multiplo de 3: \" + multiplo3);\n        System.out.println(\"Multiplo de 5: \" + multiplo5);\n\n        if (multiplo3 && multiplo5) {\n            System.out.println(\"Es multiplo de 15 (FIZZBUZZ)\");\n        }\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "Numero: 15\nEs par: false\nMultiplo de 3: true\nMultiplo de 5: true\nEs multiplo de 15 (FIZZBUZZ)"
+        }
+      ],
+      "commonErrors": [
+        "Confundir `=` (asignación) con `==` (comparación). En expresiones booleanas siempre se usa `==`.",
+        "Dividir dos enteros esperando un resultado decimal. `10 / 3` da `3`, no `3.333`. Hay que castear a `double`.",
+        "Olvidar los paréntesis cuando se combina `+` y `*`. `a + b * c` no es lo mismo que `(a + b) * c`.",
+        "Usar operadores lógicos con tipos no booleanos. En Java no se puede hacer `if (numero)` como en C; hay que escribir `if (numero != 0)`.",
+        "Concatenar con `+` en lugar de comparar. `if (x + y == 10)` es correcto, pero `if (x + y)` da error porque `+` no devuelve un booleano."
+      ],
+      "keyConcepts": [
+        "Operadores aritméticos: +, -, *, /, %",
+        "División entera y cómo obtener decimales",
+        "Operadores de asignación: =, +=, -=, *=, /=, %=",
+        "Incremento y decremento: ++, --",
+        "Operadores relacionales: ==, !=, >, <, >=, <=",
+        "Operadores lógicos: &&, ||, !",
+        "Precedencia de operadores y uso de paréntesis"
+      ],
+      "learningOutcomes": [
+        "RA1"
+      ],
+      "assessmentCriteria": [
+        "RA1.g",
+        "RA1.h"
+      ]
+    },
+    {
+      "id": "lesson-01-5",
+      "title": "Comentarios y documentación del código",
+      "objectives": [
+        "Escribir comentarios de una sola línea con `//`",
+        "Escribir comentarios de varias líneas con `/* ... */`",
+        "Crear documentación con comentarios Javadoc",
+        "Identificar cuándo y cómo documentar el código de forma efectiva"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Por qué documentar el código?",
+          "content": "Los **comentarios** son anotaciones que el programador escribe en el código fuente y que el compilador ignora por completo. No afectan al funcionamiento del programa, pero son fundamentales por varias razones:\n\n• **Legibilidad**: un código con comentarios es más fácil de entender para otros programadores (y para ti mismo en el futuro).\n• **Explicación**: a veces la lógica del código no es obvia. Un comentario puede aclarar por qué se hizo algo de una manera concreta.\n• **Documentación Javadoc**: un sistema especial de comentarios que permite generar documentación HTML a partir del código.\n• **Depuración**: puedes comentar temporalmente líneas de código para probar cambios sin eliminarlas.\n\nSin embargo, un comentario mal hecho es peor que no tener comentario. Evita comentarios obvios como `// suma a y b` sobre la línea `suma = a + b`. En su lugar, documenta el **propósito** y el **contexto**, no lo que ya es evidente."
+        },
+        {
+          "type": "text",
+          "title": "Tipos de comentarios en Java",
+          "content": "Java ofrece tres tipos de comentarios:\n\n**1. Comentario de una línea (`//`)**\nTodo lo que esté después de `//` hasta fin de línea se ignora.\n```java\n// Este es un comentario de una linea\nint edad = 20; // Tambien puedes ponerlo al final de una linea\n```\n\n**2. Comentario de varias líneas (`/* ... */`)**\nTodo lo que esté entre `/*` y `*/` se ignora, incluidas varias líneas.\n```java\n/* Este es un comentario\n   que ocupa varias lineas\n   y puede explicar algo complejo */\n```\n\n**3. Comentario Javadoc (`/** ... */`)**\nSimilar al anterior, pero con una doble barra. Se usa para documentar clases, métodos y campos. Herramientas como `javadoc` pueden generar documentación HTML a partir de estos comentarios.\n```java\n/**\n * Calcula la nota media de un estudiante.\n * \n * @param nota1 primera nota\n * @param nota2 segunda nota\n * @return la nota media de ambas notas\n */\ndouble calcularMedia(double nota1, double nota2) {\n    return (nota1 + nota2) / 2;\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo con los tres tipos de comentarios",
+          "language": "java",
+          "content": "/**\n * Clase que demuestra el uso de comentarios en Java.\n * \n * Esta clase contiene el metodo main como punto de entrada\n * y muestra ejemplos de cada tipo de comentario.\n */\npublic class EjemploComentarios {\n\n    /**\n     * Punto de entrada del programa.\n     * Muestra un saludo por consola.\n     */\n    public static void main(String[] args) {\n        // Comentario de una linea: esta variable almacena el nombre\n        String nombre = \"Carlos\";\n\n        /*\n         * Comentario de varias lineas:\n         * Aqui combinamos el nombre con un saludo.\n         * Podemos usar multiples lineas para explicar\n         * la logica del programa.\n         */\n        String saludo = \"Hola, \" + nombre + \"!\";\n\n        System.out.println(saludo);\n\n        // Tambien sirve para depurar: si no quieres que una linea se ejecute,\n        // puedes comentarla temporalmente en vez de borrarla.\n        // System.out.println(\"Esta linea no se ejecuta\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Buenas prácticas al documentar",
+          "content": "**Reglas para escribir buenos comentarios:**\n\n1. **Documenta el \"por qué\", no el \"qué\".** Si el código es claro, no necesitas un comentario que lo explique otra vez.\n   - Mal: `// suma a y b` sobre `suma = a + b`\n   - Bueno: `// Usamos + porque necesitamos concatenar, no sumar numericamente`\n\n2. **Actualiza los comentarios.** Un comentario que describe algo que ya no es correcto es peor que no tener comentario.\n\n3. **Usa Javadoc para métodos públicos.** Si una función va a ser usada por otros programadores, documenta sus parámetros y valor de retorno.\n\n4. **Comenta decisiones de diseño.** Si elegiste una alternativa concreta por razones de rendimiento, compatibilidad o legado, documenta esa razón.\n\n5. **No comentes código obvio.** `i++` no necesita un comentario que diga \"incrementa i\". Pero si `i` representa algo concreto, como el \"número de intentos\", ese contexto sí puede ser útil.\n\n6. **Evita comentarios de basura.** No uses `// TODO`, `// FIX` o `// HACK` a menos que realmente vayas a volver a ellos. Si los dejas acumulados, pierden todo su valor."
+        },
+        {
+          "type": "code",
+          "title": "Documentación Javadoc de una clase",
+          "language": "java",
+          "content": "/**\n * Clase que gestiona los datos de un estudiante.\n * \n * <p>Esta clase almacena la informacion basica de un estudiante\n * y permite calcular su nota media.</p>\n * \n * @author Profesor de Programacion\n * @version 1.0\n * @since 2026\n */\npublic class Estudiante {\n\n    /** Nombre completo del estudiante */\n    private String nombre;\n\n    /** Edad del estudiante en anios */\n    private int edad;\n\n    /**\n     * Constructor de la clase Estudiante.\n     * \n     * @param nombre nombre completo del estudiante\n     * @param edad edad del estudiante (debe ser mayor que 0)\n     */\n    public Estudiante(String nombre, int edad) {\n        this.nombre = nombre;\n        this.edad = edad;\n    }\n\n    /**\n     * Calcula la nota media de dos calificaciones.\n     * \n     * @param nota1 primera calificacion (0.0 a 10.0)\n     * @param nota2 segunda calificacion (0.0 a 10.0)\n     * @return la nota media redondeada a dos decimales\n     */\n    public static double calcularMedia(double nota1, double nota2) {\n        return (nota1 + nota2) / 2;\n    }\n\n    /**\n     * Comprueba si el estudiante esta aprobado.\n     * \n     * @param nota nota a comprobar\n     * @return true si la nota es mayor o igual a 5.0\n     */\n    public static boolean estaAprobado(double nota) {\n        return nota >= 5.0;\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-5-1",
+          "difficulty": "basic",
+          "title": "Documentar un programa",
+          "description": "Toma el programa FichaPersonal del ejercicio anterior y añade comentarios explicativos: un comentario Javadoc en la clase, un comentario de una línea para cada variable y un comentario de varias líneas explicando el propósito del programa.",
+          "solution": "/**\n * Muestra una ficha personal por consola con los datos de un estudiante.\n */\npublic class FichaPersonal {\n    public static void main(String[] args) {\n        /*\n         * Este programa demuestra el uso de variables String e int\n         * junto con comentarios para documentar el codigo.\n         */\n        String nombre = \"Maria\";          // Nombre del estudiante\n        String apellidos = \"Garcia Lopez\"; // Apellidos del estudiante\n        String ciudad = \"Malaga\";          // Ciudad de residencia\n        int edad = 19;                     // Edad en anios\n\n        System.out.println(\"=== FICHA PERSONAL ===\");\n        System.out.println(\"Nombre: \" + nombre + \" \" + apellidos);\n        System.out.println(\"Ciudad: \" + ciudad);\n        System.out.println(\"Edad: \" + edad + \" anios\");\n        System.out.println(\"======================\");\n    }\n}",
+          "validationType": "EXACT_STDOUT",
+          "expectedOutput": "=== FICHA PERSONAL ===\nNombre: Maria Garcia Lopez\nCiudad: Malaga\nEdad: 19 anios\n======================"
+        },
+        {
+          "id": "ex-01-5-2",
+          "difficulty": "intermediate",
+          "title": "Documentar con Javadoc",
+          "description": "Crea una clase `CalculadoraBasica` con un método estático `calcularAreaCirculo` que reciba el radio (double) y devuelva el área. Documenta la clase y el método con Javadoc completo incluyendo@author, @param y @return.",
+          "solution": "/**\n * Clase que ofrece metodos de calculo matematico basico.\n * \n * @author Alumno de 1. DAM/DAW\n * @version 1.0\n */\npublic class CalculadoraBasica {\n\n    /**\n     * Calcula el area de un circulo a partir de su radio.\n     * \n     * @param radio el radio del circulo (debe ser mayor que 0)\n     * @return el area del circulo redondeada a 2 decimales\n     */\n    public static double calcularAreaCirculo(double radio) {\n        return Math.PI * radio * radio;\n    }\n\n    public static void main(String[] args) {\n        double radio = 5.0;\n        double area = calcularAreaCirculo(radio);\n        System.out.println(\"Area del circulo con radio \" + radio + \": \" + area);\n    }\n}",
+          "validationType": "NOT_APPLICABLE"
+        },
+        {
+          "id": "ex-01-5-3",
+          "difficulty": "advanced",
+          "title": "Código con errores de documentación",
+          "description": "El siguiente código tiene comentarios incorrectos, obsoletos o confusos. Identifica al menos 5 problemas y reescribe el código con documentación correcta.\n\n```java\n// suma dos numeros\npublic class Calc {\n    // a es un numero\n    public static int sumar(int a, int b) {\n        int resultado = a - b; // esto suma\n        return resultado;\n    }\n}\n```",
+          "solution": "/**\n * Clase con operaciones matematicas basicas.\n */\npublic class Calc {\n\n    /**\n     * Suma dos numeros enteros.\n     * \n     * @param a primer sumando\n     * @param b segundo sumando\n     * @return la suma de a y b\n     */\n    public static int sumar(int a, int b) {\n        int resultado = a + b;\n        return resultado;\n    }\n}\n// Problemas encontrados:\n// 1. Comentario 'suma dos numeros' era demasiado vago\n// 2. 'a es un numero' no aporta informacion util\n// 3. El codigo restaba, pero el comentario decia que sumaba\n// 4. Falta documentacion Javadoc en la clase\n// 5. Falta documentacion Javadoc en el metodo con @param y @return",
+          "validationType": "STRUCTURE"
+        }
+      ],
+      "commonErrors": [
+        "Escribir comentarios que describen lo que hace el código en lugar de por qué lo hace.",
+        "Olvidar actualizar los comentarios cuando se modifica el código. Un comentario que contradice el código es peligroso.",
+        "Usar Javadoc sin las etiquetas `@param` y `@return` correctas. Esto genera documentación incompleta.",
+        "Documentar métodos públicos sin especificar qué valor devuelve o qué restricciones tienen los parámetros.",
+        "Confundir el comentario Javadoc (`/**`) con el comentario de varias líneas (`/*`). La diferencia es la doble barra."
+      ],
+      "keyConcepts": [
+        "Comentario de una línea: `//`",
+        "Comentario de varias líneas: `/* ... */`",
+        "Comentario Javadoc: `/** ... */`",
+        "Etiquetas Javadoc: @author, @param, @return, @version, @since",
+        "Generación de documentación HTML con la herramienta javadoc",
+        "Buenas prácticas: documentar el por qué, no el qué"
+      ],
+      "learningOutcomes": [
+        "RA1"
+      ],
+      "assessmentCriteria": [
+        "RA1.i"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Calculadora de perfil académico",
+    "description": "Crea un programa completo que:\n1. Declare variables con tus datos personales (nombre, edad, ciclo, ciudad)\n2. Declare notas de 3 asignaturas (double)\n3. Calcule la nota media usando operadores aritméticos\n4. Compruebe si estás aprobado en todas las asignaturas usando operadores lógicos\n5. Muestre un informe completo con comentarios documentando cada sección\n6. El código debe estar correctamente documentado con Javadoc en la clase y al menos un método",
+    "learningOutcomes": [
+      "RA1",
+      "RA2"
+    ],
+    "assessmentCriteria": [
+      "RA1.a",
+      "RA1.d",
+      "RA1.e",
+      "RA1.g",
+      "RA1.i",
+      "RA2.b",
+      "RA2.i"
+    ]
+  }
+}

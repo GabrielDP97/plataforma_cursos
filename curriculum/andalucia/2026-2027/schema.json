@@ -1,0 +1,147 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Curriculum Module",
+  "description": "Schema for official curriculum modules in the LMS platform",
+  "type": "object",
+  "required": ["jurisdiction", "academicYear", "degree", "year", "moduleCode", "officialName", "learningOutcomes", "assessmentCriteria", "officialContents"],
+  "properties": {
+    "jurisdiction": { "type": "string", "description": "e.g., 'andalucia', 'state'" },
+    "academicYear": { "type": "string", "description": "e.g., '2026-2027'" },
+    "degree": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["DAM", "DAW"] },
+      "description": "Which degrees this module applies to"
+    },
+    "year": { "type": "integer", "minimum": 1, "maximum": 2 },
+    "moduleCode": { "type": "string", "description": "Official module code, e.g., '0485'" },
+    "officialName": { "type": "string", "description": "Official module name in Spanish" },
+    "weeklyHours": { "type": "number" },
+    "totalHours": { "type": "number" },
+    "ects": { "type": "number" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sourceId", "sourceUrl", "sourceTitle", "sourceDate"],
+        "properties": {
+          "sourceId": { "type": "string" },
+          "sourceUrl": { "type": "string", "format": "uri" },
+          "sourceTitle": { "type": "string" },
+          "sourceDate": { "type": "string" },
+          "article": { "type": "string" },
+          "annex": { "type": "string" },
+          "page": { "type": "string" }
+        }
+      }
+    },
+    "learningOutcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "sourceRef"],
+        "properties": {
+          "id": { "type": "string", "description": "e.g., 'RA1', 'RA2'" },
+          "description": { "type": "string", "description": "Official RA text in Spanish" },
+          "sourceRef": { "type": "string", "description": "Reference to source" }
+        }
+      }
+    },
+    "assessmentCriteria": {
+      "type": "object",
+      "description": "Key = RA id, Value = array of criteria",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["id", "description"],
+          "properties": {
+            "id": { "type": "string", "description": "e.g., 'CE1.a', 'CE1.b'" },
+            "description": { "type": "string" }
+          }
+        }
+      }
+    },
+    "officialContents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["section", "items"],
+        "properties": {
+          "section": { "type": "string", "description": "Content section name" },
+          "items": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "proposedUnits": {
+      "type": "array",
+      "description": "OUR pedagogical organization — NOT official",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "description", "learningOutcomesCovered", "assessmentCriteriaCovered", "officialContentsCovered", "proposedLessons"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "learningOutcomesCovered": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "assessmentCriteriaCovered": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "officialContentsCovered": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "proposedLessons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "title", "objectives", "contentBlocks", "exercises"],
+              "properties": {
+                "id": { "type": "string" },
+                "title": { "type": "string" },
+                "objectives": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "contentBlocks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string", "enum": ["text", "video", "code", "file", "link"] },
+                      "description": { "type": "string" }
+                    }
+                  }
+                },
+                "exercises": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "difficulty": { "type": "string", "enum": ["basic", "intermediate", "advanced"] },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "projectFinal": {
+            "type": "object",
+            "properties": {
+              "description": { "type": "string" },
+              "coversRA": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "pedagogicalNotes": { "type": "string" }
+  }
+}

@@ -1,0 +1,452 @@
+{
+  "id": "mod-09",
+  "title": "POO — Polimorfismo e interfaces",
+  "description": "Módulo dedicado al polimorfismo como pilar avanzado de la POO y a las interfaces como mecanismo de contrato múltiple. Se estudian clases abstractas, se implementan interfaces con `implements`, se comparan herencia vs. composición y se diseña un sistema completo combinando todos los conceptos. Dominio principal: Alumno-Curso-Matrícula con jerarquías de empleados como dominio auxiliar.",
+  "phase": "phase-4",
+  "position": 9,
+  "learningOutcomes": [
+    "RA7"
+  ],
+  "assessmentCriteria": [
+    "RA7.e",
+    "RA7.f",
+    "RA7.g",
+    "RA7.i",
+    "RA7.j"
+  ],
+  "officialContents": [
+    "Utilización avanzada de clases"
+  ],
+  "duration": "14 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-08"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-09-1",
+      "title": "Polimorfismo",
+      "objectives": [
+        "Comprender el polimorfismo como capacidad de un objeto de adoptar múltiples formas",
+        "Aplicar el polimorfismo con referencias de superclase apuntando a objetos de subclase",
+        "Usar arrays de tipo superclase para gestionar objetos de diferentes subclases",
+        "Entender la resolución de llamadas a métodos en tiempo de ejecución (dynamic dispatch)",
+        "Utilizar `instanceof` y pattern matching para comprobar tipos en runtime",
+        "Emplear expresiones switch de Java 21 con polimorfismo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es el polimorfismo?",
+          "content": "El **polimorfismo** (del griego \"muchas formas\") es la capacidad de un objeto de ser tratado como instancia de diferentes tipos dentro de su jerarquía. Un objeto de tipo `Profesor` puede usarse donde se espere un `Empleado`, y su comportamiento será el de `Profesor`.\n\nHay dos tipos principales de polimorfismo en Java:\n\n1. **Polimorfismo de subtyping** (el más común): una referencia de tipo superclase apunta a un objeto de subclase. Java resuelve qué método ejecutar en tiempo de ejecución.\n\n2. **Polimorfismo de sobrecarga** (overloading): varios métodos con el mismo nombre pero diferentes parámetros. Se resuelve en tiempo de compilación.\n\nEl polimorfismo de subtyping es el que nos interesa. Es la base de sistemas flexibles donde puedes tratar muchos tipos diferentes de forma uniforme."
+        },
+        {
+          "type": "code",
+          "title": "Jerarquía de empleados: base para el polimorfismo",
+          "language": "java",
+          "content": "public abstract class Empleado {\n    protected String nombre;\n    protected double salarioBase;\n\n    public Empleado(String nombre, double salarioBase) {\n        this.nombre = nombre;\n        this.salarioBase = salarioBase;\n    }\n\n    // Metodo abstracto: cada subclase DEBE implementarlo\n    public abstract double calcularSalario();\n    public abstract String getRol();\n\n    // Metodo concreto: logica compartida\n    public String getInfo() {\n        return nombre + \" (\" + getRol() + \"): \"\n             + String.format(\"%.2f\", calcularSalario()) + \" EUR\";\n    }\n\n    public boolean ganaMasQue(Empleado otro) {\n        return this.calcularSalario() > otro.calcularSalario();\n    }\n}\n\npublic class Profesor extends Empleado {\n    private String especialidad;\n\n    public Profesor(String nombre, double salario, String especialidad) {\n        super(nombre, salario);\n        this.especialidad = especialidad;\n    }\n\n    @Override\n    public double calcularSalario() {\n        return salarioBase + 500; // complemento por especialidad\n    }\n\n    @Override\n    public String getRol() { return \"Profesor de \" + especialidad; }\n}\n\npublic class Administrativo extends Empleado {\n    private String categoria;\n\n    public Administrativo(String nombre, double salario, String categoria) {\n        super(nombre, salario);\n        this.categoria = categoria;\n    }\n\n    @Override\n    public double calcularSalario() {\n        return salarioBase;\n    }\n\n    @Override\n    public String getRol() { return \"Administrativo (\" + categoria + \")\"; }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Polimorfismo en acción: array de superclase",
+          "language": "java",
+          "content": "public class GestionEmpleados {\n    public static void main(String[] args) {\n        // Polimorfismo: array de tipo Empleado contiene diferentes tipos\n        Empleado[] equipo = {\n            new Profesor(\"Garcia\", 2200, \"Java\"),\n            new Profesor(\"Martinez\", 2400, \"Bases de Datos\"),\n            new Administrativo(\"Lopez\", 1600, \"Senior\"),\n            new Administrativo(\"Fernandez\", 1400, \"Junior\")\n        };\n\n        // Recorrer y tratar todos como Empleado\n        // Java sabe cual metodo ejecutar en tiempo de ejecucion\n        for (Empleado e : equipo) {\n            // getInfo() usa calcularSalario() y getRol() -> dynamic dispatch\n            System.out.println(e.getInfo());\n        }\n\n        // Encontrar quien gana mas\n        Empleado mejor = equipo[0];\n        for (Empleado e : equipo) {\n            if (e.ganaMasQue(mejor)) {\n                mejor = e;\n            }\n        }\n        System.out.println(\"\\nMejor pagado: \" + mejor.getNombre()\n             + \" (\" + String.format(\"%.2f\", mejor.calcularSalario()) + \" EUR)\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Dynamic dispatch: resolución en tiempo de ejecución",
+          "content": "Cuando escribes `e.getInfo()`, Java no sabe en tiempo de compilación qué versión de `calcularSalario()` ejecutará. Solo sabe que `e` es un `Empleado`. Pero en tiempo de ejecución, Java comprueba el **tipo real** del objeto y ejecuta la versión correspondiente.\n\nEste proceso se llama **dynamic dispatch** (despacho dinámico):\n\n1. **Compilación**: el compilador verifica que `calcularSalario()` existe en `Empleado`.\n2. **Ejecución**: la JVM comprueba el tipo real del objeto (`Profesor`, `Administrativo`, etc.) y ejecuta la versión que corresponda.\n\n**Regla**: si un método está sobrescrito, se ejecuta la versión más específica (la del tipo real del objeto).\n\n**Excepción**: los campos **no** son polimórficos. Si accedes a `e.nombre`, siempre accedes al campo de `Empleado`, sin importar el tipo real. Solo los métodos se resuelven dinámicamente."
+        },
+        {
+          "type": "code",
+          "title": "Polimorfismo con métodos que reciben superclase",
+          "language": "java",
+          "content": "public class GestorNomina {\n    // Metodo que acepta cualquier tipo de Empleado\n    public static void mostrarNomina(Empleado empleado) {\n        System.out.println(\"Nomina: \" + empleado.getNombre()\n             + \" | Rol: \" + empleado.getRol()\n             + \" | Salario: \" + String.format(\"%.2f\", empleado.calcularSalario()));\n    }\n\n    // Metodo que procesa un array de cualquier tipo de Empleado\n    public static void listarPorRol(Empleado[] empleados, String rolBuscado) {\n        System.out.println(\"\\n=== Empleados tipo: \" + rolBuscado + \" ===\");\n        for (Empleado e : empleados) {\n            if (e.getRol().contains(rolBuscado)) {\n                System.out.println(\"  \" + e.getNombre() + \" - \" + e.getInfo());\n            }\n        }\n    }\n\n    // Metodo que calcula gasto total (polimorfismo puro)\n    public static double calcularGastoTotal(Empleado[] empleados) {\n        double total = 0;\n        for (Empleado e : empleados) {\n            total += e.calcularSalario(); // Cada tipo calcula diferente\n        }\n        return total;\n    }\n\n    public static void main(String[] args) {\n        Empleado[] equipo = {\n            new Profesor(\"Garcia\", 2200, \"Java\"),\n            new Profesor(\"Martinez\", 2400, \"BD\"),\n            new Administrativo(\"Lopez\", 1600, \"Senior\")\n        };\n\n        for (Empleado e : equipo) {\n            mostrarNomina(e); // Polimorfismo: cada llamada usa la version correcta\n        }\n\n        System.out.println(\"\\nGasto total: \"\n             + String.format(\"%.2f\", calcularGastoTotal(equipo)) + \" EUR\");\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "instanceof y pattern matching",
+          "content": "A veces necesitas saber el tipo real de un objeto en runtime. Para eso usas `instanceof`:\n\n```java\nif (empleado instanceof Profesor) {\n    // Es un Profesor\n    Profesor p = (Profesor) empleado; // Casting manual\n    System.out.println(\"Especialidad: \" + p.getEspecialidad());\n}\n```\n\n**`instanceof`** comprueba si un objeto es de un tipo determinado (o de una subclase de ese tipo).\n\n**Casting** se usa para acceder a campos/métodos que solo existen en la subclase. Pero ten cuidado: si haces casting a un tipo que no es, obtienes un `ClassCastException`.\n\n**Pattern matching** (desde Java 16): forma abreviada de comprobar y convertir en una sola línea:\n\n```java\nif (empleado instanceof Profesor p) {\n    // 'p' ya está convertido, no necesitas casting manual\n    System.out.println(\"Especialidad: \" + p.getEspecialidad());\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "instanceof y pattern matching en acción",
+          "language": "java",
+          "content": "public class AnalizadorEquipo {\n    public static void analizar(Empleado[] empleados) {\n        for (Empleado e : empleados) {\n            System.out.print(e.getNombre() + \": \");\n\n            // Pattern matching (Java 16+)\n            if (e instanceof Profesor p) {\n                System.out.println(\"Profesor de \" + p.getEspecialidad()\n                     + \" | Salario: \" + String.format(\"%.2f\", p.calcularSalario()));\n            } else if (e instanceof Administrativo a) {\n                System.out.println(\"Administrativo \" + a.getCategoria()\n                     + \" | Salario: \" + String.format(\"%.2f\", a.calcularSalario()));\n            } else {\n                System.out.println(\"Empleado desconocido\");\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        Empleado[] equipo = {\n            new Profesor(\"Garcia\", 2200, \"Java\"),\n            new Administrativo(\"Lopez\", 1600, \"Senior\"),\n            new Profesor(\"Martinez\", 2400, \"BD\")\n        };\n        analizar(equipo);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Polimorfismo con colecciones: ArrayList",
+          "content": "Además de arrays, puedes usar `ArrayList` para colecciones polimórficas. La ventaja es que puedes añadir y eliminar elementos dinámicamente:\n\n```java\nimport java.util.ArrayList;\nimport java.util.List;\n\nList<Empleado> equipo = new ArrayList<>();\nequipo.add(new Profesor(\"Garcia\", 2200, \"Java\"));\nequipo.add(new Administrativo(\"Lopez\", 1600, \"Senior\"));\n\n// Polimorfismo: recorrer y usar\nfor (Empleado e : equipo) {\n    System.out.println(e.getInfo());\n}\n```\n\n`ArrayList<Empleado>` puede contener cualquier subclase de `Empleado`. El polimorfismo funciona igual que con arrays, pero con más flexibilidad."
+        },
+        {
+          "type": "code",
+          "title": "Expresiones switch con polimorfismo (Java 21+)",
+          "language": "java",
+          "content": "// Java 21: switch expressions con pattern matching\npublic class ClasificadorEmpleados {\n\n    // Forma clasica (pre-Java 21)\n    public static String clasificar(Empleado e) {\n        if (e instanceof Profesor p) {\n            return \"Profesor: \" + p.getEspecialidad();\n        } else if (e instanceof Administrativo a) {\n            return \"Admin: \" + a.getCategoria();\n        } else {\n            return \"Otro empleado\";\n        }\n    }\n\n    // Forma moderna: switch expression (Java 21+)\n    public static String clasificarModern(Empleado e) {\n        return switch (e) {\n            case Profesor p   -> \"Profesor: \" + p.getEspecialidad();\n            case Administrativo a -> \"Admin: \" + a.getCategoria();\n            default            -> \"Otro empleado\";\n        };\n    }\n\n    // Switch con guardas (Java 21+)\n    public static String getNivel(Empleado e) {\n        return switch (e) {\n            case Profesor p when p.calcularSalario() > 3000\n                -> \"Profesor Senior\";\n            case Profesor p\n                -> \"Profesor Junior\";\n            case Administrativo a when a.getCategoria().equals(\"Senior\")\n                -> \"Admin Senior\";\n            case Administrativo a\n                -> \"Admin Junior\";\n            default -> \"Sin clasificar\";\n        };\n    }\n\n    public static void main(String[] args) {\n        Empleado[] equipo = {\n            new Profesor(\"Garcia\", 3200, \"Java\"),\n            new Profesor(\"Martinez\", 2000, \"BD\"),\n            new Administrativo(\"Lopez\", 1600, \"Senior\"),\n            new Administrativo(\"Fernandez\", 1400, \"Junior\")\n        };\n\n        for (Empleado e : equipo) {\n            System.out.println(e.getNombre() + \" -> \" + clasificarModern(e));\n            System.out.println(\"  Nivel: \" + getNivel(e));\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-1-1",
+          "difficulty": "basic",
+          "title": "Array polimórfico de figuras",
+          "description": "Crea un array de tipo `Figura` que contenga `Circulo`, `Rectangulo` y `Triangulo`. Recorre el array y muestra el área de cada una. Cada tipo debe tener su propia fórmula de cálculo.",
+          "solution": "public abstract class Figura {\n    protected String nombre;\n    public Figura(String n) { this.nombre = n; }\n    public abstract double getArea();\n    @Override public String toString() {\n        return nombre + \": \" + String.format(\"%.2f\", getArea());\n    }\n}\n\npublic class Circulo extends Figura {\n    private double r;\n    public Circulo(double r) { super(\"Circulo\"); this.r = r; }\n    @Override public double getArea() { return Math.PI * r * r; }\n}\n\npublic class Rectangulo extends Figura {\n    private double b, h;\n    public Rectangulo(double b, double h) { super(\"Rectangulo\"); this.b = b; this.h = h; }\n    @Override public double getArea() { return b * h; }\n}\n\npublic class Triangulo extends Figura {\n    private double b, h;\n    public Triangulo(double b, double h) { super(\"Triangulo\"); this.b = b; this.h = h; }\n    @Override public double getArea() { return (b * h) / 2; }\n}\n\npublic class Demo {\n    public static void main(String[] args) {\n        Figura[] figuras = {\n            new Circulo(5),\n            new Rectangulo(10, 5),\n            new Triangulo(8, 6)\n        };\n        for (Figura f : figuras) {\n            System.out.println(f); // Polimorfismo\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-09-1-2",
+          "difficulty": "intermediate",
+          "title": "Procesador polimórfico con instanceof",
+          "description": "Crea un método `procesarEmpleado(Empleado e)` que muestre diferente información según el tipo: si es `Profesor` muestra la especialidad, si es `Administrativo` muestra la categoría, si es otro tipo muestra solo nombre y salario.",
+          "solution": "public class ProcesadorEmpleados {\n    public static void procesarEmpleado(Empleado e) {\n        System.out.print(e.getNombre() + \" | Salario: \"\n             + String.format(\"%.2f\", e.calcularSalario()) + \" | \");\n\n        if (e instanceof Profesor p) {\n            System.out.println(\"Especialidad: \" + p.getEspecialidad());\n        } else if (e instanceof Administrativo a) {\n            System.out.println(\"Categoria: \" + a.getCategoria());\n        } else {\n            System.out.println(\"Rol: \" + e.getRol());\n        }\n    }\n\n    public static void main(String[] args) {\n        Empleado[] equipo = {\n            new Profesor(\"Garcia\", 2200, \"Java\"),\n            new Administrativo(\"Lopez\", 1600, \"Senior\"),\n            new Profesor(\"Martinez\", 2400, \"BD\")\n        };\n        for (Empleado e : equipo) {\n            procesarEmpleado(e);\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-09-1-3",
+          "difficulty": "advanced",
+          "title": "Sistema de calificaciones polimórfico con switch",
+          "description": "Crea una clase abstracta `SistemaCalificacion` con método abstracto `calificar(double nota)`. Crea 3 subclases: `SistemaTradicional` (Sobresaliente/Notable/Aprobado/Suspenso), `SistemaABC` (A/B/C/D/F), `SistemaMorses` (aprobado/suspenso). Usa un switch expression de Java 21 para mostrar qué sistema se está usando.",
+          "solution": "public abstract class SistemaCalificacion {\n    protected String nombre;\n    public SistemaCalificacion(String n) { this.nombre = n; }\n    public abstract String calificar(double nota);\n    @Override public String toString() { return nombre; }\n}\n\npublic class SistemaTradicional extends SistemaCalificacion {\n    public SistemaTradicional() { super(\"Tradicional (0-10)\"); }\n    @Override public String calificar(double nota) {\n        if (nota >= 9) return \"Sobresaliente\";\n        if (nota >= 7) return \"Notable\";\n        if (nota >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n}\n\npublic class SistemaABC extends SistemaCalificacion {\n    public SistemaABC() { super(\"ABC\"); }\n    @Override public String calificar(double nota) {\n        if (nota >= 9) return \"A\";\n        if (nota >= 7) return \"B\";\n        if (nota >= 5) return \"C\";\n        if (nota >= 3) return \"D\";\n        return \"F\";\n    }\n}\n\npublic class SistemaMorses extends SistemaCalificacion {\n    public SistemaMorses() { super(\"Morses\"); }\n    @Override public String calificar(double nota) {\n        return nota >= 5 ? \"...- (Aprobado)\" : \"-. (Suspenso)\";\n    }\n}\n\npublic class Demo {\n    public static String nombreSistema(SistemaCalificacion s) {\n        return switch (s) {\n            case SistemaTradicional t -> \"Tradicional\";\n            case SistemaABC a         -> \"ABC\";\n            case SistemaMorses m      -> \"Morses\";\n            default                   -> \"Desconocido\";\n        };\n    }\n\n    public static void main(String[] args) {\n        SistemaCalificacion[] sistemas = {\n            new SistemaTradicional(), new SistemaABC(), new SistemaMorses()\n        };\n        double[] notas = {8.5, 4.0, 9.2, 6.0};\n\n        for (SistemaCalificacion s : sistemas) {\n            System.out.println(\"\\n--- \" + nombreSistema(s) + \" ---\");\n            for (double n : notas) {\n                System.out.printf(\"Nota %.1f -> %s%n\", n, s.calificar(n));\n            }\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Intentar acceder a campos de la subclase desde una referencia de superclase. `Empleado e = new Profesor(...); e.getEspecialidad()` da error.",
+        "Hacer casting incorrecto y obtener `ClassCastException`. Siempre usa `instanceof` antes de castear.",
+        "Pensar que los campos son polimórficos. Solo los métodos se resuelven dinámicamente.",
+        "No usar `@Override` y crear accidentalmente un método nuevo en vez de sobrescribir.",
+        "Olvidar que el polimorfismo no funciona con métodos estáticos ni privados."
+      ],
+      "keyConcepts": [
+        "Polimorfismo: un objeto adopta múltiples formas según el contexto",
+        "Dynamic dispatch: resolución de métodos en tiempo de ejecución",
+        "Arrays y colecciones de superclase conteniendo objetos de subclases",
+        "instanceof y pattern matching para comprobar tipos en runtime",
+        "Casting para acceder a miembros específicos de subclases",
+        "Expresiones switch de Java 21 con pattern matching"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.e",
+        "RA7.g"
+      ]
+    },
+    {
+      "id": "lesson-09-2",
+      "title": "Interfaces",
+      "objectives": [
+        "Comprender las interfaces como contratos de comportamiento",
+        "Definir e implementar interfaces con `implements`",
+        "Implementar múltiples interfaces en una misma clase",
+        "Usar métodos default y static en interfaces (Java 8+)",
+        "Conocer interfaces funcionales y su uso con lambdas",
+        "Aplicar interfaces estándar de Java: Comparable, Serializable"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué es una interfaz?",
+          "content": "Una **interfaz** es un contrato que define qué métodos debe tener una clase, sin especificar cómo se implementan. Es como un conjunto de reglas que la clase debe seguir.\n\n```java\npublic interface Exportable {\n    String exportarJSON();\n    String getFormato();\n}\n```\n\nUna clase \"se compromete\" a implementar la interfaz:\n\n```java\npublic class AlumnoExportable extends Alumno implements Exportable {\n    @Override\n    public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + getNombre() + \"\\\",\\\"email\\\":\\\"\" + getEmail() + \"\\\"}\";\n    }\n\n    @Override\n    public String getFormato() { return \"JSON\"; }\n}\n```\n\n**Ventajas de las interfaces:**\n1. **Contrato múltiple**: una clase puede implementar varias interfaces.\n2. **Desacoplamiento**: el código depende del contrato, no de la implementación.\n3. **Polimorfismo**: puedes tratar objetos de diferentes clases de forma uniforme si implementan la misma interfaz.\n4. **Flexibilidad**: una clase puede cambiar su implementación sin romper el código que la usa."
+        },
+        {
+          "type": "code",
+          "title": "Sintaxis de las interfaces y características",
+          "language": "java",
+          "content": "// Interfaz basica\npublic interface Exportable {\n    String exportarJSON(); // abstracto (por defecto)\n    String getFormato();   // abstracto\n}\n\n// Interfaz con metodos default, static y constantes\npublic interface ExportableAvanzada {\n    // Constante: public static final por defecto\n    String VERSION = \"1.0\";\n\n    // Metodo abstracto\n    String exportarJSON();\n\n    // Default (Java 8+): tiene implementacion propia\n    default String exportarCSV() {\n        return \"No soportado\";\n    }\n\n    // Static (Java 8+)\n    static String getVersion() {\n        return VERSION;\n    }\n\n    // Private (Java 9+)\n    private String validar(String datos) {\n        if (datos == null || datos.isEmpty()) {\n            throw new IllegalArgumentException(\"Datos vacios\");\n        }\n        return datos;\n    }\n}\n```\n\n**Características clave:**\n- Todos los métodos son `public abstract` por defecto.\n- No tiene constructores.\n- Los campos son `public static final` por defecto (constantes).\n- Desde Java 8: métodos `default` con implementación propia.\n- Desde Java 8: métodos `static`.\n- Desde Java 9: métodos `private`."
+        },
+        {
+          "type": "code",
+          "title": "Múltiples interfaces en una clase",
+          "language": "java",
+          "content": "// Interfaz Exportable\npublic interface Exportable {\n    String exportarJSON();\n    String getFormato();\n}\n\n// Interfaz Comparable (de java.lang)\n// Define: int compareTo(T o)\npublic interface Ordenable {\n    int ordenarPor(Ordenable otro);\n}\n\n// Interfaz Descriptible\npublic interface Descriptible {\n    String getDescripcion();\n}\n\n// Alumno implementa 3 interfaces\npublic class Alumno implements Exportable, Ordenable, Descriptible {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email, double notaMedia) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n\n    // Exportable\n    @Override\n    public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre\n             + \"\\\",\\\"email\\\":\\\"\" + email\n             + \"\\\",\\\"notaMedia\\\":\" + notaMedia + \"}\";\n    }\n\n    @Override\n    public String getFormato() { return \"JSON\"; }\n\n    // Ordenable\n    @Override\n    public int ordenarPor(Ordenable otro) {\n        if (otro instanceof Alumno otroAlumno) {\n            return Double.compare(otroAlumno.notaMedia, this.notaMedia);\n        }\n        return 0;\n    }\n\n    // Descriptible\n    @Override\n    public String getDescripcion() {\n        return nombre + \" (\" + email + \") - Nota: \" + String.format(\"%.1f\", notaMedia);\n    }\n}\n\n// Polimorfismo con interfaces:\npublic class DemoExportar {\n    public static void exportar(Exportable e) {\n        System.out.println(e.getFormato() + \": \" + e.exportarJSON());\n    }\n\n    public static void main(String[] args) {\n        Alumno a = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\n        exportar(a); // Polimorfismo: funciona con cualquier Exportable\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Interfaz Comparable de la API de Java",
+          "content": "`Comparable<T>` es una de las interfaces más usadas en Java. Define un solo método `compareTo(T o)` que permite ordenar objetos.\n\n```java\nimport java.util.Arrays;\n\npublic class Alumno implements Comparable<Alumno> {\n    private String nombre;\n    private double notaMedia;\n\n    // ... constructor y getters ...\n\n    // Implementacion de Comparable: ordenar por nota descendente\n    @Override\n    public int compareTo(Alumno otro) {\n        return Double.compare(otro.notaMedia, this.notaMedia);\n    }\n}\n\n// Ahora puedes ordenar:\nArrays.sort(alumnos); // Usa compareTo automaticamente\n```\n\n**Retorno de `compareTo`:**\n- Negativo: `this` va antes que `otro`.\n- Cero: son iguales en orden.\n- Positivo: `this` va después de `otro`."
+        },
+        {
+          "type": "code",
+          "title": "Comparable con patrón descending y comparator",
+          "language": "java",
+          "content": "import java.util.Arrays;\nimport java.util.Comparator;\n\npublic class Alumno implements Comparable<Alumno> {\n    private String nombre;\n    private double notaMedia;\n    private int edad;\n\n    public Alumno(String nombre, double notaMedia, int edad) {\n        this.nombre = nombre;\n        this.notaMedia = notaMedia;\n        this.edad = edad;\n    }\n\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n    public int getEdad() { return edad; }\n\n    // Comparable: orden natural por nota descendente\n    @Override\n    public int compareTo(Alumno otro) {\n        return Double.compare(otro.notaMedia, this.notaMedia);\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" | Nota: \" + String.format(\"%.1f\", notaMedia)\n             + \" | Edad: \" + edad;\n    }\n\n    public static void main(String[] args) {\n        Alumno[] alumnos = {\n            new Alumno(\"Ana\", 8.5, 20),\n            new Alumno(\"Carlos\", 7.0, 22),\n            new Alumno(\"Maria\", 9.2, 19),\n            new Alumno(\"Pedro\", 6.5, 21)\n        };\n\n        // Orden natural (por nota, descendente)\n        Arrays.sort(alumnos);\n        System.out.println(\"Por nota (descendente):\");\n        for (Alumno a : alumnos) System.out.println(\"  \" + a);\n\n        // Comparator: orden alternativo\n        Comparator<Alumno> porEdad = Comparator.comparingInt(Alumno::getEdad);\n        Arrays.sort(alumnos, porEdad);\n        System.out.println(\"\\nPor edad (ascendente):\");\n        for (Alumno a : alumnos) System.out.println(\"  \" + a);\n\n        // Comparator: por nombre\n        Comparator<Alumno> porNombre = Comparator.comparing(Alumno::getNombre);\n        Arrays.sort(alumnos, porNombre);\n        System.out.println(\"\\nPor nombre:\");\n        for (Alumno a : alumnos) System.out.println(\"  \" + a);\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Interfaces funcionales y lambdas",
+          "content": "Una **interfaz funcional** es una interfaz con exactamente un método abstracto. Se usa con expresiones lambda para escribir código más conciso.\n\n```java\n// Interfaz funcional\n@FunctionalInterface\npublic interface Calculadora {\n    double calcular(double a, double b);\n}\n\n// Uso con lambda\nCalculadora suma = (a, b) -> a + b;\nCalculadora resta = (a, b) -> a - b;\nCalculadora multi = (a, b) -> a * b;\n\nSystem.out.println(suma.calcular(10, 5));   // 15.0\nSystem.out.println(resta.calcular(10, 5));  // 5.0\n```\n\n`@FunctionalInterface` es opcional pero recomendable: si la interfaz tiene más de un método abstracto, el compilador da error.\n\nJava tiene muchas interfaces funcionales en `java.util.function`:\n- `Predicate<T>`: test lógico (devuelve boolean)\n- `Function<T,R>`: transformación\n- `Consumer<T>`: consume un valor\n- `Supplier<T>`: produce un valor"
+        },
+        {
+          "type": "code",
+          "title": "Interfaces funcionales en acción",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.List;\nimport java.util.function.Predicate;\nimport java.util.function.Function;\nimport java.util.function.Consumer;\n\n@FunctionalInterface\ninterface Filtro {\n    boolean aceptar(Alumno alumno);\n}\n\npublic class DemoFuncional {\n    // Metodo que usa interfaz funcional\n    public static List<Alumno> filtrar(List<Alumno> alumnos, Filtro filtro) {\n        List<Alumno> resultado = new ArrayList<>();\n        for (Alumno a : alumnos) {\n            if (filtro.aceptar(a)) {\n                resultado.add(a);\n            }\n        }\n        return resultado;\n    }\n\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", 8.5, 20),\n            new Alumno(\"Carlos\", 4.0, 22),\n            new Alumno(\"Maria\", 9.2, 19),\n            new Alumno(\"Pedro\", 6.5, 21)\n        );\n\n        // Lambda: filtrar aprobados\n        List<Alumno> aprobados = filtrar(alumnos, a -> a.getNotaMedia() >= 5.0);\n        System.out.println(\"Aprobados:\");\n        aprobados.forEach(a -> System.out.println(\"  \" + a.getNombre()));\n\n        // Lambda: filtrar por edad\n        List<Alumno> jovenes = filtrar(alumnos, a -> a.getEdad() <= 20);\n        System.out.println(\"\\nJovenes (<=20):\") ;\n        jovenes.forEach(a -> System.out.println(\"  \" + a.getNombre()));\n\n        // Predicate de Java (interfaz funcional estandar)\n        Predicate<Alumno> esSobresaliente = a -> a.getNotaMedia() >= 9.0;\n        alumnos.stream()\n            .filter(esSobresaliente)\n            .forEach(a -> System.out.println(\"\\nSobresaliente: \" + a.getNombre()));\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Interfaces Serializable y enums con interfaces",
+          "language": "java",
+          "content": "import java.io.Serializable;\n\n// Serializable: interfaz de marcador (marker interface)\n// No tiene metodos. Solo indica que el objeto puede serializarse.\npublic class AlumnoSerializable extends Alumno implements Serializable {\n    private static final long serialVersionUID = 1L;\n    private String numMatricula;\n\n    public AlumnoSerializable(String nombre, String email, double nota, String numMatricula) {\n        super(nombre, email, nota);\n        this.numMatricula = numMatricula;\n    }\n\n    public String getNumMatricula() { return numMatricula; }\n}\n\n// Enums pueden implementar interfaces\npublic interface Describable {\n    String getDescripcion();\n}\n\npublic enum EstadoMatricula implements Describable {\n    ACTIVA(\"Matricula activa, alumno puede acceder a cursos\"),\n    SUSPENDIDA(\"Matricula suspendida, acceso restringido\"),\n    CANCELADA(\"Matricula cancelada, sin acceso\"),\n    COMPLETADA(\"Curso completado, certificado disponible\");\n\n    private final String descripcion;\n\n    EstadoMatricula(String descripcion) {\n        this.descripcion = descripcion;\n    }\n\n    @Override\n    public String getDescripcion() { return descripcion; }\n}\n\n// Uso:\n// EstadoMatricula estado = EstadoMatricula.ACTIVA;\n// System.out.println(estado.getDescripcion());\n// -> \"Matricula activa, alumno puede acceder a cursos\""
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-2-1",
+          "difficulty": "basic",
+          "title": "Interfaz Exportable para Alumno",
+          "description": "Crea una interfaz `Exportable` con métodos `exportarTexto()` y `getFormato()`. Crea una clase `AlumnoExportable` que extienda `Alumno` e implemente `Exportable`. El método `exportarTexto()` debe devolver una línea con nombre, email y nota.",
+          "solution": "public interface Exportable {\n    String exportarTexto();\n    String getFormato();\n}\n\npublic class AlumnoExportable extends Alumno implements Exportable {\n    public AlumnoExportable(String nombre, String email, double nota) {\n        super(nombre, email, nota);\n    }\n\n    @Override\n    public String exportarTexto() {\n        return getNombre() + \",\" + getEmail() + \",\" + getNotaMedia();\n    }\n\n    @Override\n    public String getFormato() { return \"TXT\"; }\n\n    public static void main(String[] args) {\n        AlumnoExportable ae = new AlumnoExportable(\"Ana\", \"ana@email.com\", 8.5);\n        System.out.println(ae.getFormato() + \": \" + ae.exportarTexto());\n    }\n}"
+        },
+        {
+          "id": "ex-09-2-2",
+          "difficulty": "intermediate",
+          "title": "Múltiples interfaces: Pagable y Describable",
+          "description": "Crea interfaces `Pagable` (pagar(), getPrecio(), isPagado()) y `Describable` (getDescripcion()). Implementa ambas en una clase `CursoOnline` (nombre, precio). Añade también `Exportable` con `exportarJSON()`. Crea un programa que use polimorfismo con las 3 interfaces.",
+          "solution": "public interface Pagable {\n    void pagar();\n    double getPrecio();\n    boolean isPagado();\n}\n\npublic interface Describable {\n    String getDescripcion();\n}\n\npublic interface Exportable {\n    String exportarJSON();\n}\n\npublic class CursoOnline implements Pagable, Describable, Exportable {\n    private String nombre;\n    private double precio;\n    private boolean pagado = false;\n\n    public CursoOnline(String nombre, double precio) {\n        this.nombre = nombre;\n        this.precio = precio;\n    }\n\n    @Override public void pagar() { pagado = true; }\n    @Override public double getPrecio() { return precio; }\n    @Override public boolean isPagado() { return pagado; }\n    @Override public String getDescripcion() {\n        return nombre + \" - \" + precio + \" EUR\" + (pagado ? \" [Pagado]\" : \" [Pendiente]\");\n    }\n    @Override public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre + \"\\\",\\\"precio\\\":\" + precio\n             + \",\\\"pagado\\\":\" + pagado + \"}\";\n    }\n}\n\n// Polimorfismo:\n// Pagable[] items = { new CursoOnline(\"Java\", 29.99), ... };\n// for (Pagable p : items) { p.pagar(); }"
+        },
+        {
+          "id": "ex-09-2-3",
+          "difficulty": "advanced",
+          "title": "Interfaz funcional para procesamiento de alumnos",
+          "description": "Crea una interfaz funcional `ProcesadorAlumno` con método `String procesar(Alumno a)`. Crea un método `aplicarProcesador(List<Alumno>, ProcesadorAlumno)` que aplique el procesador a cada alumno. Usa lambdas para: (1) obtener nombre en mayúsculas, (2) obtener calificación, (3) exportar a CSV.",
+          "solution": "@FunctionalInterface\ninterface ProcesadorAlumno {\n    String procesar(Alumno alumno);\n}\n\npublic class DemoProcesador {\n    public static List<String> aplicarProcesador(\n            List<Alumno> alumnos, ProcesadorAlumno procesador) {\n        List<String> resultados = new ArrayList<>();\n        for (Alumno a : alumnos) {\n            resultados.add(procesador.procesar(a));\n        }\n        return resultados;\n    }\n\n    public static void main(String[] args) {\n        List<Alumno> alumnos = List.of(\n            new Alumno(\"Ana\", \"ana@email.com\", 8.5),\n            new Alumno(\"Carlos\", \"carlos@email.com\", 7.0),\n            new Alumno(\"Maria\", \"maria@email.com\", 9.2)\n        );\n\n        // Lambda 1: nombre en mayusculas\n        List<String> nombres = aplicarProcesador(alumnos,\n            a -> a.getNombre().toUpperCase());\n        System.out.println(\"Nombres: \" + nombres);\n\n        // Lambda 2: calificacion\n        List<String> calificaciones = aplicarProcesador(alumnos,\n            a -> a.getNombre() + \": \" + a.getCalificacion());\n        calificaciones.forEach(System.out::println);\n\n        // Lambda 3: CSV\n        List<String> csv = aplicarProcesador(alumnos,\n            a -> a.getNombre() + \",\" + a.getEmail() + \",\" + a.getNotaMedia());\n        System.out.println(\"\\nCSV:\");\n        csv.forEach(System.out::println);\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Poner constructores en una interfaz. Las interfaces no tienen constructores.",
+        "Olvidar que los métodos de interfaz son `public` por defecto. Si intentas hacer `protected`, da error.",
+        "No implementar todos los métodos abstractos de la interfaz. Da error de compilación.",
+        "Confundir `extends` (herencia de clase/interfaz) con `implements` (implementación de interfaz).",
+        "Pensar que las interfaces no pueden tener implementación. Los métodos `default` sí la tienen (Java 8+).",
+        "No poner `@FunctionalInterface` y crear accidentalmente una interfaz con 2 métodos abstractos."
+      ],
+      "keyConcepts": [
+        "Interfaces como contratos de comportamiento",
+        "Sentencia `implements` para implementar interfaces",
+        "Métodos abstractos, default y static en interfaces",
+        "Múltiples interfaces: una clase puede implementar varias",
+        "Comparable: interfaz de ordenación de la API de Java",
+        "Interfaces funcionales y expresiones lambda",
+        "Serializable: interfaz de marcador"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.i"
+      ]
+    },
+    {
+      "id": "lesson-09-3",
+      "title": "Clases abstractas vs interfaces, herencia vs composición",
+      "objectives": [
+        "Diseñar clases abstractas que definen contratos para subclases",
+        "Comparar cuándo usar clase abstracta vs. interfaz",
+        "Comprender la diferencia entre herencia y composición",
+        "Evaluar relaciones \"has-a\" vs \"is-a\" en el diseño de clases",
+        "Aplicar el principio \"favor composition over inheritance\""
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Clases abstractas: contrato e implementación",
+          "content": "Una **clase abstracta** define un **contrato**: \"si eres un tipo de esta clase, debes poder hacer esto\". Pero también puede proporcionar **implementación compartida** para cosas que todas las subclases hacen igual.\n\n```java\npublic abstract class Empleado {\n    protected String nombre;\n    protected double salarioBase;\n\n    public Empleado(String nombre, double salarioBase) {\n        this.nombre = nombre;\n        this.salarioBase = salarioBase;\n    }\n\n    // Metodo abstracto: cada subclase DEBE implementarlo\n    public abstract double calcularSalario();\n    public abstract String getRol();\n\n    // Metodo concreto: logica compartida\n    public String getInfo() {\n        return nombre + \" (\" + getRol() + \"): \"\n             + String.format(\"%.2f\", calcularSalario());\n    }\n\n    public boolean ganaMasQue(Empleado otro) {\n        return this.calcularSalario() > otro.calcularSalario();\n    }\n}\n```\n\n**Beneficio**: el código común (como `getInfo()`) se escribe una vez. Cada subclase solo implementa lo que es específico."
+        },
+        {
+          "type": "code",
+          "title": "Comparación: clase abstracta vs. interfaz",
+          "language": "java",
+          "content": "import java.util.Arrays;\n\n// === CLASE ABSTRACTA ===\n// Puede tener: campos, constructores, metodos concretos y abstractos\n// Herencia: UNA sola\npublic abstract class Empleado {\n    protected String nombre;     // Campo\n    protected double salarioBase;\n\n    public Empleado(String n, double s) { // Constructor\n        this.nombre = n;\n        this.salarioBase = s;\n    }\n\n    public abstract double calcularSalario(); // Abstracto\n    public String getRol() { return \"Empleado\"; } // Concreto\n}\n\n// === INTERFAZ ===\n// Solo puede tener: constantes, metodos abstractos, default, static\n// Herencia: MULTIPLE\npublic interface Exportable {\n    String exportarJSON();   // Abstracto\n    default String getFormato() { return \"JSON\"; } // Default\n    String VERSION = \"1.0\";  // Constante\n}\n\npublic interface Ordenable {\n    int compareTo(Ordenable otro);\n}\n\n// === CLASE CONCRETA: usa AMBOS ===\npublic class Profesor extends Empleado\n        implements Exportable, Ordenable {\n    private String especialidad;\n\n    public Profesor(String n, double s, String esp) {\n        super(n, s);\n        this.especialidad = esp;\n    }\n\n    @Override public double calcularSalario() { return salarioBase + 500; }\n    @Override public String getRol() { return \"Profesor de \" + especialidad; }\n\n    // Exportable\n    @Override public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre + \"\\\",\\\"salario\\\":\" + calcularSalario() + \"}\";\n    }\n\n    // Ordenable\n    @Override public int compareTo(Ordenable otro) {\n        if (otro instanceof Profesor p) {\n            return Double.compare(p.calcularSalario(), this.calcularSalario());\n        }\n        return 0;\n    }\n}\n```\n\n**Tabla resumen:**\n\n| Aspecto | Clase abstracta | Interfaz |\n|---------|----------------|----------|\n| **Herencia múltiple** | No (solo una) | Sí (varias) |\n| **Constructores** | Sí | No |\n| **Campos** | Cualquier tipo | Solo `public static final` |\n| **Métodos concretos** | Sí | Solo `default` (Java 8+) |\n| **Relación semántica** | \"es un tipo de\" (identidad) | \"puede hacer\" (comportamiento) |"
+        },
+        {
+          "type": "text",
+          "title": "Herencia vs. Composición",
+          "content": "Son dos mecanismos fundamentalmente diferentes:\n\n**Herencia** (`extends`): relación **\"es un tipo de\"**.\n- Un `AlumnoBecario` **es un** `Alumno`.\n- La subclase hereda el comportamiento de la superclase.\n- Acoplamiento fuerte: cambios en la superclase afectan a todas las subclases.\n\n**Composición**: relación **\"tiene un\"**.\n- Un `Alumno` **tiene una** `Direccion`.\n- La clase contiene objetos de otras clases como campos.\n- Acoplamiento débil: puedes cambiar la implementación sin afectar al contenedor.\n\n```java\n// HERENCIA: AlumnoBecario ES UN Alumno\npublic class AlumnoBecario extends Alumno { ... }\n\n// COMPOSICION: Alumno TIENE UNA Direccion\npublic class Alumno {\n    private Direccion direccion;       // \"tiene una\"\n    private HistorialAcademico historial; // \"tiene\"\n}\n```\n\n**Principio de diseño**: \"**Favor composition over inheritance**\" (Prefiere la composición sobre la herencia). Esto no significa que la herencia sea mala, sino que la composición es más flexible en la mayoría de casos."
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo: composición en nuestro dominio Alumno",
+          "language": "java",
+          "content": "// Direccion como clase independiente\npublic class Direccion {\n    private String calle;\n    private String ciudad;\n    private String codigoPostal;\n\n    public Direccion(String calle, String ciudad, String codigoPostal) {\n        this.calle = calle;\n        this.ciudad = ciudad;\n        this.codigoPostal = codigoPostal;\n    }\n\n    @Override\n    public String toString() {\n        return calle + \", \" + ciudad + \" (\" + codigoPostal + \")\";\n    }\n}\n\n// HistorialAcademico: contiene notas de un alumno\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class HistorialAcademico {\n    private List<Double> notas = new ArrayList<>();\n\n    public void addNota(double nota) { notas.add(nota); }\n    public double getMedia() {\n        if (notas.isEmpty()) return 0;\n        return notas.stream().mapToDouble(Double::doubleValue).average().orElse(0);\n    }\n    public int getNumNotas() { return notas.size(); }\n    public List<Double> getNotas() { return new ArrayList<>(notas); }\n}\n\n// Alumno TIENE una Direccion y un HistorialAcademico (COMPOSICION)\npublic class Alumno {\n    private String nombre;\n    private Direccion direccion;          // COMPOSICION\n    private HistorialAcademico historial;  // COMPOSICION\n\n    public Alumno(String nombre, Direccion direccion) {\n        this.nombre = nombre;\n        this.direccion = direccion;\n        this.historial = new HistorialAcademico();\n    }\n\n    public String getNombre() { return nombre; }\n    public Direccion getDireccion() { return direccion; }\n    public HistorialAcademico getHistorial() { return historial; }\n\n    public void addNota(double nota) { historial.addNota(nota); }\n    public double getNotaMedia() { return historial.getMedia(); }\n\n    @Override\n    public String toString() {\n        return nombre + \" | Dir: \" + direccion\n             + \" | Media: \" + String.format(\"%.1f\", getNotaMedia());\n    }\n}\n\n// Becario hereda de Alumno Y tiene beca (composicion)\npublic class Becario extends Alumno {\n    private String numBeca;\n    private double porcentajeDescuento;\n\n    public Becario(String nombre, Direccion dir, String numBeca, double desc) {\n        super(nombre, dir);\n        this.numBeca = numBeca;\n        this.porcentajeDescuento = desc;\n    }\n\n    public String getNumBeca() { return numBeca; }\n    public double getPorcentajeDescuento() { return porcentajeDescuento; }\n\n    public double calcularCuota(double cuotaBase) {\n        return cuotaBase * (1 - porcentajeDescuento / 100);\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Mal uso de herencia vs. composición",
+          "language": "java",
+          "content": "// === MAL USO DE HERENCIA ===\n// Stack NO es un tipo de ArrayList\n// Un Stack no es un ArrayList con comportamiento extra\npublic class MalStack extends ArrayList<String> {\n    public void push(String item) { add(item); }\n    public String pop() { return remove(size() - 1); }\n}\n// Problema: expone todos los metodos de ArrayList (get, remove, etc.)\n// Un Stack NO deberia poder acceder a elementos por indice\n\n// === COMPOSICION (mejor) ===\npublic class Stack {\n    private ArrayList<String> elementos = new ArrayList<>(); // \"tiene un\"\n\n    public void push(String item) { elementos.add(item); }\n    public String pop() {\n        if (elementos.isEmpty()) throw new java.util.EmptyStackException();\n        return elementos.remove(elementos.size() - 1);\n    }\n    public int size() { return elementos.size(); }\n    public boolean isEmpty() { return elementos.isEmpty(); }\n}\n// Ventaja: solo expone los metodos apropiados para un Stack\n// Podemos cambiar ArrayList por LinkedList sin afectar al exterior"
+        },
+        {
+          "type": "text",
+          "title": "Cuándo usar cada mecanismo",
+          "content": "**Usa HERENCIA cuando:**\n\n✅ La relación es claramente \"es un tipo de\".\n✅ La subclase es una especialización natural de la superclase.\n✅ Necesitas polimorfismo con una jerarquía de tipos.\n✅ La superclase está diseñada para ser extendida (clase abstracta).\n\n```java\n// BUENA herencia: relacion natural\nFigura → Circulo, Rectangulo, Triangulo\nEmpleado → EmpleadoFijo, EmpleadoTemporal\nException → IOException, SQLException\n```\n\n**Usa COMPOSICIÓN cuando:**\n\n✅ La relación es \"tiene un\" o \"usa un\".\n✅ Necesitas flexibilidad para cambiar la implementación.\n✅ No quieres exponer la interfaz interna de la clase reutilizada.\n✅ La herencia rompe el principio de sustitución de Liskov.\n\n```java\n// BUENA composicion: relacion \"tiene un\"\nCoche tiene Motor, Ruedas, GPS\nAlumno tiene Direccion, HistorialAcademico\nOrdenador tiene Procesador, MemoriaRAM\n```\n\n**Usa AMBOS cuando:**\n\n✅ Herencia para la jerarquía de tipos (Alumno → Becario).\n✅ Composición para componentes reutilizables (Alumno tiene Direccion).\n✅ Interfaces para definir comportamiento compartido (Exportable, Comparable)."
+        },
+        {
+          "type": "code",
+          "title": "Combinando herencia, composición e interfaces",
+          "language": "java",
+          "content": "// === SISTEMA COMPLETO: herencia + composicion + interfaces ===\n\n// Interfaz Exportable\npublic interface Exportable {\n    String exportarJSON();\n    String getFormato();\n}\n\n// Interfaz Comparable\npublic interface ComparableAlumno {\n    int compararPor(Alumno otro);\n}\n\n// Clase abstracta: HERENCIA\npublic abstract class Persona {\n    protected String nombre;\n    protected String email;\n\n    public Persona(String nombre, String email) {\n        this.nombre = nombre;\n        this.email = email;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public abstract String getRol();\n}\n\n// Alumno: HEREDA de Persona, IMPLEMENTA interfaces, USA composicion\npublic class Alumno extends Persona implements Exportable, ComparableAlumno {\n    private double notaMedia;\n    private Direccion direccion;          // COMPOSICION\n    private HistorialAcademico historial;  // COMPOSICION\n\n    public Alumno(String nombre, String email, double nota, Direccion dir) {\n        super(nombre, email);\n        this.notaMedia = nota;\n        this.direccion = dir;\n        this.historial = new HistorialAcademico();\n    }\n\n    @Override public String getRol() { return \"Alumno\"; }\n    public double getNotaMedia() { return notaMedia; }\n    public Direccion getDireccion() { return direccion; }\n    public void addNota(double nota) { historial.addNota(nota); }\n\n    // Exportable\n    @Override public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre + \"\\\",\\\"email\\\":\\\"\" + email\n             + \"\\\",\\\"notaMedia\\\":\" + notaMedia + \"}\";\n    }\n    @Override public String getFormato() { return \"JSON\"; }\n\n    // ComparableAlumno\n    @Override public int compararPor(Alumno otro) {\n        return Double.compare(otro.notaMedia, this.notaMedia);\n    }\n}\n\n// Becario: HEREDA de Alumno\npublic class Becario extends Alumno {\n    private String numBeca;\n    private double descuento;\n\n    public Becario(String n, String e, double nota, Direccion dir,\n                  String numBeca, double desc) {\n        super(n, e, nota, dir);\n        this.numBeca = numBeca;\n        this.descuento = desc;\n    }\n\n    @Override public String getRol() { return \"Becario\"; }\n    @Override public String exportarJSON() {\n        return super.exportarJSON().replace(\"}\",\n             \",\\\"beca\\\":\\\"\" + numBeca + \"\\\"}\");\n    }\n}\n\n// Internacional: HEREDA de Alumno\npublic class Internacional extends Alumno {\n    private String paisOrigen;\n\n    public Internacional(String n, String e, double nota, Direccion dir, String pais) {\n        super(n, e, nota, dir);\n        this.paisOrigen = pais;\n    }\n\n    @Override public String getRol() { return \"Internacional (\" + paisOrigen + \")\"; }\n}\n\n// DEMO: polimorfismo con todo junto\npublic class DemoSistema {\n    public static void main(String[] args) {\n        Direccion dir1 = new Direccion(\"Calle Mayor\", \"Madrid\", \"28001\");\n        Direccion dir2 = new Direccion(\"Av. Libertad\", \"Buenos Aires\", \"C1000\");\n\n        Persona[] personas = {\n            new Alumno(\"Ana\", \"ana@email.com\", 8.5, dir1),\n            new Becario(\"Carlos\", \"carlos@email.com\", 7.0, dir1, \"BEC-001\", 25),\n            new Internacional(\"Yuki\", \"yuki@email.com\", 9.2, dir2, \"Japon\")\n        };\n\n        // Polimorfismo con interfaces\n        for (Persona p : personas) {\n            System.out.println(p.getRol() + \": \" + p.getNombre());\n            if (p instanceof Exportable exp) {\n                System.out.println(\"  Export: \" + exp.exportarJSON());\n            }\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-3-1",
+          "difficulty": "basic",
+          "title": "Identificar herencia vs. composición",
+          "description": "Para cada caso, indica si es herencia o composición y justifica:\n1. Un Coche tiene un Motor\n2. Un Becario es un Alumno\n3. Un Alumno tiene una Direccion\n4. Un Rectangulo es una Figura\n5. Un Curso tiene una Lista<Alumno>",
+          "solution": "// 1. COMPOSICION: Coche TIENE un Motor (\"tiene un\")\n// 2. HERENCIA: Becario ES UN Alumno (\"es un tipo de\")\n// 3. COMPOSICION: Alumno TIENE una Direccion (\"tiene una\")\n// 4. HERENCIA: Rectangulo ES UNA Figura (\"es un tipo de\")\n// 5. COMPOSICION: Curso TIENE una Lista de Alumnos (\"tiene\")\n//\n// Clave: \"es un tipo de\" = herencia, \"tiene un/a\" = composicion"
+        },
+        {
+          "id": "ex-09-3-2",
+          "difficulty": "intermediate",
+          "title": "Refactorizar de herencia a composición",
+          "description": "Tiene una clase `ListaNumeros` que extiende `ArrayList<Integer>` y añade `getMedia()` y `getMax()`. Refactorízala para usar composición en vez de herencia. Explica por qué es mejor.",
+          "solution": "// ANTES (herencia - expone metodos no deseados):\n// public class ListaNumeros extends ArrayList<Integer> {\n//     public double getMedia() { ... }\n//     public int getMax() { ... }\n// }\n\n// DESPUES (composicion - solo expone lo necesario):\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class ListaNumeros {\n    private List<Integer> numeros = new ArrayList<>(); // COMPOSICION\n\n    public void add(int num) { numeros.add(num); }\n    public int size() { return numeros.size(); }\n\n    public double getMedia() {\n        return numeros.stream()\n            .mapToInt(Integer::intValue)\n            .average().orElse(0);\n    }\n\n    public int getMax() {\n        return numeros.stream()\n            .mapToInt(Integer::intValue)\n            .max().orElse(0);\n    }\n\n    public List<Integer> getNumeros() {\n        return new ArrayList<>(numeros); // Copia defensiva\n    }\n}\n// Mejora: no expone add(0, num), remove(0), etc.\n// Solo expone las operaciones semanticas: add, getMedia, getMax"
+        },
+        {
+          "id": "ex-09-3-3",
+          "difficulty": "advanced",
+          "title": "Diseñar sistema biblioteca con herencia + composición + interfaces",
+          "description": "Diseña un sistema de biblioteca:\n- `RecursoBiblioteca` (abstracta) → `Libro`, `Revista`, `DVD` (herencia)\n- Cada recurso tiene una `Ubicacion` (estante, pasillo) y un `EstadoRecurso` (disponible, prestado) (composición)\n- Interfaces: `Prestable` (prestar(), devolver(), isDisponible()), `Buscable` (buscar(String termino))\nImplementa al menos 2 tipos de recurso.",
+          "solution": "public interface Prestable {\n    void prestar();\n    void devolver();\n    boolean isDisponible();\n}\n\npublic interface Buscable {\n    boolean buscar(String termino);\n}\n\npublic class Ubicacion {\n    private String estante;\n    private String pasillo;\n    public Ubicacion(String e, String p) { this.estante = e; this.pasillo = p; }\n    @Override public String toString() { return pasillo + \"-\" + estante; }\n}\n\npublic class EstadoRecurso {\n    private String estado = \"Disponible\";\n    public void prestar() { estado = \"Prestado\"; }\n    public void devolver() { estado = \"Disponible\"; }\n    public String getEstado() { return estado; }\n    public boolean isDisponible() { return estado.equals(\"Disponible\"); }\n}\n\npublic abstract class RecursoBiblioteca implements Prestable, Buscable {\n    protected String titulo;\n    protected Ubicacion ubicacion;     // COMPOSICION\n    protected EstadoRecurso estado;    // COMPOSICION\n\n    public RecursoBiblioteca(String titulo, Ubicacion ubicacion) {\n        this.titulo = titulo;\n        this.ubicacion = ubicacion;\n        this.estado = new EstadoRecurso();\n    }\n\n    public abstract String getTipo();\n\n    @Override public void prestar() {\n        if (estado.isDisponible()) { estado.prestar(); }\n    }\n    @Override public void devolver() { estado.devolver(); }\n    @Override public boolean isDisponible() { return estado.isDisponible(); }\n\n    @Override public String toString() {\n        return getTipo() + \": \" + titulo + \" [\" + ubicacion + \"] - \" + estado.getEstado();\n    }\n}\n\npublic class Libro extends RecursoBiblioteca {\n    private String autor;\n    public Libro(String t, String autor, Ubicacion u) { super(t, u); this.autor = autor; }\n    @Override public String getTipo() { return \"Libro\"; }\n    @Override public boolean buscar(String termino) {\n        return titulo.toLowerCase().contains(termino.toLowerCase())\n            || autor.toLowerCase().contains(termino.toLowerCase());\n    }\n}\n\npublic class Revista extends RecursoBiblioteca {\n    private String editorial;\n    private int numero;\n    public Revista(String t, String ed, int num, Ubicacion u) {\n        super(t, u); this.editorial = ed; this.numero = num;\n    }\n    @Override public String getTipo() { return \"Revista\"; }\n    @Override public boolean buscar(String termino) {\n        return titulo.toLowerCase().contains(termino.toLowerCase());\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar herencia cuando la relación no es \"es un tipo de\". Esto crea jerarquías frágiles y acoplamiento innecesario.",
+        "Heredar de una clase concreta solo para reutilizar código. Es mejor usar composición.",
+        "No considerar que la herencia expone toda la interfaz de la superclase (incluyendo lo que no necesitas).",
+        "Pensar que composición y herencia son excluyentes. Lo más frecuente es usar ambos en el mismo sistema.",
+        "Crear jerarquías demasiado profundas (más de 3 niveles). Son difíciles de mantener.",
+        "Confundir interfaz con clase abstracta: la interfaz define comportamiento, la abstracta define identidad con implementación."
+      ],
+      "keyConcepts": [
+        "Clases abstractas: contratos con implementación parcial",
+        "Tabla comparativa: clase abstracta vs. interfaz",
+        "Herencia: relación \"es un tipo de\" (extends)",
+        "Composición: relación \"tiene un\" (campos de tipo otro objeto)",
+        "Principio 'favor composition over inheritance'",
+        "Combinar herencia + composición + interfaces en un mismo sistema",
+        "Relaciones \"has-a\" vs \"is-a\" en diseño OO"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.f",
+        "RA7.j"
+      ]
+    },
+    {
+      "id": "lesson-09-4",
+      "title": "Aplicación práctica con interfaces",
+      "objectives": [
+        "Diseñar un sistema completo usando interfaces, herencia y composición",
+        "Implementar múltiples interfaces en un dominio real",
+        "Aplicar polimorfismo con interfaces para tratar diferentes tipos uniformemente",
+        "Crear un sistema de exportación flexible usando interfaces",
+        "Integrar Comparable para ordenación de objetos del dominio"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Objetivo: sistema de gestión de matrículas",
+          "content": "Vamos a aplicar TODO lo aprendido en un ejemplo completo y coherente. Usaremos el dominio **Alumno-Curso-Matrícula** con las siguientes interfaces:\n\n- **`Exportable`**: exportar datos a JSON y CSV\n- **`Comparable`**: ordenar alumnos por nota media\n- **`Notificable`**: enviar notificaciones a alumnos\n\n**Jerarquía de clases:**\n- `Persona` (abstracta) → `Alumno` → `Becario`, `Internacional`\n- `Alumno` implementa `Exportable`, `Comparable<Alumno>`, `Notificable`\n- `Alumno` tiene composición: `Direccion`, `HistorialAcademico`\n\nEste ejemplo muestra cómo las interfaces, la herencia y la composición trabajan juntas en un sistema real."
+        },
+        {
+          "type": "code",
+          "title": "Interfaces del sistema",
+          "language": "java",
+          "content": "// Interfaz Exportable\npublic interface Exportable {\n    String exportarJSON();\n    String exportarCSV();\n    String getFormato();\n}\n\n// Interfaz Notificable\npublic interface Notificable {\n    void enviarNotificacion(String asunto, String mensaje);\n    String getCanalNotificacion();\n}\n\n// Interfaz Buscable\npublic interface Buscable {\n    boolean contiene(String termino);\n}"
+        },
+        {
+          "type": "code",
+          "title": "Clases de composición",
+          "language": "java",
+          "content": "public class Direccion {\n    private String calle;\n    private String ciudad;\n    private String codigoPostal;\n\n    public Direccion(String calle, String ciudad, String codigoPostal) {\n        this.calle = calle;\n        this.ciudad = ciudad;\n        this.codigoPostal = codigoPostal;\n    }\n\n    public String getCalle() { return calle; }\n    public String getCiudad() { return ciudad; }\n    public String getCodigoPostal() { return codigoPostal; }\n\n    @Override\n    public String toString() {\n        return calle + \", \" + ciudad + \" (\" + codigoPostal + \")\";\n    }\n\n    public String exportarCSV() {\n        return calle + \";\" + ciudad + \";\" + codigoPostal;\n    }\n}\n\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class HistorialAcademico {\n    private List<Double> notas = new ArrayList<>();\n    private List<String> materias = new ArrayList<>();\n\n    public void addNota(String materia, double nota) {\n        notas.add(nota);\n        materias.add(materia);\n    }\n\n    public double getMedia() {\n        if (notas.isEmpty()) return 0;\n        return notas.stream().mapToDouble(Double::doubleValue).average().orElse(0);\n    }\n\n    public int getNumNotas() { return notas.size(); }\n\n    public String getMejorMateria() {\n        if (notas.isEmpty()) return \"Sin datos\";\n        int idx = 0;\n        double max = notas.get(0);\n        for (int i = 1; i < notas.size(); i++) {\n            if (notas.get(i) > max) {\n                max = notas.get(i);\n                idx = i;\n            }\n        }\n        return materias.get(idx);\n    }\n\n    public List<Double> getNotas() { return new ArrayList<>(notas); }\n    public List<String> getMaterias() { return new ArrayList<>(materias); }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Jerarquía de clases: Persona → Alumno → Becario, Internacional",
+          "language": "java",
+          "content": "import java.util.Objects;\n\n// Clase abstracta: HERENCIA\npublic abstract class Persona implements Comparable<Persona> {\n    protected String nombre;\n    protected String email;\n    protected int edad;\n\n    public Persona(String nombre, String email, int edad) {\n        this.nombre = nombre;\n        this.email = email;\n        this.edad = edad;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public int getEdad() { return edad; }\n    public abstract String getRol();\n\n    // Comparable: ordenar por nombre\n    @Override\n    public int compareTo(Persona otra) {\n        return this.nombre.compareTo(otra.nombre);\n    }\n\n    @Override\n    public boolean equals(Object o) {\n        if (this == o) return true;\n        if (o == null || getClass() != o.getClass()) return false;\n        Persona persona = (Persona) o;\n        return Objects.equals(email, persona.email);\n    }\n\n    @Override\n    public int hashCode() { return Objects.hash(email); }\n}\n\n// Alumno: HEREDA de Persona, IMPLEMENTA 3 interfaces, USA composicion\npublic class Alumno extends Persona\n        implements Exportable, Notificable, Buscable {\n    private double notaMedia;\n    private Direccion direccion;          // COMPOSICION\n    private HistorialAcademico historial;  // COMPOSICION\n    private String numMatricula;\n\n    public Alumno(String nombre, String email, int edad,\n                 double notaMedia, Direccion direccion, String numMatricula) {\n        super(nombre, email, edad);\n        this.notaMedia = notaMedia;\n        this.direccion = direccion;\n        this.historial = new HistorialAcademico();\n        this.numMatricula = numMatricula;\n    }\n\n    @Override public String getRol() { return \"Alumno\"; }\n    public double getNotaMedia() { return notaMedia; }\n    public void setNotaMedia(double nota) { this.notaMedia = nota; }\n    public Direccion getDireccion() { return direccion; }\n    public HistorialAcademico getHistorial() { return historial; }\n    public String getNumMatricula() { return numMatricula; }\n    public void addNota(String materia, double nota) { historial.addNota(materia, nota); }\n\n    // Exportable\n    @Override\n    public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre\n             + \"\\\",\\\"email\\\":\\\"\" + email\n             + \"\\\",\\\"rol\\\":\\\"\" + getRol()\n             + \"\\\",\\\"notaMedia\\\":\" + notaMedia\n             + \",\\\"matricula\\\":\\\"\" + numMatricula + \"\\\"}\";\n    }\n\n    @Override\n    public String exportarCSV() {\n        return nombre + \";\" + email + \";\" + edad + \";\" + notaMedia + \";\" + numMatricula;\n    }\n\n    @Override\n    public String getFormato() { return \"Alumno\"; }\n\n    // Notificable\n    @Override\n    public void enviarNotificacion(String asunto, String mensaje) {\n        System.out.println(\"[EMAIL a \" + email + \"] \" + asunto + \": \" + mensaje);\n    }\n\n    @Override\n    public String getCanalNotificacion() { return \"EMAIL\"; }\n\n    // Buscable\n    @Override\n    public boolean contiene(String termino) {\n        String t = termino.toLowerCase();\n        return nombre.toLowerCase().contains(t)\n            || email.toLowerCase().contains(t)\n            || numMatricula.toLowerCase().contains(t);\n    }\n\n    // Comparable: ordenar por nota media descendente\n    @Override\n    public int compareTo(Persona otra) {\n        if (otra instanceof Alumno otroAlumno) {\n            return Double.compare(otroAlumno.notaMedia, this.notaMedia);\n        }\n        return super.compareTo(otra);\n    }\n\n    @Override\n    public String toString() {\n        return getRol() + \": \" + nombre + \" | Nota: \"\n             + String.format(\"%.1f\", notaMedia) + \" | Mat: \" + numMatricula;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Subclases: Becario e Internacional",
+          "language": "java",
+          "content": "// Becario: HEREDA de Alumno\npublic class Becario extends Alumno {\n    private String numBeca;\n    private double porcentajeDescuento;\n\n    public Becario(String nombre, String email, int edad, double notaMedia,\n                  Direccion dir, String numMatricula,\n                  String numBeca, double porcentajeDescuento) {\n        super(nombre, email, edad, notaMedia, dir, numMatricula);\n        this.numBeca = numBeca;\n        this.porcentajeDescuento = porcentajeDescuento;\n    }\n\n    @Override public String getRol() { return \"Becario\"; }\n    public String getNumBeca() { return numBeca; }\n    public double getPorcentajeDescuento() { return porcentajeDescuento; }\n\n    public double calcularCuota(double cuotaBase) {\n        return cuotaBase * (1 - porcentajeDescuento / 100);\n    }\n\n    // Sobrescribe Exportable para incluir datos de beca\n    @Override\n    public String exportarJSON() {\n        return super.exportarJSON().replace(\"}\",\n             \",\\\"beca\\\":\\\"\" + numBeca\n             + \"\\\",\\\"descuento\\\":\" + porcentajeDescuento + \"}\");\n    }\n\n    @Override\n    public void enviarNotificacion(String asunto, String mensaje) {\n        // Becario recibe por email Y por SMS\n        super.enviarNotificacion(asunto, mensaje);\n        System.out.println(\"[SMS a becado] \" + asunto + \": \" + mensaje);\n    }\n\n    @Override\n    public String getCanalNotificacion() { return \"EMAIL + SMS\"; }\n\n    @Override\n    public String toString() {\n        return super.toString() + \" | Beca: \" + numBeca;\n    }\n}\n\n// Internacional: HEREDA de Alumno\npublic class Internacional extends Alumno {\n    private String paisOrigen;\n    private String idiomaPreferido;\n\n    public Internacional(String nombre, String email, int edad, double notaMedia,\n                        Direccion dir, String numMatricula,\n                        String paisOrigen, String idiomaPreferido) {\n        super(nombre, email, edad, notaMedia, dir, numMatricula);\n        this.paisOrigen = paisOrigen;\n        this.idiomaPreferido = idiomaPreferido;\n    }\n\n    @Override public String getRol() { return \"Internacional (\" + paisOrigen + \")\"; }\n    public String getPaisOrigen() { return paisOrigen; }\n    public String getIdiomaPreferido() { return idiomaPreferido; }\n\n    // Sobrescribe Exportable para incluir pais\n    @Override\n    public String exportarJSON() {\n        return super.exportarJSON().replace(\"}\",\n             \",\\\"pais\\\":\\\"\" + paisOrigen + \"\\\"}\");\n    }\n\n    @Override\n    public String getCanalNotificacion() { return \"EMAIL (\" + idiomaPreferido + \")\"; }\n\n    @Override\n    public String toString() {\n        return super.toString() + \" | Pais: \" + paisOrigen;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Sistema completo: demo con polimorfismo",
+          "language": "java",
+          "content": "import java.util.ArrayList;\nimport java.util.Arrays;\nimport java.util.Comparator;\nimport java.util.List;\n\npublic class SistemaMatriculas {\n\n    // Polimorfismo: exportar cualquier Exportable\n    public static void exportar(Exportable e) {\n        System.out.println(\"  [\" + e.getFormato() + \"] \" + e.exportarJSON());\n    }\n\n    // Polimorfismo: notificar cualquier Notificable\n    public static void notificar(Notificable n, String asunto, String msg) {\n        System.out.println(\"  Canal: \" + n.getCanalNotificacion());\n        n.enviarNotificacion(asunto, msg);\n    }\n\n    // Polimorfismo: buscar en cualquier Buscable\n    public static void buscar(Buscable[] items, String termino) {\n        System.out.println(\"Buscando: \\\"\" + termino + \"\\\"\");\n        for (Buscable b : items) {\n            if (b.contiene(termino)) {\n                System.out.println(\"  Encontrado: \" + b);\n            }\n        }\n    }\n\n    public static void main(String[] args) {\n        // Crear direcciones (composicion)\n        Direccion dirMadrid = new Direccion(\"Calle Mayor\", \"Madrid\", \"28001\");\n        Direccion dirBuenosAires = new Direccion(\"Av. Libertad\", \"Buenos Aires\", \"C1000\");\n        Direccion dirTokio = new Direccion(\"Shibuya\", \"Tokio\", \"150-0001\");\n\n        // Crear alumnos (herencia + composicion + interfaces)\n        Alumno[] alumnos = {\n            new Alumno(\"Ana Garcia\", \"ana@email.com\", 20, 8.5, dirMadrid, \"MAT-001\"),\n            new Becario(\"Carlos Lopez\", \"carlos@email.com\", 22, 7.0,\n                       dirMadrid, \"MAT-002\", \"BEC-2026-001\", 25.0),\n            new Internacional(\"Yuki Tanaka\", \"yuki@email.com\", 21, 9.2,\n                             dirTokio, \"MAT-003\", \"Japon\", \"Japones\"),\n            new Alumno(\"Maria Rodriguez\", \"maria@email.com\", 19, 6.8,\n                      dirBuenosAires, \"MAT-004\")\n        };\n\n        // === 1. POLIMORFISMO: mostrar info de todos ===\n        System.out.println(\"=== TODOS LOS ALUMNOS ===\");\n        for (Alumno a : alumnos) {\n            System.out.println(a); // toString() polimorfico\n        }\n\n        // === 2. INTERFACES: exportar a JSON ===\n        System.out.println(\"\\n=== EXPORTAR A JSON ===\");\n        for (Alumno a : alumnos) {\n            exportar(a); // Polimorfismo con Exportable\n        }\n\n        // === 3. COMPARABLE: ordenar por nota ===\n        System.out.println(\"\\n=== ORDENADOS POR NOTA ===\");\n        Arrays.sort(alumnos); // compareTo() de Comparable\n        for (Alumno a : alumnos) {\n            System.out.println(\"  \" + a.getNombre() + \" - \" + a.getNotaMedia());\n        }\n\n        // === 4. COMPARATOR: ordenar por nombre ===\n        System.out.println(\"\\n=== ORDENADOS POR NOMBRE ===\");\n        Comparator<Alumno> porNombre = Comparator.comparing(Persona::getNombre);\n        Arrays.sort(alumnos, porNombre);\n        for (Alumno a : alumnos) {\n            System.out.println(\"  \" + a.getNombre());\n        }\n\n        // === 5. NOTIFICABLE: enviar notificacion ===\n        System.out.println(\"\\n=== ENVIAR NOTIFICACION ===\n  Asunto: Nota del examen publicada\");\n        for (Alumno a : alumnos) {\n            notificar(a, \"Nota del examen\",\n                     \"Su nota ha sido publicada en el campus.\");\n        }\n\n        // === 6. BUSCABLE: buscar por termino ===\n        System.out.println();\n        buscar(alumnos, \"ana\");\n        System.out.println();\n        buscar(alumnos, \"MAT-003\");\n\n        // === 7. INSTANCEOF: detectar tipos ===\n        System.out.println(\"\\n=== DETECCION DE TIPOS ===\");\n        for (Alumno a : alumnos) {\n            if (a instanceof Becario b) {\n                System.out.println(b.getNombre() + \" es Becario con\"\n                     + \" \" + b.getPorcentajeDescuento() + \"% descuento\");\n            } else if (a instanceof Internacional i) {\n                System.out.println(i.getNombre() + \" es de \" + i.getPaisOrigen());\n            } else {\n                System.out.println(a.getNombre() + \" es Alumno regular\");\n            }\n        }\n\n        // === 8. COMPOSICION: acceder a historial ===\n        System.out.println(\"\\n=== HISTORIAL ACADEMICO ===\");\n        alumnos[0].addNota(\"Java\", 8.5);\n        alumnos[0].addNota(\"Bases de Datos\", 7.0);\n        alumnos[0].addNota(\"Redes\", 9.0);\n        System.out.println(alumnos[0].getNombre() + \": media=\"\n             + String.format(\"%.1f\", alumnos[0].getHistorial().getMedia())\n             + \", mejor materia: \" + alumnos[0].getHistorial().getMejorMateria());\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-4-1",
+          "difficulty": "basic",
+          "title": "Implementar Exportable en Alumno",
+          "description": "Dada la clase `Alumno` (nombre, email, notaMedia), crea la interfaz `Exportable` con `exportarJSON()` y `exportarCSV()`. Haz que `Alumno` implemente `Exportable`. El JSON debe incluir todos los campos. El CSV debe usar `;` como separador.",
+          "solution": "public interface Exportable {\n    String exportarJSON();\n    String exportarCSV();\n}\n\npublic class Alumno implements Exportable {\n    private String nombre;\n    private String email;\n    private double notaMedia;\n\n    public Alumno(String nombre, String email, double notaMedia) {\n        this.nombre = nombre;\n        this.email = email;\n        this.notaMedia = notaMedia;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public double getNotaMedia() { return notaMedia; }\n\n    @Override\n    public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre\n             + \"\\\",\\\"email\\\":\\\"\" + email\n             + \"\\\",\\\"notaMedia\\\":\" + notaMedia + \"}\";\n    }\n\n    @Override\n    public String exportarCSV() {\n        return nombre + \";\" + email + \";\" + notaMedia;\n    }\n\n    public static void main(String[] args) {\n        Alumno a = new Alumno(\"Ana\", \"ana@email.com\", 8.5);\n        System.out.println(a.exportarJSON());\n        System.out.println(a.exportarCSV());\n    }\n}"
+        },
+        {
+          "id": "ex-09-4-2",
+          "difficulty": "intermediate",
+          "title": "Sistema de calificaciones con interfaces",
+          "description": "Crea interfaces `Calificable` (calificar(double nota) → String) y `Exportable` (exportarJSON()). Crea una clase `Alumno` que implemente ambas. Añade subclases `Becario` e `Internacional` que sobrescriban `calificar()` con diferentes sistemas. Usa polimorfismo para calificar un array de alumnos.",
+          "solution": "public interface Calificable {\n    String calificar(double nota);\n}\n\npublic interface Exportable {\n    String exportarJSON();\n}\n\npublic class Alumno implements Calificable, Exportable {\n    protected String nombre;\n    protected double notaMedia;\n\n    public Alumno(String nombre, double notaMedia) {\n        this.nombre = nombre;\n        this.notaMedia = notaMedia;\n    }\n\n    public String getNombre() { return nombre; }\n    public double getNotaMedia() { return notaMedia; }\n\n    @Override\n    public String calificar(double nota) {\n        if (nota >= 9) return \"Sobresaliente\";\n        if (nota >= 7) return \"Notable\";\n        if (nota >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n\n    @Override\n    public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre\n             + \"\\\",\\\"calificacion\\\":\\\"\" + calificar(notaMedia) + \"\\\"}\";\n    }\n\n    @Override\n    public String toString() {\n        return nombre + \" | \" + String.format(\"%.1f\", notaMedia)\n             + \" | \" + calificar(notaMedia);\n    }\n}\n\npublic class Becario extends Alumno {\n    public Becario(String nombre, double nota) { super(nombre, nota); }\n\n    @Override\n    public String calificar(double nota) {\n        return super.calificar(nota) + \" (Becado)\";\n    }\n}\n\npublic class Internacional extends Alumno {\n    private String pais;\n    public Internacional(String nombre, double nota, String pais) {\n        super(nombre, nota); this.pais = pais;\n    }\n\n    @Override\n    public String calificar(double nota) {\n        if (nota >= 8) return \"A (Excelente)\";\n        if (nota >= 6) return \"B (Good)\";\n        if (nota >= 4) return \"C (Pass)\";\n        return \"F (Fail)\";\n    }\n}\n\n// Demo:\n// Alumno[] alumnos = { new Alumno(\"Ana\", 8.5), new Becario(\"Carlos\", 7.0),\n//     new Internacional(\"Yuki\", 9.2, \"Japon\") };\n// for (Alumno a : alumnos) System.out.println(a);"
+        },
+        {
+          "id": "ex-09-4-3",
+          "difficulty": "advanced",
+          "title": "Sistema completo de gestión de alumnos",
+          "description": "Crea un sistema que combine TODO:\n1. Interfaz `Exportable` con `exportarJSON()` y `exportarCSV()`\n2. Interfaz `Notificable` con `enviarNotificacion(String asunto, String msg)`\n3. Interfaz `Comparable<Alumno>` para ordenar por nota media\n4. Clase abstracta `Persona` → `Alumno` → `Becario`, `Internacional`\n5. `Alumno` tiene composición: `Direccion` (calle, ciudad) e `HistorialAcademico` (lista de notas)\n6. Un programa que:\n   - Cree 5 alumnos de distintos tipos\n   - Los ordene por nota media (Comparable)\n   - Los exporte a JSON (Exportable)\n   - Envíe una notificación a cada uno (Notificable)\n   - Busque alumnos por nombre (método buscar)\n   - Muestre el historial del alumno con mejor nota",
+          "solution": "public interface Exportable {\n    String exportarJSON();\n    String exportarCSV();\n}\n\npublic interface Notificable {\n    void enviarNotificacion(String asunto, String mensaje);\n    String getCanalNotificacion();\n}\n\npublic class Direccion {\n    private String calle, ciudad;\n    public Direccion(String c, String ci) { this.calle = c; this.ciudad = ci; }\n    @Override public String toString() { return calle + \", \" + ciudad; }\n}\n\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class HistorialAcademico {\n    private List<String> materias = new ArrayList<>();\n    private List<Double> notas = new ArrayList<>();\n    public void add(String m, double n) { materias.add(m); notas.add(n); }\n    public double getMedia() {\n        return notas.stream().mapToDouble(Double::doubleValue).average().orElse(0);\n    }\n    public String getMejor() {\n        if (notas.isEmpty()) return \"-\";\n        int idx = 0;\n        for (int i = 1; i < notas.size(); i++)\n            if (notas.get(i) > notas.get(idx)) idx = i;\n        return materias.get(idx);\n    }\n}\n\npublic abstract class Persona implements Comparable<Persona> {\n    protected String nombre, email;\n    public Persona(String n, String e) { this.nombre = n; this.email = e; }\n    public String getNombre() { return nombre; }\n    @Override public int compareTo(Persona o) { return nombre.compareTo(o.nombre); }\n}\n\npublic class Alumno extends Persona implements Exportable, Notificable {\n    protected double notaMedia;\n    protected Direccion direccion;\n    protected HistorialAcademico historial = new HistorialAcademico();\n\n    public Alumno(String n, String e, double nota, Direccion d) {\n        super(n, e); this.notaMedia = nota; this.direccion = d;\n    }\n\n    public double getNotaMedia() { return notaMedia; }\n    public HistorialAcademico getHistorial() { return historial; }\n    public void addNota(String m, double n) { historial.add(m, n); }\n\n    @Override public int compareTo(Persona o) {\n        if (o instanceof Alumno a) return Double.compare(a.notaMedia, this.notaMedia);\n        return super.compareTo(o);\n    }\n\n    @Override public String exportarJSON() {\n        return \"{\\\"nombre\\\":\\\"\" + nombre + \"\\\",\\\"email\\\":\\\"\" + email\n             + \"\\\",\\\"notaMedia\\\":\" + notaMedia + \"}\";\n    }\n    @Override public String exportarCSV() { return nombre + \";\" + email + \";\" + notaMedia; }\n    @Override public void enviarNotificacion(String a, String m) {\n        System.out.println(\"[EMAIL \" + email + \"] \" + a + \": \" + m);\n    }\n    @Override public String getCanalNotificacion() { return \"EMAIL\"; }\n    @Override public String toString() { return nombre + \" - \" + String.format(\"%.1f\", notaMedia); }\n}\n\npublic class Becario extends Alumno {\n    private String numBeca;\n    public Becario(String n, String e, double nota, Direccion d, String beca) {\n        super(n, e, nota, d); this.numBeca = beca;\n    }\n    @Override public String exportarJSON() {\n        return super.exportarJSON().replace(\"}\", \",\\\"beca\\\":\\\"\" + numBeca + \"\\\"}\");\n    }\n    @Override public void enviarNotificacion(String a, String m) {\n        super.enviarNotificacion(a, m);\n        System.out.println(\"[SMS becado] \" + a + \": \" + m);\n    }\n    @Override public String getCanalNotificacion() { return \"EMAIL + SMS\"; }\n    @Override public String toString() { return super.toString() + \" [Beca: \" + numBeca + \"]\"; }\n}\n\npublic class Internacional extends Alumno {\n    private String pais;\n    public Internacional(String n, String e, double nota, Direccion d, String p) {\n        super(n, e, nota, d); this.pais = p;\n    }\n    @Override public String exportarJSON() {\n        return super.exportarJSON().replace(\"}\", \",\\\"pais\\\":\\\"\" + pais + \"\\\"}\");\n    }\n    @Override public String getCanalNotificacion() { return \"EMAIL (\" + pais + \")\"; }\n    @Override public String toString() { return super.toString() + \" [\" + pais + \"]\"; }\n}\n\n// Demo completo:\n// Direccion d1 = new Direccion(\"Calle Mayor\", \"Madrid\");\n// Alumno[] alumnos = {\n//     new Alumno(\"Ana\", \"a@e.com\", 8.5, d1),\n//     new Becario(\"Carlos\", \"c@e.com\", 7.0, d1, \"BEC-001\"),\n//     new Internacional(\"Yuki\", \"y@e.com\", 9.2, d1, \"Japon\"),\n//     new Alumno(\"Maria\", \"m@e.com\", 6.8, d1),\n//     new Becario(\"Pedro\", \"p@e.com\", 5.5, d1, \"BEC-002\")\n// };\n// Arrays.sort(alumnos); // Por nota media\n// for (Alumno a : alumnos) { System.out.println(a.exportarJSON()); }\n// for (Alumno a : alumnos) { a.enviarNotificacion(\"Examen\", \"Publicada nota\"); }\n// alumnos[0].addNota(\"Java\", 8.5); alumnos[0].addNota(\"BD\", 7.0);\n// System.out.println(\"Mejor materia: \" + alumnos[0].getHistorial().getMejor());"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar implementar TODOS los métodos de TODAS las interfaces. Da error de compilación.",
+        "No usar `@Override` al sobrescribir métodos de interfaces. Si la firma cambia, se crea un método nuevo.",
+        "No entender que una interfaz no puede tener campos de instancia (solo constantes static final).",
+        "Confundir `extends` (herencia de interfaz) con `implements` (implementación de interfaz).",
+        "No considerar que al implementar múltiples interfaces, si dos tienen el mismo método, debes resolver la ambigüedad.",
+        "Crear interfaces con demasiados métodos. Las interfaces deben ser pequeñas y enfocadas (principio ISP)."
+      ],
+      "keyConcepts": [
+        "Sistema completo: herencia + composición + interfaces trabajando juntas",
+        "Múltiples interfaces: Exportable, Comparable, Notificable, Buscable",
+        "Polimorfismo con interfaces: tratar diferentes tipos de forma uniforme",
+        "Comparable para ordenación de objetos del dominio",
+        "Composición: Direccion e HistorialAcademico como componentes reutilizables",
+        "Pattern matching para detectar tipos en runtime",
+        "Diseño coherente del dominio Alumno-Curso-Matrícula"
+      ],
+      "learningOutcomes": [
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.e",
+        "RA7.f",
+        "RA7.g",
+        "RA7.i",
+        "RA7.j"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Mini-proyecto: Sistema de gestión de empleados con interfaces",
+    "description": "Crea un sistema que combine herencia, interfaces y composición:\n1. Interfaz `Pagable` con `calcularPago()` y `getDescripcionPago()`\n2. Interfaz `Exportable` con `exportarJSON()` y `exportarCSV()`\n3. Interfaz `Comparable<Empleado>` para ordenar por salario\n4. Clase abstracta `Empleado` que implemente `Pagable` y `Exportable` (nombre, salarioBase, departamento como composición)\n5. Subclases: `EmpleadoFijo`, `EmpleadoTemporal`, `EmpleadoPracticas`\n6. Clase `Departamento` (nombre, capacidad) usada por composición\n7. Un programa que:\n   - Cree un departamento con 5 empleados de distintos tipos\n   - Los ordene por salario (Comparable)\n   - Muestre el pago de cada uno (polimorfismo con Pagable)\n   - Calcule el gasto total del departamento\n   - Exporte todos los empleados a JSON (Exportable)\n   - Identifique quién gana más y quién menos\n   - Detecte tipos con instanceof y pattern matching\n8. Documentación Javadoc en al menos 3 elementos",
+    "learningOutcomes": [
+      "RA7"
+    ],
+    "assessmentCriteria": [
+      "RA7.e",
+      "RA7.f",
+      "RA7.g",
+      "RA7.i",
+      "RA7.j"
+    ]
+  }
+}

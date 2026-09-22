@@ -1,0 +1,90 @@
+{
+  "jurisdiction": "andalucia",
+  "academicYear": "2026-2027",
+  "degree": ["DAM", "DAW"],
+  "year": 1,
+  "moduleCode": "0487",
+  "officialName": "Entornos de desarrollo",
+  "weeklyHours": 2,
+  "totalHours": 68,
+  "stateMinimumHours": 50,
+  "ects": 6,
+  "sources": [{"sourceId": "BOE-A-2023-13221", "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-13221", "sourceTitle": "Real Decreto 405/2023, de 29 de mayo", "sourceDate": "2023-06-03", "annex": "ANEXO I"}],
+  "learningOutcomes": [
+    {"id": "RA1", "description": "Reconoce los elementos y herramientas que intervienen en el desarrollo de un programa informático, analizando sus características y las fases en las que actúan hasta llegar a su puesta en funcionamiento.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0487"},
+    {"id": "RA2", "description": "Evalúa entornos integrados de desarrollo analizando sus características para editar código fuente y generar ejecutables.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0487"},
+    {"id": "RA3", "description": "Verifica el funcionamiento de programas diseñando y realizando pruebas.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0487"},
+    {"id": "RA4", "description": "Optimiza código empleando las herramientas disponibles en el entorno de desarrollo.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0487"},
+    {"id": "RA5", "description": "Genera diagramas de clases valorando su importancia en el desarrollo de aplicaciones y empleando herramientas específicas.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0487"},
+    {"id": "RA6", "description": "Genera diagramas de comportamiento valorando su importancia en el desarrollo de aplicaciones y empleando herramientas específicas.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0487"}
+  ],
+  "assessmentCriteria": {
+    "RA1": [
+      {"id": "RA1.a", "description": "Se ha reconocido la relación de los programas con los componentes del sistema informático."},
+      {"id": "RA1.b", "description": "Se han identificado las fases de desarrollo de una aplicación informática."},
+      {"id": "RA1.c", "description": "Se han diferenciado los conceptos de código fuente, objeto y ejecutable."},
+      {"id": "RA1.d", "description": "Se han reconocido las características de la generación de código intermedio para su ejecución en máquinas virtuales."},
+      {"id": "RA1.e", "description": "Se han clasificado los lenguajes de programación, identificando sus características."},
+      {"id": "RA1.f", "description": "Se ha evaluado la funcionalidad ofrecida por las herramientas utilizadas en el desarrollo de software."},
+      {"id": "RA1.g", "description": "Se han identificado las características y escenarios de uso de las metodologías ágiles."}
+    ],
+    "RA2": [
+      {"id": "RA2.a", "description": "Se han instalado entornos de desarrollo, propietarios y libres."},
+      {"id": "RA2.b", "description": "Se han añadido y eliminado módulos en el entorno de desarrollo."},
+      {"id": "RA2.c", "description": "Se ha personalizado y automatizado el entorno de desarrollo."},
+      {"id": "RA2.d", "description": "Se ha configurado el sistema de actualización del entorno de desarrollo."},
+      {"id": "RA2.e", "description": "Se han generado ejecutables a partir de código fuente de diferentes lenguajes en un mismo entorno."},
+      {"id": "RA2.f", "description": "Se han generado ejecutables a partir de un mismo código fuente con varios entornos."},
+      {"id": "RA2.g", "description": "Se han identificado las características comunes y específicas de diversos entornos de desarrollo."}
+    ],
+    "RA3": [
+      {"id": "RA3.a", "description": "Se han identificado los diferentes tipos de pruebas."},
+      {"id": "RA3.b", "description": "Se han definido casos de prueba."},
+      {"id": "RA3.c", "description": "Se han identificado las herramientas de depuración y prueba ofrecidas por el entorno."},
+      {"id": "RA3.d", "description": "Se han utilizado herramientas de depuración para definir puntos de ruptura y seguimiento."},
+      {"id": "RA3.e", "description": "Se han utilizado herramientas de depuración para examinar y modificar el comportamiento en tiempo de ejecución."},
+      {"id": "RA3.f", "description": "Se han efectuado pruebas unitarias de clases y funciones."},
+      {"id": "RA3.g", "description": "Se han implementado pruebas automáticas."},
+      {"id": "RA3.h", "description": "Se han documentado las incidencias detectadas."},
+      {"id": "RA3.i", "description": "Se han utilizado dobles de prueba para aislar componentes."}
+    ],
+    "RA4": [
+      {"id": "RA4.a", "description": "Se han identificado los patrones de refactorización más usuales."},
+      {"id": "RA4.b", "description": "Se han elaborado las pruebas asociadas a la refactorización."},
+      {"id": "RA4.c", "description": "Se ha revisado el código fuente usando un analizador de código."},
+      {"id": "RA4.d", "description": "Se han identificado las posibilidades de configuración de un analizador de código."},
+      {"id": "RA4.e", "description": "Se han aplicado patrones de refactorización con las herramientas del entorno."},
+      {"id": "RA4.f", "description": "Se ha realizado el control de versiones integrado en el entorno de desarrollo."},
+      {"id": "RA4.g", "description": "Se han utilizado herramientas del entorno para documentar las clases."},
+      {"id": "RA4.h", "description": "Se han utilizado repositorios remotos para el desarrollo colaborativo."},
+      {"id": "RA4.i", "description": "Se han utilizado herramientas para la integración continua."}
+    ],
+    "RA5": [
+      {"id": "RA5.a", "description": "Se han identificado los conceptos básicos de la POO."},
+      {"id": "RA5.b", "description": "Se han utilizado herramientas para la elaboración de diagramas de clases."},
+      {"id": "RA5.c", "description": "Se ha interpretado el significado de diagramas de clases."},
+      {"id": "RA5.d", "description": "Se han trazado diagramas de clases a partir de especificaciones."},
+      {"id": "RA5.e", "description": "Se ha generado código a partir de un diagrama de clases."},
+      {"id": "RA5.f", "description": "Se ha generado un diagrama de clases mediante ingeniería inversa."}
+    ],
+    "RA6": [
+      {"id": "RA6.a", "description": "Se han identificado los distintos tipos de diagramas de comportamiento."},
+      {"id": "RA6.b", "description": "Se ha reconocido el significado de los diagramas de casos de uso."},
+      {"id": "RA6.c", "description": "Se han interpretado diagramas de interacción."},
+      {"id": "RA6.d", "description": "Se han elaborado diagramas de interacción sencillos."},
+      {"id": "RA6.e", "description": "Se ha interpretado el significado de diagramas de actividades."},
+      {"id": "RA6.f", "description": "Se han elaborado diagramas de actividades sencillos."},
+      {"id": "RA6.g", "description": "Se han interpretado diagramas de estados."},
+      {"id": "RA6.h", "description": "Se han planteado diagramas de estados sencillos."}
+    ]
+  },
+  "officialContents": [
+    {"section": "Desarrollo de software", "items": ["Concepto de programa informático", "Código fuente, objeto y ejecutable", "Tipos de lenguajes de programación. Paradigmas", "Características de lenguajes difundidos", "Fases del desarrollo", "Proceso de obtención de código ejecutable", "Metodologías ágiles"]},
+    {"section": "Instalación y uso de entornos de desarrollo", "items": ["Funciones de un IDE", "Instalación de IDE", "Uso básico", "Personalización", "Edición de programas", "Generación de ejecutables", "Herramientas y automatización"]},
+    {"section": "Diseño y realización de pruebas", "items": ["Planificación de pruebas", "Tipos de pruebas", "Procedimientos y casos de prueba", "Pruebas de código", "Pruebas unitarias", "Documentación de incidencias", "Dobles de prueba"]},
+    {"section": "Optimización y documentación", "items": ["Refactorización", "Analizadores de código", "Control de versiones"]},
+    {"section": "Repositorio. Herramientas de control de versiones", "items": ["Repositorios remotos", "Documentación y comentarios", "Integración continua"]},
+    {"section": "Elaboración de diagramas de clases", "items": ["Clases: atributos, métodos, visibilidad", "Objetos: instanciación", "Relaciones: asociación, herencia, composición", "Notación UML", "Herramientas", "Ingeniería inversa"]},
+    {"section": "Elaboración de diagramas de comportamiento", "items": ["Tipos de diagramas", "Casos de uso", "Secuencia", "Comunicación", "Actividad", "Estados"]}
+  ]
+}

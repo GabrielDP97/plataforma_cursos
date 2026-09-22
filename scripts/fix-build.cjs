@@ -1,0 +1,10 @@
+const fs = require("fs");
+let content = fs.readFileSync("frontend/src/components/course/CourseSidebar.tsx", "utf8");
+content = content.replace(/`\\$\{progress\}%`/g, "'0%'");
+content = content.replace(/mode,/, "_mode: mode,");
+fs.writeFileSync("frontend/src/components/course/CourseSidebar.tsx", content);
+console.log("Fixed CourseSidebar");
+let routes = fs.readFileSync("frontend/src/routes/index.tsx", "utf8");
+routes = routes.replace(/import\(\.\.\/pages\/courses\/CourseHome'\)\.then\(m => m\)/, "import('../pages/courses/CourseHome').then(m => m)");
+fs.writeFileSync("frontend/src/routes/index.tsx", routes);
+console.log("Fixed CourseHome export");

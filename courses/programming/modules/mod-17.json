@@ -1,0 +1,440 @@
+{
+  "id": "mod-17",
+  "title": "Acceso a bases de datos con JDBC",
+  "description": "Modulo dedicado al acceso a bases de datos relacionales desde Java usando JDBC. Se estudian los conceptos fundamentales de JDBC, se conecta a PostgreSQL, y se realizan operaciones CRUD completas. El estudiante aprende a usar Statement, PreparedStatement, ResultSet y a manejar transacciones con recursos de base de datos.",
+  "phase": "phase-6",
+  "position": 17,
+  "learningOutcomes": [
+    "RA9"
+  ],
+  "assessmentCriteria": [
+    "RA9.a",
+    "RA9.b",
+    "RA9.c",
+    "RA9.d",
+    "RA9.e",
+    "RA9.f",
+    "RA9.g"
+  ],
+  "officialContents": [
+    "Utilizacion avanzada de clases (seccion 9 - acceso a bases de datos con JDBC)"
+  ],
+  "duration": "14 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-06",
+    "mod-07",
+    "mod-13"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-17-1",
+      "title": "Conceptos JDBC: DriverManager, Connection",
+      "objectives": [
+        "Entender que es JDBC y como se conecta Java a bases de datos",
+        "Conocer la arquitectura JDBC: DriverManager, Connection, Statement, ResultSet",
+        "Establecer una conexion a PostgreSQL con DriverManager",
+        "Configurar la cadena de conexion con usuario y contrasena",
+        "Gestionar recursos de conexion de forma segura"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Que es JDBC?",
+          "content": "JDBC (Java Database Connectivity) es la API estandar de Java para conectarse a bases de datos relacionales. Permite ejecutar SQL, obtener resultados y gestionar transacciones desde codigo Java.\n\n**Arquitectura JDBC:**\n\n```\nJava Application\n    |\n    v\nJDBC API (java.sql, javax.sql)\n    |\n    v\nJDBC Driver Manager\n    |\n    v\nJDBC Driver (especifico de cada BD)\n    |\n    v\nBase de Datos (PostgreSQL, MySQL, SQLite...)\n```\n\n**Componentes principales:**\n\n| Componente | Descripcion | Paquete |\n|-----------|-------------|--------|\n| `DriverManager` | Gestiona los drivers y crea conexiones | java.sql |\n| `Connection` | Representa una conexion a la BD | java.sql |\n| `Statement` | Ejecuta sentencias SQL | java.sql |\n| `PreparedStatement` | Statement con parametros predefinidos | java.sql |\n| `ResultSet` | Almacena los resultados de una consulta | java.sql |\n| `SQLException` | Excepcion de errores de BD | java.sql |\n\n**Flujo tipico:**\n1. Obtener una `Connection` con `DriverManager.getConnection()`\n2. Crear un `Statement` o `PreparedStatement`\n3. Ejecutar SQL: `executeQuery()` (SELECT) o `executeUpdate()` (INSERT/UPDATE/DELETE)\n4. Procesar el `ResultSet` (si es SELECT)\n5. Cerrar recursos en orden inverso"
+        },
+        {
+          "type": "code",
+          "title": "Primera conexion a PostgreSQL",
+          "language": "java",
+          "content": "import java.sql.*;\n\npublic class PrimeraConexion {\n\n    public static void main(String[] args) {\n        // Datos de conexion\n        String url = \"jdbc:postgresql://localhost:5432/mibase\";\n        String user = \"postgres\";\n        String password = \"password\";\n\n        Connection conn = null;\n\n        try {\n            // 1. Establecer conexion\n            conn = DriverManager.getConnection(url, user, password);\n            System.out.println(\"Conexion exitosa a PostgreSQL!\");\n            System.out.println(\"URL: \" + conn.getMetaData().getURL());\n            System.out.println(\"Driver: \" + conn.getMetaData().getDriverName());\n            System.out.println(\"Version: \" + conn.getMetaData().getDriverVersion());\n\n        } catch (SQLException e) {\n            System.out.println(\"Error de conexion: \" + e.getMessage());\n            System.out.println(\"SQL State: \" + e.getSQLState());\n            System.out.println(\"Error Code: \" + e.getErrorCode());\n        } finally {\n            // 2. Cerrar conexion\n            if (conn != null) {\n                try {\n                    conn.close();\n                    System.out.println(\"Conexion cerrada.\");\n                } catch (SQLException e) {\n                    e.printStackTrace();\n                }\n            }\n        }\n    }\n}\n\n// Puntos clave:\n// 1. url: formato jdbc:postgresql://host:puerto/baseDatos\n// 2. DriverManager.getConnection() puede lanzar SQLException\n// 3. Siempre cerrar la conexion en finally (o usar try-with-resources)\n// 4. getMetaData() devuelve informacion sobre la BD y el driver"
+        },
+        {
+          "type": "text",
+          "title": "La cadena de conexion",
+          "content": "La cadena de conexion (URL) tiene un formato especifico para cada base de datos:\n\n| BD | Formato |\n|----|---------|\n| PostgreSQL | `jdbc:postgresql://host:puerto/base` |\n| MySQL | `jdbc:mysql://host:puerto/base` |\n| SQLite | `jdbc:sqlite:ruta/al/fichero.db` |\n\n**Ejemplos:**\n- PostgreSQL local: `jdbc:postgresql://localhost:5432/mibase`\n- PostgreSQL remoto: `jdbc:postgresql://192.168.1.100:5432/mibase`\n- SQLite: `jdbc:sqlite:datos.db` (fichero local)\n\n**Parametros de conexion:**\n```java\n// Con parametros adicionales\nString url = \"jdbc:postgresql://localhost:5432/mibase?ssl=false&autocommit=true\";\nConnection conn = DriverManager.getConnection(url, user, password);\n```\n\n**Driver para PostgreSQL:**\nPara usar PostgreSQL, necesitas el driver JDBC. En Maven:\n```xml\n<dependency>\n    <groupId>org.postgresql</groupId>\n    <artifactId>postgresql</artifactId>\n    <version>42.7.3</version>\n</dependency>\n```"
+        },
+        {
+          "type": "code",
+          "title": "Conexion con try-with-resources",
+          "language": "java",
+          "content": "import java.sql.*;\n\npublic class ConexionSegura {\n\n    private static final String URL = \"jdbc:postgresql://localhost:5432/mibase\";\n    private static final String USER = \"postgres\";\n    private static final String PASS = \"password\";\n\n    public static void main(String[] args) {\n\n        // try-with-resources: cierra automaticamente los recursos\n        try (Connection conn = DriverManager.getConnection(URL, USER, PASS)) {\n\n            System.out.println(\"Conectado a: \" + conn.getMetaData().getURL());\n            System.out.println(\"Auto-commit: \" + conn.getAutoCommit());\n\n            // La conexion se cierra automaticamente al salir del bloque try\n\n        } catch (SQLException e) {\n            System.out.println(\"Error: \" + e.getMessage());\n        }\n    }\n}\n\n// try-with-resources:\n// - Cierra automaticamente los recursos al salir del bloque\n// - Equivalente a finally con close()\n// - Mas seguro y mas limpio\n// - Requiere que la clase implemente AutoCloseable (Connection lo hace)\n\n// Clases que implementan AutoCloseable:\n// - Connection\n// - Statement\n// - PreparedStatement\n// - ResultSet"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-18-1-1",
+          "difficulty": "basic",
+          "title": "Conectar a PostgreSQL",
+          "description": "Instala PostgreSQL si no lo tienes, crea una base de datos 'test', y conectate desde Java. Muestra el nombre del driver y la version.",
+          "solution": "import java.sql.*;\n\npublic class ConexionBasica {\n    public static void main(String[] args) {\n        try (Connection conn = DriverManager.getConnection(\n                \"jdbc:postgresql://localhost:5432/test\", \"postgres\", \"password\")) {\n            System.out.println(\"Conectado!\");\n            System.out.println(\"Driver: \" + conn.getMetaData().getDriverName());\n            System.out.println(\"Version: \" + conn.getMetaData().getDriverVersion());\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-18-1-2",
+          "difficulty": "basic",
+          "title": "Informacion de la conexion",
+          "description": "Conectate a PostgreSQL y muestra: URL, usuario, nombre de la BD, auto-commit, y numero maximo de conexiones.",
+          "solution": "try (Connection conn = DriverManager.getConnection(url, user, pass)) {\n    DatabaseMetaData meta = conn.getMetaData();\n    System.out.println(\"URL: \" + meta.getURL());\n    System.out.println(\"Usuario: \" + meta.getUserName());\n    System.out.println(\"BD: \" + meta.getDatabaseProductName());\n    System.out.println(\"Auto-commit: \" + conn.getAutoCommit());\n    System.out.println(\"Max conexiones: \" + meta.getMaxConnections());\n}"
+        },
+        {
+          "id": "ex-18-1-3",
+          "difficulty": "intermediate",
+          "title": "Manejo de errores de conexion",
+          "description": "Intenta conectarte a una BD inexistente, un puerto incorrecto y un usuario invalido. Captura cada error y muestra el mensaje, SQLState y errorCode.",
+          "solution": "// 1. URL incorrecta: jdbc:postgresql://localhost:9999/noexiste\n// 2. Usuario incorrecto: DriverManager.getConnection(url, \"baduser\", \"badpass\")\n// Cada error genera SQLException con:\n// - getMessage(): mensaje descriptivo\n// - getSQLState(): codigo estandar del error\n// - getErrorCode(): codigo especifico del driver"
+        }
+      ],
+      "commonErrors": [
+        "No tener el driver JDBC en el classpath: ClassNotFoundException.",
+        "URL de conexion malformada: SQLException con mensaje de conexion rechazada.",
+        "Olvidar cerrar la connexion: fugas de conexiones que agotan los recursos de la BD.",
+        "No usar try-with-resources: si close() falla, el recurso queda abierto.",
+        "Hardcodear contrasenas en el codigo: usar variables de entorno o ficheros de configuracion."
+      ],
+      "keyConcepts": [
+        "JDBC: API estandar de Java para bases de datos relacionales",
+        "DriverManager: gestiona drivers y crea conexiones",
+        "Connection: representa una conexion a la BD",
+        "Cadena de conexion: formato especifico para cada BD",
+        "try-with-resources: cierre automatico de recursos",
+        "SQLException: manejo de errores de base de datos"
+      ],
+      "learningOutcomes": [
+        "RA9"
+      ],
+      "assessmentCriteria": [
+        "RA9.a",
+        "RA9.b"
+      ]
+    },
+    {
+      "id": "lesson-17-2",
+      "title": "Statement y ResultSet: ejecutar SQL",
+      "objectives": [
+        "Crear y ejecutar sentencias SQL con Statement",
+        "Leer resultados de SELECT con ResultSet",
+        "Ejecutar INSERT, UPDATE y DELETE con executeUpdate()",
+        "Iterar sobre los resultados de una consulta",
+        "Entender la diferencia entre executeQuery() y executeUpdate()"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Statement: ejecutar sentencias SQL",
+          "content": "Un `Statement` permite ejecutar sentencias SQL directamente desde Java.\n\n### Crear un Statement\n```java\ntry (Connection conn = DriverManager.getConnection(url, user, pass);\n     Statement stmt = conn.createStatement()) {\n\n    // Usar stmt para ejecutar SQL...\n}\n```\n\n### Tipos de ejecucion\n\n| Metodo | Uso | Devuelve |\n|--------|-----|----------|\n| `executeQuery(sql)` | SELECT | ResultSet con los resultados |\n| `executeUpdate(sql)` | INSERT, UPDATE, DELETE | int con el numero de filas afectadas |\n| `execute(sql)` | Cualquier SQL | boolean (true si es ResultSet) |\n\n### Ejemplo: SELECT\n```java\nStatement stmt = conn.createStatement();\nResultSet rs = stmt.executeQuery(\"SELECT * FROM alumnos\");\n\nwhile (rs.next()) {\n    String nombre = rs.getString(\"nombre\");\n    double nota = rs.getDouble(\"nota_media\");\n    System.out.println(nombre + \": \" + nota);\n}\nrs.close();\n```\n\n### Ejemplo: INSERT\n```java\nint filas = stmt.executeUpdate(\n    \"INSERT INTO alumnos (nombre, email, nota_media) VALUES ('Ana', 'ana@email.com', 8.5)\"\n);\nSystem.out.println(\"Filas insertadas: \" + filas);\n```"
+        },
+        {
+          "type": "code",
+          "title": "ResultSet: leer resultados de una consulta",
+          "language": "java",
+          "content": "import java.sql.*;\n\npublic class EjemploResultSet {\n\n    public static void main(String[] args) {\n        String url = \"jdbc:postgresql://localhost:5432/test\";\n\n        try (Connection conn = DriverManager.getConnection(url, \"postgres\", \"password\");\n             Statement stmt = conn.createStatement();\n             ResultSet rs = stmt.executeQuery(\"SELECT * FROM alumnos\")) {\n\n            // Iterar sobre los resultados\n            while (rs.next()) {\n                // Obtener datos por nombre de columna\n                long id = rs.getLong(\"id\");\n                String nombre = rs.getString(\"nombre\");\n                String email = rs.getString(\"email\");\n                double nota = rs.getDouble(\"nota_media\");\n\n                // Obtener datos por indice (1 basado)\n                // long id2 = rs.getLong(1);\n                // String nombre2 = rs.getString(2);\n\n                System.out.printf(\"ID: %d | Nombre: %s | Email: %s | Nota: %.2f%n\",\n                    id, nombre, email, nota);\n            }\n\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n// Metodos de ResultSet para obtener datos:\n// - getString(columna): obtiene un String\n// - getDouble(columna): obtiene un double\n// - getInt(columna): obtiene un int\n// - getLong(columna): obtiene un long\n// - getBoolean(columna): obtiene un boolean\n// - getDate(columna): obtiene un java.sql.Date\n// - getTimestamp(columna): obtiene un java.sql.Timestamp\n//\n// Puedes usar el nombre de la columna o su indice (1-based)\n// rs.next() avanza al siguiente resultado y devuelve false si no hay mas"
+        },
+        {
+          "type": "code",
+          "title": "CRUD completo con Statement",
+          "language": "java",
+          "content": "import java.sql.*;\n\npublic class CRUDCompleto {\n\n    private static final String URL = \"jdbc:postgresql://localhost:5432/test\";\n\n    public static void main(String[] args) {\n\n        try (Connection conn = DriverManager.getConnection(URL, \"postgres\", \"password\")) {\n\n            Statement stmt = conn.createStatement();\n\n            // === CREATE: Insertar alumnos ===\n            String insert1 = \"INSERT INTO alumnos (nombre, email, nota_media) \" +\n                \"VALUES ('Ana Garcia', 'ana@email.com', 8.5)\";\n            String insert2 = \"INSERT INTO alumnos (nombre, email, nota_media) \" +\n                \"VALUES ('Carlos Ruiz', 'carlos@email.com', 7.2)\";\n            String insert3 = \"INSERT INTO alumnos (nombre, email, nota_media) \" +\n                \"VALUES ('Maria Lopez', 'maria@email.com', 9.1)\";\n\n            stmt.executeUpdate(insert1);\n            stmt.executeUpdate(insert2);\n            int filas = stmt.executeUpdate(insert3);\n            System.out.println(\"Alumnos insertados: \" + filas);\n\n            // === READ: Consultar alumnos ===\n            ResultSet rs = stmt.executeQuery(\"SELECT * FROM alumnos ORDER BY nota_media DESC\");\n            System.out.println(\"\\nListado de alumnos:\");\n            while (rs.next()) {\n                System.out.printf(\"  %d. %s (%s) - Nota: %.2f%n\",\n                    rs.getLong(\"id\"),\n                    rs.getString(\"nombre\"),\n                    rs.getString(\"email\"),\n                    rs.getDouble(\"nota_media\"));\n            }\n            rs.close();\n\n            // === UPDATE: Modificar nota de Ana ===\n            String update = \"UPDATE alumnos SET nota_media = 9.0 WHERE nombre = 'Ana Garcia'\";\n            int modificadas = stmt.executeUpdate(update);\n            System.out.println(\"\\nAlumnos modificados: \" + modificadas);\n\n            // Verificar cambio\n            rs = stmt.executeQuery(\"SELECT * WHERE nombre = 'Ana Garcia'\");\n            if (rs.next()) {\n                System.out.printf(\"  Ana: nueva nota = %.2f%n\", rs.getDouble(\"nota_media\"));\n            }\n            rs.close();\n\n            // === DELETE: Eliminar Carlos ===\n            String delete = \"DELETE FROM alumnos WHERE nombre = 'Carlos Ruiz'\";\n            int eliminadas = stmt.executeUpdate(delete);\n            System.out.println(\"\\nAlumnos eliminados: \" + eliminadas);\n\n            // Listar restantes\n            rs = stmt.executeQuery(\"SELECT COUNT(*) AS total FROM alumnos\");\n            if (rs.next()) {\n                System.out.println(\"Alumnos restantes: \" + rs.getInt(\"total\"));\n            }\n            rs.close();\n\n            stmt.close();\n\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n// Flujo CRUD:\n// 1. INSERT: executeUpdate() -> int (filas insertadas)\n// 2. SELECT: executeQuery() -> ResultSet (iterar con next())\n// 3. UPDATE: executeUpdate() -> int (filas modificadas)\n// 4. DELETE: executeUpdate() -> int (filas eliminadas)"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-18-2-1",
+          "difficulty": "basic",
+          "title": "Crear tabla e insertar datos",
+          "description": "Crea una tabla 'productos' con columnas (id, nombre, precio, stock) y inserta 5 productos de prueba. Muestra los productos por consola.",
+          "solution": "CREATE TABLE productos (\n    id SERIAL PRIMARY KEY,\n    nombre VARCHAR(100) NOT NULL,\n    precio DECIMAL(10,2),\n    stock INTEGER DEFAULT 0\n);\n\n// En Java:\nstmt.executeUpdate(\"INSERT INTO productos (nombre, precio, stock) VALUES ('Teclado', 25.99, 50)\");\nstmt.executeUpdate(\"INSERT INTO productos (nombre, precio, stock) VALUES ('Raton', 15.50, 100)\");\n// ...\nResultSet rs = stmt.executeQuery(\"SELECT * FROM productos\");\nwhile (rs.next()) {\n    System.out.printf(\"%d. %s - %.2f EUR (stock: %d)%n\",\n        rs.getInt(\"id\"), rs.getString(\"nombre\"),\n        rs.getDouble(\"precio\"), rs.getInt(\"stock\"));\n}"
+        },
+        {
+          "id": "ex-18-2-2",
+          "difficulty": "intermediate",
+          "title": "Operaciones CRUD de productos",
+          "description": "Implementa un menu de consola para productos: 1) Listar, 2) Agregar, 3) Modificar precio, 4) Eliminar, 5) Salir. Usa Statement para todas las operaciones.",
+          "solution": "// Menu con Scanner:\n// case 1: SELECT * FROM productos -> ResultSet\n// case 2: INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)\n//   -> pero sin PreparedStatement, concatenando Strings (mal pero es el ejercicio)\n// case 3: UPDATE productos SET precio = X WHERE id = Y\n// case 4: DELETE FROM productos WHERE id = X\n// case 5: salir"
+        },
+        {
+          "id": "ex-18-2-3",
+          "difficulty": "advanced",
+          "title": "Informe de productos",
+          "description": "Genera un informe con: total de productos, producto mas caro, producto mas barato, stock total, productos con stock < 10. Usa varias consultas SQL.",
+          "solution": "// Consultas:\n// SELECT COUNT(*) FROM productos -> total\n// SELECT * FROM productos ORDER BY precio DESC LIMIT 1 -> mas caro\n// SELECT * FROM productos ORDER BY precio ASC LIMIT 1 -> mas barato\n// SELECT SUM(stock) FROM productos -> stock total\n// SELECT * FROM productos WHERE stock < 10 -> bajo stock"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar cerrar ResultSet: puede bloquear recursos de la BD.",
+        "No iterar con rs.next(): si no se llama a next(), no se puede leer ningun resultado.",
+        "Usar executeQuery() para INSERT/UPDATE/DELETE: debes usar executeUpdate().",
+        "No comprobar si ResultSet esta vacio: rs.next() devuelve false si no hay resultados.",
+        "Concatenar valores de usuario en SQL directamente: riesgo de SQL injection (usar PreparedStatement)."
+      ],
+      "keyConcepts": [
+        "Statement: ejecuta sentencias SQL directamente",
+        "executeQuery(): para SELECT, devuelve ResultSet",
+        "executeUpdate(): para INSERT/UPDATE/DELETE, devuelve numero de filas",
+        "ResultSet: iterador sobre los resultados de una consulta",
+        "rs.next(): avanza al siguiente resultado",
+        "Obtener datos: getString, getDouble, getInt, getLong"
+      ],
+      "learningOutcomes": [
+        "RA9"
+      ],
+      "assessmentCriteria": [
+        "RA9.c",
+        "RA9.d"
+      ]
+    },
+    {
+      "id": "lesson-17-3",
+      "title": "PreparedStatement: parametrizado y seguro",
+      "objectives": [
+        "Entender por que PreparedStatement es mejor que Statement",
+        "Usar PreparedStatement con parametros nombrados (?)",
+        "Evitar SQL injection con parametros seguros",
+        "Ejecutar INSERT, SELECT, UPDATE y DELETE con PreparedStatement",
+        "Obtener el ID generado automaticamente con getGeneratedKeys()"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Statement vs. PreparedStatement",
+          "content": "### El problema de Statement\nCon `Statement`, los valores se insertan directamente en la sentencia SQL:\n\n```java\nString nombre = \"Ana\";\nString sql = \"SELECT * FROM alumnos WHERE nombre = '\" + nombre + \"'\";\nResultSet rs = stmt.executeQuery(sql);\n```\n\nEsto funciona, pero tiene un problema grave: **SQL Injection**. Si un usuario introduce:\n```\n' OR '1'='1\n```\n\nLa consulta se convierte en:\n```sql\nSELECT * FROM almonds WHERE nombre = '' OR '1'='1'\n```\n\nEsto devuelve TODOS los alumnos. Es un agujero de seguridad.\n\n### La solucion: PreparedStatement\n`PreparedStatement` usa **parametros** que se sustituyen de forma segura:\n\n```java\nString sql = \"SELECT * FROM alumnos WHERE nombre = ?\";\nPreparedStatement ps = conn.prepareStatement(sql);\nps.setString(1, \"Ana\"); // Parametro 1: nombre\nResultSet rs = ps.executeQuery();\n```\n\nEl valor de `nombre` se interpreta SIEMPRE como un valor, nunca como codigo SQL.\n\n**Ventajas de PreparedStatement:**\n1. **Seguridad**: previene SQL injection\n2. **Rendimiento**: la BD puede precompilar la sentencia\n3. **Legibilidad**: el codigo es mas limpio\n4. **Manejo de tipos**: gestiona automaticamente los tipos de datos"
+        },
+        {
+          "type": "code",
+          "title": "PreparedStatement con parametros",
+          "language": "java",
+          "content": "import java.sql.*;\n\npublic class EjemploPreparedStatement {\n\n    private static final String URL = \"jdbc:postgresql://localhost:5432/test\";\n\n    public static void main(String[] args) {\n\n        try (Connection conn = DriverManager.getConnection(URL, \"postgres\", \"password\")) {\n\n            // === INSERT con PreparedStatement ===\n            String insertSql = \"INSERT INTO alumnos (nombre, email, nota_media) VALUES (?, ?, ?)\";\n\n            try (PreparedStatement ps = conn.prepareStatement(insertSql)) {\n                ps.setString(1, \"Ana Garcia\");     // Parametro 1: nombre\n                ps.setString(2, \"ana@email.com\");  // Parametro 2: email\n                ps.setDouble(3, 8.5);               // Parametro 3: nota\n                int filas = ps.executeUpdate();\n                System.out.println(\"Alumno insertado: \" + filas + \" fila(s)\");\n            }\n\n            // === SELECT con PreparedStatement ===\n            String selectSql = \"SELECT * FROM alumnos WHERE nota_media >= ?\";\n\n            try (PreparedStatement ps = conn.prepareStatement(selectSql)) {\n                ps.setDouble(1, 7.0); // Nota minima: 7.0\n\n                try (ResultSet rs = ps.executeQuery()) {\n                    System.out.println(\"\\nAlumnos con nota >= 7.0:\");\n                    while (rs.next()) {\n                        System.out.printf(\"  %s (%s) - Nota: %.2f%n\",\n                            rs.getString(\"nombre\"),\n                            rs.getString(\"email\"),\n                            rs.getDouble(\"nota_media\"));\n                    }\n                }\n            }\n\n            // === UPDATE con PreparedStatement ===\n            String updateSql = \"UPDATE alumnos SET nota_media = ? WHERE email = ?\";\n\n            try (PreparedStatement ps = conn.prepareStatement(updateSql)) {\n                ps.setDouble(1, 9.5);\n                ps.setString(2, \"ana@email.com\");\n                int modificadas = ps.executeUpdate();\n                System.out.println(\"\\nAlumnos modificados: \" + modificadas);\n            }\n\n            // === DELETE con PreparedStatement ===\n            String deleteSql = \"DELETE FROM alumnos WHERE nombre = ?\";\n\n            try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {\n                ps.setString(1, \"Ana Garcia\");\n                int eliminadas = ps.executeUpdate();\n                System.out.println(\"Alumnos eliminados: \" + eliminadas);\n            }\n\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n// Claves de PreparedStatement:\n// 1. conn.prepareStatement(sql) crea la sentencia\n// 2. ps.setXxx(indice, valor) establece los parametros (1-based)\n// 3. ps.executeUpdate() para INSERT/UPDATE/DELETE\n// 4. ps.executeQuery() para SELECT\n// 5. try-with-resources cierra PreparedStatement y ResultSet automaticamente"
+        },
+        {
+          "type": "code",
+          "title": "Obtener el ID generado",
+          "language": "java",
+          "content": "import java.sql.*;\n\npublic class ObtenerIDGenerado {\n\n    public static void main(String[] args) {\n        String url = \"jdbc:postgresql://localhost:5432/test\";\n\n        try (Connection conn = DriverManager.getConnection(url, \"postgres\", \"password\")) {\n\n            // Usar RETURNING para obtener el ID en PostgreSQL\n            String sql = \"INSERT INTO alumnos (nombre, email, nota_media) VALUES (?, ?, ?) RETURNING id\";\n\n            try (PreparedStatement ps = conn.prepareStatement(sql)) {\n                ps.setString(1, \"Nuevo Alumno\");\n                ps.setString(2, \"nuevo@email.com\");\n                ps.setDouble(3, 7.0);\n\n                try (ResultSet rs = ps.executeQuery()) {\n                    if (rs.next()) {\n                        long idGenerado = rs.getLong(1);\n                        System.out.println(\"ID generado: \" + idGenerado);\n                    }\n                }\n            }\n\n            // Alternativa sin RETURNING (menos eficiente pero portable)\n            String sql2 = \"INSERT INTO alumnos (nombre, email, nota_media) VALUES (?, ?, ?)\";\n            try (PreparedStatement ps = conn.prepareStatement(sql2,\n                    Statement.RETURN_GENERATED_KEYS)) {\n                ps.setString(1, \"Otro Alumno\");\n                ps.setString(2, \"otro@email.com\");\n                ps.setDouble(3, 8.0);\n                ps.executeUpdate();\n\n                try (ResultSet keys = ps.getGeneratedKeys()) {\n                    if (keys.next()) {\n                        System.out.println(\"ID generado: \" + keys.getLong(1));\n                    }\n                }\n            }\n\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n}\n\n// Obtener el ID generado:\n// 1. PostgreSQL: usar RETURNING id (recomendado)\n// 2. Portabilidad: Statement.RETURN_GENERATED_KEYS + getGeneratedKeys()"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-18-3-1",
+          "difficulty": "basic",
+          "title": "INSERT parametrizado",
+          "description": "Usando PreparedStatement, inserta 3 alumnos con diferentes nombres, emails y notas. Usa parametros ? para cada valor.",
+          "solution": "String sql = \"INSERT INTO alumnos (nombre, email, nota_media) VALUES (?, ?, ?)\";\ntry (PreparedStatement ps = conn.prepareStatement(sql)) {\n    ps.setString(1, \"Ana\");\n    ps.setString(2, \"ana@email.com\");\n    ps.setDouble(3, 8.5);\n    ps.executeUpdate();\n\n    ps.setString(1, \"Carlos\");\n    ps.setString(2, \"carlos@email.com\");\n    ps.setDouble(3, 7.2);\n    ps.executeUpdate();\n}"
+        },
+        {
+          "id": "ex-18-3-2",
+          "difficulty": "intermediate",
+          "title": "Busqueda parametrizada",
+          "description": "Crea un metodo que busque alumnos por nombre (parcial, con LIKE) usando PreparedStatement. Prueba buscando 'Ana' y verifica que no hay SQL injection.",
+          "solution": "public static List<String> buscarAlumno(Connection conn, String nombre) throws SQLException {\n    String sql = \"SELECT nombre, email FROM alumnos WHERE nombre LIKE ?\";\n    List<String> resultados = new ArrayList<>();\n\n    try (PreparedStatement ps = conn.prepareStatement(sql)) {\n        ps.setString(1, \"%\" + nombre + \"%\");\n        try (ResultSet rs = ps.executeQuery()) {\n            while (rs.next()) {\n                resultados.add(rs.getString(\"nombre\") + \" - \" + rs.getString(\"email\"));\n            }\n        }\n    }\n    return resultados;\n}\n\n// Prueba con SQL injection:\n// buscarAlumno(conn, \"' OR '1'='1\") -> no devolvera todos los alumnos"
+        },
+        {
+          "id": "ex-18-3-3",
+          "difficulty": "advanced",
+          "title": "CRUD completo con PreparedStatement",
+          "description": "Crea una clase ProductoDAO con metodos: agregar, listar, buscarPorId, actualizar, eliminar. Todos con PreparedStatement. Incluye manejo de errores y cierre de recursos.",
+          "solution": "public class ProductoDAO {\n    private final Connection conn;\n\n    public ProductoDAO(Connection conn) { this.conn = conn; }\n\n    public void agregar(String nombre, double precio, int stock) throws SQLException {\n        String sql = \"INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setString(1, nombre);\n            ps.setDouble(2, precio);\n            ps.setInt(3, stock);\n            ps.executeUpdate();\n        }\n    }\n\n    public List<String> listar() throws SQLException {\n        List<String> productos = new ArrayList<>();\n        String sql = \"SELECT * FROM productos ORDER BY nombre\";\n        try (PreparedStatement ps = conn.prepareStatement(sql);\n             ResultSet rs = ps.executeQuery()) {\n            while (rs.next()) {\n                productos.add(rs.getInt(\"id\") + \". \" + rs.getString(\"nombre\")\n                    + \" - \" + rs.getDouble(\"precio\") + \" EUR\");\n            }\n        }\n        return productos;\n    }\n\n    // buscarPorId, actualizar, eliminar -> misma estructura\n}"
+        }
+      ],
+      "commonErrors": [
+        "Usar Statement en lugar de PreparedStatement: riesgo de SQL injection.",
+        "Olvidar cerrar PreparedStatement: puede bloquear recursos.",
+        "No usar parametros para valores de usuario: siempre usar ? y setXxx().",
+        "Mezclar parametros: ps.setString(2, ...) cuando solo hay 1 parametro.",
+        "No usar try-with-resources: los recursos no se cierran en caso de excepcion."
+      ],
+      "keyConcepts": [
+        "SQL injection: ataque que explita la concatenacion de SQL",
+        "PreparedStatement: sentencia parametrizada segura",
+        "Parametros con ?: marcadores de posicion (1-based)",
+        "setString, setDouble, setInt: establecer tipos de parametros",
+        "getGeneratedKeys(): obtener IDs generados automaticamente",
+        "RETURNING: clausula de PostgreSQL para obtener valores insertados"
+      ],
+      "learningOutcomes": [
+        "RA9"
+      ],
+      "assessmentCriteria": [
+        "RA9.d",
+        "RA9.e"
+      ]
+    },
+    {
+      "id": "lesson-17-4",
+      "title": "Transacciones y gestion de recursos",
+      "objectives": [
+        "Entender las transacciones en JDBC: ACID",
+        "Controlar el auto-commit de la conexion",
+        "Ejecutar multiples operaciones en una transaccion atomica",
+        "Usar rollback ante errores",
+        "Gestionar recursos correctamente: Connection, Statement, ResultSet"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Transacciones en JDBC",
+          "content": "Una **transaccion** es una serie de operaciones que se ejecutan como una unidad atomica: todo se ejecuta correctamente o nada se ejecuta.\n\n### Propiedades ACID\n| Propiedad | Descripcion |\n|-----------|-------------|\n| **Atomicidad** | Todas las operaciones se ejecutan o ninguna |\n| **Consistencia** | La BD pasa de un estado valido a otro |\n| **Aislamiento** | Las transacciones concurrentes no se interfieren |\n| **Durabilidad** | Los cambios confirmados se guardan permanentemente |\n\n### Control de auto-commit\nPor defecto, JDBC tiene auto-commit activado: cada sentencia SQL se confirma inmediatamente. Para transacciones, debemos desactivarlo:\n\n```java\nconn.setAutoCommit(false); // Iniciar transaccion\ntry {\n    // Varias operaciones SQL...\n    stmt.executeUpdate(sql1);\n    stmt.executeUpdate(sql2);\n    stmt.executeUpdate(sql3);\n    conn.commit(); // Confirmar todo\n} catch (Exception e) {\n    conn.rollback(); // Deshacer todo\n}\n```\n\n### Patron tipico\n```java\nconn.setAutoCommit(false);\ntry {\n    // Operaciones...\n    conn.commit();\n} catch (SQLException e) {\n    conn.rollback();\n    throw e;\n} finally {\n    conn.setAutoCommit(true); // Restaurar auto-commit\n}\n```"
+        },
+        {
+          "type": "code",
+          "title": "Transaccion: transferencia entre cuentas",
+          "language": "java",
+          "content": "import java.sql.*;\n\n/**\n * Ejemplo clasico de transaccion: transferir dinero entre cuentas.\n * Si algo falla, ambas operaciones se deshacen.\n */\npublic class TransferenciaBancaria {\n\n    private static final String URL = \"jdbc:postgresql://localhost:5432/banco\";\n\n    public static void main(String[] args) {\n        try (Connection conn = DriverManager.getConnection(URL, \"postgres\", \"password\")) {\n\n            System.out.println(\"Saldo ANTES de la transferencia:\");\n            mostrarSaldos(conn);\n\n            // === TRANSACCION ===\n            conn.setAutoCommit(false); // Desactivar auto-commit\n\n            try {\n                // 1. Retar 500 de la cuenta 1\n                String retar = \"UPDATE cuentas SET saldo = saldo - 500 WHERE id = 1\";\n                try (PreparedStatement ps = conn.prepareStatement(retar)) {\n                    int filas = ps.executeUpdate();\n                    if (filas == 0) {\n                        throw new SQLException(\"Cuenta 1 no encontrada\");\n                    }\n                }\n\n                // 2. Ingresar 500 en la cuenta 2\n                String ingresar = \"UPDATE cuentas SET saldo = saldo + 500 WHERE id = 2\";\n                try (PreparedStatement ps = conn.prepareStatement(ingresar)) {\n                    int filas = ps.executeUpdate();\n                    if (filas == 0) {\n                        throw new SQLException(\"Cuenta 2 no encontrada\");\n                    }\n                }\n\n                // 3. Confirmar la transaccion\n                conn.commit();\n                System.out.println(\"\\nTransferencia completada.\");\n\n            } catch (SQLException e) {\n                // 4. Deshacer si hay error\n                conn.rollback();\n                System.out.println(\"\\nTransferencia fallida. Rollback ejecutado.\");\n                System.out.println(\"Error: \" + e.getMessage());\n            } finally {\n                conn.setAutoCommit(true); // Restaurar auto-commit\n            }\n\n            System.out.println(\"\\nSaldo DESPUES de la transferencia:\");\n            mostrarSaldos(conn);\n\n        } catch (SQLException e) {\n            e.printStackTrace();\n        }\n    }\n\n    private static void mostrarSaldos(Connection conn) throws SQLException {\n        String sql = \"SELECT id, titular, saldo FROM cuentas ORDER BY id\";\n        try (PreparedStatement ps = conn.prepareStatement(sql);\n             ResultSet rs = ps.executeQuery()) {\n            while (rs.next()) {\n                System.out.printf(\"  Cuenta %d (%s): %.2f EUR%n\",\n                    rs.getInt(\"id\"), rs.getString(\"titular\"), rs.getDouble(\"saldo\"));\n            }\n        }\n    }\n}\n\n// Claves:\n// 1. setAutoCommit(false): inicia la transaccion\n// 2. commit(): confirma todos los cambios\n// 3. rollback(): deshace todos los cambios\n// 4. Si algo falla, rollback() garantiza la atomicidad"
+        },
+        {
+          "type": "text",
+          "title": "Gestion de recursos: buenas practicas",
+          "content": "### Orden de cierre\nLos recursos JDBC se cierran en orden inverso al de apertura:\n\n```\n1. ResultSet (se cierra automaticamente con el Statement)\n2. Statement / PreparedStatement\n3. Connection\n```\n\n### try-with-resources (recomendado)\n```java\ntry (Connection conn = DriverManager.getConnection(url, user, pass);\n     PreparedStatement ps = conn.prepareStatement(sql);\n     ResultSet rs = ps.executeQuery()) {\n\n    while (rs.next()) {\n        // Procesar resultados\n    }\n}\n// Todos los recursos se cierran automaticamente\n```\n\n### Patron DAO (Data Access Object)\nPara organizar el codigo de acceso a datos:\n\n```java\npublic class AlumnoDAO {\n    private final Connection conn;\n\n    public AlumnoDAO(Connection conn) {\n        this.conn = conn;\n    }\n\n    public void agregar(String nombre, String email) throws SQLException {\n        String sql = \"INSERT INTO alumnos (nombre, email) VALUES (?, ?)\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setString(1, nombre);\n            ps.setString(2, email);\n            ps.executeUpdate();\n        }\n    }\n\n    public List<String> listar() throws SQLException {\n        // ...\n    }\n}\n```\n\n### Errores comunes\n1. **Fuga de conexiones**: no cerrar Connection en finally\n2. **Fuga de Statements**: no cerrar Statement/PreparedStatement\n3. **ResultSet obsoleto**: no cerrar ResultSet despues de usarlo\n4. **Transaccion incompleta**: no hacer rollback en caso de error"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-18-4-1",
+          "difficulty": "basic",
+          "title": "Transaccion basica",
+          "description": "Crea una transaccion que inserte 2 alumnos y actualice la nota de uno. Si todo va bien, haz commit. Si hay error, haz rollback.",
+          "solution": "conn.setAutoCommit(false);\ntry {\n    stmt.executeUpdate(\"INSERT INTO alumnos ... VALUES ('Ana', 'ana@email.com', 8.0)\");\n    stmt.executeUpdate(\"INSERT INTO alumnos ... VALUES ('Carlos', 'carlos@email.com', 7.0)\");\n    stmt.executeUpdate(\"UPDATE alumnos SET nota_media = 9.0 WHERE nombre = 'Ana'\");\n    conn.commit();\n    System.out.println(\"Transaccion completada.\");\n} catch (SQLException e) {\n    conn.rollback();\n    System.out.println(\"Rollback: \" + e.getMessage());\n} finally {\n    conn.setAutoCommit(true);\n}"
+        },
+        {
+          "id": "ex-18-4-2",
+          "difficulty": "intermediate",
+          "title": "Transferencia con validacion",
+          "description": "Implementa una transferencia entre cuentas que verifique que la cuenta origen tiene saldo suficiente. Si no tiene saldo, haz rollback.",
+          "solution": "conn.setAutoCommit(false);\ntry {\n    // Verificar saldo\n    PreparedStatement ps = conn.prepareStatement(\"SELECT saldo FROM cuentas WHERE id = ?\");\n    ps.setInt(1, 1);\n    ResultSet rs = ps.executeQuery();\n    if (rs.next() && rs.getDouble(\"saldo\") >= 500) {\n        // Tiene saldo: proceder\n        stmt.executeUpdate(\"UPDATE cuentas SET saldo = saldo - 500 WHERE id = 1\");\n        stmt.executeUpdate(\"UPDATE cuentas SET saldo = saldo + 500 WHERE id = 2\");\n        conn.commit();\n    } else {\n        conn.rollback();\n        System.out.println(\"Saldo insuficiente\");\n    }\n} catch (SQLException e) {\n    conn.rollback();\n}"
+        },
+        {
+          "id": "ex-18-4-3",
+          "difficulty": "advanced",
+          "title": "DAO completo con transacciones",
+          "description": "Crea una clase AlumnoDAO con metodos: agregar, listar, eliminar, transferirNotas (mover la nota de un alumno a otro dentro de una transaccion). Incluye manejo completo de errores y cierre de recursos.",
+          "solution": "public class AlumnoDAO {\n    private final Connection conn;\n\n    public AlumnoDAO(Connection conn) { this.conn = conn; }\n\n    public boolean transferirNotas(long origenId, long destinoId) throws SQLException {\n        conn.setAutoCommit(false);\n        try {\n            // Obtener nota del origen\n            double notaOrigen = getNota(origenId);\n            // Sumar al destino\n            actualizarNota(destinoId, getNota(destinoId) + notaOrigen);\n            // Poner a cero el origen\n            actualizarNota(origenId, 0.0);\n            conn.commit();\n            return true;\n        } catch (SQLException e) {\n            conn.rollback();\n            throw e;\n        } finally {\n            conn.setAutoCommit(true);\n        }\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar desactivar auto-commit: cada operacion se confirma automaticamente.",
+        "No hacer rollback en caso de error: la BD queda en estado inconsistente.",
+        "No restaurar auto-commit: las siguientes operaciones funcionan como transacciones individuales.",
+        "Cerrar recursos en orden incorrecto: puede causar errores.",
+        "No usar try-with-resources: los recursos no se cierran en caso de excepcion."
+      ],
+      "keyConcepts": [
+        "Transacciones: atomicidad, consistencia, aislamiento, durabilidad (ACID)",
+        "setAutoCommit(false): iniciar una transaccion",
+        "commit(): confirmar todos los cambios",
+        "rollback(): deshacer todos los cambios",
+        "Patron de gestion de errores: try-commit, catch-rollback",
+        "Orden de cierre: ResultSet, Statement, Connection",
+        "Patron DAO: organizar el codigo de acceso a datos"
+      ],
+      "learningOutcomes": [
+        "RA9"
+      ],
+      "assessmentCriteria": [
+        "RA9.f",
+        "RA9.g"
+      ]
+    },
+    {
+      "id": "lesson-17-5",
+      "title": "Aplicacion completa con PostgreSQL",
+      "objectives": [
+        "Construir una aplicacion CRUD completa contra PostgreSQL",
+        "Crear la estructura de tablas con CREATE TABLE",
+        "Implementar todas las operaciones con PreparedStatement",
+        "Manejar errores y transacciones en una aplicacion real",
+        "Aplicar buenas practicas de arquitectura: separar DAO de interfaz"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Estructura de la aplicacion",
+          "content": "Vamos a construir un gestor de alumnos completo con PostgreSQL. La aplicacion tiene 3 capas:\n\n```\nAppPrincipal (interfaz de consola)\n    |\n    v\nAlumnoDAO (acceso a datos)\n    |\n    v\nPostgreSQL (base de datos)\n```\n\n**AlumnoDAO** encapsula toda la logica de acceso a datos:\n- `crearTabla()`: crea la tabla si no existe\n- `agregar(alumno)`: inserta un alumno\n- `listar()`: retorna todos los alumnos\n- `buscarPorId(id)`: busca un alumno por ID\n- `actualizar(alumno)`: modifica un alumno existente\n- `eliminar(id)`: elimina un alumno\n- `buscarPorNombre(nombre)`: busca por nombre parcial\n\n**AppPrincipal** ofrece un menu de consola:\n1. Listar alumnos\n2. Agregar alumno\n3. Buscar alumno\n4. Modificar alumno\n5. Eliminar alumno\n6. Estadisticas\n0. Salir"
+        },
+        {
+          "type": "code",
+          "title": "Script SQL para crear la tabla",
+          "language": "java",
+          "content": "// Script SQL para crear la tabla (ejecutar una vez en PostgreSQL):\n\n/*\nCREATE TABLE IF NOT EXISTS alumnos (\n    id SERIAL PRIMARY KEY,\n    nombre VARCHAR(100) NOT NULL,\n    email VARCHAR(100) UNIQUE NOT NULL,\n    nota_media DECIMAL(4,2) DEFAULT 0.00,\n    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Datos de prueba\nINSERT INTO alumnos (nombre, email, nota_media) VALUES\n    ('Ana Garcia', 'ana@email.com', 8.50),\n    ('Carlos Ruiz', 'carlos@email.com', 7.20),\n    ('Maria Lopez', 'maria@email.com', 9.10),\n    ('Pedro Sanchez', 'pedro@email.com', 6.80),\n    ('Laura Martinez', 'laura@email.com', 8.90);\n*/\n\n// En Java, crear la tabla:\npublic void crearTabla(Connection conn) throws SQLException {\n    String sql = \"CREATE TABLE IF NOT EXISTS alumnos (\" +\n        \"id SERIAL PRIMARY KEY, \" +\n        \"nombre VARCHAR(100) NOT NULL, \" +\n        \"email VARCHAR(100) UNIQUE NOT NULL, \" +\n        \"nota_media DECIMAL(4,2) DEFAULT 0.00, \" +\n        \"fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP)\";\n\n    try (Statement stmt = conn.createStatement()) {\n        stmt.execute(sql);\n        System.out.println(\"Tabla alumnos creada/verificada.\");\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "AlumnoDAO completo",
+          "language": "java",
+          "content": "import java.sql.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\n/**\n * DAO (Data Access Object) para la entidad Alumno.\n * Encapsula toda la logica de acceso a PostgreSQL.\n */\npublic class AlumnoDAO {\n\n    private final Connection conn;\n\n    public AlumnoDAO(Connection conn) {\n        this.conn = conn;\n    }\n\n    /** Crea la tabla si no existe. */\n    public void crearTabla() throws SQLException {\n        String sql = \"CREATE TABLE IF NOT EXISTS alumnos (\" +\n            \"id SERIAL PRIMARY KEY, \" +\n            \"nombre VARCHAR(100) NOT NULL, \" +\n            \"email VARCHAR(100) UNIQUE NOT NULL, \" +\n            \"nota_media DECIMAL(4,2) DEFAULT 0.00)\";\n        try (Statement stmt = conn.createStatement()) {\n            stmt.execute(sql);\n        }\n    }\n\n    /** Agrega un alumno. Devuelve el ID generado. */\n    public long agregar(String nombre, String email, double nota) throws SQLException {\n        String sql = \"INSERT INTO alumnos (nombre, email, nota_media) VALUES (?, ?, ?) RETURNING id\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setString(1, nombre);\n            ps.setString(2, email);\n            ps.setDouble(3, nota);\n            try (ResultSet rs = ps.executeQuery()) {\n                rs.next();\n                return rs.getLong(1);\n            }\n        }\n    }\n\n    /** Lista todos los alumnos. */\n    public List<String[]> listar() throws SQLException {\n        List<String[]> alumnos = new ArrayList<>();\n        String sql = \"SELECT id, nombre, email, nota_media FROM alumnos ORDER BY nombre\";\n        try (PreparedStatement ps = conn.prepareStatement(sql);\n             ResultSet rs = ps.executeQuery()) {\n            while (rs.next()) {\n                alumnos.add(new String[]{\n                    String.valueOf(rs.getLong(\"id\")),\n                    rs.getString(\"nombre\"),\n                    rs.getString(\"email\"),\n                    String.format(\"%.2f\", rs.getDouble(\"nota_media\"))\n                });\n            }\n        }\n        return alumnos;\n    }\n\n    /** Busca un alumno por ID. */\n    public String[] buscarPorId(long id) throws SQLException {\n        String sql = \"SELECT * FROM alumnos WHERE id = ?\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setLong(1, id);\n            try (ResultSet rs = ps.executeQuery()) {\n                if (rs.next()) {\n                    return new String[]{\n                        String.valueOf(rs.getLong(\"id\")),\n                        rs.getString(\"nombre\"),\n                        rs.getString(\"email\"),\n                        String.format(\"%.2f\", rs.getDouble(\"nota_media\"))\n                    };\n                }\n            }\n        }\n        return null;\n    }\n\n    /** Actualiza un alumno existente. */\n    public boolean actualizar(long id, String nombre, String email, double nota) throws SQLException {\n        String sql = \"UPDATE alumnos SET nombre = ?, email = ?, nota_media = ? WHERE id = ?\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setString(1, nombre);\n            ps.setString(2, email);\n            ps.setDouble(3, nota);\n            ps.setLong(4, id);\n            return ps.executeUpdate() > 0;\n        }\n    }\n\n    /** Elimina un alumno por ID. */\n    public boolean eliminar(long id) throws SQLException {\n        String sql = \"DELETE FROM alumnos WHERE id = ?\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setLong(1, id);\n            return ps.executeUpdate() > 0;\n        }\n    }\n\n    /** Busca alumnos por nombre parcial (LIKE). */\n    public List<String[]> buscarPorNombre(String nombre) throws SQLException {\n        List<String[]> resultados = new ArrayList<>();\n        String sql = \"SELECT * FROM alumnos WHERE nombre ILIKE ? ORDER BY nombre\";\n        try (PreparedStatement ps = conn.prepareStatement(sql)) {\n            ps.setString(1, \"%\" + nombre + \"%\");\n            try (ResultSet rs = ps.executeQuery()) {\n                while (rs.next()) {\n                    resultados.add(new String[]{\n                        String.valueOf(rs.getLong(\"id\")),\n                        rs.getString(\"nombre\"),\n                        rs.getString(\"email\"),\n                        String.format(\"%.2f\", rs.getDouble(\"nota_media\"))\n                    });\n                }\n            }\n        }\n        return resultados;\n    }\n\n    /** Cuenta el numero total de alumnos. */\n    public int contar() throws SQLException {\n        try (Statement stmt = conn.createStatement();\n             ResultSet rs = stmt.executeQuery(\"SELECT COUNT(*) FROM alumnos\")) {\n            rs.next();\n            return rs.getInt(1);\n        }\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "AppPrincipal con menu de consola",
+          "language": "java",
+          "content": "import java.sql.*;\nimport java.util.List;\nimport java.util.Scanner;\n\npublic class AppPrincipal {\n\n    private static final String URL = \"jdbc:postgresql://localhost:5432/test\";\n    private static final Scanner sc = new Scanner(System.in);\n\n    public static void main(String[] args) {\n        try (Connection conn = DriverManager.getConnection(URL, \"postgres\", \"password\")) {\n            AlumnoDAO dao = new AlumnoDAO(conn);\n            dao.crearTabla();\n\n            boolean salir = false;\n            while (!salir) {\n                mostrarMenu();\n                int opcion = leerEntero(\"Opcion: \");\n\n                try {\n                    switch (opcion) {\n                        case 1 -> listarAlumnos(dao);\n                        case 2 -> agregarAlumno(dao);\n                        case 3 -> buscarAlumno(dao);\n                        case 4 -> modificarAlumno(dao);\n                        case 5 -> eliminarAlumno(dao);\n                        case 6 -> estadisticas(dao);\n                        case 0 -> salir = true;\n                        default -> System.out.println(\"Opcion no valida.\");\n                    }\n                } catch (SQLException e) {\n                    System.out.println(\"Error BD: \" + e.getMessage());\n                }\n                System.out.println();\n            }\n            System.out.println(\"Hasta pronto!\");\n\n        } catch (SQLException e) {\n            System.out.println(\"Error de conexion: \" + e.getMessage());\n        }\n    }\n\n    private static void mostrarMenu() {\n        System.out.println(\"=== GESTOR DE ALUMNOS ===\");\n        System.out.println(\"1. Listar alumnos\");\n        System.out.println(\"2. Agregar alumno\");\n        System.out.println(\"3. Buscar alumno\");\n        System.out.println(\"4. Modificar alumno\");\n        System.out.println(\"5. Eliminar alumno\");\n        System.out.println(\"6. Estadisticas\");\n        System.out.println(\"0. Salir\");\n    }\n\n    private static void agregarAlumno(AlumnoDAO dao) throws SQLException {\n        System.out.print(\"Nombre: \");\n        String nombre = sc.nextLine().trim();\n        System.out.print(\"Email: \");\n        String email = sc.nextLine().trim();\n        System.out.print(\"Nota media: \");\n        double nota = Double.parseDouble(sc.nextLine().trim());\n\n        long id = dao.agregar(nombre, email, nota);\n        System.out.println(\"Alumno agregado con ID: \" + id);\n    }\n\n    private static void listarAlumnos(AlumnoDAO dao) throws SQLException {\n        List<String[]> alumnos = dao.listar();\n        if (alumnos.isEmpty()) {\n            System.out.println(\"No hay alumnos.\");\n            return;\n        }\n        System.out.printf(\"%-5s %-20s %-25s %8s%n\", \"ID\", \"Nombre\", \"Email\", \"Nota\");\n        System.out.println(\"-\".repeat(58));\n        for (String[] a : alumnos) {\n            System.out.printf(\"%-5s %-20s %-25s %8s%n\", a[0], a[1], a[2], a[3]);\n        }\n    }\n\n    private static void buscarAlumno(AlumnoDAO dao) throws SQLException {\n        System.out.print(\"Nombre a buscar: \");\n        String nombre = sc.nextLine().trim();\n        List<String[]> encontrados = dao.buscarPorNombre(nombre);\n        if (encontrados.isEmpty()) {\n            System.out.println(\"No se encontraron alumnos.\");\n        } else {\n            encontrados.forEach(a ->\n                System.out.printf(\"  %s. %s (%s) - Nota: %s%n\", a[0], a[1], a[2], a[3]));\n        }\n    }\n\n    private static void modificarAlumno(AlumnoDAO dao) throws SQLException {\n        System.out.print(\"ID del alumno a modificar: \");\n        long id = Long.parseLong(sc.nextLine().trim());\n        String[] actual = dao.buscarPorId(id);\n        if (actual == null) {\n            System.out.println(\"Alumno no encontrado.\");\n            return;\n        }\n        System.out.printf(\"Actual: %s | %s | %s%n\", actual[1], actual[2], actual[3]);\n\n        System.out.print(\"Nuevo nombre (Enter para mantener): \");\n        String nombre = sc.nextLine().trim();\n        if (nombre.isEmpty()) nombre = actual[1];\n\n        System.out.print(\"Nuevo email (Enter para mantener): \");\n        String email = sc.nextLine().trim();\n        if (email.isEmpty()) email = actual[2];\n\n        System.out.print(\"Nueva nota (Enter para mantener): \");\n        String notaStr = sc.nextLine().trim();\n        double nota = notaStr.isEmpty() ? Double.parseDouble(actual[3]) : Double.parseDouble(notaStr);\n\n        if (dao.actualizar(id, nombre, email, nota)) {\n            System.out.println(\"Alumno actualizado.\");\n        } else {\n            System.out.println(\"No se pudo actualizar.\");\n        }\n    }\n\n    private static void eliminarAlumno(AlumnoDAO dao) throws SQLException {\n        System.out.print(\"ID del alumno a eliminar: \");\n        long id = Long.parseLong(sc.nextLine().trim());\n        if (dao.eliminar(id)) {\n            System.out.println(\"Alumno eliminado.\");\n        } else {\n            System.out.println(\"Alumno no encontrado.\");\n        }\n    }\n\n    private static void estadisticas(AlumnoDAO dao) throws SQLException {\n        System.out.println(\"Total de alumnos: \" + dao.contar());\n    }\n\n    private static int leerEntero(String mensaje) {\n        System.out.print(mensaje);\n        try {\n            return Integer.parseInt(sc.nextLine().trim());\n        } catch (NumberFormatException e) {\n            return -1;\n        }\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-18-5-1",
+          "difficulty": "basic",
+          "title": "Crear tabla e insertar datos de prueba",
+          "description": "Crea la tabla 'alumnos' en PostgreSQL y inserta 5 alumnos de prueba. Verifica los datos con un SELECT.",
+          "solution": "CREATE TABLE IF NOT EXISTS alumnos (\n    id SERIAL PRIMARY KEY,\n    nombre VARCHAR(100) NOT NULL,\n    email VARCHAR(100) UNIQUE NOT NULL,\n    nota_media DECIMAL(4,2) DEFAULT 0.00\n);\n\nINSERT INTO alumnos (nombre, email, nota_media) VALUES\n    ('Ana Garcia', 'ana@email.com', 8.50),\n    ('Carlos Ruiz', 'carlos@email.com', 7.20);\n\nSELECT * FROM alumnos;"
+        },
+        {
+          "id": "ex-18-5-2",
+          "difficulty": "intermediate",
+          "title": "Completar el DAO",
+          "description": "Completa el AlumnoDAO con los metodos: listar(), buscarPorId(), actualizar(), eliminar(), buscarPorNombre(), contar(). Prueba cada metodo desde main().",
+          "solution": "// Ver el AlumnoDAO completo de la leccion 18-5.\n// Probar cada metodo:\n// dao.agregar(\"Test\", \"test@email.com\", 7.0);\n// dao.listar();\n// dao.buscarPorId(1L);\n// dao.actualizar(1L, \"Nuevo\", \"nuevo@email.com\", 9.0);\n// dao.eliminar(1L);\n// dao.buscarPorNombre(\"Ana\");\n// dao.contar();"
+        },
+        {
+          "id": "ex-18-5-3",
+          "difficulty": "advanced",
+          "title": "Gestor de productos completo",
+          "description": "Crea un gestor de productos completo con: tabla productos (id, nombre, precio, stock, categoria), DAO con todos los CRUD, menu de consola, y estadisticas (total productos, valor total del stock, productos por categoria).",
+          "solution": "// Tabla:\nCREATE TABLE productos (\n    id SERIAL PRIMARY KEY,\n    nombre VARCHAR(100) NOT NULL,\n    precio DECIMAL(10,2) NOT NULL,\n    stock INTEGER DEFAULT 0,\n    categoria VARCHAR(50)\n);\n\n// DAO: ProductoDAO con agregar, listar, buscarPorId, actualizar, eliminar,\n//      buscarPorNombre, contar, valorTotalStock, productosPorCategoria\n// Menu: 1-Listar, 2-Agregar, 3-Buscar, 4-Modificar, 5-Eliminar,\n//       6-Estadisticas, 0-Salir\n// Estadisticas: total, valor stock (SUM(precio*stock)), por categoria (GROUP BY)"
+        }
+      ],
+      "commonErrors": [
+        "No crear la tabla antes de insertar: PSQLException: relation does not exist.",
+        "Olvidar el RETURNING al obtener IDs: no se puede saber que ID se genero.",
+        "No manejar SQLException en cada operacion: la aplicacion se cae con errores de BD.",
+        "Hardcodear la cadena de conexion: usar configuracion externa.",
+        "No usar PreparedStatement: riesgo de SQL injection y menor rendimiento."
+      ],
+      "keyConcepts": [
+        "CREATE TABLE: crear la estructura de la base de datos",
+        "Patron DAO: separar logica de acceso a datos",
+        "CRUD completo con PreparedStatement",
+        "Menu de consola para interaccion con el usuario",
+        "Manejo de errores en cada operacion de BD",
+        "Buenas practicas: try-with-resources, parametros seguros, cierre de recursos"
+      ],
+      "learningOutcomes": [
+        "RA9"
+      ],
+      "assessmentCriteria": [
+        "RA9.a",
+        "RA9.b",
+        "RA9.c",
+        "RA9.d",
+        "RA9.e",
+        "RA9.f",
+        "RA9.g"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Gestion de alumnos con PostgreSQL y JDBC",
+    "description": "Construir un sistema completo de gestion de alumnos usando PostgreSQL como base de datos relacional y JDBC como capa de acceso a datos. El estudiante debe crear la estructura de tablas, implementar un DAO completo, y construir una interfaz de consola.",
+    "steps": [
+      "Crear la base de datos y tabla alumnos en PostgreSQL",
+      "Configurar el proyecto con el driver JDBC de PostgreSQL",
+      "Implementar AlumnoDAO con todas las operaciones CRUD",
+      "Crear la interfaz de consola con menu interactivo",
+      "Implementar busqueda por nombre, filtrado y estadisticas",
+      "Aniadir manejo de transacciones para operaciones criticas"
+    ],
+    "deliverables": [
+      "Script SQL para crear la base de datos",
+      "AlumnoDAO completo con PreparedStatement",
+      "Interfaz de consola funcional",
+      "Codigo documentado con Javadoc"
+    ]
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "jurisdiction": "andalucia",
+  "academicYear": "2026-2027",
+  "degree": ["DAM", "DAW"],
+  "year": 1,
+  "moduleCode": "0484",
+  "officialName": "Bases de datos",
+  "weeklyHours": 5,
+  "totalHours": 170,
+  "stateMinimumHours": 105,
+  "ects": 12,
+  "sources": [{"sourceId": "BOE-A-2023-13221", "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-13221", "sourceTitle": "Real Decreto 405/2023, de 29 de mayo", "sourceDate": "2023-06-03", "annex": "ANEXO I"}],
+  "learningOutcomes": [
+    {"id": "RA1", "description": "Reconoce los elementos de las bases de datos analizando sus funciones y valorando la utilidad de los sistemas gestores.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"},
+    {"id": "RA2", "description": "Crea bases de datos definiendo su estructura y las características de sus elementos según el modelo relacional.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"},
+    {"id": "RA3", "description": "Consulta la información almacenada en una base de datos empleando asistentes, herramientas gráficas y el lenguaje de manipulación de datos.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"},
+    {"id": "RA4", "description": "Modifica la información almacenada en la base de datos utilizando asistentes, herramientas gráficas y el lenguaje de manipulación de datos.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"},
+    {"id": "RA5", "description": "Desarrolla procedimientos almacenados evaluando y utilizando las sentencias del lenguaje incorporado en el sistema gestor de bases de datos.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"},
+    {"id": "RA6", "description": "Diseña modelos relacionales normalizados interpretando diagramas entidad/relación.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"},
+    {"id": "RA7", "description": "Gestiona la información almacenada en bases de datos no relacionales, evaluando y utilizando las posibilidades que proporciona el sistema gestor.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0484"}
+  ],
+  "assessmentCriteria": {
+    "RA1": [
+      {"id": "RA1.a", "description": "Se han analizado los sistemas lógicos de almacenamiento y sus características."},
+      {"id": "RA1.b", "description": "Se han identificado los distintos tipos de bases de datos según el modelo de datos utilizado."},
+      {"id": "RA1.c", "description": "Se han identificado los distintos tipos de bases de datos en función de la ubicación de la información."},
+      {"id": "RA1.d", "description": "Se ha evaluado la utilidad de un sistema gestor de bases de datos."},
+      {"id": "RA1.e", "description": "Se ha reconocido la función de cada uno de los elementos de un sistema gestor de bases de datos."},
+      {"id": "RA1.f", "description": "Se han clasificado los sistemas gestores de bases de datos."},
+      {"id": "RA1.g", "description": "Se ha reconocido la utilidad de las bases de datos distribuidas."},
+      {"id": "RA1.h", "description": "Se han analizado las políticas de fragmentación de la información."},
+      {"id": "RA1.i", "description": "Se ha identificado la legislación vigente sobre protección de datos."},
+      {"id": "RA1.j", "description": "Se han reconocido los conceptos de Big Data y de la inteligencia de negocios."}
+    ],
+    "RA2": [
+      {"id": "RA2.a", "description": "Se ha analizado el formato de almacenamiento de la información."},
+      {"id": "RA2.b", "description": "Se han creado las tablas y las relaciones entre ellas."},
+      {"id": "RA2.c", "description": "Se han seleccionado los tipos de datos adecuados."},
+      {"id": "RA2.d", "description": "Se han definido los campos clave en las tablas."},
+      {"id": "RA2.e", "description": "Se han implantado las restricciones reflejadas en el diseño lógico."},
+      {"id": "RA2.f", "description": "Se han creado vistas."},
+      {"id": "RA2.g", "description": "Se han creado los usuarios y se les han asignado privilegios."},
+      {"id": "RA2.h", "description": "Se han utilizado asistentes, herramientas gráficas y los lenguajes de definición y control de datos."}
+    ],
+    "RA3": [
+      {"id": "RA3.a", "description": "Se han identificado las herramientas y sentencias para realizar consultas."},
+      {"id": "RA3.b", "description": "Se han realizado consultas simples sobre una tabla."},
+      {"id": "RA3.c", "description": "Se han realizado consultas sobre el contenido de varias tablas mediante composiciones internas."},
+      {"id": "RA3.d", "description": "Se han realizado consultas sobre el contenido de varias tablas mediante composiciones externas."},
+      {"id": "RA3.e", "description": "Se han realizado consultas resumen."},
+      {"id": "RA3.f", "description": "Se han realizado consultas con subconsultas."},
+      {"id": "RA3.g", "description": "Se han realizado consultas que implican múltiples selecciones."},
+      {"id": "RA3.h", "description": "Se han aplicado criterios de optimización de consultas."}
+    ],
+    "RA4": [
+      {"id": "RA4.a", "description": "Se han identificado las herramientas y sentencias para modificar el contenido de la base de datos."},
+      {"id": "RA4.b", "description": "Se han insertado, borrado y actualizado datos en las tablas."},
+      {"id": "RA4.c", "description": "Se ha incluido en una tabla la información resultante de la ejecución de una consulta."},
+      {"id": "RA4.d", "description": "Se han diseñado guiones de sentencias para llevar a cabo tareas complejas."},
+      {"id": "RA4.e", "description": "Se ha reconocido el funcionamiento de las transacciones."},
+      {"id": "RA4.f", "description": "Se han anulado parcial o totalmente los cambios producidos por una transacción."},
+      {"id": "RA4.g", "description": "Se han identificado los efectos de las distintas políticas de bloqueo de registros."},
+      {"id": "RA4.h", "description": "Se han adoptado medidas para mantener la integridad y consistencia de la información."}
+    ],
+    "RA5": [
+      {"id": "RA5.a", "description": "Se han identificado las diversas formas de automatizar tareas."},
+      {"id": "RA5.b", "description": "Se han reconocido los métodos de ejecución de guiones."},
+      {"id": "RA5.c", "description": "Se han identificado las herramientas disponibles para editar guiones."},
+      {"id": "RA5.d", "description": "Se han definido y utilizado guiones para automatizar tareas."},
+      {"id": "RA5.e", "description": "Se ha hecho uso de las funciones proporcionadas por el sistema gestor."},
+      {"id": "RA5.f", "description": "Se han definido procedimientos y funciones de usuario."},
+      {"id": "RA5.g", "description": "Se han utilizado estructuras de control de flujo."},
+      {"id": "RA5.h", "description": "Se han definido eventos y disparadores."},
+      {"id": "RA5.i", "description": "Se han utilizado cursores."},
+      {"id": "RA5.j", "description": "Se han utilizado excepciones."}
+    ],
+    "RA6": [
+      {"id": "RA6.a", "description": "Se han utilizado herramientas gráficas para representar el diseño lógico."},
+      {"id": "RA6.b", "description": "Se han identificado las tablas del diseño lógico."},
+      {"id": "RA6.c", "description": "Se han identificado los campos que forman parte de las tablas del diseño lógico."},
+      {"id": "RA6.d", "description": "Se han analizado las relaciones entre las tablas del diseño lógico."},
+      {"id": "RA6.e", "description": "Se han identificado los campos clave."},
+      {"id": "RA6.f", "description": "Se han aplicado reglas de integridad."},
+      {"id": "RA6.g", "description": "Se han aplicado reglas de normalización."},
+      {"id": "RA6.h", "description": "Se han analizado y documentado las restricciones que no pueden plasmarse en el diseño lógico."}
+    ],
+    "RA7": [
+      {"id": "RA7.a", "description": "Se han caracterizado las bases de datos no relacionales."},
+      {"id": "RA7.b", "description": "Se han evaluado los principales tipos de bases de datos no relacionales."},
+      {"id": "RA7.c", "description": "Se han identificado los elementos utilizados en estas bases de datos."},
+      {"id": "RA7.d", "description": "Se han identificado distintas formas de gestión de la información según el tipo de base de datos no relacionales."},
+      {"id": "RA7.e", "description": "Se han utilizado las herramientas del sistema gestor para la gestión de la información almacenada."}
+    ]
+  },
+  "officialContents": [
+    {"section": "Almacenamiento de la información", "items": ["Ficheros (planos, indexados, acceso directo, entre otros)", "Bases de datos. Conceptos, usos y tipos", "Sistemas gestores de base de datos: Funciones, componentes y tipos", "Bases de datos centralizadas y distribuidas. Técnicas de fragmentación", "Legislación sobre protección de datos", "Big Data: introducción, análisis de datos, inteligencia de negocios"]},
+    {"section": "Bases de datos relacionales", "items": ["Modelo de datos", "Terminología del modelo relacional", "Tipos de datos", "Claves primarias", "Restricciones de validación", "Índices", "El valor NULL", "Claves ajenas", "Vistas", "Usuarios. Privilegios", "DDL", "DCL"]},
+    {"section": "Realización de consultas", "items": ["Proyección, selección y ordenación", "Operadores", "Consultas de resumen", "Agrupamiento", "Composiciones internas", "Composiciones externas", "Subconsultas", "Múltiples selecciones", "Optimización"]},
+    {"section": "Tratamiento de datos", "items": ["Inserción, borrado y modificación", "Integridad referencial", "Subconsultas en órdenes de edición", "Transacciones", "Políticas de bloqueo. Concurrencia"]},
+    {"section": "Programación de bases de datos", "items": ["Introducción", "Variables del sistema y de usuario", "Funciones", "Estructuras de control de flujo", "Procedimientos almacenados", "Eventos y disparadores", "Excepciones", "Cursores"]},
+    {"section": "Interpretación de Diagramas Entidad/Relación", "items": ["Modelo E/R", "Modelo E/R ampliado", "Paso E/R al modelo relacional", "Restricciones semánticas", "Normalización"]},
+    {"section": "Uso de bases de datos no relacionales", "items": ["Características", "Tipos", "Elementos", "Sistemas gestores", "Herramientas de gestión"]}
+  ]
+}

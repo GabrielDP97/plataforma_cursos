@@ -1,0 +1,178 @@
+{
+  "jurisdiction": "andalucia",
+  "academicYear": "2026-2027",
+  "degree": ["DAM", "DAW"],
+  "year": 1,
+  "moduleCode": "0485",
+  "officialName": "Programación",
+  "weeklyHours": 8,
+  "totalHours": 272,
+  "stateMinimumHours": 135,
+  "ects": 14,
+  "sources": [
+    {
+      "sourceId": "BOE-A-2023-13221",
+      "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-13221",
+      "sourceTitle": "Real Decreto 405/2023, de 29 de mayo",
+      "sourceDate": "2023-06-03",
+      "annex": "ANEXO I"
+    }
+  ],
+  "learningOutcomes": [
+    {
+      "id": "RA1",
+      "description": "Reconoce la estructura de un programa informático, identificando y relacionando los elementos propios del lenguaje de programación utilizado.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA2",
+      "description": "Escribe y prueba programas sencillos, reconociendo y aplicando los fundamentos de la programación orientada a objetos.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA3",
+      "description": "Escribe y depura código, analizando y utilizando las estructuras de control del lenguaje.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA4",
+      "description": "Desarrolla programas organizados en clases analizando y aplicando los principios de la programación orientada a objetos.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA5",
+      "description": "Realiza operaciones de entrada y salida de información, utilizando procedimientos específicos del lenguaje y librerías de clases.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA6",
+      "description": "Escribe programas que manipulen información seleccionando y utilizando tipos avanzados de datos.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA7",
+      "description": "Desarrolla programas aplicando características avanzadas de los lenguajes orientados a objetos y del entorno de programación.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA8",
+      "description": "Utiliza bases de datos orientadas a objetos, analizando sus características y aplicando técnicas para mantener la persistencia de la información.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    },
+    {
+      "id": "RA9",
+      "description": "Gestiona información almacenada en bases de datos manteniendo la integridad y consistencia de los datos.",
+      "sourceRef": "BOE-A-2023-13221, ANEXO I, 0485"
+    }
+  ],
+  "assessmentCriteria": {
+    "RA1": [
+      {"id": "RA1.a", "description": "Se han identificado los bloques que componen la estructura de un programa informático."},
+      {"id": "RA1.b", "description": "Se han creado proyectos de desarrollo de aplicaciones."},
+      {"id": "RA1.c", "description": "Se han utilizado entornos integrados de desarrollo."},
+      {"id": "RA1.d", "description": "Se han identificado los distintos tipos de variables y la utilidad específica de cada uno."},
+      {"id": "RA1.e", "description": "Se ha modificado el código de un programa para crear y utilizar variables."},
+      {"id": "RA1.f", "description": "Se han creado y utilizado constantes y literales."},
+      {"id": "RA1.g", "description": "Se han clasificado, reconocido y utilizado en expresiones los operadores del lenguaje."},
+      {"id": "RA1.h", "description": "Se ha comprobado el funcionamiento de las conversiones de tipo explícitas e implícitas."},
+      {"id": "RA1.i", "description": "Se han introducido comentarios en el código."}
+    ],
+    "RA2": [
+      {"id": "RA2.a", "description": "Se han identificado los fundamentos de la programación orientada a objetos."},
+      {"id": "RA2.b", "description": "Se han escrito programas simples."},
+      {"id": "RA2.c", "description": "Se han instanciado objetos a partir de clases predefinidas."},
+      {"id": "RA2.d", "description": "Se han utilizado métodos y propiedades de los objetos."},
+      {"id": "RA2.e", "description": "Se han escrito llamadas a métodos estáticos."},
+      {"id": "RA2.f", "description": "Se han utilizado parámetros en la llamada a métodos."},
+      {"id": "RA2.g", "description": "Se han incorporado y utilizado librerías de objetos."},
+      {"id": "RA2.h", "description": "Se han utilizado constructores."},
+      {"id": "RA2.i", "description": "Se ha utilizado el entorno integrado de desarrollo en la creación y compilación de programas simples."}
+    ],
+    "RA3": [
+      {"id": "RA3.a", "description": "Se ha escrito y probado código que haga uso de estructuras de selección."},
+      {"id": "RA3.b", "description": "Se han utilizado estructuras de repetición."},
+      {"id": "RA3.c", "description": "Se han reconocido las posibilidades de las sentencias de salto."},
+      {"id": "RA3.d", "description": "Se ha escrito código utilizando control de excepciones."},
+      {"id": "RA3.e", "description": "Se han creado programas ejecutables utilizando diferentes estructuras de control."},
+      {"id": "RA3.f", "description": "Se han probado y depurado los programas."},
+      {"id": "RA3.g", "description": "Se ha comentado y documentado el código."},
+      {"id": "RA3.h", "description": "Se han creado excepciones."},
+      {"id": "RA3.i", "description": "Se han utilizado aserciones para la detección y corrección de errores durante la fase de desarrollo."}
+    ],
+    "RA4": [
+      {"id": "RA4.a", "description": "Se ha reconocido la sintaxis, estructura y componentes típicos de una clase."},
+      {"id": "RA4.b", "description": "Se han definido clases."},
+      {"id": "RA4.c", "description": "Se han definido propiedades y métodos."},
+      {"id": "RA4.d", "description": "Se han creado constructores."},
+      {"id": "RA4.e", "description": "Se han desarrollado programas que instancien y utilicen objetos de las clases creadas anteriormente."},
+      {"id": "RA4.f", "description": "Se han utilizado mecanismos para controlar la visibilidad de las clases y de sus miembros."},
+      {"id": "RA4.g", "description": "Se han definido y utilizado clases heredadas."},
+      {"id": "RA4.h", "description": "Se han creado y utilizado métodos estáticos."},
+      {"id": "RA4.i", "description": "Se han creado y utilizado conjuntos y librerías de clases."}
+    ],
+    "RA5": [
+      {"id": "RA5.a", "description": "Se ha utilizado la consola para realizar operaciones de entrada y salida de información."},
+      {"id": "RA5.b", "description": "Se han aplicado formatos en la visualización de la información."},
+      {"id": "RA5.c", "description": "Se han reconocido las posibilidades de entrada / salida del lenguaje y las librerías asociadas."},
+      {"id": "RA5.d", "description": "Se han utilizado ficheros para almacenar y recuperar información."},
+      {"id": "RA5.e", "description": "Se han creado programas que utilicen diversos métodos de acceso al contenido de los ficheros."},
+      {"id": "RA5.f", "description": "Se han utilizado las herramientas del entorno de desarrollo para crear interfaces gráficos de usuario simples."},
+      {"id": "RA5.g", "description": "Se han programado controladores de eventos."},
+      {"id": "RA5.h", "description": "Se han escrito programas que utilicen interfaces gráficos para la entrada y salida de información."}
+    ],
+    "RA6": [
+      {"id": "RA6.a", "description": "Se han escrito programas que utilicen matrices (arrays)."},
+      {"id": "RA6.b", "description": "Se han reconocido las librerías de clases relacionadas con tipos de datos avanzados."},
+      {"id": "RA6.c", "description": "Se han utilizado listas para almacenar y procesar información."},
+      {"id": "RA6.d", "description": "Se han utilizado iteradores para recorrer los elementos de las listas."},
+      {"id": "RA6.e", "description": "Se han reconocido las características y ventajas de cada una de las colecciones de datos disponibles."},
+      {"id": "RA6.f", "description": "Se han creado clases y métodos genéricos."},
+      {"id": "RA6.g", "description": "Se han utilizado expresiones regulares en la búsqueda de patrones en cadenas de texto."},
+      {"id": "RA6.h", "description": "Se han identificado las clases relacionadas con el tratamiento de documentos escritos en diferentes lenguajes de intercambio de datos."},
+      {"id": "RA6.i", "description": "Se han realizado programas que realicen manipulaciones sobre documentos escritos en diferentes lenguajes de intercambio de datos."},
+      {"id": "RA6.j", "description": "Se han utilizado operaciones agregadas para el manejo de información almacenada en colecciones."}
+    ],
+    "RA7": [
+      {"id": "RA7.a", "description": "Se han identificado los conceptos de herencia, superclase y subclase."},
+      {"id": "RA7.b", "description": "Se han utilizado modificadores para bloquear y forzar la herencia de clases y métodos."},
+      {"id": "RA7.c", "description": "Se ha reconocido la incidencia de los constructores en la herencia."},
+      {"id": "RA7.d", "description": "Se han creado clases heredadas que sobrescriben la implementación de métodos de la superclase."},
+      {"id": "RA7.e", "description": "Se han diseñado y aplicado jerarquías de clases."},
+      {"id": "RA7.f", "description": "Se han probado y depurado las jerarquías de clases."},
+      {"id": "RA7.g", "description": "Se han realizado programas que implementen y utilicen jerarquías de clases."},
+      {"id": "RA7.h", "description": "Se ha comentado y documentado el código."},
+      {"id": "RA7.i", "description": "Se han identificado y evaluado los escenarios de uso de interfaces."},
+      {"id": "RA7.j", "description": "Se han identificado y evaluado los escenarios de utilización de la herencia y la composición."}
+    ],
+    "RA8": [
+      {"id": "RA8.a", "description": "Se han identificado las características de las bases de datos orientadas a objetos."},
+      {"id": "RA8.b", "description": "Se ha analizado su aplicación en el desarrollo de aplicaciones mediante lenguajes orientados a objetos."},
+      {"id": "RA8.c", "description": "Se han instalado sistemas gestores de bases de datos orientados a objetos."},
+      {"id": "RA8.d", "description": "Se han clasificado y analizado los distintos métodos soportados por los sistemas gestores para la gestión de la información almacenada."},
+      {"id": "RA8.e", "description": "Se han creado bases de datos y las estructuras necesarias para el almacenamiento de objetos."},
+      {"id": "RA8.f", "description": "Se han programado aplicaciones que almacenen objetos en las bases de datos creadas."},
+      {"id": "RA8.g", "description": "Se han realizado programas para recuperar, actualizar y eliminar objetos de las bases de datos."},
+      {"id": "RA8.h", "description": "Se han realizado programas para almacenar y gestionar tipos de datos estructurados, compuestos y relacionados."}
+    ],
+    "RA9": [
+      {"id": "RA9.a", "description": "Se han identificado las características y métodos de acceso a sistemas gestores de bases de datos."},
+      {"id": "RA9.b", "description": "Se han programado conexiones con bases de datos."},
+      {"id": "RA9.c", "description": "Se ha escrito código para almacenar información en bases de datos."},
+      {"id": "RA9.d", "description": "Se han creado programas para recuperar y mostrar información almacenada en bases de datos."},
+      {"id": "RA9.e", "description": "Se han efectuado borrados y modificaciones sobre la información almacenada."},
+      {"id": "RA9.f", "description": "Se han creado aplicaciones que muestren la información almacenada en bases de datos."},
+      {"id": "RA9.g", "description": "Se han creado aplicaciones para gestionar la información presente en bases de datos."}
+    ]
+  },
+  "officialContents": [
+    {"section": "Identificación de los elementos de un programa informático", "items": ["Estructura y bloques fundamentales", "Variables", "Tipos de datos", "Literales", "Constantes", "Operadores y expresiones", "Conversiones de tipo", "Comentarios"]},
+    {"section": "Utilización de objetos", "items": ["Características de los objetos", "Instanciación de objetos", "Utilización de métodos. Parámetros", "Utilización de propiedades", "Utilización de métodos estáticos", "Constructores", "Destrucción de objetos y liberación de memoria"]},
+    {"section": "Uso de estructuras de control", "items": ["Estructuras de selección", "Estructuras de repetición", "Estructuras de salto", "Control de excepciones", "Aserciones", "Prueba, depuración y documentación de la aplicación"]},
+    {"section": "Desarrollo de clases", "items": ["Concepto de clase", "Estructura y miembros de una clase. Visibilidad", "Creación de propiedades", "Creación de métodos", "Creación de constructores", "Utilización de clases y objetos", "Utilización de clases heredadas"]},
+    {"section": "Lectura y escritura de información", "items": ["Flujos. Tipos: bytes y caracteres. Clases relacionadas", "Ficheros de datos. Registros", "Apertura y cierre de ficheros. Modos de acceso", "Utilización de los sistemas de ficheros", "Creación y eliminación de ficheros y directorios", "Entrada desde teclado. Salida a pantalla. Formatos", "Interfaces gráficas", "Concepto de evento", "Creación de controladores de eventos"]},
+    {"section": "Aplicación de las estructuras de almacenamiento", "items": ["Estructuras estáticas y dinámicas", "Creación de matrices (arrays)", "Matrices (arrays) multidimensionales", "Genericidad", "Cadenas de caracteres. Expresiones regulares", "Colecciones: Listas, Conjuntos y Diccionarios", "Operaciones agregadas: filtrado, reducción y recolección"]},
+    {"section": "Utilización avanzada de clases", "items": ["Composición de clases", "Herencia y polimorfismo", "Jerarquía de clases: Superclases y subclases", "Clases y métodos abstractos y finales", "Interfaces", "Sobreescritura de métodos", "Constructores y herencia"]},
+    {"section": "Mantenimiento de la persistencia de los objetos", "items": ["Bases de datos orientadas a objetos", "Características de las BDOO", "Instalación del gestor", "Creación de bases de datos", "Mecanismos de consulta", "Lenguaje de consultas", "Recuperación, modificación y borrado", "Tipos de datos objeto", "Tipos de datos colección"]},
+    {"section": "Gestión de bases de datos", "items": ["Acceso a bases de datos. Estándares", "Establecimiento de conexiones", "Almacenamiento, recuperación, actualización y eliminación"]}
+  ]
+}

@@ -1,0 +1,320 @@
+{
+  "id": "mod-10",
+  "title": "POO — Avanzado",
+  "description": "Este módulo completa la fase de POO con conceptos avanzados: diseño de jerarquías de clases complejas, documentación con Javadoc, patrones de diseño introductorios y buenas prácticas de arquitectura orientada a objetos. Se consolida todo lo aprendido en los módulos anteriores con un enfoque en código mantenible y escalable.",
+  "phase": "phase-4",
+  "position": 10,
+  "learningOutcomes": [
+    "RA4",
+    "RA7"
+  ],
+  "assessmentCriteria": [
+    "RA4.g",
+    "RA4.i",
+    "RA7.h"
+  ],
+  "officialContents": [
+    "Desarrollo de clases",
+    "Utilización avanzada de clases"
+  ],
+  "duration": "12 hours estimated",
+  "difficulty": "advanced",
+  "prerequisites": [
+    "mod-08",
+    "mod-09"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-10-1",
+      "title": "Jerarquías de clases complejas",
+      "objectives": [
+        "Diseñar jerarquías de clases de 3 o más niveles",
+        "Aplicar los principios SOLID a nivel básico",
+        "Gestionar la complejidad en sistemas con múltiples tipos",
+        "Crear sistemas completos que integren herencia, composición e interfaces"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Diseñando jerarquías robustas",
+          "content": "Las jerarquías de clases profundas (3+ niveles) son comunes en sistemas reales. Pero requieren cuidado para no crear código rígido y difícil de mantener.\n\n**Principios básicos para diseñar jerarquías:**\n\n1. **Principio de Sustitución de Liskov (LSP)**: donde se espere un objeto de tipo `A`, debe poder ponerse un objeto de tipo `B` (subclase de `A`) sin que el programa falle.\n\n2. **Principio de Responsabilidad Única (SRP)**: cada clase debe tener una sola razón para cambiar. Si una clase hace demasiadas cosas, divídela.\n\n3. **Principio de Abierto/Cerrado (OCP)**: las clases deben estar abiertas a extensión pero cerradas a modificación. Puedes añadir nuevas subclases sin modificar las existentes.\n\n4. **No hierarchical programming**: no diseñes jerarquías para casar con una estructura de datos concreta. Diseña para el comportamiento."
+        },
+        {
+          "type": "code",
+          "title": "Jerarquía completa: Sistema de gestión escolar",
+          "language": "java",
+          "content": "// === NIVEL 1: Clase base ===\npublic abstract class Persona {\n    protected String nombre;\n    protected String email;\n    protected int edad;\n\n    public Persona(String nombre, String email, int edad) {\n        this.nombre = nombre;\n        this.email = email;\n        this.edad = edad;\n    }\n\n    public String getNombre() { return nombre; }\n    public String getEmail() { return email; }\n    public int getEdad() { return edad; }\n\n    public abstract String getRol();\n\n    @Override\n    public String toString() {\n        return getRol() + \": \" + nombre + \" (\" + email + \")\";\n    }\n}\n\n// === NIVEL 2: Empleado y Alumno ===\npublic abstract class Empleado extends Persona {\n    protected double salarioBase;\n    protected Departamento departamento; // COMPOSICION\n\n    public Empleado(String nombre, String email, int edad, double salario, Departamento dept) {\n        super(nombre, email, edad);\n        this.salarioBase = salario;\n        this.departamento = dept;\n    }\n\n    public abstract double calcularSalario();\n\n    @Override\n    public String getRol() { return \"Empleado\"; }\n\n    public String getInfo() {\n        return toString() + \" | Dept: \" + departamento.getNombre()\n             + \" | Salario: \" + String.format(\"%.2f\", calcularSalario());\n    }\n}\n\npublic class Alumno extends Persona {\n    private HistorialAcademico historial; // COMPOSICION\n    private Direccion direccion;           // COMPOSICION\n\n    public Alumno(String nombre, String email, int edad, Direccion dir) {\n        super(nombre, email, edad);\n        this.historial = new HistorialAcademico();\n        this.direccion = dir;\n    }\n\n    public void addNota(double nota) { historial.addNota(nota); }\n    public double getNotaMedia() { return historial.getMedia(); }\n    public Direccion getDireccion() { return direccion; }\n    public HistorialAcademico getHistorial() { return historial; }\n\n    @Override\n    public String getRol() { return \"Alumno\"; }\n}\n\n// === NIVEL 3: Subtipes de Empleado ===\npublic class Profesor extends Empleado {\n    private String especialidad;\n\n    public Profesor(String n, String e, int ed, double s, Departamento d, String esp) {\n        super(n, e, ed, s, d);\n        this.especialidad = esp;\n    }\n\n    public String getEspecialidad() { return especialidad; }\n\n    @Override\n    public double calcularSalario() { return salarioBase; }\n\n    @Override\n    public String getRol() { return \"Profesor\"; }\n}\n\npublic class Administrativo extends Empleado {\n    private String categoria;\n\n    public Administrativo(String n, String e, int ed, double s, Departamento d, String cat) {\n        super(n, e, ed, s, d);\n        this.categoria = cat;\n    }\n\n    @Override\n    public double calcularSalario() {\n        double extra = categoria.equals(\"Senior\") ? 300 : 0;\n        return salarioBase + extra;\n    }\n\n    @Override\n    public String getRol() { return \"Administrativo\"; }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Composición: clases de soporte",
+          "language": "java",
+          "content": "public class Departamento {\n    private String nombre;\n    private int capacidad;\n    private Profesor director; // COMPOSICION: el departamento tiene un director\n\n    public Departamento(String nombre, int capacidad) {\n        this.nombre = nombre;\n        this.capacidad = capacidad;\n    }\n\n    public String getNombre() { return nombre; }\n    public int getCapacidad() { return capacidad; }\n    public void setDirector(Profesor d) { this.director = d; }\n    public Profesor getDirector() { return director; }\n\n    @Override\n    public String toString() { return nombre; }\n}\n\npublic class Direccion {\n    private String calle;\n    private String ciudad;\n    private String codigoPostal;\n\n    public Direccion(String calle, String ciudad, String codigoPostal) {\n        this.calle = calle;\n        this.ciudad = ciudad;\n        this.codigoPostal = codigoPostal;\n    }\n\n    @Override\n    public String toString() {\n        return calle + \", \" + ciudad + \" (\" + codigoPostal + \")\";\n    }\n}\n\nimport java.util.ArrayList;\nimport java.util.List;\n\npublic class HistorialAcademico {\n    private List<Double> notas = new ArrayList<>();\n    private List<String> asignaturas = new ArrayList<>();\n\n    public void addNota(double nota) { notas.add(nota); }\n    public void addAsignatura(String asig) { asignaturas.add(asig); }\n\n    public double getMedia() {\n        if (notas.isEmpty()) return 0;\n        return notas.stream().mapToDouble(Double::doubleValue).average().orElse(0);\n    }\n\n    public int getNumNotas() { return notas.size(); }\n    public List<Double> getNotas() { return new ArrayList<>(notas); }\n    public List<String>getAsignaturas() { return new ArrayList<>(asignaturas); }\n\n    public String getResumen() {\n        return \"Notas: \" + getNumNotas() + \" | Media: \" + String.format(\"%.1f\", getMedia());\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Sistema completo en acción",
+          "language": "java",
+          "content": "public class Instituto {\n    private String nombre;\n    private List<Departamento> departamentos = new ArrayList<>();\n    private List<Alumno> alumnos = new ArrayList<>();\n    private List<Empleado> empleados = new ArrayList<>();\n\n    public Instituto(String nombre) { this.nombre = nombre; }\n\n    public void addDepartamento(Departamento d) { departamentos.add(d); }\n    public void addAlumno(Alumno a) { alumnos.add(a); }\n    public void addEmpleado(Empleado e) { empleados.add(e); }\n\n    public double getGastoTotalSalarios() {\n        return empleados.stream().mapToDouble(Empleado::calcularSalario).sum();\n    }\n\n    public Alumno getMejorAlumno() {\n        return alumnos.stream()\n            .max(Comparator.comparingDouble(Alumno::getNotaMedia))\n            .orElse(null);\n    }\n\n    public void mostrarInforme() {\n        System.out.println(\"=== INFORME: \" + nombre + \" ===\");\n        System.out.println(\"\\n--- Departamentos ---\");\n        for (Departamento d : departamentos) {\n            System.out.println(\"  \" + d + (d.getDirector() != null ? \" (Dir: \" + d.getDirector().getNombre() + \")\" : \"\"));\n        }\n        System.out.println(\"\\n--- Empleados ---\");\n        for (Empleado e : empleados) {\n            System.out.println(\"  \" + e.getInfo());\n        }\n        System.out.printf(\"\\nGasto total salarios: %.2f EUR%n\", getGastoTotalSalarios());\n        System.out.println(\"\\n--- Alumnos ---\");\n        for (Alumno a : alumnos) {\n            System.out.printf(\"  %s | Media: %.1f%n\", a.getNombre(), a.getNotaMedia());\n        }\n        Alumno mejor = getMejorAlumno();\n        if (mejor != null) {\n            System.out.println(\"\\nMejor alumno: \" + mejor.getNombre()\n                 + \" (\" + String.format(\"%.1f\", mejor.getNotaMedia()) + \")\");\n        }\n    }\n\n    public static void main(String[] args) {\n        // Crear departamento\n        Departamento info = new Departamento(\"Informatica\", 30);\n\n        // Crear empleados\n        Profesor prof1 = new Profesor(\"Garcia\", \"garcia@ies.es\", 45, 2200, info, \"Java\");\n        info.setDirector(prof1);\n        Administrativo admin = new Administrativo(\"Lopez\", \"lopez@ies.es\", 40, 1600, info, \"Senior\");\n\n        // Crear alumnos\n        Alumno a1 = new Alumno(\"Ana\", \"ana@email.com\", 20, new Direccion(\"Calle Mayor\", \"Sevilla\", \"41001\"));\n        a1.addNota(8.5); a1.addNota(7.0);\n        Alumno a2 = new Alumno(\"Carlos\", \"carlos@email.com\", 19, new Direccion(\"Avda. Libertad\", \"Malaga\", \"29001\"));\n        a2.addNota(9.2); a2.addNota(8.8);\n\n        // Montar instituto\n        Instituto ies = new Instituto(\"IES Tecnologia\");\n        ies.addDepartamento(info);\n        ies.addEmpleado(prof1);\n        ies.addEmpleado(admin);\n        ies.addAlumno(a1);\n        ies.addAlumno(a2);\n\n        ies.mostrarInforme();\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-10-1-1",
+          "difficulty": "basic",
+          "title": "Diseñar una jerarquía",
+          "description": "Diseña una jerarquía para un sistema de mensajería: `Mensaje` (abstracta) → `MensajeTexto`, `MensajeEmail`, `MensajeVoz`. Cada tipo tiene campos específicos. Identifica qué es herencia y qué es composición.",
+          "solution": "// HERENCIA:\n// Mensaje (abstracta) → MensajeTexto, MensajeEmail, MensajeVoz\n// Comportamiento comun: enviar(), getRemitente(), getDestinatario()\n//\n// COMPOSICION:\n// Mensaje tiene Remitente (String o Contacto)\n// Mensaje tiene Destinatario\n// Mensaje tiene FechaEnvio\n// MensajeVoz tiene Duracion (segundos)\n// MensajeEmail tiene Asunto, Adjuntos"
+        },
+        {
+          "id": "ex-10-1-2",
+          "difficulty": "intermediate",
+          "title": "Sistema de ventas con jerarquía",
+          "description": "Crea `Producto` (abstracta) → `ProductoFisico` (peso, dimensiones) y `ProductoDigital` (tamanioMB, formato). Ambos implementan `Vendible` (getPrecio(), getDescripcion()). Crea una `Tienda` que gestione un catálogo de productos.",
+          "solution": "public interface Vendible {\n    double getPrecio();\n    String getDescripcion();\n}\n\npublic abstract class Producto implements Vendible {\n    protected String nombre;\n    protected double precio;\n    public Producto(String n, double p) { this.nombre = n; this.precio = p; }\n    @Override public double getPrecio() { return precio; }\n}\n\npublic class ProductoFisico extends Producto {\n    private double pesoKg;\n    public ProductoFisico(String n, double p, double peso) { super(n, p); this.pesoKg = peso; }\n    @Override public String getDescripcion() { return nombre + \" (\" + pesoKg + \"kg) - \" + precio + \" EUR\"; }\n}\n\npublic class ProductoDigital extends Producto {\n    private double tamanioMB;\n    private String formato;\n    public ProductoDigital(String n, double p, double tMB, String f) { super(n, p); this.tamanioMB = tMB; this.formato = f; }\n    @Override public String getDescripcion() { return nombre + \" (\" + tamanioMB + \"MB, \" + formato + \") - \" + precio + \" EUR\"; }\n}\n\npublic class Tienda {\n    private String nombre;\n    private List<Vendible> catalogo = new ArrayList<>();\n    public Tienda(String n) { this.nombre = n; }\n    public void addProducto(Vendible p) { catalogo.add(p); }\n    public void mostrarCatalogo() {\n        System.out.println(\"Catalogo de \" + nombre + \":\");\n        for (Vendible v : catalogo) System.out.println(\"  \" + v.getDescripcion());\n    }\n    public double getPrecioTotal() {\n        return catalogo.stream().mapToDouble(Vendible::getPrecio).sum();\n    }\n}"
+        },
+        {
+          "id": "ex-10-1-3",
+          "difficulty": "advanced",
+          "title": "Sistema de biblioteca completo",
+          "description": "Crea un sistema de biblioteca con:\n- `RecursoBiblioteca` (abstracta) → `Libro`, `Revista`, `DVD`, `Ebook`\n- Interfaces: `Prestable`, `Buscable`, `Catalogable`\n- Composición: `Ubicacion`, `EstadoRecurso`, `RegistroPrestamo`\n- Clase `Biblioteca` que gestione catálogo, préstamos y búsquedas\n- Al menos 3 métodos de búsqueda polimórficos",
+          "solution": "// Estructura completa:\n// Interfaces:\n//   Prestable: prestar(), devolver(), isDisponible()\n//   Buscable: buscarPorTitulo(String), buscarPorAutor(String)\n//   Catalogable: getCodigo(), getTipo()\n//\n// Composicion:\n//   Ubicacion: estante, pasillo, planta\n//   EstadoRecurso: disponible/prestado/reservado/mantenimiento\n//   RegistroPrestamo: recurso, usuario, fechaPrestamo, fechaDevolucion\n//\n// Jerarquía:\n//   RecursoBiblioteca (abstracta, implements Prestable, Catalogable)\n//     Libro: autor, numPaginas, editorial\n//     Revista: numero, periodicidad\n//     DVD: duracion, director\n//     Ebook: tamanioMB, formato\n//\n// Biblioteca:\n//   List<RecursoBiblioteca> catalogo\n//   List<RegistroPrestamo> prestamos\n//   buscarPorTitulo(String)\n//   buscarDisponibles()\n//   getRecurseMasPrestado()\n//   getEstadisticas()"
+        }
+      ],
+      "commonErrors": [
+        "Crear jerarquías demasiado profundas (más de 3-4 niveles). Son difíciles de mantener.",
+        "No aplicar LSP: una subclase que rompe el comportamiento esperado de la superclase.",
+        "Poner demasiada lógica en la clase base. Las subclases deben poder variar libremente.",
+        "No usar composición cuando la relación no es claramente \"es un tipo de\".",
+        "Diseñar jerarquías rígidas que no permiten añadir nuevos tipos sin modificar código existente."
+      ],
+      "keyConcepts": [
+        "Diseño de jerarquías de 3+ niveles",
+        "Principios SOLID: SRP, OCP, LSP (introducción)",
+        "Combinación de herencia, composición e interfaces en sistemas complejos",
+        "Clases de soporte por composición: Ubicacion, Estado, Historial",
+        "Sistemas completos con múltiples tipos y polimorfismo",
+        "Mantenibilidad y escalabilidad en diseño POO"
+      ],
+      "learningOutcomes": [
+        "RA4",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA4.g",
+        "RA7.g"
+      ]
+    },
+    {
+      "id": "lesson-10-2",
+      "title": "Documentación con Javadoc",
+      "objectives": [
+        "Escribir documentación Javadoc completa en clases, métodos y campos",
+        "Usar todas las etiquetas Javadoc relevantes: @param, @return, @throws, @see, @since, @version",
+        "Generar documentación HTML con la herramienta javadoc",
+        "Aplicar buenas prácticas de documentación en proyectos reales"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Javadoc: documentación generada del código",
+          "content": "Javadoc es el sistema estándar de Java para documentar código. Consiste en comentarios especiales (`/** ... */`) que la herramienta `javadoc` convierte en documentación HTML navegable.\n\n**¿Por qué documentar con Javadoc?**\n1. **API pública**: si tu clase va a ser usada por otros programadores, necesitan saber cómo usarla.\n2. **Mantenimiento**: la documentación vive junto al código, no en un documento separado que se queda obsoleto.\n3. **IDE**: Eclipse IDE muestra la documentación Javadoc al pasar el ratón sobre clases y métodos.\n4. **Estándar**: es el formato que usa toda la API de Java (java.lang, java.util, etc.).\n\n**Estructura básica:**\n\n```java\n/**\n * Breve descripcion de lo que hace la clase/metodo.\n * \n * Descripcion mas detallada si es necesaria.\n * Puede ocupar varias lineas.\n * \n * @param nombre descripcion del parametro\n * @return descripcion del valor devuelto\n * @throws ExcepcionSi_algo_sale_mal si ocurre algo\n */\n```"
+        },
+        {
+          "type": "code",
+          "title": "Javadoc completo de una clase",
+          "language": "java",
+          "content": "/**\n * Clase que representa un alumno en el sistema de gestion escolar.\n * \n * <p>Un Alumno tiene nombre, email y nota media. Permite calcular\n * su calificacion y comprobar si esta aprobado.</p>\n * \n * <p>Esta clase forma parte de la jerarquia de personas del sistema:\n * {@code Persona → Alumno}.</p>\n * \n * @author Profesor de Programacion\n * @version 2.0\n * @since 1.0\n * @see Persona\n * @see AlumnoBecario\n */\npublic class Alumno extends Persona {\n\n    /** Nota minima para estar aprobado */\n    public static final double NOTA_APROBADO = 5.0;\n\n    /** Nota maxima posible */\n    public static final double NOTA_MAXIMA = 10.0;\n\n    /** Media academica del alumno (0.0 a 10.0) */\n    private double notaMedia;\n\n    /**\n     * Constructor de la clase Alumno.\n     * \n     * @param nombre nombre completo del alumno (no puede estar vacio)\n     * @param email direccion de correo electronico (debe contener @)\n     * @param edad edad del alumno (debe ser mayor que 0)\n     * @throws IllegalArgumentException si el nombre esta vacio,\n     *         el email no es valido o la edad no es positiva\n     */\n    public Alumno(String nombre, String email, int edad) {\n        super(nombre, email, edad);\n        this.notaMedia = 0.0;\n    }\n\n    /**\n     * Obtiene la nota media del alumno.\n     * \n     * @return la nota media, un valor entre {@value #NOTA_MINIMA} y {@value #NOTA_MAXIMA}\n     */\n    public double getNotaMedia() {\n        return notaMedia;\n    }\n\n    /**\n     * Establece la nota media del alumno.\n     * \n     * @param notaMedia nueva nota media (debe estar entre 0.0 y 10.0)\n     * @throws IllegalArgumentException si la nota no esta en el rango valido\n     */\n    public void setNotaMedia(double notaMedia) {\n        if (notaMedia < 0 || notaMedia > 10) {\n            throw new IllegalArgumentException(\n                \"La nota debe estar entre 0 y 10. Valor recibido: \" + notaMedia\n            );\n        }\n        this.notaMedia = notaMedia;\n    }\n\n    /**\n     * Comprueba si el alumno esta aprobado.\n     * \n     * @return {@code true} si la nota media es mayor o igual a {@value #NOTA_APROBADO},\n     *         {@code false} en caso contrario\n     */\n    public boolean estaAprobado() {\n        return notaMedia >= NOTA_APROBADO;\n    }\n\n    /**\n     * Obtiene la calificacion textual segun la nota media.\n     * \n     * <p>Los rangos son:</p>\n     * <ul>\n     *   <li>9.0 - 10.0: Sobresaliente</li>\n     *   <li>7.0 - 8.9: Notable</li>\n     *   <li>5.0 - 6.9: Aprobado</li>\n     *   <li>0.0 - 4.9: Suspenso</li>\n     * </ul>\n     * \n     * @return la calificacion textual correspondiente a la nota media\n     */\n    public String getCalificacion() {\n        if (notaMedia >= 9) return \"Sobresaliente\";\n        if (notaMedia >= 7) return \"Notable\";\n        if (notaMedia >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n\n    @Override\n    public String getRol() { return \"Alumno\"; }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Etiquetas Javadoc más usadas",
+          "content": "| Etiqueta | Uso | Ejemplo |\n|----------|-----|----------|\n| `@param` | Documentar un parámetro | `@param nombre nombre del alumno` |\n| `@return` | Documentar el valor de retorno | `@return true si esta aprobado` |\n| `@throws` | Documentar excepciones lanzadas | `@throws IllegalArgumentException si la nota es invalida` |\n| `@see` | Referencia cruzada a otra clase/método | `@see AlumnoBecario` |\n| `@since` | Versión en que se introdujo | `@since 2.0` |\n| `@version` | Versión de la clase | `@version 1.3` |\n| `@author` | Autor del código | `@author Prof. Garcia` |\n| `{@value}` | Muestra el valor de una constante | `{@value #NOTA_APROBADO}` |\n| `{@link}` | Enlace a otra clase/método | `{@link #getCalificacion()}` |\n| `{@code}` | Formatea código inline | `{@code null}` |\n\n**Etiquetas HTML permitidas en Javadoc:**\n- `<p>` — párrafo\n- `<ul>`, `<li>` — listas\n- `<b>`, `<i>` — negrita, cursiva\n- `<pre>` — bloque de código\n- `<code>` — código inline"
+        },
+        {
+          "type": "code",
+          "title": "Generar documentación con javadoc",
+          "language": "java",
+          "content": "// Para generar la documentación HTML:\n//\n// 1. Desde la terminal:\n//    javadoc -d doc -sourcepath src com.escuela.modelos.Alumno\n//\n// 2. Desde Eclipse IDE:\n//    Source → Generate JavaDoc → Select Scope → OK\n//\n// 3. Desde Maven:\n//    mvn javadoc:javadoc\n//\n// El resultado es un conjunto de archivos HTML en la carpeta 'doc/'.\n// Abre index.html en un navegador para ver la documentación.\n\n// Estructura de salida:\n// doc/\n// ├── index.html          ← Pagina principal\n// ├── Alumno.html         ← Doc de la clase Alumno\n// ├── AlumnoBecario.html  ← Doc de AlumnoBecario\n// ├── allclasses.html     ← Lista de todas las clases\n// ├── constant-values.html ← Valores de constantes\n// └── ...\n\n// Ejemplo de archivo con todas las etiquetas:\n\n/**\n * Clase de ejemplo que demuestra todas las etiquetas Javadoc.\n * \n * <p>Esta clase es solo para fines educativos.</p>\n * \n * @author Profesor de Programacion\n * @version 1.0 (17-09-2026)\n * @since 1.0\n * @see String\n * @see Math\n */\npublic class EjemploJavadoc {\n\n    /**\n     * Calcula el factorial de un numero.\n     * \n     * @param n el numero (debe ser >= 0)\n     * @return el factorial de n\n     * @throws IllegalArgumentException si n es negativo\n     * @see #esPar(int)\n     */\n    public static long factorial(int n) {\n        if (n < 0) throw new IllegalArgumentException(\"n debe ser >= 0\");\n        if (n <= 1) return 1;\n        return n * factorial(n - 1);\n    }\n\n    /**\n     * Comprueba si un numero es par.\n     * \n     * @param n el numero a comprobar\n     * @return {@code true} si n es par, {@code false} si es impar\n     */\n    public static boolean esPar(int n) {\n        return n % 2 == 0;\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Documentación de interfaces",
+          "language": "java",
+          "content": "/**\n * Interfaz que define el comportamiento de un recurso prestable\n * en una biblioteca.\n * \n * <p>Los recursos que implementen esta interfaz podran ser prestados\n * a usuarios de la biblioteca y devueltos posteriormente.</p>\n * \n * @author Profesor de Programacion\n * @version 1.0\n * @since 1.0\n * @see RecursoBiblioteca\n * @see RegistroPrestamo\n */\npublic interface Prestable {\n\n    /**\n     * Presta el recurso al usuario actual.\n     * \n     * @throws IllegalStateException si el recurso no esta disponible\n     */\n    void prestar();\n\n    /**\n     * Devuelve el recurso a la biblioteca.\n     * \n     * @throws IllegalStateException si el recurso no esta prestado\n     */\n    void devolver();\n\n    /**\n     * Comprueba si el recurso esta disponible para prestamo.\n     * \n     * @return {@code true} si esta disponible, {@code false} si esta prestado o reservado\n     */\n    boolean isDisponible();\n\n    /**\n     * Obtiene el codigo unico del recurso.\n     * \n     * @return cadena con el codigo del recurso\n     */\n    String getCodigo();\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-10-2-1",
+          "difficulty": "basic",
+          "title": "Documentar la clase Curso",
+          "description": "Toma la clase `Curso` del módulo 06 y añade documentación Javadoc completa: en la clase, en el constructor, en todos los getters/setters y en al menos 2 métodos de acción.",
+          "solution": "/**\n * Clase que representa un curso del instituto.\n * \n * <p>Un Curso tiene un nombre, un numero de horas totales,\n * un profesor asociado y un estado (activo/inactivo).</p>\n * \n * @author Alumno de 1. DAM/DAW\n * @version 1.0\n * @since 1.0\n */\npublic class Curso {\n    private String nombre;\n    private int horasTotales;\n    private String profesor;\n    private boolean estaActivo;\n    private int numAlumnos;\n\n    /**\n     * Crea un curso nuevo.\n     * \n     * @param nombre nombre del curso\n     * @param horasTotales numero total de horas\n     * @param profesor nombre del profesor\n     */\n    public Curso(String nombre, int horasTotales, String profesor) {\n        this.nombre = nombre;\n        this.horasTotales = horasTotales;\n        this.profesor = profesor;\n        this.estaActivo = true;\n        this.numAlumnos = 0;\n    }\n\n    /**\n     * Matricula un alumno en el curso.\n     * \n     * @throws IllegalStateException si el curso no esta activo\n     */\n    public void matricularAlumno() {\n        if (!estaActivo) throw new IllegalStateException(\"Curso inactivo\");\n        numAlumnos++;\n    }\n\n    // ... getters y setters ...\n}"
+        },
+        {
+          "id": "ex-10-2-2",
+          "difficulty": "intermediate",
+          "title": "Documentar una interfaz completa",
+          "description": "Crea una interfaz `Cacheable` con métodos: `guardar(String clave, Object valor)`, `obtener(String clave)`, `eliminar(String clave)`, `contiene(String clave)`, `limpiar()`. Documenta la interfaz y cada método con Javadoc completo incluyendo @param, @return y @throws.",
+          "solution": "/**\n * Interfaz que define operaciones de cache en memoria.\n * \n * <p>Las implementaciones deben almacenar pares clave-valor\n * en memoria para acceso rapido.</p>\n * \n * @param <K> tipo de la clave\n * @param <V> tipo del valor\n * @author Alumno de 1. DAM/DAW\n * @version 1.0\n */\npublic interface Cacheable<K, V> {\n\n    /**\n     * Guarda un elemento en la cache.\n     * \n     * @param clave clave unica del elemento\n     * @param valor valor a almacenar\n     * @throws IllegalArgumentException si la clave es null\n     */\n    void guardar(K clave, V valor);\n\n    /**\n     * Obtiene un elemento de la cache.\n     * \n     * @param clave clave del elemento\n     * @return el valor, o null si no existe\n     */\n    V obtener(K clave);\n\n    /**\n     * Elimina un elemento de la cache.\n     * \n     * @param clave clave del elemento a eliminar\n     * @return true si existia, false si no\n     */\n    boolean eliminar(K clave);\n\n    /**\n     * Comprueba si una clave existe en la cache.\n     * \n     * @param clave clave a comprobar\n     * @return true si existe\n     */\n    boolean contiene(K clave);\n\n    /**\n     * Vacía la cache completamente.\n     */\n    void limpiar();\n}"
+        },
+        {
+          "id": "ex-10-2-3",
+          "difficulty": "advanced",
+          "title": "Documentar un proyecto completo",
+          "description": "Toma el mini-proyecto del módulo 09 (sistema de empleados) y documenta todas las clases, interfaces y métodos públicos con Javadoc. Genera la documentación HTML con Eclipse IDE.",
+          "solution": "// Pasos:\n// 1. Abrir el proyecto en Eclipse IDE\n// 2. Documentar cada clase con Javadoc:\n//    - @author, @version, @since en la clase\n//    - @param en todos los constructores y metodos con parametros\n//    - @return en todos los metodos que devuelven un valor\n//    - @throws en metodos que lanzan excepciones\n//    - @see para referencias cruzadas\n// 3. Generar HTML:\n//    Source → Generate JavaDoc\n//    - Select Scope: Whole project\n//    - Output directory: doc/\n//    - JVM arguments for additional options: -windowtitle \"API Empleados\" -header \"Sistema de Gestion\"\n//    - OK\n// 4. Abrir doc/index.html en el navegador\n// 5. Verificar que todas las clases y metodos aparecen documentados"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar documentar parámetros y valores de retorno. Un Javadoc incompleto es peor que no tenerlo.",
+        "Documentar código obvio: `// incrementa i` sobre `i++` no aporta nada.",
+        "No actualizar los Javadoc cuando se modifica el código. Un comentario que contradice el código es peligroso.",
+        "Usar Javadoc en métodos privados. Solo documenta la API pública (lo que otros programadores usarán).",
+        "Olvidar que `@throws` debe documentar todas las excepciones que el método puede lanzar."
+      ],
+      "keyConcepts": [
+        "Javadoc como estándar de documentación en Java",
+        "Estructura: descripción, etiquetas @param, @return, @throws, @see, @since, @author",
+        "HTML en Javadoc: <p>, <ul>, <li>, <code>, <pre>",
+        "Generación de documentación HTML con javadoc, Eclipse IDE y Maven",
+        "Documentación de clases, interfaces, métodos, campos y constructores",
+        "Buenas prácticas: documentar la API pública, no el código obvio"
+      ],
+      "learningOutcomes": [
+        "RA4",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA7.h"
+      ]
+    },
+    {
+      "id": "lesson-10-3",
+      "title": "Patrones de diseño introductorios",
+      "objectives": [
+        "Comprender qué son los patrones de diseño y por qué existen",
+        "Conocer el patrón Singleton para instancias únicas",
+        "Conocer el patrón Factory Method para creación de objetos",
+        "Conocer el patrón Strategy para algoritmos intercambiables",
+        "Aplicar estos patrones en el dominio Alumno-Curso"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "¿Qué son los patrones de diseño?",
+          "content": "Un **patrón de diseño** es una solución reutilizable a un problema de diseño que aparece frecuentemente en programación orientada a objetos. No son código hecho, sino plantillas que se adaptan a cada situación.\n\nPiensa en los patrones como recetas de cocina: no son el plato final, sino la forma de prepararlo que siempre funciona.\n\nLos patrones se clasifican en 3 categorías:\n\n1. **Creacionales**: cómo crear objetos de forma flexible y controlada.\n   - Singleton, Factory Method, Builder, Abstract Factory\n\n2. **Estructurales**: cómo componer objetos para formar estructuras más grandes.\n   - Adapter, Decorator, Facade, Composite\n\n3. **De comportamiento**: cómo asignar responsabilidades entre objetos y cómo se comunican.\n   - Strategy, Observer, Command, Template Method\n\nEn este módulo veremos 3 patrones fundamentales que se usan constantemente."
+        },
+        {
+          "type": "text",
+          "title": "Patrón Singleton: una única instancia",
+          "content": "El **Singleton** garantiza que una clase tenga **una sola instancia** y proporciona un punto de acceso global a ella.\n\n**Cuándo usarlo:**\n- Configuración de la aplicación (solo debe haber una).\n- Conexión a base de datos (compartida).\n- Logger (sistema de registro).\n- Cache compartida.\n\n**Implementación en Java:**\n\n```java\npublic class Configuracion {\n    private static Configuracion instancia;\n    private String idioma;\n    private String tema;\n\n    // Constructor privado: nadie puede hacer new desde fuera\n    private Configuracion() {\n        this.idioma = \"es\";\n        this.tema = \"oscuro\";\n    }\n\n    // Metodo estatico: punto de acceso unico\n    public static Configuracion getInstancia() {\n        if (instancia == null) {\n            instancia = new Configuracion();\n        }\n        return instancia;\n    }\n\n    // Getters y setters\n    public String getIdioma() { return idioma; }\n    public void setIdioma(String idioma) { this.idioma = idioma; }\n}\n```\n\n```java\n// Uso:\nConfiguracion config = Configuracion.getInstancia();\nconfig.setIdioma(\"en\");\n\n// Siempre es la misma instancia:\nConfiguracion otra = Configuracion.getInstancia();\nSystem.out.println(otra.getIdioma()); // \"en\" (misma instancia)\n```"
+        },
+        {
+          "type": "code",
+          "title": "Singleton:.Logger en nuestro sistema",
+          "language": "java",
+          "content": "/**\n * Singleton que simula un logger centralizado.\n * \n * <p>Todas las partes del sistema usan la misma instancia\n * para registrar eventos.</p>\n */\npublic class Logger {\n    private static Logger instancia;\n    private List<String> logs = new ArrayList<>();\n\n    private Logger() {} // Constructor privado\n\n    public static Logger getInstancia() {\n        if (instancia == null) {\n            instancia = new Logger();\n        }\n        return instancia;\n    }\n\n    public void info(String mensaje) {\n        String log = \"[INFO] \" + LocalDateTime.now() + \": \" + mensaje;\n        logs.add(log);\n        System.out.println(log);\n    }\n\n    public void error(String mensaje) {\n        String log = \"[ERROR] \" + LocalDateTime.now() + \": \" + mensaje;\n        logs.add(log);\n        System.out.println(log);\n    }\n\n    public List<String> getLogs() { return new ArrayList<>(logs); }\n}\n\n// Uso desde cualquier parte del sistema:\n// Logger.getInstancia().info(\"Alumno Ana creado\");\n// Logger.getInstancia().error(\"Nota invalida: 15.0\");"
+        },
+        {
+          "type": "text",
+          "title": "Patrón Factory Method: creación flexible de objetos",
+          "content": "El **Factory Method** define un método para crear objetos, pero deja que las subclases decidan qué clase instanciar.\n\n**Cuándo usarlo:**\n- No sabes de antemano qué tipo de objeto necesitas crear.\n- Quieres que la lógica de creación esté centralizada.\n- Quieres facilitar la adición de nuevos tipos sin modificar código existente.\n\n```java\npublic abstract class Notificacion {\n    protected String titulo;\n    protected String mensaje;\n\n    public Notificacion(String titulo, String mensaje) {\n        this.titulo = titulo;\n        this.mensaje = mensaje;\n    }\n\n    public abstract void enviar();\n\n    // Factory Method\n    public static Notificacion crear(String tipo, String titulo, String mensaje, String destino) {\n        return switch (tipo.toLowerCase()) {\n            case \"email\" -> new NotificacionEmail(titulo, mensaje, destino);\n            case \"sms\" -> new NotificacionSMS(titulo, mensaje, destino);\n            case \"push\" -> new NotificacionPush(titulo, mensaje, destino);\n            default -> throw new IllegalArgumentException(\"Tipo desconocido: \" + tipo);\n        };\n    }\n}\n```\n\n```java\n// Uso:\nNotificacion n1 = Notificacion.crear(\"email\", \"Alerta\", \"Nota publicada\", \"ana@email.com\");\nNotificacion n2 = Notificacion.crear(\"sms\", \"Urgente\", \"Clase cancelada\", \"+34600123456\");\nn1.enviar();\nn2.enviar();\n```"
+        },
+        {
+          "type": "code",
+          "title": "Factory Method en nuestro dominio",
+          "language": "java",
+          "content": "/**\n * Fabrica para crear diferentes tipos de empleado.\n */\npublic class FabricaEmpleados {\n\n    /**\n     * Crea un empleado del tipo especificado.\n     * \n     * @param tipo \"fijo\", \"temporal\" o \"practicas\"\n     * @param nombre nombre del empleado\nn     * @param salario salario base\n     * @param departamento departamento\n     * @param args parametros adicionales segun el tipo\n     * @return el empleado creado\n     * @throws IllegalArgumentException si el tipo no es valido\n     */\n    public static Empleado crear(String tipo, String nombre, double salario,\n                                 Departamento dept, Object... args) {\n        return switch (tipo.toLowerCase()) {\n            case \"fijo\" -> new EmpleadoFijo(nombre, salario, dept);\n            case \"temporal\" -> {\n                int horas = (int) args[0];\n                double precioHora = (double) args[1];\n                yield new EmpleadoTemporal(nombre, salario, dept, horas, precioHora);\n            }\n            case \"practicas\" -> {\n                int duracion = (int) args[0];\n                yield new EmpleadoPracticas(nombre, dept, duracion);\n            }\n            default -> throw new IllegalArgumentException(\"Tipo invalido: \" + tipo);\n        };\n    }\n}\n\n// Uso:\n// Departamento info = new Departamento(\"IT\", 10);\n// Empleado e1 = FabricaEmpleados.crear(\"fijo\", \"Ana\", 2000, info);\n// Empleado e2 = FabricaEmpleados.crear(\"temporal\", \"Carlos\", 0, info, 80, 15.0);"
+        },
+        {
+          "type": "text",
+          "title": "Patrón Strategy: algoritmos intercambiables",
+          "content": "El **Strategy** define una familia de algoritmos, los encapsula en clases separadas y los hace intercambiables en tiempo de ejecución.\n\n**Cuándo usarlo:**\n- Tienes varias formas de hacer lo mismo (calcular impuestos, ordenar, comprimir).\n- Quieres cambiar el algoritmo sin modificar la clase que lo usa.\n- Quieres evitar largas sentencias `if-else` o `switch`.\n\n```java\n// Interfaz Strategy\npublic interface EstrategiaCalificacion {\n    String calificar(double nota);\n}\n\n// Estrategias concretas\npublic class CalificacionTradicional implements EstrategiaCalificacion {\n    @Override\n    public String calificar(double nota) {\n        if (nota >= 9) return \"Sobresaliente\";\n        if (nota >= 7) return \"Notable\";\n        if (nota >= 5) return \"Aprobado\";\n        return \"Suspenso\";\n    }\n}\n\npublic class CalificacionABC implements EstrategiaCalificacion {\n    @Override\n    public String calificar(double nota) {\n        if (nota >= 9) return \"A\";\n        if (nota >= 7) return \"B\";\n        if (nota >= 5) return \"C\";\n        return \"F\";\n    }\n}\n\n// Contexto: usa una estrategia\npublic class Alumno {\n    private String nombre;\n    private double notaMedia;\n    private EstrategiaCalificacion estrategia; // COMPOSICION con Strategy\n\n    public Alumno(String nombre, double nota, EstrategiaCalificacion estrategia) {\n        this.nombre = nombre;\n        this.notaMedia = nota;\n        this.estrategia = estrategia;\n    }\n\n    // Cambiar estrategia en tiempo de ejecucion\n    public void setEstrategia(EstrategiaCalificacion estrategia) {\n        this.estrategia = estrategia;\n    }\n\n    public String getCalificacion() {\n        return estrategia.calificar(notaMedia);\n    }\n}\n```\n\n```java\n// Uso:\nAlumno a = new Alumno(\"Ana\", 8.5, new CalificacionTradicional());\nSystem.out.println(a.getCalificacion()); // \"Notable\"\n\n// Cambiar de estrategia en tiempo de ejecucion\na.setEstrategia(new CalificacionABC());\nSystem.out.println(a.getCalificacion()); // \"B\"\n```"
+        },
+        {
+          "type": "code",
+          "title": "Strategy: estrategias de descuento",
+          "language": "java",
+          "content": "/**\n * Interfaz Strategy para calcular descuentos.\n */\npublic interface EstrategiaDescuento {\n    double calcularDescuento(double precio);\n    String getNombre();\n}\n\n/**\n * Sin descuento.\n */\npublic class SinDescuento implements EstrategiaDescuento {\n    @Override public double calcularDescuento(double precio) { return 0; }\n    @Override public String getNombre() { return \"Sin descuento\"; }\n}\n\n/**\n * Descuento por porcentaje.\n */\npublic class DescuentoPorcentaje implements EstrategiaDescuento {\n    private double porcentaje;\n    public DescuentoPorcentaje(double p) { this.porcentaje = p; }\n    @Override public double calcularDescuento(double precio) { return precio * porcentaje / 100; }\n    @Override public String getNombre() { return \"Descuento \" + porcentaje + \"%\"; }\n}\n\n/**\n * Descuento fijo en euros.\n */\npublic class DescuentoFijo implements EstrategiaDescuento {\n    private double cantidadFija;\n    public DescuentoFijo(double c) { this.cantidadFija = c; }\n    @Override public double calcularDescuento(double precio) {\n        return Math.min(cantidadFija, precio); // No puede ser mayor que el precio\n    }\n    @Override public String getNombre() { return \"Descuento fijo: \" + cantidadFija + \" EUR\"; }\n}\n\n// Contexto:\npublic class Producto {\n    private String nombre;\n    private double precio;\n    private EstrategiaDescuento estrategia;\n\n    public Producto(String n, double p, EstrategiaDescuento e) {\n        this.nombre = n; this.precio = p; this.estrategia = e;\n    }\n\n    public double getPrecioFinal() {\n        return precio - estrategia.calcularDescuento(precio);\n    }\n\n    public void setEstrategia(EstrategiaDescuento e) { this.estrategia = e; }\n\n    @Override\n    public String toString() {\n        return nombre + \" | Base: \" + precio + \" | \" + estrategia.getNombre()\n             + \" | Final: \" + String.format(\"%.2f\", getPrecioFinal());\n    }\n\n    public static void main(String[] args) {\n        Producto p = new Producto(\"Java Tutorial\", 29.99, new SinDescuento());\n        System.out.println(p);\n\n        p.setEstrategia(new DescuentoPorcentaje(20));\n        System.out.println(p);\n\n        p.setEstrategia(new DescuentoFijo(5));\n        System.out.println(p);\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-10-3-1",
+          "difficulty": "basic",
+          "title": "Singleton: GestorConexiones",
+          "description": "Crea un Singleton `GestorConexiones` que simule una conexión a base de datos. Debe tener un constructor privado, un método estático `getInstancia()` y métodos `conectar()`, `desconectar()` y `isConectado()`.",
+          "solution": "public class GestorConexiones {\n    private static GestorConexiones instancia;\n    private boolean conectado = false;\n    private String url;\n\n    private GestorConexiones() {\n        this.url = \"jdbc:mysql://localhost:3306/mibase\";\n        System.out.println(\"Gestor de conexiones creado (singleton)\");\n    }\n\n    public static GestorConexiones getInstancia() {\n        if (instancia == null) {\n            instancia = new GestorConexiones();\n        }\n        return instancia;\n    }\n\n    public void conectar() {\n        if (!conectado) {\n            conectado = true;\n            System.out.println(\"Conectado a: \" + url);\n        }\n    }\n\n    public void desconectar() {\n        if (conectado) {\n            conectado = false;\n            System.out.println(\"Desconectado.\");\n        }\n    }\n\n    public boolean isConectado() { return conectado; }\n\n    public static void main(String[] args) {\n        GestorConexiones g1 = GestorConexiones.getInstancia();\n        GestorConexiones g2 = GestorConexiones.getInstancia();\n        System.out.println(\"Misma instancia: \" + (g1 == g2)); // true\n        g1.conectar();\n        System.out.println(\"g2 conectado: \" + g2.isConectado()); // true\n    }\n}"
+        },
+        {
+          "id": "ex-10-3-2",
+          "difficulty": "intermediate",
+          "title": "Factory Method: crear formas",
+          "description": "Crea una interfaz `Forma` con `dibujar()` y `getArea()`. Implementa `Circulo`, `Cuadrado` y `Triangulo`. Crea un Factory `FormaFactory` con un método estático `crear(String tipo, double... params)` que cree la forma correcta.",
+          "solution": "public interface Forma {\n    void dibujar();\n    double getArea();\n    String getNombre();\n}\n\npublic class Circulo implements Forma {\n    private double radio;\n    public Circulo(double r) { this.radio = r; }\n    @Override public void dibujar() { System.out.println(\"Dibujando circulo\"); }\n    @Override public double getArea() { return Math.PI * radio * radio; }\n    @Override public String getNombre() { return \"Circulo\"; }\n}\n\npublic class Cuadrado implements Forma {\n    private double lado;\n    public Cuadrado(double l) { this.lado = l; }\n    @Override public void dibujar() { System.out.println(\"Dibujando cuadrado\"); }\n    @Override public double getArea() { return lado * lado; }\n    @Override public String getNombre() { return \"Cuadrado\"; }\n}\n\npublic class Triangulo implements Forma {\n    private double base, altura;\n    public Triangulo(double b, double h) { this.base = b; this.altura = h; }\n    @Override public void dibujar() { System.out.println(\"Dibujando triangulo\"); }\n    @Override public double getArea() { return (base * altura) / 2; }\n    @Override public String getNombre() { return \"Triangulo\"; }\n}\n\npublic class FormaFactory {\n    public static Forma crear(String tipo, double... params) {\n        return switch (tipo.toLowerCase()) {\n            case \"circulo\" -> new Circulo(params[0]);\n            case \"cuadrado\" -> new Cuadrado(params[0]);\n            case \"triangulo\" -> new Triangulo(params[0], params[1]);\n            default -> throw new IllegalArgumentException(\"Tipo desconocido: \" + tipo);\n        };\n    }\n\n    public static void main(String[] args) {\n        Forma[] formas = {\n            FormaFactory.crear(\"circulo\", 5),\n            FormaFactory.crear(\"cuadrado\", 4),\n            FormaFactory.crear(\"triangulo\", 6, 3)\n        };\n        for (Forma f : formas) {\n            f.dibujar();\n            System.out.println(f.getNombre() + \": \" + f.getArea());\n        }\n    }\n}"
+        },
+        {
+          "id": "ex-10-3-3",
+          "difficulty": "advanced",
+          "title": "Strategy: múltiples estrategias de cálculo",
+          "description": "Crea un sistema de facturación con Strategy: `EstrategiaFacturacion` con `calcularImporte(double base)`. Estrategias: `FacturacionNormal` (sin cambios), `FacturacionConIVA` (+21%), `FacturacionConDescuento` (-10%). El contexto `Factura` debe permitir cambiar la estrategia. Prueba con al menos 3 facturas diferentes.",
+          "solution": "public interface EstrategiaFacturacion {\n    double calcularImporte(double base);\n    String getDescripcion();\n}\n\npublic class FacturacionNormal implements EstrategiaFacturacion {\n    @Override public double calcularImporte(double base) { return base; }\n    @Override public String getDescripcion() { return \"Normal\"; }\n}\n\npublic class FacturacionConIVA implements EstrategiaFacturacion {\n    private double porcentajeIVA;\n    public FacturacionConIVA(double iva) { this.porcentajeIVA = iva; }\n    @Override public double calcularImporte(double base) { return base * (1 + porcentajeIVA / 100); }\n    @Override public String getDescripcion() { return \"IVA \" + porcentajeIVA + \"%\"; }\n}\n\npublic class FacturacionConDescuento implements EstrategiaFacturacion {\n    private double porcentajeDescuento;\n    public FacturacionConDescuento(double d) { this.porcentajeDescuento = d; }\n    @Override public double calcularImporte(double base) { return base * (1 - porcentajeDescuento / 100); }\n    @Override public String getDescripcion() { return \"Descuento \" + porcentajeDescuento + \"%\"; }\n}\n\npublic class Factura {\n    private String cliente;\n    private double baseImponible;\n    private EstrategiaFacturacion estrategia;\n\n    public Factura(String cliente, double base, EstrategiaFacturacion e) {\n        this.cliente = cliente;\n        this.baseImponible = base;\n        this.estrategia = e;\n    }\n\n    public void setEstrategia(EstrategiaFacturacion e) { this.estrategia = e; }\n    public double getImporteTotal() { return estrategia.calcularImporte(baseImponible); }\n\n    @Override\n    public String toString() {\n        return cliente + \" | Base: \" + baseImponible + \" | \" + estrategia.getDescripcion()\n             + \" | Total: \" + String.format(\"%.2f\", getImporteTotal()) + \" EUR\";\n    }\n\n    public static void main(String[] args) {\n        Factura[] facturas = {\n            new Factura(\"Ana\", 100, new FacturacionNormal()),\n            new Factura(\"Carlos\", 200, new FacturacionConIVA(21)),\n            new Factura(\"Maria\", 150, new FacturacionConDescuento(15))\n        };\n        for (Factura f : facturas) System.out.println(f);\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Crear un Singleton sin constructor privado. Sin él, cualquiera puede crear instancias con `new`.",
+        "Usar Singleton en exceso. No todo debe ser Singleton; solo lo que realmente necesita una única instancia.",
+        "Crear un Factory que hace demasiado. Un Factory debe ser simple y delegar la complejidad a las clases concretas.",
+        "No usar Strategy cuando hay múltiples variantes de un mismo comportamiento. El Strategy evita el código duplicado.",
+        "Confundir Strategy con Strategy pattern + State pattern. Strategy cambia el algoritmo; State cambia el comportamiento del objeto según su estado."
+      ],
+      "keyConcepts": [
+        "Patrones de diseño: soluciones reutilizables a problemas comunes",
+        "Singleton: una única instancia, acceso global, constructor privado",
+        "Factory Method: creación flexible de objetos, delegación a subclases",
+        "Strategy: algoritmos intercambiables via composición",
+        "Patrones creacionales vs. estructurales vs. de comportamiento",
+        "Aplicación de patrones en el dominio Alumno-Curso-Matrícula"
+      ],
+      "learningOutcomes": [
+        "RA4",
+        "RA7"
+      ],
+      "assessmentCriteria": [
+        "RA4.g",
+        "RA4.i"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Proyecto final POO: Sistema de gestión escolar completo",
+    "description": "Crea un sistema completo que integre TODO lo aprendido en la fase de POO:\n\n1. **Jerarquía de personas**: Persona (abstracta) → Alumno, Profesor, Administrativo. Usa herencia correctamente.\n\n2. **Composición**: Alumno tiene Direccion e HistorialAcademico. Empleado tiene Departamento.\n\n3. **Interfaces**: Implementa `Prestable` (para libros de la biblioteca), `Exportable` (para exportar datos de alumnos), `Comparable` (para ordenar empleados por salario).\n\n4. **Encapsulación**: Todos los campos privados con getters/setters validados.\n\n5. **Clases abstractas**: Persona, Empleado, RecursoBiblioteca.\n\n6. **Patrones de diseño**:\n   - Singleton: Logger que registra todas las operaciones\n   - Factory: FabricaEmpleados para crear diferentes tipos\n   - Strategy: Sistema de calificación intercambiable (Tradicional, ABC, Morses)\n\n7. **Javadoc**: Documentación completa en todas las clases públicas y métodos.\n\n8. **Paquetes**: Organiza en com.escuela.modelos, com.escuela.servicios, com.escuela.utilidades, com.escuela.app.\n\n9. **Programa principal** que demuestre:\n   - Creación de empleados con Factory\n   - Polimorfismo con array de Empleado\n   - Cambio de estrategia de calificación\n   - Logging de operaciones con Singleton\n   - Exportación de datos con Exportable\n   - Búsqueda y ordenación con Comparable",
+    "learningOutcomes": [
+      "RA4",
+      "RA7"
+    ],
+    "assessmentCriteria": [
+      "RA4.a",
+      "RA4.b",
+      "RA4.c",
+      "RA4.d",
+      "RA4.e",
+      "RA4.f",
+      "RA4.g",
+      "RA4.h",
+      "RA4.i",
+      "RA7.a",
+      "RA7.b",
+      "RA7.c",
+      "RA7.d",
+      "RA7.e",
+      "RA7.f",
+      "RA7.g",
+      "RA7.h",
+      "RA7.i",
+      "RA7.j"
+    ]
+  }
+}

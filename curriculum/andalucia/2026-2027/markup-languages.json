@@ -1,0 +1,104 @@
+{
+  "jurisdiction": "andalucia",
+  "academicYear": "2026-2027",
+  "degree": ["DAM", "DAW"],
+  "year": 1,
+  "moduleCode": "0373",
+  "officialName": "Lenguajes de marcas y sistemas de gestión de información",
+  "weeklyHours": 3,
+  "totalHours": 102,
+  "stateMinimumHours": 70,
+  "ects": 7,
+  "sources": [{"sourceId": "BOE-A-2023-13221", "sourceUrl": "https://www.boe.es/diario_boe/txt.php?id=BOE-A-2023-13221", "sourceTitle": "Real Decreto 405/2023, de 29 de mayo", "sourceDate": "2023-06-03", "annex": "ANEXO I"}],
+  "learningOutcomes": [
+    {"id": "RA1", "description": "Reconoce las características de lenguajes de marcas analizando e interpretando fragmentos de código.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"},
+    {"id": "RA2", "description": "Utiliza lenguajes de marcas para la transmisión y presentación de información a través de la web analizando la estructura de los documentos e identificando sus elementos.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"},
+    {"id": "RA3", "description": "Accede y manipula documentos web utilizando lenguajes de script de cliente.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"},
+    {"id": "RA4", "description": "Establece mecanismos de validación de documentos para el intercambio de información utilizando métodos para definir su sintaxis y estructura.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"},
+    {"id": "RA5", "description": "Realiza conversiones sobre documentos para el intercambio de información utilizando técnicas, lenguajes y herramientas de procesamiento.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"},
+    {"id": "RA6", "description": "Gestiona la información en formatos de intercambio de datos analizando y utilizando tecnologías de almacenamiento y lenguajes de consulta.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"},
+    {"id": "RA7", "description": "Opera sistemas empresariales de gestión de información realizando tareas de importación, integración, aseguramiento y extracción de la información.", "sourceRef": "BOE-A-2023-13221, ANEXO I, 0373"}
+  ],
+  "assessmentCriteria": {
+    "RA1": [
+      {"id": "RA1.a", "description": "Se han identificado las características generales de los lenguajes de marcas."},
+      {"id": "RA1.b", "description": "Se han reconocido las ventajas que proporcionan en el tratamiento de la información."},
+      {"id": "RA1.c", "description": "Se han clasificado los lenguajes de marcas e identificado los más relevantes."},
+      {"id": "RA1.d", "description": "Se han diferenciado sus ámbitos de aplicación."},
+      {"id": "RA1.e", "description": "Se han reconocido la necesidad y los ámbitos específicos de aplicación de un lenguaje de marcas de propósito general."},
+      {"id": "RA1.f", "description": "Se han analizado las características propias de diferentes lenguajes de marcas."},
+      {"id": "RA1.g", "description": "Se ha identificado la estructura de un documento y sus reglas sintácticas."},
+      {"id": "RA1.h", "description": "Se ha contrastado la necesidad de crear documentos bien formados y la influencia en su procesamiento."},
+      {"id": "RA1.i", "description": "Se han identificado las ventajas que aportan los espacios de nombres."}
+    ],
+    "RA2": [
+      {"id": "RA2.a", "description": "Se han identificado y clasificado los lenguajes de marcas relacionados con la web y sus diferentes versiones y estándares."},
+      {"id": "RA2.b", "description": "Se ha analizado la estructura de un documento HTML e identificado las secciones que lo componen."},
+      {"id": "RA2.c", "description": "Se ha reconocido la funcionalidad de las principales etiquetas y los atributos del lenguaje HTML."},
+      {"id": "RA2.d", "description": "Se han establecido las semejanzas y diferencias entre las diferentes versiones de HTML."},
+      {"id": "RA2.e", "description": "Se han utilizado herramientas en la creación de documentos web."},
+      {"id": "RA2.f", "description": "Se han identificado las ventajas que aporta la utilización de hojas de estilo."},
+      {"id": "RA2.g", "description": "Se han aplicado hojas de estilo."},
+      {"id": "RA2.h", "description": "Se han validado documentos HTML y CSS."},
+      {"id": "RA2.i", "description": "Se han identificado las tecnologías en que se basa la sindicación de contenidos."},
+      {"id": "RA2.j", "description": "Se han reconocido los ámbitos de aplicación de la sindicación de contenidos."}
+    ],
+    "RA3": [
+      {"id": "RA3.a", "description": "Se han identificado y clasificado los lenguajes de script de cliente relacionados con la web y sus diferentes versiones y estándares."},
+      {"id": "RA3.b", "description": "Se ha identificado la sintaxis básica de los lenguajes de script de cliente."},
+      {"id": "RA3.c", "description": "Se han utilizado métodos para la selección y acceso de los diferentes elementos de un documento web."},
+      {"id": "RA3.d", "description": "Se han creado y modificado elementos de documentos web."},
+      {"id": "RA3.e", "description": "Se han eliminado elementos de documentos web."},
+      {"id": "RA3.f", "description": "Se han realizado modificaciones sobre los estilos de un documento web."}
+    ],
+    "RA4": [
+      {"id": "RA4.a", "description": "Se ha establecido la necesidad de describir la información transmitida en los documentos y sus reglas."},
+      {"id": "RA4.b", "description": "Se han identificado las tecnologías relacionadas con la definición de documentos."},
+      {"id": "RA4.c", "description": "Se ha analizado la estructura y sintaxis específica utilizada en la descripción."},
+      {"id": "RA4.d", "description": "Se han creado descripciones de documentos."},
+      {"id": "RA4.e", "description": "Se han utilizado descripciones en la elaboración y validación de documentos."},
+      {"id": "RA4.f", "description": "Se han asociado las descripciones con los documentos."},
+      {"id": "RA4.g", "description": "Se han utilizado herramientas específicas."}
+    ],
+    "RA5": [
+      {"id": "RA5.a", "description": "Se ha identificado la necesidad de la conversión de documentos para el intercambio de la información."},
+      {"id": "RA5.b", "description": "Se han establecido ámbitos de aplicación."},
+      {"id": "RA5.c", "description": "Se han analizado las tecnologías implicadas y su modo de funcionamiento."},
+      {"id": "RA5.d", "description": "Se ha descrito la sintaxis específica utilizada en la conversión y adaptación de documentos."},
+      {"id": "RA5.e", "description": "Se han creado especificaciones de conversión."},
+      {"id": "RA5.f", "description": "Se han identificado y caracterizado herramientas específicas de conversión."},
+      {"id": "RA5.g", "description": "Se han realizado conversiones sobre documentos."}
+    ],
+    "RA6": [
+      {"id": "RA6.a", "description": "Se han identificado los principales métodos de almacenamiento de la información en documentos de intercambio."},
+      {"id": "RA6.b", "description": "Se han identificado ventajas e inconvenientes de almacenar información en formatos de intercambio."},
+      {"id": "RA6.c", "description": "Se han establecido tecnologías eficientes de almacenamiento."},
+      {"id": "RA6.d", "description": "Se han identificado lenguajes y herramientas para el tratamiento y almacenamiento de información."},
+      {"id": "RA6.e", "description": "Se han utilizado lenguajes de consulta y manipulación."},
+      {"id": "RA6.f", "description": "Se han utilizado sistemas gestores de BD relacionales en el almacenamiento."},
+      {"id": "RA6.g", "description": "Se han utilizado técnicas para crear documentos de intercambio a partir de BD relacionales."},
+      {"id": "RA6.h", "description": "Se han identificado las características de los sistemas."},
+      {"id": "RA6.i", "description": "Se han utilizado herramientas para gestionar información en BD nativas."}
+    ],
+    "RA7": [
+      {"id": "RA7.a", "description": "Se han identificado los principales sistemas de gestión empresarial."},
+      {"id": "RA7.b", "description": "Se han reconocido las ventajas de los sistemas de gestión empresariales."},
+      {"id": "RA7.c", "description": "Se han evaluado las características de las principales aplicaciones."},
+      {"id": "RA7.d", "description": "Se han instalado aplicaciones de gestión empresarial."},
+      {"id": "RA7.e", "description": "Se han configurado y administrado las aplicaciones."},
+      {"id": "RA7.f", "description": "Se han establecido mecanismos de acceso seguro."},
+      {"id": "RA7.g", "description": "Se han generado informes."},
+      {"id": "RA7.h", "description": "Se han realizado procedimientos de extracción de información."},
+      {"id": "RA7.i", "description": "Se han elaborado documentos de explotación."}
+    ]
+  },
+  "officialContents": [
+    {"section": "Reconocimiento de las características de lenguajes de marcas", "items": ["Clasificación", "Características y ámbitos", "Estructura y sintaxis", "Herramientas de edición", "Documentos bien formados", "Espacios de nombres"]},
+    {"section": "Utilización de lenguajes de marcas en entornos web", "items": ["Estándares web", "Estructura HTML", "Etiquetas y atributos", "Herramientas de diseño", "CSS", "Validación HTML/CSS", "Sindicación de contenidos"]},
+    {"section": "Manipulación de documentos Web", "items": ["Script de cliente", "Selección y acceso a elementos", "Creación y modificación", "Eliminación de elementos", "Manipulación de estilos"]},
+    {"section": "Definición de esquemas y vocabularios", "items": ["Tecnologías de definición", "Creación de descripciones", "Asociación y validación", "Herramientas"]},
+    {"section": "Conversión y adaptación de documentos", "items": ["Tecnologías de transformación", "Estructura y sintaxis de conversión", "Plantillas", "Conversión entre formatos"]},
+    {"section": "Almacenamiento de información", "items": ["Sistemas de almacenamiento", "Lenguajes de consulta", "Consulta y manipulación", "Importación/exportación de BD", "Sistemas nativos"]},
+    {"section": "Sistemas de gestión empresarial", "items": ["Aplicaciones de gestión", "Instalación", "Administración", "Integración de módulos", "Acceso seguro", "Informes", "Exportación", "Documentación"]}
+  ]
+}

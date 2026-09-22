@@ -1,0 +1,367 @@
+{
+  "id": "mod-15",
+  "title": "Interfaces graficas con Java Swing",
+  "description": "Modulo dedicado al desarrollo de interfaces graficas de usuario (GUI) con Java Swing. Se aprende a crear ventanas, paneles, campos de texto, botones y a manejar eventos de usuario. El estudiante construye una aplicacion completa con formulario de entrada/salida, demostrando la integracion de la logica de negocio con una interfaz visual interactiva.",
+  "phase": "phase-6",
+  "position": 15,
+  "learningOutcomes": [
+    "RA5"
+  ],
+  "assessmentCriteria": [
+    "RA5.f",
+    "RA5.g",
+    "RA5.h"
+  ],
+  "officialContents": [
+    "Lectura y escritura de informacion (seccion 5 - interfaces graficas)"
+  ],
+  "duration": "12 hours estimated",
+  "difficulty": "intermediate",
+  "prerequisites": [
+    "mod-01",
+    "mod-02",
+    "mod-05",
+    "mod-06",
+    "mod-07"
+  ],
+  "lessons": [
+    {
+      "id": "lesson-15-1",
+      "title": "JFrame, JPanel y layouts basicos",
+      "objectives": [
+        "Crear una ventana (JFrame) con titulo, tamano y comportamiento de cierre",
+        "Entender la jerarquia de componentes Swing: JFrame - JPanel - componentes",
+        "Usar los layouts basicos: FlowLayout, BorderLayout, GridLayout",
+        "Aniadir paneles a una ventana y organizar componentes",
+        "Diferenciar entre contenido y contenedor en Swing"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Que es Java Swing?",
+          "content": "Java Swing es una libreria de componentes graficos que forma parte del JDK desde Java 1.1. Permite crear interfaces de usuario visuales (ventanas, botones, campos de texto, tablas, menus...) sin necesidad de librerias externas.\n\nSwing se encuentra en el paquete `javax.swing` y se basa en la arquitectura **MVC** (Modelo-Vista-Controlador): cada componente visual tiene un modelo de datos, una representacion visual y un controlador que gestiona las interacciones.\n\n**Componentes principales de Swing:**\n\n| Componente | Descripcion | Paquete |\n|-----------|-------------|--------|\n| `JFrame` | Ventana principal de la aplicacion | javax.swing |\n| `JPanel` | Panel contenedor (agrupa componentes) | javax.swing |\n| `JLabel` | Etiqueta de texto (solo lectura) | javax.swing |\n| `JTextField` | Campo de texto editable (una linea) | javax.swing |\n| `JTextArea` | Area de texto multilinea | javax.swing |\n| `JButton` | Boton pulsable | javax.swing |\n| `JComboBox` | Lista desplegable | javax.swing |\n| `JCheckBox` | Casilla de verificacion | javax.swing |\n\n**Swing vs. AWT**: Swing es una evolucion de AWT (Abstract Window Toolkit). Swing es mas potente, personalizable y multiplataforma. AWT usa los componentes nativos del SO; Swing los dibuja en Java, lo que garantiza un aspecto uniforme."
+        },
+        {
+          "type": "code",
+          "title": "Mi primera ventana: JFrame basico",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport java.awt.*;\n\npublic class PrimeraVentana extends JFrame {\n\n    public PrimeraVentana() {\n        // Configurar la ventana\n        setTitle(\"Mi primera ventana\");\n        setSize(400, 300);              // ancho x alto en pixeles\n        setDefaultCloseOperation(EXIT_ON_CLOSE); // cerrar al pulsar X\n        setLocationRelativeTo(null);     // centrar en pantalla\n\n        // Crear un panel con etiqueta\n        JPanel panel = new JPanel();\n        JLabel etiqueta = new JLabel(\"Hola desde Swing!\");\n        panel.add(etiqueta);\n\n        // Aniadir el panel a la ventana\n        add(panel);\n    }\n\n    public static void main(String[] args) {\n        // Swing recomienda ejecutar la GUI en el Event Dispatch Thread\n        SwingUtilities.invokeLater(() -> {\n            PrimeraVentana ventana = new PrimeraVentana();\n            ventana.setVisible(true);\n        });\n    }\n}\n\n// Puntos clave:\n// 1. extends JFrame: la ventana ES un JFrame\n// 2. setSize(400, 300): dimension en pixeles\n// 3. setDefaultCloseOperation(EXIT_ON_CLOSE): cierra la JVM al cerrar la ventana\n// 4. setLocationRelativeTo(null): centra la ventana en pantalla\n// 5. SwingUtilities.invokeLater: ejecuta la GUI en el hilo seguro de Swing"
+        },
+        {
+          "type": "text",
+          "title": "El modelo de componentes: contenedores y componentes",
+          "content": "En Swing, la interfaz se organiza jerarquicamente:\n\n```\nJFrame (ventana principal)\n  +-- JPanel (panel contenedor)\n        +-- JLabel (etiqueta)\n        +-- JTextField (campo de texto)\n        +-- JButton (boton)\n```\n\n- **JFrame**: es la ventana principal. Solo puede contener un componente de nivel superior, que tipicamente es un JPanel.\n- **JPanel**: es un contenedor ligero que agrupa componentes. Puede anidarse (panel dentro de panel).\n- **Componentes**: elementos interactivos como JLabel, JTextField, JButton. No pueden contener otros componentes.\n\n**Regla fundamental**: siempre se aniaden componentes a un panel, y el panel se aniade a la ventana. Nunca se aniaden componentes directamente al JFrame."
+        },
+        {
+          "type": "text",
+          "title": "Layouts: como se organizan los componentes",
+          "content": "Un **layout** (diseno) define como un panel organiza los componentes que contiene. Java ofrece varios layouts predefinidos:\n\n### FlowLayout (por defecto de JPanel)\nColoca los componentes uno detras de otro, de izquierda a derecha, como texto en una linea. Cuando se llena la fila, salta a la siguiente.\n\n```java\nJPanel panel = new JPanel(); // FlowLayout por defecto\npanel.add(new JLabel(\"Nombre:\"));\npanel.add(new JTextField(15));\n```\n\n### GridLayout\nOrganiza los componentes en una cuadricula con filas y columnas de igual tamano.\n\n```java\nJPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));\n// 3 filas, 2 columnas, 5px de margen horizontal y vertical\npanel.add(new JLabel(\"Fila 1, Col 1\"));\npanel.add(new JLabel(\"Fila 1, Col 2\"));\n// ...\n```\n\n### BorderLayout\nDivide el panel en 5 zonas: NORTH, SOUTH, EAST, WEST, CENTER.\n\n```java\nJPanel panel = new JPanel(new BorderLayout());\npanel.add(new JLabel(\"Arriba\"), BorderLayout.NORTH);\npanel.add(new JLabel(\"Centro\"), BorderLayout.CENTER);\n```\n\n**Cuando usar cada uno?**\n- **FlowLayout**: para formularios simples con pocos campos\n- **GridLayout**: para formularios con etiquetas y campos alineados\n- **BorderLayout**: para ventanas con zonas diferenciadas (barra arriba, contenido central, botones abajo)"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo con GridLayout y BorderLayout",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport java.awt.*;\n\npublic class LayoutEjemplo extends JFrame {\n\n    public LayoutEjemplo() {\n        setTitle(\"Ejemplo de Layouts\");\n        setSize(400, 250);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        // Panel principal con BorderLayout\n        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));\n\n        // Zona NORTE: titulo\n        JLabel titulo = new JLabel(\"Formulario de contacto\", SwingConstants.CENTER);\n        titulo.setFont(new Font(\"Arial\", Font.BOLD, 16));\n        panelPrincipal.add(titulo, BorderLayout.NORTH);\n\n        // Zona CENTRO: formulario con GridLayout\n        JPanel formulario = new JPanel(new GridLayout(3, 2, 5, 5));\n        formulario.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));\n\n        formulario.add(new JLabel(\"Nombre:\"));\n        formulario.add(new JTextField());\n        formulario.add(new JLabel(\"Email:\"));\n        formulario.add(new JTextField());\n        formulario.add(new JLabel(\"Telefono:\"));\n        formulario.add(new JTextField());\n\n        panelPrincipal.add(formulario, BorderLayout.CENTER);\n\n        // Zona SUR: boton\n        JPanel panelBoton = new JPanel();\n        panelBoton.add(new JButton(\"Enviar\"));\n        panelPrincipal.add(panelBoton, BorderLayout.SOUTH);\n\n        add(panelPrincipal);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> {\n            new LayoutEjemplo().setVisible(true);\n        });\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-1-1",
+          "difficulty": "basic",
+          "title": "Crear una ventana con etiqueta",
+          "description": "Crea un programa que muestre una ventana de 300x200 pixeles con el titulo 'Mi ventana' y una etiqueta (JLabel) que diga 'Bienvenido a Swing!' centrada en la ventana.",
+          "solution": "import javax.swing.*;\nimport java.awt.*;\n\npublic class VentanaBasica extends JFrame {\n    public VentanaBasica() {\n        setTitle(\"Mi ventana\");\n        setSize(300, 200);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JLabel etiqueta = new JLabel(\"Bienvenido a Swing!\", SwingConstants.CENTER);\n        add(etiqueta);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> {\n            new VentanaBasica().setVisible(true);\n        });\n    }\n}"
+        },
+        {
+          "id": "ex-16-1-2",
+          "difficulty": "basic",
+          "title": "Panel con FlowLayout",
+          "description": "Crea un JPanel con FlowLayout que contenga 3 JLabel y 3 JTextField intercalados (etiqueta, campo, etiqueta, campo...). Aniade el panel a un JFrame.",
+          "solution": "import javax.swing.*;\n\npublic class PanelFlowLayout extends JFrame {\n    public PanelFlowLayout() {\n        setTitle(\"FlowLayout\");\n        setSize(350, 150);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel panel = new JPanel(); // FlowLayout por defecto\n        panel.add(new JLabel(\"Nombre:\"));\n        panel.add(new JTextField(15));\n        panel.add(new JLabel(\"Email:\"));\n        panel.add(new JTextField(15));\n        panel.add(new JLabel(\"Ciudad:\"));\n        panel.add(new JTextField(15));\n\n        add(panel);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new PanelFlowLayout().setVisible(true));\n    }\n}"
+        },
+        {
+          "id": "ex-16-1-3",
+          "difficulty": "intermediate",
+          "title": "Formulario con BorderLayout y GridLayout",
+          "description": "Crea una ventana con BorderLayout: en NORTH un titulo, en CENTER un formulario con GridLayout (4 filas: nombre, email, telefono, ciudad), y en SOUTH un boton 'Guardar'.",
+          "solution": "import javax.swing.*;\nimport java.awt.*;\n\npublic class FormularioCompleto extends JFrame {\n    public FormularioCompleto() {\n        setTitle(\"Formulario\");\n        setSize(400, 250);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel principal = new JPanel(new BorderLayout(10, 10));\n\n        JLabel titulo = new JLabel(\"Datos personales\", SwingConstants.CENTER);\n        titulo.setFont(new Font(\"Arial\", Font.BOLD, 16));\n        principal.add(titulo, BorderLayout.NORTH);\n\n        JPanel formulario = new JPanel(new GridLayout(4, 2, 5, 5));\n        formulario.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));\n        String[] labels = {\"Nombre:\", \"Email:\", \"Telefono:\", \"Ciudad:\"};\n        for (String l : labels) {\n            formulario.add(new JLabel(l));\n            formulario.add(new JTextField());\n        }\n        principal.add(formulario, BorderLayout.CENTER);\n\n        JPanel sur = new JPanel();\n        sur.add(new JButton(\"Guardar\"));\n        principal.add(sur, BorderLayout.SOUTH);\n\n        add(principal);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new FormularioCompleto().setVisible(true));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar llamar a setVisible(true): la ventana se crea pero no se muestra.",
+        "No usar SwingUtilities.invokeLater: puede causar problemas de concurrencia en la GUI.",
+        "Anadir componentes directamente al JFrame en lugar de a un JPanel.",
+        "Olvidar setDefaultCloseOperation(EXIT_ON_CLOSE): cerrar la ventana no cierra la aplicacion.",
+        "Confundir pixels con puntos: el tamano se define en pixeles, no en unidades de texto."
+      ],
+      "keyConcepts": [
+        "JFrame como ventana principal de la aplicacion",
+        "JPanel como contenedor de componentes",
+        "Jerarquia de componentes: JFrame - JPanel - componentes",
+        "FlowLayout: organizacion en linea",
+        "GridLayout: organizacion en cuadricula",
+        "BorderLayout: organizacion por zonas (NORTH, SOUTH, EAST, WEST, CENTER)",
+        "SwingUtilities.invokeLater para ejecutar la GUI en el hilo seguro"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.f"
+      ]
+    },
+    {
+      "id": "lesson-15-2",
+      "title": "JTextField, JButton, JLabel y componentes basicos",
+      "objectives": [
+        "Crear y configurar campos de texto (JTextField) para entrada de datos",
+        "Usar etiquetas (JLabel) con formato y posicionamiento",
+        "Crear botones (JButton) y asociarles texto e iconos",
+        "Entender la diferencia entre componentes de entrada y componentes de salida",
+        "Configurar propiedades visuales: fuentes, colores, bordes"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Componentes de entrada de datos",
+          "content": "Los componentes de entrada permiten al usuario introducir datos en la aplicacion:\n\n### JTextField - Campo de texto de una linea\n```java\nJTextField campo = new JTextField(20); // 20 columnas de ancho\ncampo.setText(\"valor inicial\");\nString valor = campo.getText(); // Obtener el texto\n```\n\n**Propiedades utiles:**\n- `setColumns(n)`: establece el ancho en columnas\n- `setText(texto)`: establece el texto inicial\n- `getText()`: obtiene el texto actual\n- `setEditable(false)`: hace el campo de solo lectura\n- `setHorizontalAlignment(JTextField.CENTER)`: alinea el texto\n\n### JTextArea - Area de texto multilinea\n```java\nJTextArea area = new JTextArea(5, 30); // 5 filas, 30 columnas\narea.setLineWrap(true); // Salto de linea automatico\nString texto = area.getText();\n```\n\n### JComboBox - Lista desplegable\n```java\nString[] opciones = {\"Java\", \"Python\", \"JavaScript\"};\nJComboBox<String> combo = new JComboBox<>(opciones);\nString seleccion = (String) combo.getSelectedItem();\n```"
+        },
+        {
+          "type": "text",
+          "title": "Componentes de salida y botones",
+          "content": "### JLabel - Etiqueta de texto\n```java\nJLabel etiqueta = new JLabel(\"Resultado:\");\netiqueta.setFont(new Font(\"Arial\", Font.BOLD, 14));\netiqueta.setForeground(Color.BLUE);\netiqueta.setHorizontalAlignment(SwingConstants.CENTER);\n```\n\n**JLabel no es solo texto**: puede mostrar iconos, y es el componente mas usado para mostrar informacion al usuario.\n\n### JButton - Boton\n```java\nJButton boton = new JButton(\"Click me\");\nboton.setFont(new Font(\"Arial\", Font.PLAIN, 12));\nboton.setBackground(new Color(0, 120, 215));\nboton.setForeground(Color.WHITE);\n```\n\n### Personalizacion visual\n```java\n// Fuentes\nFont fuenteGrande = new Font(\"SansSerif\", Font.BOLD, 18);\n\n// Colores (R, G, B)\nColor azulOscuro = new Color(0, 51, 102);\n\n// Bordes\nimport javax.swing.border.*;\netiqueta.setBorder(BorderFactory.createLineBorder(Color.BLACK));\netiqueta.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));\n```\n\n**Componentes informativos:**\n- `JCheckBox`: casilla de verificacion -> `boolean seleccionado = check.isSelected();`\n- `JRadioButton`: opcion circular (se usan en grupo con `ButtonGroup`)\n- `JSlider`: barra deslizante para seleccionar un valor numerico"
+        },
+        {
+          "type": "code",
+          "title": "Formulario completo con componentes variados",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport java.awt.*;\n\npublic class FormularioComponentes extends JFrame {\n\n    private JTextField campoNombre, campoEmail, campoEdad;\n    private JComboBox<String> comboCiclo;\n    private JCheckBox checkNewsletter;\n    private JLabel lblResultado;\n\n    public FormularioComponentes() {\n        setTitle(\"Formulario de inscripcion\");\n        setSize(450, 350);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        // Panel principal\n        JPanel principal = new JPanel(new BorderLayout(10, 10));\n        principal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));\n\n        // Titulo\n        JLabel titulo = new JLabel(\"Formulario de Inscripcion\", SwingConstants.CENTER);\n        titulo.setFont(new Font(\"Arial\", Font.BOLD, 18));\n        principal.add(titulo, BorderLayout.NORTH);\n\n        // Formulario con GridLayout\n        JPanel formulario = new JPanel(new GridLayout(5, 2, 5, 10));\n\n        campoNombre = new JTextField();\n        campoEmail = new JTextField();\n        campoEdad = new JTextField();\n        comboCiclo = new JComboBox<>(new String[]{\"DAW\", \"DAM\", \"ASIR\"});\n        checkNewsletter = new JCheckBox(\"Recibir newsletter\");\n\n        formulario.add(new JLabel(\"Nombre:\"));\n        formulario.add(campoNombre);\n        formulario.add(new JLabel(\"Email:\"));\n        formulario.add(campoEmail);\n        formulario.add(new JLabel(\"Edad:\"));\n        formulario.add(campoEdad);\n        formulario.add(new JLabel(\"Ciclo formativo:\"));\n        formulario.add(comboCiclo);\n        formulario.add(new JLabel(\"\"));\n        formulario.add(checkNewsletter);\n\n        principal.add(formulario, BorderLayout.CENTER);\n\n        // Resultado y boton\n        JPanel sur = new JPanel(new BorderLayout());\n        lblResultado = new JLabel(\" \", SwingConstants.CENTER);\n        lblResultado.setForeground(new Color(0, 100, 0));\n        sur.add(lblResultado, BorderLayout.CENTER);\n\n        JButton btnRegistrar = new JButton(\"Registrar\");\n        btnRegistrar.addActionListener(e -> registrar());\n        JPanel panelBoton = new JPanel();\n        panelBoton.add(btnRegistrar);\n        sur.add(panelBoton, BorderLayout.SOUTH);\n\n        principal.add(sur, BorderLayout.SOUTH);\n\n        add(principal);\n    }\n\n    private void registrar() {\n        String nombre = campoNombre.getText().trim();\n        String email = campoEmail.getText().trim();\n        String edad = campoEdad.getText().trim();\n        String ciclo = (String) comboCiclo.getSelectedItem();\n        boolean newsletter = checkNewsletter.isSelected();\n\n        if (nombre.isEmpty() || email.isEmpty()) {\n            lblResultado.setForeground(Color.RED);\n            lblResultado.setText(\"Error: nombre y email son obligatorios.\");\n            return;\n        }\n\n        lblResultado.setForeground(new Color(0, 100, 0));\n        lblResultado.setText(\"Registrado: \" + nombre + \" | \" + email\n            + \" | Edad: \" + edad + \" | Ciclo: \" + ciclo\n            + (newsletter ? \" | Newsletter: si\" : \"\"));\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new FormularioComponentes().setVisible(true));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-2-1",
+          "difficulty": "basic",
+          "title": "Crear un formulario de datos",
+          "description": "Crea un formulario con 3 campos de texto (nombre, email, telefono) y un boton 'Mostrar'. Al pulsar el boton, muestra los datos introducidos en una etiqueta debajo del formulario.",
+          "solution": "import javax.swing.*;\nimport java.awt.*;\n\npublic class FormularioBasico extends JFrame {\n    private JTextField campoNombre, campoEmail, campoTelefono;\n    private JLabel resultado;\n\n    public FormularioBasico() {\n        setTitle(\"Formulario basico\");\n        setSize(350, 200);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));\n        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));\n\n        campoNombre = new JTextField();\n        campoEmail = new JTextField();\n        campoTelefono = new JTextField();\n        resultado = new JLabel(\" \");\n\n        panel.add(new JLabel(\"Nombre:\"));\n        panel.add(campoNombre);\n        panel.add(new JLabel(\"Email:\"));\n        panel.add(campoEmail);\n        panel.add(new JLabel(\"Telefono:\"));\n        panel.add(campoTelefono);\n        panel.add(new JButton(\"Mostrar\"));\n        panel.add(resultado);\n\n        ((JButton) panel.getComponent(6)).addActionListener(e -> {\n            resultado.setText(campoNombre.getText() + \" | \"\n                + campoEmail.getText() + \" | \" + campoTelefono.getText());\n        });\n\n        add(panel);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new FormularioBasico().setVisible(true));\n    }\n}"
+        },
+        {
+          "id": "ex-16-2-2",
+          "difficulty": "intermediate",
+          "title": "Selector de colores",
+          "description": "Crea una ventana con un JComboBox que contenga 3 colores (Rojo, Verde, Azul) y un JPanel que cambie de color al seleccionar una opcion del desplegable.",
+          "solution": "import javax.swing.*;\nimport java.awt.*;\n\npublic class SelectorColor extends JFrame {\n    private JPanel panelColor;\n\n    public SelectorColor() {\n        setTitle(\"Selector de colores\");\n        setSize(300, 250);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel principal = new JPanel(new BorderLayout(10, 10));\n        principal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));\n\n        JComboBox<String> combo = new JComboBox<>(new String[]{\"Rojo\", \"Verde\", \"Azul\"});\n        combo.addActionListener(e -> {\n            String color = (String) combo.getSelectedItem();\n            switch (color) {\n                case \"Rojo\" -> panelColor.setBackground(Color.RED);\n                case \"Verde\" -> panelColor.setBackground(Color.GREEN);\n                case \"Azul\" -> panelColor.setBackground(Color.BLUE);\n            }\n        });\n\n        principal.add(combo, BorderLayout.NORTH);\n\n        panelColor = new JPanel();\n        panelColor.setBackground(Color.RED);\n        principal.add(panelColor, BorderLayout.CENTER);\n\n        add(principal);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new SelectorColor().setVisible(true));\n    }\n}"
+        },
+        {
+          "id": "ex-16-2-3",
+          "difficulty": "intermediate",
+          "title": "Calculadora simple con JTextField",
+          "description": "Crea una calculadora con 2 campos de texto para numeros, un JComboBox con operaciones (+, -, *, /) y un boton 'Calcular'. El resultado se muestra en una JLabel.",
+          "solution": "import javax.swing.*;\nimport java.awt.*;\n\npublic class CalculadoraBasica extends JFrame {\n    private JTextField campo1, campo2;\n    private JComboBox<String> comboOp;\n    private JLabel resultado;\n\n    public CalculadoraBasica() {\n        setTitle(\"Calculadora\");\n        setSize(300, 200);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel panel = new JPanel(new GridLayout(4, 2, 5, 5));\n        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));\n\n        campo1 = new JTextField();\n        campo2 = new JTextField();\n        comboOp = new JComboBox<>(new String[]{\"+\", \"-\", \"*\", \"/\"});\n        resultado = new JLabel(\"Resultado: \");\n\n        panel.add(new JLabel(\"Numero 1:\"));\n        panel.add(campo1);\n        panel.add(new JLabel(\"Operacion:\"));\n        panel.add(comboOp);\n        panel.add(new JLabel(\"Numero 2:\"));\n        panel.add(campo2);\n        panel.add(new JButton(\"Calcular\"));\n        panel.add(resultado);\n\n        ((JButton) panel.getComponent(6)).addActionListener(e -> calcular());\n        add(panel);\n    }\n\n    private void calcular() {\n        try {\n            double a = Double.parseDouble(campo1.getText());\n            double b = Double.parseDouble(campo2.getText());\n            String op = (String) comboOp.getSelectedItem();\n            double res = switch (op) {\n                case \"+\" -> a + b;\n                case \"-\" -> a - b;\n                case \"*\" -> a * b;\n                case \"/\" -> b != 0 ? a / b : Double.NaN;\n                default -> 0;\n            };\n            resultado.setText(\"Resultado: \" + res);\n        } catch (NumberFormatException ex) {\n            resultado.setText(\"Error: introduce numeros validos\");\n        }\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new CalculadoraBasica().setVisible(true));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar llamar a getText() para obtener el valor de un JTextField: el componente no guarda valores automaticamente.",
+        "No validar la entrada antes de convertirla con Double.parseDouble(): NumberFormatException.",
+        "Usar setBounds() en lugar de layouts: funciona pero es fragil y no se adapta al tamano de ventana.",
+        "No usar SwingUtilities.invokeLater: puede causar errores intermitentes de concurrencia.",
+        "Olvidar que JCheckBox.isSelected() devuelve un boolean, no un String."
+      ],
+      "keyConcepts": [
+        "JTextField para entrada de texto de una linea",
+        "JTextArea para entrada de texto multilinea",
+        "JLabel para mostrar informacion (texto, iconos)",
+        "JButton para acciones del usuario",
+        "JComboBox para seleccion de opciones",
+        "JCheckBox para opciones booleanas",
+        "Personalizacion visual: fuentes, colores, bordes"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.f",
+        "RA5.g"
+      ]
+    },
+    {
+      "id": "lesson-15-3",
+      "title": "ActionListener y manejo de eventos",
+      "objectives": [
+        "Entender el patron observer y el modelo de eventos de Swing",
+        "Implementar ActionListener para responder a pulsaciones de boton",
+        "Usar clases anonimas y lambdas para manejar eventos",
+        "Manejar eventos de otros componentes: keyListener, focusListener",
+        "Comprender la diferencia entre eventos de usuario y eventos de sistema"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "El modelo de eventos de Swing",
+          "content": "Cuando el usuario interactua con la interfaz (pulsa un boton, escribe en un campo, mueve el raton), Swing genera un **evento**. El evento se envia a todos los **listeners** (escuchadores) registrados para ese componente.\n\n**Componentes del modelo:**\n- **Evento (Event)**: objeto que describe que paso (ej: `ActionEvent`)\n- **Fuente (Source)**: el componente que genero el evento (ej: un `JButton`)\n- **Listener**: el objeto que \"escucha\" y responde al evento\n- **Adapter**: clase auxiliar que implementa un listener con metodos vacios\n\n**Flujo:**\n```\nUsuario pulsa boton -> JButton genera ActionEvent -> Se llama a actionPerformed() del listener\n```\n\nEsto es el **patron Observer**: el boton (sujeto) notifica a todos sus observadores (listeners) cuando algo cambia."
+        },
+        {
+          "type": "code",
+          "title": "ActionListener: tres formas de implementarlo",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport java.awt.event.*;\n\npublic class EjemploEventos extends JFrame {\n\n    private int contador = 0;\n    private JLabel lblContador;\n\n    public EjemploEventos() {\n        setTitle(\"Ejemplo de Eventos\");\n        setSize(300, 200);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel panel = new JPanel();\n        lblContador = new JLabel(\"Contador: 0\");\n        panel.add(lblContador);\n\n        // FORMA 1: Clase anonima\n        JButton btnAnonima = new JButton(\"Clase anonima\");\n        btnAnonima.addActionListener(new ActionListener() {\n            @Override\n            public void actionPerformed(ActionEvent e) {\n                contador++;\n                lblContador.setText(\"Contador: \" + contador);\n            }\n        });\n        panel.add(btnAnonima);\n\n        // FORMA 2: Lambda (recomendada)\n        JButton btnLambda = new JButton(\"Lambda\");\n        btnLambda.addActionListener(e -> {\n            contador++;\n            lblContador.setText(\"Contador: \" + contador);\n        });\n        panel.add(btnLambda);\n\n        // FORMA 3: Referencia a metodo\n        JButton btnReferencia = new JButton(\"Referencia\");\n        btnReferencia.addActionListener(this::incrementar);\n        panel.add(btnReferencia);\n\n        add(panel);\n    }\n\n    private void incrementar(ActionEvent e) {\n        contador++;\n        lblContador.setText(\"Contador: \" + contador);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new EjemploEventos().setVisible(true));\n    }\n}\n\n// Las tres formas son equivalentes:\n// 1. Clase anonima: verbose pero explicita\n// 2. Lambda: concisa y moderna (recomendada)\n// 3. Referencia a metodo: cuando el metodo ya existe y tiene la firma correcta"
+        },
+        {
+          "type": "text",
+          "title": "Otros listeners comunes",
+          "content": "### MouseListener - Eventos del raton\n```java\ncomponent.addMouseListener(new MouseAdapter() {\n    @Override\n    public void mouseClicked(MouseEvent e) {\n        System.out.println(\"Click en: \" + e.getX() + \", \" + e.getY());\n    }\n    @Override\n    public void mouseEntered(MouseEvent e) { /* cursor entra */ }\n    @Override\n    public void mouseExited(MouseEvent e) { /* cursor sale */ }\n});\n```\n\n### KeyListener - Eventos de teclado\n```java\ncampo.addKeyListener(new KeyAdapter() {\n    @Override\n    public void keyReleased(KeyEvent e) {\n        System.out.println(\"Tecla: \" + e.getKeyChar());\n    }\n});\n```\n\n### DocumentListener - Cambios en JTextField/JTextArea\n```java\ncampo.getDocument().addDocumentListener(new DocumentListener() {\n    @Override\n    public void insertUpdate(DocumentEvent e) { /* texto insertado */ }\n    @Override\n    public void removeUpdate(DocumentEvent e) { /* texto eliminado */ }\n    @Override\n    public void changedUpdate(DocumentEvent e) { /* atributo cambiado */ }\n});\n```\n\n**Cuando usar cada uno:**\n- `ActionListener`: botones, campos de texto al pulsar Enter\n- `MouseListener`: clicks, movimientos del raton\n- `KeyListener`: pulsaciones de tecla en tiempo real\n- `DocumentListener`: cambios en el contenido de un campo"
+        },
+        {
+          "type": "code",
+          "title": "Ejemplo completo: formulario con validacion en tiempo real",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport javax.swing.event.*;\nimport java.awt.*;\n\npublic class ValidacionTiempoReal extends JFrame {\n\n    private JTextField campoEmail;\n    private JLabel lblEstado;\n    private JButton btnEnviar;\n\n    public ValidacionTiempoReal() {\n        setTitle(\"Validacion en tiempo real\");\n        setSize(400, 150);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel panel = new JPanel(new GridLayout(3, 2, 5, 5));\n        panel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));\n\n        campoEmail = new JTextField();\n        lblEstado = new JLabel(\"Introduce tu email\");\n        lblEstado.setForeground(Color.GRAY);\n        btnEnviar = new JButton(\"Enviar\");\n        btnEnviar.setEnabled(false); // Deshabilitado por defecto\n\n        panel.add(new JLabel(\"Email:\"));\n        panel.add(campoEmail);\n        panel.add(new JLabel(\"Estado:\"));\n        panel.add(lblEstado);\n        panel.add(new JLabel(\"\"));\n        panel.add(btnEnviar);\n\n        // Validar en tiempo real con DocumentListener\n        campoEmail.getDocument().addDocumentListener(new DocumentListener() {\n            @Override\n            public void insertUpdate(DocumentEvent e) { validar(); }\n            @Override\n            public void removeUpdate(DocumentEvent e) { validar(); }\n            @Override\n            public void changedUpdate(DocumentEvent e) { validar(); }\n        });\n\n        // Accion del boton\n        btnEnviar.addActionListener(e -> {\n            JOptionPane.showMessageDialog(this,\n                \"Email enviado: \" + campoEmail.getText());\n        });\n\n        add(panel);\n    }\n\n    private void validar() {\n        String email = campoEmail.getText().trim();\n        if (email.isEmpty()) {\n            lblEstado.setText(\"Introduce tu email\");\n            lblEstado.setForeground(Color.GRAY);\n            btnEnviar.setEnabled(false);\n        } else if (email.contains(\"@\") && email.contains(\".\")) {\n            lblEstado.setText(\"Email valido\");\n            lblEstado.setForeground(new Color(0, 128, 0));\n            btnEnviar.setEnabled(true);\n        } else {\n            lblEstado.setText(\"Email no valido\");\n            lblEstado.setForeground(Color.RED);\n            btnEnviar.setEnabled(false);\n        }\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new ValidacionTiempoReal().setVisible(true));\n    }\n}"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-3-1",
+          "difficulty": "basic",
+          "title": "Boton con contador",
+          "description": "Crea una ventana con un JLabel que muestre 'Contador: 0' y un JButton. Cada vez que se pulse el boton, el contador debe incrementarse en 1 y el JLabel debe actualizarse.",
+          "solution": "import javax.swing.*;\n\npublic class Contador extends JFrame {\n    private int contador = 0;\n    private JLabel lbl;\n\n    public Contador() {\n        setTitle(\"Contador\");\n        setSize(250, 100);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        lbl = new JLabel(\"Contador: 0\");\n        JButton btn = new JButton(\"Incrementar\");\n        btn.addActionListener(e -> {\n            contador++;\n            lbl.setText(\"Contador: \" + contador);\n        });\n\n        JPanel panel = new JPanel();\n        panel.add(lbl);\n        panel.add(btn);\n        add(panel);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new Contador().setVisible(true));\n    }\n}"
+        },
+        {
+          "id": "ex-16-3-2",
+          "difficulty": "intermediate",
+          "title": "Validacion de formulario en tiempo real",
+          "description": "Crea un formulario con un campo de email. Usa DocumentListener para validar el email en tiempo real: mostrar 'Valido' en verde si contiene @ y ., o 'No valido' en rojo en caso contrario.",
+          "solution": "// Ver el ejemplo de ValidacionTiempoReal de la leccion 16-3.\n// La clave es usar DocumentListener sobre campoEmail.getDocument()\ny validar en cada cambio con insertUpdate/removeUpdate."
+        },
+        {
+          "id": "ex-16-3-3",
+          "difficulty": "advanced",
+          "title": "Cronometro con eventos de teclado",
+          "description": "Crea un cronometro que muestre los segundos transcurridos. Usa KeyListener: la tecla 'E' inicia el cronometro, 'P' lo pausa, y 'R' lo reinicia. Muestra el estado actual (corriendo/pausado).",
+          "solution": "import javax.swing.*;\nimport java.awt.*;\nimport java.awt.event.*;\nimport javax.swing.Timer;\n\npublic class Cronometro extends JFrame {\n    private int segundos = 0;\n    private boolean corriendo = false;\n    private JLabel lblTiempo, lblEstado;\n    private Timer timer;\n\n    public Cronometro() {\n        setTitle(\"Cronometro\");\n        setSize(300, 150);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        lblTiempo = new JLabel(\"00:00\");\n        lblTiempo.setFont(new Font(\"Monospaced\", Font.BOLD, 36));\n        lblEstado = new JLabel(\"Pulsar E para iniciar\", SwingConstants.CENTER);\n\n        JPanel panel = new JPanel();\n        panel.add(lblTiempo);\n        panel.add(lblEstado);\n        add(panel);\n\n        timer = new Timer(1000, e -> {\n            segundos++;\n            int min = segundos / 60;\n            int seg = segundos % 60;\n            lblTiempo.setText(String.format(\"%02d:%02d\", min, seg));\n        });\n\n        addKeyListener(new KeyAdapter() {\n            @Override\n            public void keyReleased(KeyEvent e) {\n                switch (Character.toLowerCase(e.getKeyChar())) {\n                    case 'e' -> {\n                        timer.start();\n                        corriendo = true;\n                        lblEstado.setText(\"Corriendo (P=pause, R=reset)\");\n                    }\n                    case 'p' -> {\n                        timer.stop();\n                        corriendo = false;\n                        lblEstado.setText(\"Pausado (E=reanudar)\");\n                    }\n                    case 'r' -> {\n                        timer.stop();\n                        segundos = 0;\n                        corriendo = false;\n                        lblTiempo.setText(\"00:00\");\n                        lblEstado.setText(\"Reiniciado (E=iniciar)\");\n                    }\n                }\n            }\n        });\n\n        setFocusable(true);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new Cronometro().setVisible(true));\n    }\n}"
+        }
+      ],
+      "commonErrors": [
+        "Olvidar registrar el listener: si no se aniade con addActionListener(), el boton no hace nada.",
+        "Usar Thread.sleep() en el hilo de la GUI: bloquea la interfaz y la hace no responsiva.",
+        "No llamar a setFocusable(true) para KeyListener: el componente no recibe eventos de teclado.",
+        "Confundir actionPerformed con mouseClicked: ActionListener es para botones, MouseListener para clicks.",
+        "No usar Timer para operaciones periodicas: Thread.sleep() no funciona bien en Swing."
+      ],
+      "keyConcepts": [
+        "Patron Observer: fuente -> evento -> listener",
+        "ActionListener: el listener mas usado en Swing",
+        "Tres formas: clase anonima, lambda, referencia a metodo",
+        "MouseAdapter y KeyAdapter: adaptadores para no implementar todos los metodos",
+        "DocumentListener: validacion en tiempo real en campos de texto",
+        "Timer de Swing: operaciones periodicas sin bloquear la GUI"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.g"
+      ]
+    },
+    {
+      "id": "lesson-15-4",
+      "title": "Aplicacion completa: formulario con E/S y logica",
+      "objectives": [
+        "Integrar todos los componentes de Swing en una aplicacion funcional",
+        "Crear un formulario completo de entrada de datos con validacion",
+        "Procesar los datos introducidos por el usuario",
+        "Mostrar resultados en la interfaz grafica",
+        "Aplicar buenas practicas de diseno de interfaces"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "title": "Buenas practicas de diseno de interfaces",
+          "content": "Antes de construir una aplicacion completa, repasemos las buenas practicas:\n\n1. **Separar logica de presentacion**: la clase que gestiona los datos no debe mezclarse con la que dibuja la interfaz.\n2. **Validar antes de procesar**: comprobar que los campos obligatorios no estan vacios y que los valores numericos son correctos.\n3. **Mostrar feedback inmediato**: el usuario debe saber si algo salio bien o mal.\n4. **Deshabilitar acciones invalidas**: si un formulario no esta completo, el boton de envio debe estar deshabilitado.\n5. **Usar BorderLayout para la estructura general**: NORTH para titulos, CENTER para el formulario, SOUTH para botones.\n6. **GridLayout para formularios**: alinea etiquetas y campos perfectamente.\n7. **EmptyBorder para margenes**: la interfaz no debe \"tocar\" los bordes de la ventana."
+        },
+        {
+          "type": "code",
+          "title": "Aplicacion completa: Calculadora GUI",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport java.awt.*;\nimport java.awt.event.*;\n\n/**\n * Calculadora grafica completa.\n * Demuestra: JFrame, JPanel, layouts, JTextField, JButton,\n * JLabel, ActionListener, validacion, y E/S de datos.\n */\npublic class CalculadoraGUI extends JFrame {\n\n    private JTextField campo1, campo2;\n    private JLabel resultado;\n    private JComboBox<String> comboOp;\n\n    public CalculadoraGUI() {\n        setTitle(\"Calculadora GUI\");\n        setSize(350, 250);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        // Estructura principal: BorderLayout\n        JPanel principal = new JPanel(new BorderLayout(10, 10));\n        principal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));\n\n        // === NORTE: Titulo ===\n        JLabel titulo = new JLabel(\"Calculadora\", SwingConstants.CENTER);\n        titulo.setFont(new Font(\"Arial\", Font.BOLD, 20));\n        principal.add(titulo, BorderLayout.NORTH);\n\n        // === CENTRO: Formulario ===\n        JPanel formulario = new JPanel(new GridLayout(4, 2, 8, 8));\n\n        campo1 = new JTextField();\n        campo2 = new JTextField();\n        comboOp = new JComboBox<>(new String[]{\"Sumar (+)\", \"Restar (-)\", \"Multiplicar (*)\", \"Dividir (/)\"});\n        resultado = new JLabel(\"Resultado: \");\n        resultado.setFont(new Font(\"Monospaced\", Font.BOLD, 16));\n\n        formulario.add(new JLabel(\"Numero 1:\"));\n        formulario.add(campo1);\n        formulario.add(new JLabel(\"Operacion:\"));\n        formulario.add(comboOp);\n        formulario.add(new JLabel(\"Numero 2:\"));\n        formulario.add(campo2);\n        formulario.add(new JButton(\"Calcular\"));\n        formulario.add(resultado);\n\n        principal.add(formulario, BorderLayout.CENTER);\n\n        // Evento del boton\n        JButton btnCalcular = (JButton) formulario.getComponent(6);\n        btnCalcular.addActionListener(e -> calcular());\n\n        // === SUR: Creditos ===\n        JLabel creditos = new JLabel(\"Calculadora v1.0 - Java Swing\", SwingConstants.CENTER);\n        creditos.setForeground(Color.GRAY);\n        principal.add(creditos, BorderLayout.SOUTH);\n\n        add(principal);\n    }\n\n    private void calcular() {\n        // Validacion\n        String texto1 = campo1.getText().trim();\n        String texto2 = campo2.getText().trim();\n\n        if (texto1.isEmpty() || texto2.isEmpty()) {\n            resultado.setText(\"Error: introduce ambos numeros\");\n            resultado.setForeground(Color.RED);\n            return;\n        }\n\n        double a, b;\n        try {\n            a = Double.parseDouble(texto1);\n            b = Double.parseDouble(texto2);\n        } catch (NumberFormatException ex) {\n            resultado.setText(\"Error: valores numericos invalidos\");\n            resultado.setForeground(Color.RED);\n            return;\n        }\n\n        // Operacion\n        String op = (String) comboOp.getSelectedItem();\n        double res;\n        if (op.startsWith(\"Sumar\")) {\n            res = a + b;\n        } else if (op.startsWith(\"Restar\")) {\n            res = a - b;\n        } else if (op.startsWith(\"Multiplicar\")) {\n            res = a * b;\n        } else {\n            if (b == 0) {\n                resultado.setText(\"Error: division por cero\");\n                resultado.setForeground(Color.RED);\n                return;\n            }\n            res = a / b;\n        }\n\n        // Mostrar resultado\n        resultado.setForeground(new Color(0, 100, 0));\n        resultado.setText(String.format(\"Resultado: %.4f\", res));\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new CalculadoraGUI().setVisible(true));\n    }\n}"
+        },
+        {
+          "type": "code",
+          "title": "Gestor de alumnos con GUI completa",
+          "language": "java",
+          "content": "import javax.swing.*;\nimport java.awt.*;\nimport java.util.ArrayList;\nimport java.util.List;\n\n/**\n * Gestion de alumnos con interfaz grafica.\n * Incluye: formulario, validacion, lista, y estado.\n */\npublic class GestorAlumnosGUI extends JFrame {\n\n    private JTextField campoNombre, campoEmail, campoEdad;\n    private DefaultListModel<String> modeloLista;\n    private JList<String> listaAlumnos;\n    private JLabel lblEstado, lblTotal;\n    private final List<String> alumnos = new ArrayList<>();\n\n    public GestorAlumnosGUI() {\n        setTitle(\"Gestor de Alumnos\");\n        setSize(550, 420);\n        setDefaultCloseOperation(EXIT_ON_CLOSE);\n        setLocationRelativeTo(null);\n\n        JPanel principal = new JPanel(new BorderLayout(10, 10));\n        principal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));\n\n        // NORTE: Titulo + estadisticas\n        JPanel norte = new JPanel(new BorderLayout());\n        JLabel titulo = new JLabel(\"Gestor de Alumnos\", SwingConstants.CENTER);\n        titulo.setFont(new Font(\"Arial\", Font.BOLD, 18));\n        norte.add(titulo, BorderLayout.NORTH);\n        lblTotal = new JLabel(\"Total: 0 alumnos\", SwingConstants.CENTER);\n        lblTotal.setForeground(Color.GRAY);\n        norte.add(lblTotal, BorderLayout.SOUTH);\n        principal.add(norte, BorderLayout.NORTH);\n\n        // CENTRO: Formulario + Lista\n        JPanel centro = new JPanel(new BorderLayout(10, 10));\n\n        JPanel formulario = new JPanel(new GridLayout(4, 2, 5, 5));\n        campoNombre = new JTextField();\n        campoEmail = new JTextField();\n        campoEdad = new JTextField();\n\n        formulario.add(new JLabel(\"Nombre:\"));\n        formulario.add(campoNombre);\n        formulario.add(new JLabel(\"Email:\"));\n        formulario.add(campoEmail);\n        formulario.add(new JLabel(\"Edad:\"));\n        formulario.add(campoEdad);\n\n        JPanel botones = new JPanel(new FlowLayout());\n        JButton btnAgregar = new JButton(\"Agregar\");\n        JButton btnLimpiar = new JButton(\"Limpiar\");\n        JButton btnEliminar = new JButton(\"Eliminar seleccion\");\n        botones.add(btnAgregar);\n        botones.add(btnLimpiar);\n        botones.add(btnEliminar);\n        formulario.add(botones);\n\n        centro.add(formulario, BorderLayout.NORTH);\n\n        modeloLista = new DefaultListModel<>();\n        listaAlumnos = new JList<>(modeloLista);\n        listaAlumnos.setFont(new Font(\"Monospaced\", Font.PLAIN, 12));\n        centro.add(new JScrollPane(listaAlumnos), BorderLayout.CENTER);\n\n        principal.add(centro, BorderLayout.CENTER);\n\n        // SUR: Estado\n        lblEstado = new JLabel(\"Listo\", SwingConstants.CENTER);\n        lblEstado.setBorder(BorderFactory.createEtchedBorder());\n        principal.add(lblEstado, BorderLayout.SOUTH);\n\n        // EVENTOS\n        btnAgregar.addActionListener(e -> agregarAlumno());\n        btnLimpiar.addActionListener(e -> limpiarCampos());\n        btnEliminar.addActionListener(e -> eliminarSeleccion());\n\n        add(principal);\n    }\n\n    private void agregarAlumno() {\n        String nombre = campoNombre.getText().trim();\n        String email = campoEmail.getText().trim();\n        String edad = campoEdad.getText().trim();\n\n        if (nombre.isEmpty() || email.isEmpty()) {\n            mostrarError(\"Nombre y email son obligatorios.\");\n            return;\n        }\n        if (!email.contains(\"@\")) {\n            mostrarError(\"El email no es valido.\");\n            return;\n        }\n        try {\n            Integer.parseInt(edad);\n        } catch (NumberFormatException ex) {\n            mostrarError(\"La edad debe ser un numero entero.\");\n            return;\n        }\n\n        String alumno = String.format(\"%-20s %-25s %3s\", nombre, email, edad);\n        alumnos.add(alumno);\n        modeloLista.addElement(alumno);\n\n        lblTotal.setText(\"Total: \" + alumnos.size() + \" alumnos\");\n        lblEstado.setText(\"Alumno agregado: \" + nombre);\n        lblEstado.setForeground(new Color(0, 100, 0));\n        limpiarCampos();\n    }\n\n    private void limpiarCampos() {\n        campoNombre.setText(\"\");\n        campoEmail.setText(\"\");\n        campoEdad.setText(\"\");\n        campoNombre.requestFocus();\n    }\n\n    private void eliminarSeleccion() {\n        int idx = listaAlumnos.getSelectedIndex();\n        if (idx == -1) {\n            mostrarError(\"Selecciona un alumno para eliminar.\");\n            return;\n        }\n        String eliminado = alumnos.remove(idx);\n        modeloLista.remove(idx);\n        lblTotal.setText(\"Total: \" + alumnos.size() + \" alumnos\");\n        lblEstado.setText(\"Eliminado: \" + eliminado.trim());\n        lblEstado.setForeground(Color.RED);\n    }\n\n    private void mostrarError(String msg) {\n        lblEstado.setText(\"Error: \" + msg);\n        lblEstado.setForeground(Color.RED);\n    }\n\n    public static void main(String[] args) {\n        SwingUtilities.invokeLater(() -> new GestorAlumnosGUI().setVisible(true));\n    }\n}"
+        },
+        {
+          "type": "text",
+          "title": "Resumen de la aplicacion",
+          "content": "La aplicacion anterior integra todos los conceptos aprendidos:\n\n**Componentes utilizados:**\n- `JFrame`: ventana principal\n- `JPanel`: contenedores con FlowLayout, GridLayout, BorderLayout\n- `JTextField`: campos de entrada (nombre, email, edad)\n- `JButton`: acciones (agregar, limpiar, eliminar)\n- `JLabel`: informacion (titulo, estado, total)\n- `JList` + `DefaultListModel`: lista de alumnos\n- `JScrollPane`: scroll para la lista\n\n**Eventos:**\n- `ActionListener` en los 3 botones\n- Validacion de datos antes de procesar\n\n**Buenas practicas aplicadas:**\n- Validacion completa antes de agregar\n- Feedback visual (color verde para exito, rojo para error)\n- Limpiar campos despues de agregar\n- Deshabilitar eliminacion si no hay seleccion\n- Separacion clara entre entrada, proceso y salida"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-4-1",
+          "difficulty": "basic",
+          "title": "Mini calculadora",
+          "description": "Crea una calculadora con 2 campos de texto, 4 botones (+, -, *, /) y una etiqueta de resultado. Cada boton ejecuta la operacion correspondiente.",
+          "solution": "// Usar la estructura de CalculadoraGUI de la leccion 16-4.\n// Crear 4 botones en lugar de un JComboBox.\n// Cada boton tiene su propio ActionListener con la operacion."
+        },
+        {
+          "id": "ex-16-4-2",
+          "difficulty": "intermediate",
+          "title": "Conversor de temperatura con GUI",
+          "description": "Crea una aplicacion que convierta Celsius a Fahrenheit y viceversa. Usa 1 campo de texto, 1 JComboBox (C->F, F->C), 1 boton y 1 JLabel para el resultado. Valida la entrada.",
+          "solution": "// Estructura:\n// - JTextField para el valor\n// - JComboBox con \"Celsius a Fahrenheit\" y \"Fahrenheit a Celsius\"\n// - JButton \"Convertir\"\n// - JLabel para el resultado\n// Validar que el campo no esta vacio y es un numero.\n// Formula: F = C * 9/5 + 32, C = (F - 32) * 5/9"
+        },
+        {
+          "id": "ex-16-4-3",
+          "difficulty": "advanced",
+          "title": "Agenda de contactos",
+          "description": "Crea una aplicacion de agenda con: formulario (nombre, telefono, email), boton Agregar, boton Limpiar, boton Buscar (busca por nombre), y una JList que muestre los contactos. Usa validacion y feedback visual.",
+          "solution": "// Estructura completa:\n// - BorderLayout: NORTH (titulo), CENTER (formulario + lista), SUR (estado)\n// - GridLayout para el formulario (3 filas)\n// - JList con DefaultListModel para los contactos\n// - 4 botones: Agregar, Limpiar, Buscar, Eliminar\n// - Validacion: nombre y telefono obligatorios, telefono numerico\n// - Busqueda: filtrar la JList por nombre (case-insensitive)\n// - Feedback: JLabel en SUR con color verde/rojo"
+        }
+      ],
+      "commonErrors": [
+        "Crear una sola clase con toda la logica: mejor separar en modelos y vista.",
+        "No manejar NumberFormatException al convertir texto a numero.",
+        "Olvidar actualizar la interfaz despues de modificar los datos.",
+        "No usar JScrollPanes para listas largas: los datos se cortan.",
+        "Mezclar la logica de negocio con los eventos de la GUI."
+      ],
+      "keyConcepts": [
+        "Integracion completa de componentes Swing",
+        "Formularios con validacion y feedback visual",
+        "Patron MVC basico: separar modelo de vista",
+        "Buenas practicas de diseno de interfaces",
+        "Gestion de estado de la aplicacion",
+        "Entrada, proceso y salida en una GUI"
+      ],
+      "learningOutcomes": [
+        "RA5"
+      ],
+      "assessmentCriteria": [
+        "RA5.f",
+        "RA5.g",
+        "RA5.h"
+      ]
+    }
+  ],
+  "practice": {
+    "title": "Calculadora grafica completa",
+    "description": "Construir una calculadora grafica completa con Java Swing que realice las 4 operaciones basicas, maneje errores de entrada, muestre historial de operaciones y permita limpiar la pantalla. El estudiante debe aplicar todos los conceptos de Swing: layouts, componentes, eventos y validacion.",
+    "steps": [
+      "Disenar la interfaz: GridLayout para botones numericos, BorderLayout para la estructura general",
+      "Crear los campos de texto y etiquetas para entrada y salida de datos",
+      "Implementar ActionListener para cada boton (numeros y operaciones)",
+      "Manejar el estado de la calculadora: operando actual, operador, resultado parcial",
+      "Validar entradas y mostrar errores en la interfaz",
+      "Anadir historial de operaciones en un JTextArea con scroll"
+    ],
+    "deliverables": [
+      "Calculadora funcional con interfaz grafica",
+      "Manejo de errores (division por cero, entrada no numerica)",
+      "Historial de operaciones visible",
+      "Codigo documentado con Javadoc"
+    ]
+  }
+}
