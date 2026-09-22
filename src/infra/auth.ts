@@ -57,7 +57,8 @@ function getAuth(): any {
       trustedOrigins: [
         "http://localhost:5173",
         "http://localhost:8787",
-      ],
+        process.env.CORS_ORIGIN || "",
+      ].filter(Boolean),
     });
   }
   return _auth;

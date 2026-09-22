@@ -24,17 +24,18 @@ CORS_ORIGIN = "http://localhost:5173"
 # Staging
 [env.staging]
 name = "lms-platform-staging"
-routes = [
-  { pattern = "staging.lms-platform.workers.dev", zone_name = "workers.dev" }
-]
+# No routes needed for workers.dev subdomains — Cloudflare assigns URL automatically
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
-BETTER_AUTH_URL = "https://staging.lms-platform.workers.dev"
-CORS_ORIGIN = "https://staging.lms-platform.workers.dev"
+BETTER_AUTH_URL = "https://lms-platform-staging.19gdp97.workers.dev"
+CORS_ORIGIN = "https://lms-platform-staging.19gdp97.workers.dev"
+CONTACT_EMAIL = "19profe97@gmail.com"
+CONTACT_FROM = "onboarding@resend.dev"
 
-[env.staging.r2_buckets]
-BUCKET = { binding = "BUCKET", bucket_name = "lms-staging" }
+# R2 not enabled yet — uncomment when R2 is activated
+# [env.staging.r2_buckets]
+# BUCKET = { binding = "BUCKET", bucket_name = "lms-staging" }
 
 # Production
 [env.production]
@@ -48,5 +49,6 @@ ENVIRONMENT = "production"
 BETTER_AUTH_URL = "https://lms-platform.workers.dev"
 CORS_ORIGIN = "https://lms-platform.workers.dev"
 
-[env.production.r2_buckets]
-BUCKET = { binding = "BUCKET", bucket_name = "lms-production" }
+# R2 not enabled yet — uncomment when R2 is activated
+# [env.production.r2_buckets]
+# BUCKET = { binding = "BUCKET", bucket_name = "lms-production" }
