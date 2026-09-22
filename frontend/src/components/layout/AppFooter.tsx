@@ -80,6 +80,11 @@ export function AppFooter() {
                   Condiciones de uso
                 </Link>
               </li>
+              <li>
+                <Link to="/condiciones-de-contratacion" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+                  Condiciones de contratación
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

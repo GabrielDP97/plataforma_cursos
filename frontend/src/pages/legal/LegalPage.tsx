@@ -43,6 +43,8 @@ export function LegalPage({ title, lastUpdated, children }: LegalPageProps) {
         <Link to="/cookies" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Cookies</Link>
         <span className="text-gray-300 dark:text-gray-600">·</span>
         <Link to="/condiciones-de-uso" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Condiciones de uso</Link>
+        <span className="text-gray-300 dark:text-gray-600">·</span>
+        <Link to="/condiciones-de-contratacion" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">Contratación</Link>
       </div>
     </div>
   );

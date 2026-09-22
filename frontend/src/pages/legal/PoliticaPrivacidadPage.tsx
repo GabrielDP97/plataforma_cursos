@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { LegalPage } from './LegalPage';
 
 /* ============================================================================
-   POLÍTICA DE PRIVACIDAD — AulaDev beta
+   POLÍTICA DE PRIVACIDAD — AulaDev
    ============================================================================ */
 
 export function PoliticaPrivacidadPage() {
@@ -54,17 +54,24 @@ export function PoliticaPrivacidadPage() {
       <p>Utilizamos tus datos para:</p>
       <ul>
         <li>Gestionar tu cuenta de usuario y permitirte acceder a la plataforma.</li>
-        <li>Administrar tu inscripción a cursos y registrar tu progreso.</li>
-        <li>Responder a tus consultas enviadas a través del formulario de contacto.</li>
+        <li>Administrar tu inscripción a cursos, registrar tu progreso y
+          facilitar el acceso al contenido educativo.</li>
+        <li>Gestionar la prestación de servicios de clases particulares
+          contratadas a través de la plataforma.</li>
+        <li>Responder a tus consultas enviadas a través del formulario de
+          contacto.</li>
         <li>Garantizar la seguridad de la plataforma y prevenir accesos no
           autorizados.</li>
+        <li>Cumplir con obligaciones legales y contables derivadas de la
+          relación comercial.</li>
       </ul>
 
       <h2>4. Base legal</h2>
       <p>
         El tratamiento de tus datos se fundamenta en la ejecución de la relación
-        contractual derivada de tu uso de la plataforma y en tu consentimiento
-        cuando contactas con nosotros.
+        contractual derivada de la contratación de cursos o clases particulares
+        a través de la plataforma, en la prestación del servicio educativo y en
+        tu consentimiento cuando contactas con nosotros.
       </p>
 
       <h2>5. Servicios de terceros</h2>
