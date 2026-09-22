@@ -182,3 +182,15 @@ export interface CourseDetail {
   moduleCount: number;
   lessonCount: number;
 }
+
+export interface AdminUserEnrollment {
+  courseId: string;
+  courseTitle: string;
+  status: string;
+  enrolledAt: string;
+}
+
+export interface AdminEnrollmentDiff {
+  added: string[];
+  removed: string[];
+}

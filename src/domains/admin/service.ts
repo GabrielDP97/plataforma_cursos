@@ -792,6 +792,157 @@ export async function updateCourse(
 }
 
 // ============================================================================
+// Admin: User Course Assignment Management
+// ============================================================================
+
+export interface AdminUserEnrollment {
+  courseId: string;
+  courseTitle: string;
+  status: string;
+  enrolledAt: Date;
+}
+
+/**
+ * List all enrollments for a specific user (admin view).
+ * Returns courseId, courseTitle, status, and enrolledAt.
+ */
+export async function listAdminUserEnrollments(
+  userId: string
+): Promise<AdminUserEnrollment[]> {
+  // Verify user exists
+  const [existingUser] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  if (!existingUser) {
+    throw new AdminError("USER_NOT_FOUND", "User not found", 404);
+  }
+
+  const rows = await db
+    .select({
+      courseId: enrollment.courseId,
+      courseTitle: course.title,
+      status: enrollment.status,
+      enrolledAt: enrollment.enrolledAt,
+    })
+    .from(enrollment)
+    .innerJoin(course, eq(enrollment.courseId, course.id))
+    .where(
+      and(
+        eq(enrollment.userId, userId),
+        eq(enrollment.status, "active")
+      )
+    )
+    .orderBy(desc(enrollment.enrolledAt));
+
+  return rows.map((r) => ({
+    courseId: r.courseId,
+    courseTitle: r.courseTitle,
+    status: r.status,
+    enrolledAt: r.enrolledAt,
+  }));
+}
+
+/**
+ * Set the complete set of course enrollments for a user (admin only).
+ *
+ * Computes a diff against current active enrollments:
+ * - Courses in `courseIds` but not currently active → create (enroll)
+ * - Courses currently active but not in `courseIds` → soft-delete (drop)
+ *
+ * Idempotent: no-op for courses already enrolled.
+ * Preserves lesson_progress on removal (enrollment just drops, progress stays).
+ * Only processes published courses.
+ */
+export async function setAdminUserEnrollments(
+  userId: string,
+  courseIds: string[]
+): Promise<{ added: string[]; removed: string[] }> {
+  // Verify user exists
+  const [existingUser] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  if (!existingUser) {
+    throw new AdminError("USER_NOT_FOUND", "User not found", 404);
+  }
+
+  // Get current active enrollments for this user
+  const currentEnrollments = await db
+    .select({ courseId: enrollment.courseId, id: enrollment.id })
+    .from(enrollment)
+    .where(
+      and(
+        eq(enrollment.userId, userId),
+        eq(enrollment.status, "active")
+      )
+    );
+
+  const currentCourseIds = new Set(currentEnrollments.map((e) => e.courseId));
+  const desiredCourseIds = new Set(courseIds);
+
+  // Diff: what to add and what to remove
+  const toAdd = courseIds.filter((id) => !currentCourseIds.has(id));
+  const toRemove = currentEnrollments
+    .filter((e) => !desiredCourseIds.has(e.courseId))
+    .map((e) => e.courseId);
+
+  // Validate that courses to add exist and are published
+  if (toAdd.length > 0) {
+    const validCourses = await db
+      .select({ id: course.id })
+      .from(course)
+      .where(
+        and(
+          sql`${course.id} IN ${toAdd}`,
+          eq(course.status, "published")
+        )
+      );
+
+    const validIds = new Set(validCourses.map((c) => c.id));
+    const invalidIds = toAdd.filter((id) => !validIds.has(id));
+
+    if (invalidIds.length > 0) {
+      throw new AdminError(
+        "INVALID_COURSES",
+        `Courses not found or not published: ${invalidIds.join(", ")}`,
+        400
+      );
+    }
+
+    // Enroll in new courses (idempotent via existing enrollStudent logic)
+    for (const courseId of toAdd) {
+      await db.insert(enrollment).values({
+        userId,
+        courseId,
+        source: "admin",
+      });
+    }
+  }
+
+  // Drop removed enrollments (soft-delete preserves lesson_progress)
+  if (toRemove.length > 0) {
+    for (const courseId of toRemove) {
+      const currentEnrollment = currentEnrollments.find(
+        (e) => e.courseId === courseId
+      );
+      if (currentEnrollment) {
+        await db
+          .update(enrollment)
+          .set({ status: "dropped" })
+          .where(eq(enrollment.id, currentEnrollment.id));
+      }
+    }
+  }
+
+  return { added: toAdd, removed: toRemove };
+}
+
+// ============================================================================
 // Platform Settings
 // ============================================================================
 

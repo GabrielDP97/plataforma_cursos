@@ -1,6 +1,6 @@
 import { apiClient } from '../client';
 import type { Course, User, PaginatedResponse } from '../types';
-import type { AdminDashboard, CourseDetail } from '../types';
+import type { AdminDashboard, CourseDetail, AdminUserEnrollment, AdminEnrollmentDiff } from '../types';
 
 export interface CreateUserResult {
   user: {
@@ -66,4 +66,13 @@ export const adminApi = {
 
   getCourseById: (courseId: string) =>
     apiClient<CourseDetail>(`/admin/courses/${courseId}`),
+
+  getUserEnrollments: (userId: string) =>
+    apiClient<AdminUserEnrollment[]>(`/admin/users/${userId}/enrollments`),
+
+  setUserEnrollments: (userId: string, courseIds: string[]) =>
+    apiClient<AdminEnrollmentDiff>(`/admin/users/${userId}/enrollments`, {
+      method: 'PUT',
+      body: { courseIds },
+    }),
 };

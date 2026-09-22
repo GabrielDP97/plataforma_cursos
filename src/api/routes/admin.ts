@@ -11,6 +11,8 @@ import {
   getPlatformSettings,
   createUser,
   resetUserPassword,
+  listAdminUserEnrollments,
+  setAdminUserEnrollments,
   AdminError,
 } from "../../domains/admin/service";
 import { requireAuth } from "../middleware/auth";
@@ -52,6 +54,10 @@ const listCoursesSchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   search: z.string().optional(),
   status: z.string().optional(),
+});
+
+const setUserEnrollmentsSchema = z.object({
+  courseIds: z.array(z.string().uuid()),
 });
 
 const createUserSchema = z.object({
@@ -459,6 +465,97 @@ adminRoutes.patch("/courses/:courseId", async (c) => {
       {
         success: false,
         error: { code: "INTERNAL_ERROR", message: "Failed to update course" },
+      },
+      500
+    );
+  }
+});
+
+// GET /api/admin/users/:userId/enrollments — list enrollments for a user
+adminRoutes.get("/users/:userId/enrollments", async (c) => {
+  try {
+    const userId = c.req.param("userId")!;
+    const enrollments = await listAdminUserEnrollments(userId);
+
+    const response: ApiResponse<typeof enrollments> = {
+      success: true,
+      data: enrollments,
+    };
+
+    return c.json(response);
+  } catch (error: any) {
+    if (error instanceof AdminError) {
+      return c.json(
+        {
+          success: false,
+          error: { code: error.code, message: error.message },
+        },
+        error.status as any
+      );
+    }
+
+    console.error("List user enrollments error:", error);
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Failed to list user enrollments",
+        },
+      },
+      500
+    );
+  }
+});
+
+// PUT /api/admin/users/:userId/enrollments — set enrollments for a user
+adminRoutes.put("/users/:userId/enrollments", async (c) => {
+  try {
+    const userId = c.req.param("userId")!;
+    const body = await c.req.json();
+    const validatedData = setUserEnrollmentsSchema.parse(body);
+
+    const result = await setAdminUserEnrollments(userId, validatedData.courseIds);
+
+    const response: ApiResponse<typeof result> = {
+      success: true,
+      data: result,
+    };
+
+    return c.json(response);
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return c.json(
+        {
+          success: false,
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid input data",
+            details: error.issues,
+          },
+        },
+        400
+      );
+    }
+
+    if (error instanceof AdminError) {
+      return c.json(
+        {
+          success: false,
+          error: { code: error.code, message: error.message },
+        },
+        error.status as any
+      );
+    }
+
+    console.error("Set user enrollments error:", error);
+    return c.json(
+      {
+        success: false,
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Failed to set user enrollments",
+        },
       },
       500
     );

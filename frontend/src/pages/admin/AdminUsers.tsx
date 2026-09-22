@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Trash2, ChevronLeft, ChevronRight, UserPlus, KeyRound, Copy, Check } from 'lucide-react';
+import { Search, Trash2, ChevronLeft, ChevronRight, UserPlus, KeyRound, Copy, Check, BookOpen } from 'lucide-react';
 import { adminApi } from '../../api/modules/admin';
 import type { Course, User } from '../../api/types';
 import { Card } from '../../components/ui/card';
@@ -100,6 +100,14 @@ export function AdminUsers() {
   } | null>(null);
 
   const [courses, setCourses] = useState<Course[]>([]);
+
+  // Course assignment management state
+  const [manageCoursesUser, setManageCoursesUser] = useState<User | null>(null);
+  const [courseAssignments, setCourseAssignments] = useState<string[]>([]);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
+  const [courseLoading, setCourseLoading] = useState(false);
+  const [courseSaving, setCourseSaving] = useState(false);
+  const [courseError, setCourseError] = useState<string | null>(null);
 
   const [createForm, setCreateForm] = useState<CreateUserData>({
     fullName: '',
@@ -303,6 +311,61 @@ export function AdminUsers() {
     }
   };
 
+  // ---- Course assignment management ----
+
+  const openCourseManager = async (user: User) => {
+    setManageCoursesUser(user);
+    setCourseError(null);
+    setCourseLoading(true);
+    try {
+      const [enrollments, coursesResult] = await Promise.all([
+        adminApi.getUserEnrollments(user.id),
+        adminApi.listCourses({ limit: 100, status: 'published' }),
+      ]);
+      setCourseAssignments(enrollments.map((e) => e.courseId));
+      setAvailableCourses(coursesResult.data);
+    } catch (err) {
+      setCourseError(
+        err instanceof Error ? err.message : 'Error al cargar cursos',
+      );
+    } finally {
+      setCourseLoading(false);
+    }
+  };
+
+  const toggleCourse = (courseId: string) => {
+    setCourseAssignments((prev) =>
+      prev.includes(courseId)
+        ? prev.filter((id) => id !== courseId)
+        : [...prev, courseId],
+    );
+  };
+
+  const handleSaveCourses = async () => {
+    if (!manageCoursesUser) return;
+    setCourseSaving(true);
+    setCourseError(null);
+    try {
+      await adminApi.setUserEnrollments(manageCoursesUser.id, courseAssignments);
+      setManageCoursesUser(null);
+      setCourseAssignments([]);
+      setAvailableCourses([]);
+    } catch (err) {
+      setCourseError(
+        err instanceof Error ? err.message : 'Error al guardar asignaciones',
+      );
+    } finally {
+      setCourseSaving(false);
+    }
+  };
+
+  const closeCourseManager = () => {
+    setManageCoursesUser(null);
+    setCourseAssignments([]);
+    setAvailableCourses([]);
+    setCourseError(null);
+  };
+
   const generateUsername = (name: string) => {
     return name
       .toLowerCase()
@@ -462,6 +525,14 @@ export function AdminUsers() {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openCourseManager(user)}
+                        title="Gestionar cursos"
+                      >
+                        <BookOpen className="h-4 w-4 text-indigo-500" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -783,6 +854,90 @@ export function AdminUsers() {
             </Button>
           </div>
         </div>
+      </Dialog>
+
+      {/* Course Assignment Management Dialog */}
+      <Dialog
+        open={!!manageCoursesUser}
+        onClose={closeCourseManager}
+        title={`Gestionar cursos — ${manageCoursesUser?.name || ''} @${manageCoursesUser?.username || ''}`}
+      >
+        {courseError && (
+          <Alert variant="error" onClose={() => setCourseError(null)}>
+            {courseError}
+          </Alert>
+        )}
+
+        {courseLoading ? (
+          <div className="space-y-3 py-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-4 w-4" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Selecciona los cursos a los que este usuario estara inscrito.
+              Los cursos deseleccionados seran removidos (el progreso se conserva).
+            </p>
+
+            {availableCourses.length === 0 ? (
+              <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+                No hay cursos publicados disponibles.
+              </p>
+            ) : (
+              <div className="max-h-72 overflow-y-auto rounded-xl border border-gray-200 p-3 space-y-1 dark:border-gray-700">
+                {availableCourses.map((course) => {
+                  const isChecked = courseAssignments.includes(course.id);
+                  return (
+                    <label
+                      key={course.id}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors cursor-pointer ${
+                        isChecked
+                          ? 'bg-indigo-50 dark:bg-indigo-900/20'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => toggleCourse(course.id)}
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 dark:border-gray-600"
+                        aria-label={`Inscribir en ${course.title}`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                          {course.title}
+                        </p>
+                      </div>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                          isChecked
+                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                            : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400'
+                        }`}
+                      >
+                        {isChecked ? 'Inscrito' : 'No inscrito'}
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+              <Button variant="outline" onClick={closeCourseManager}>
+                Cancelar
+              </Button>
+              <Button loading={courseSaving} onClick={handleSaveCourses}>
+                Guardar cambios
+              </Button>
+            </div>
+          </div>
+        )}
       </Dialog>
     </div>
   );
