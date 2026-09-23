@@ -5,9 +5,10 @@ import { ActivityNode } from '../../components/course/ActivityNode';
 import { AdminPreviewBar } from '../../components/course/AdminPreviewBar';
 import { getPhaseColors } from '../../components/course/phase-colors';
 import { progressApi } from '../../api/modules/progress';
+import { coursesApi } from '../../api/modules/courses';
 import type { ActivityNodeData } from '../../components/course/ActivityNode';
 import type { ViewMode, ModuleJson } from '../../components/course/types';
-import { getCourseData } from '../../data/course-registry';
+import { getCourseDataBySlug, type CourseRegistryEntry } from '../../data/course-registry';
 
 // -- Helpers ------------------------------------------------------------------
 
@@ -76,28 +77,63 @@ export default function CourseHome() {
 
   const mode: ViewMode = searchParams.get('admin_preview') === 'true' ? 'admin_preview' : 'student';
 
-  // Resolve course from registry (falls back to programming if unknown)
-  const resolvedCourseId = courseId || 'programming-0485';
-  const { courseData, modules: ALL_MODULES } = getCourseData(resolvedCourseId);
+  // -- Resolve course: fetch metadata from API, then look up registry by slug --
+  const [resolved, setResolved] = useState<CourseRegistryEntry | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!courseId) {
+      setError('No course ID provided');
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    coursesApi
+      .getById(courseId)
+      .then((apiCourse) => {
+        if (cancelled) return;
+        const slug = apiCourse.slug ?? apiCourse.id;
+        const entry = getCourseDataBySlug(slug);
+        if (!entry) {
+          setError(`Course not found for slug "${slug}"`);
+          return;
+        }
+        setResolved(entry);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load course');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [courseId]);
 
   // -- Progress state --------------------------------------------------------
 
+  const courseData = resolved?.courseData;
+  const ALL_MODULES = resolved?.modules ?? {} as Record<string, ModuleJson>;
   const [courseProgress, setCourseProgress] = useState({ completedLessons: 0, totalLessons: 0, percentage: 0 });
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
 
   // Load course-level progress
   useEffect(() => {
-    if (!resolvedCourseId || mode === 'admin_preview') return;
+    if (!courseId || mode === 'admin_preview') return;
     progressApi
-      .getCourseProgress(resolvedCourseId)
+      .getCourseProgress(courseId)
       .then((p) => setCourseProgress(p))
       .catch(() => {});
-  }, [resolvedCourseId, mode]);
+  }, [courseId, mode]);
 
   // Load per-lesson progress for module completion calculation
   // Optimized: only load progress for current incomplete module (not all 76 lessons)
   useEffect(() => {
-    if (mode === 'admin_preview') return;
+    if (mode === 'admin_preview' || !courseData) return;
     let cancelled = false;
     const load = async () => {
       const completed = new Set<string>();
@@ -119,18 +155,18 @@ export default function CourseHome() {
     };
     load();
     return () => { cancelled = true; };
-  }, [mode, courseProgress]);
+  }, [mode, courseProgress, courseData]);
 
   // -- Compute stats ----------------------------------------------------------
 
-  const totalModules = Object.keys(ALL_MODULES).length;
+  const totalModules = useMemo(() => Object.keys(ALL_MODULES).length, [ALL_MODULES]);
   const totalLessons = useMemo(
     () => Object.values(ALL_MODULES).reduce((sum, mod) => sum + mod.lessons.length, 0),
-    [],
+    [ALL_MODULES],
   );
   const totalActivities = useMemo(
     () => Object.values(ALL_MODULES).reduce((sum, mod) => sum + deriveActivities(mod).length, 0),
-    [],
+    [ALL_MODULES],
   );
 
   // Real progress from API
@@ -148,6 +184,7 @@ export default function CourseHome() {
   // -- Current module (first incomplete module, or first if all completed) ----
 
   const currentModule = useMemo(() => {
+    if (!courseData) return { id: '', title: '', description: '', phase: '', position: 0, learningOutcomes: [], assessmentCriteria: [], officialContents: [], duration: '', difficulty: '', prerequisites: [], lessons: [] } as ModuleJson;
     // Get modules in course order (by phase)
     const allModuleIds = courseData.phases.flatMap((p) => p.modules);
     for (const modId of allModuleIds) {
@@ -159,15 +196,15 @@ export default function CourseHome() {
     // All completed — return last module
     const lastId = allModuleIds[allModuleIds.length - 1];
     return ALL_MODULES[lastId] || ALL_MODULES['mod-01'];
-  }, [completedLessonIds]);
-  const currentPhase = getPhaseForModule(currentModule.id, courseData.phases);
-  const currentColors = getPhaseColors(currentPhase.id);
+  }, [completedLessonIds, courseData]);
+  const currentPhase = getPhaseForModule(currentModule.id, courseData?.phases ?? []);
+  const currentColors = getPhaseColors(currentPhase?.id ?? 'phase-1');
   const currentActivities = useMemo(() => deriveActivities(currentModule), [currentModule]);
 
   // -- Navigation -------------------------------------------------------------
 
   const makeModuleUrl = (id: string) =>
-    `/courses/${resolvedCourseId}/modules/${id}${mode === 'admin_preview' ? '?admin_preview=true' : ''}`;
+    `/courses/${courseId}/modules/${id}${mode === 'admin_preview' ? '?admin_preview=true' : ''}`;
 
   const handleModuleClick = (moduleId: string) => {
     navigate(makeModuleUrl(moduleId));
@@ -176,6 +213,7 @@ export default function CourseHome() {
   // -- Phase structure --------------------------------------------------------
 
   const phasesWithModules = useMemo(() => {
+    if (!courseData) return [];
     return courseData.phases.map((phase) => ({
       ...phase,
       moduleNodes: phase.modules.map((modId) => ({
@@ -187,9 +225,31 @@ export default function CourseHome() {
         lessonCount: ALL_MODULES[modId].lessons.length,
       })),
     }));
-  }, []);
+  }, [courseData]);
 
   // -- Render -----------------------------------------------------------------
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando curso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !courseData) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">Error al cargar el curso</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{error ?? 'Curso no encontrado'}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

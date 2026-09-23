@@ -119,23 +119,30 @@ const programmingModules: Record<string, ModuleJson> = {
 // ---------------------------------------------------------------------------
 
 const databasesModules: Record<string, ModuleJson> = {
+  // Phase 1: Fundamentos y diseño
   'mod-01': normalizeModule(databasesMod01, 'phase-1'),
   'mod-02': normalizeModule(databasesMod02, 'phase-1'),
   'mod-03': normalizeModule(databasesMod03, 'phase-1'),
   'mod-04': normalizeModule(databasesMod04, 'phase-1'),
   'mod-05': normalizeModule(databasesMod05, 'phase-1'),
-  'mod-06': normalizeModule(databasesMod06, 'phase-1'),
-  'mod-07': normalizeModule(databasesMod07, 'phase-1'),
-  'mod-08': normalizeModule(databasesMod08, 'phase-1'),
-  'mod-09': normalizeModule(databasesMod09, 'phase-1'),
-  'mod-10': normalizeModule(databasesMod10, 'phase-1'),
-  'mod-11': normalizeModule(databasesMod11, 'phase-1'),
-  'mod-12': normalizeModule(databasesMod12, 'phase-1'),
-  'mod-13': normalizeModule(databasesMod13, 'phase-1'),
-  'mod-14': normalizeModule(databasesMod14, 'phase-1'),
-  'mod-15': normalizeModule(databasesMod15, 'phase-1'),
-  'mod-16': normalizeModule(databasesMod16, 'phase-1'),
-  'mod-17': normalizeModule(databasesMod17, 'phase-1'),
+  // Phase 2: Construcción de BD
+  'mod-06': normalizeModule(databasesMod06, 'phase-2'),
+  'mod-07': normalizeModule(databasesMod07, 'phase-2'),
+  // Phase 3: Consultas SQL
+  'mod-08': normalizeModule(databasesMod08, 'phase-3'),
+  'mod-09': normalizeModule(databasesMod09, 'phase-3'),
+  'mod-10': normalizeModule(databasesMod10, 'phase-3'),
+  'mod-11': normalizeModule(databasesMod11, 'phase-3'),
+  // Phase 4: Modificación y transacciones
+  'mod-12': normalizeModule(databasesMod12, 'phase-4'),
+  'mod-13': normalizeModule(databasesMod13, 'phase-4'),
+  // Phase 5: Programación en el SGBD
+  'mod-14': normalizeModule(databasesMod14, 'phase-5'),
+  'mod-15': normalizeModule(databasesMod15, 'phase-5'),
+  // Phase 6: NoSQL
+  'mod-16': normalizeModule(databasesMod16, 'phase-6'),
+  // Phase 7: Proyecto
+  'mod-17': normalizeModule(databasesMod17, 'phase-7'),
 };
 
 // ---------------------------------------------------------------------------
@@ -195,13 +202,26 @@ export interface CourseRegistryEntry {
   modules: Record<string, ModuleJson>;
 }
 
+const DATABASES_PHASES: NormalizedCourseData['phases'] = [
+  { id: 'phase-1', title: 'Fundamentos y diseño', description: 'Conceptos básicos de bases de datos y diseño relacional', modules: ['mod-01', 'mod-02', 'mod-03', 'mod-04', 'mod-05'] },
+  { id: 'phase-2', title: 'Construcción de BD', description: 'Creación y administración de bases de datos', modules: ['mod-06', 'mod-07'] },
+  { id: 'phase-3', title: 'Consultas SQL', description: 'Lenguaje de consulta SQL y recuperación de datos', modules: ['mod-08', 'mod-09', 'mod-10', 'mod-11'] },
+  { id: 'phase-4', title: 'Modificación y transacciones', description: 'Actualización de datos y gestión de transacciones', modules: ['mod-12', 'mod-13'] },
+  { id: 'phase-5', title: 'Programación en el SGBD', description: 'Programación con procedimientos almacenados y disparadores', modules: ['mod-14', 'mod-15'] },
+  { id: 'phase-6', title: 'NoSQL', description: 'Bases de datos NoSQL y modelos alternativos', modules: ['mod-16'] },
+  { id: 'phase-7', title: 'Proyecto', description: 'Proyecto integrador de bases de datos', modules: ['mod-17'] },
+];
+
 export const COURSE_REGISTRY: Record<string, CourseRegistryEntry> = {
   [programmingCourseData.id]: {
     courseData: normalizeCourseData(programmingCourseData as unknown as Record<string, unknown>, programmingModules),
     modules: programmingModules,
   },
   [databasesCourseData.id]: {
-    courseData: normalizeCourseData(databasesCourseData as unknown as Record<string, unknown>, databasesModules),
+    courseData: {
+      ...normalizeCourseData(databasesCourseData as unknown as Record<string, unknown>, databasesModules),
+      phases: DATABASES_PHASES,
+    },
     modules: databasesModules,
   },
 };
@@ -212,4 +232,20 @@ export const COURSE_REGISTRY: Record<string, CourseRegistryEntry> = {
  */
 export function getCourseData(courseId: string): CourseRegistryEntry {
   return COURSE_REGISTRY[courseId] ?? COURSE_REGISTRY[programmingCourseData.id];
+}
+
+/**
+ * Slug-based registry for resolving courses from API metadata.
+ * The API returns courses with a `slug` field that matches the course.json `id`.
+ */
+const SLUG_REGISTRY: Record<string, CourseRegistryEntry> = Object.fromEntries(
+  Object.entries(COURSE_REGISTRY).map(([_key, entry]) => [entry.courseData.id, entry]),
+);
+
+/**
+ * Retrieve course data by slug. Returns null if slug is not in the registry.
+ * Use this when you have the course.json ID (slug) from API metadata.
+ */
+export function getCourseDataBySlug(slug: string): CourseRegistryEntry | null {
+  return SLUG_REGISTRY[slug] ?? null;
 }
