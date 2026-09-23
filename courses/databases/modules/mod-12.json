@@ -4,72 +4,725 @@
   "title": "Modificación de datos",
   "slug": "modificacion-datos",
   "order": 12,
-  "description": "Sentencias INSERT, UPDATE y DELETE. INSERT SELECT. Integridad y errores comunes.",
+  "description": "Domina el DML en MySQL: INSERT individual y múltiple, INSERT SELECT, UPDATE con condiciones y expresiones, DELETE y TRUNCATE. Aprende a manejar errores de integridad, claves foráneas y acciones referenciales, subconsultas en sentencias de modificación, y técnicas de modificación segura.",
   "objectives": [
-    "Insertar datos con INSERT individual y múltiple",
-    "Insertar datos de otra tabla con INSERT SELECT",
-    "Actualizar datos con UPDATE",
-    "Eliminar datos con DELETE y TRUNCATE",
-    "Comprender las implicaciones de integridad al modificar datos"
+    "Insertar datos con INSERT individual y múltiple en MySQL",
+    "Copiar datos entre tablas con INSERT ... SELECT",
+    "Actualizar información existente con UPDATE y expresiones",
+    "Eliminar filas con DELETE y vaciar tablas con TRUNCATE",
+    "Comprender y resolver errores de integridad al modificar datos",
+    "Manejar claves foráneas y acciones referenciales (CASCADE, SET NULL)",
+    "Usar subconsultas en INSERT, UPDATE y DELETE",
+    "Aplicar técnicas de modificación segura y depuración"
   ],
-  "estimatedMinutes": 300,
+  "estimatedMinutes": 600,
   "lessons": [
     {
       "id": "lesson-12-1",
-      "title": "INSERT y INSERT SELECT",
+      "title": "Introducción al DML y modificación de datos",
       "order": 1,
       "objectives": [
-        "Insertar filas individuales con INSERT INTO",
-        "Insertar múltiples filas en una sola sentencia",
-        "Copiar datos de una tabla a otra con INSERT SELECT"
+        "Comprender qué es el DML y su papel dentro del lenguaje SQL",
+        "Distinguir entre DDL, DQL y DML",
+        "Conocer las tres operaciones principales del DML: INSERT, UPDATE y DELETE",
+        "Adoptar la mentalidad de verificar antes de modificar"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## INSERT INTO\n\n`INSERT INTO` añade nuevas filas a una tabla.\n\n### Insertar una fila\n\n```sql\n-- Forma completa (especificar columnas)\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento)\nVALUES ('Pedro', 'Sánchez', 'pedro@email.com', '2006-02-20');\n\n-- Forma abreviada (todos los campos, en orden)\nINSERT INTO alumnos\nVALUES (DEFAULT, 'Laura', 'Torres', 'laura@email.com', '2005-09-10', TRUE, NOW());\n\n-- Con DEFAULT explícito\nINSERT INTO alumnos (nombre, apellido, email, activo)\nVALUES ('Ana', 'Ruiz', 'ana.ruiz@email.com', DEFAULT);\n```\n\n### Insertar múltiples filas\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento) VALUES\n  ('Pedro', 'Sánchez', 'pedro@email.com', '2006-02-20'),\n  ('Laura', 'Torres', 'laura@email.com', '2005-09-10'),\n  ('Ana', 'Ruiz', 'ana.ruiz@email.com', '2004-12-05');\n```\n\n### Errores comunes\n\n```sql\n-- ❌ Error: duplicado en UNIQUE\nINSERT INTO alumnos (email) VALUES ('juan@email.com');\n-- Error: Duplicate entry 'juan@email.com' for key 'email'\n\n-- ❌ Error: NOT NULL sin valor\nINSERT INTO alumnos (email) VALUES ('test@email.com');\n-- Error: Column 'nombre' cannot be null\n\n-- ❌ Error: violación de CHECK\nINSERT INTO notas (nota) VALUES (15);\n-- Error: Check constraint 'chk_nota' is violated\n\n-- ❌ Error: violación de FOREIGN KEY\nINSERT INTO notas (id_alumno) VALUES (999);\n-- Error: Cannot add or update a child row\n```\n\n> **Consejo**: Siempre especifica las columnas en el INSERT. Así no dependes del orden de las columnas en la tabla."
+          "content": "## Las tres familias del SQL\n\nHasta ahora hemos trabajado principalmente con consultas SELECT (DQL) y definición de tablas (DDL). Es hora de explorar la tercera gran familia: el **DML** (Data Manipulation Language), que nos permite **modificar los datos** dentro de las tablas.\n\n### Las familias del SQL\n\n| Familia | Nombre completo | Qué hace | Sentencias principales |\n|---|---|---|---|\n| **DDL** | Data Definition Language | Define la **estructura** | CREATE, ALTER, DROP, RENAME |\n| **DQL** | Data Query Language | **Consulta** datos sin modificarlos | SELECT |\n| **DML** | Data Manipulation Language | **Modifica** los datos | INSERT, UPDATE, DELETE |\n\n### Analogía: la biblioteca\n\n- **DDL** es el arquitecto que diseña las estanterías, crea nuevas secciones y derriba las que ya no sirven.\n- **DQL** es el lector que busca libros: abre el catálogo, busca por autor, tema o fecha. No mueve ni cambia nada.\n- **DML** es el bibliotecario que **añade** libros nuevos, **modifica** la información de los existentes y **retira** los que están en mal estado.\n\nLos tres son necesarios, pero el DML es el más peligroso: un error en DDL se corrige redefiniendo la estructura, pero un error en DML puede **perder datos reales**."
         },
         {
           "type": "text",
-          "content": "## INSERT SELECT\n\nPermite insertar datos de una consulta SELECT en otra tabla.\n\n```sql\n-- Crear tabla de respaldo\nCREATE TABLE alumnos_backup LIKE alumnos;\n\n-- Copiar todos los alumnos activos\nINSERT INTO alumnos_backup\nSELECT * FROM alumnos WHERE activo = TRUE;\n\n-- Crear tabla de resumen de notas\nCREATE TABLE resumen_notas (\n  id_alumno INT,\n  nombre VARCHAR(50),\n  nota_media DECIMAL(4,2)\n);\n\nINSERT INTO resumen_notas (id_alumno, nombre, nota_media)\nSELECT\n  a.id,\n  a.nombre,\n  ROUND(AVG(n.nota), 2)\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre;\n\n-- Copiar alumnos de un ciclo específico\nINSERT INTO alumnos_dam (nombre, apellido, email)\nSELECT a.nombre, a.apellido, a.email\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM'\nGROUP BY a.id;\n```\n\n> **Importante**: Las columnas del SELECT deben coincidir en número y tipo con las del INSERT."
+          "content": "## Las tres operaciones del DML\n\n### INSERT: añadir datos nuevos\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Pedro', 'Sánchez', 'pedro@email.com');\n```\n\nCrea una **fila nueva** en la tabla.\n\n### UPDATE: modificar datos existentes\n\n```sql\nUPDATE alumnos\nSET email = 'juan.nuevo@email.com'\nWHERE id = 1;\n```\n\nCambia el valor de una o más columnas en **filas que cumplan una condición**. Aquí el `WHERE` es CRÍTICO.\n\n### DELETE: eliminar datos\n\n```sql\nDELETE FROM alumnos\nWHERE id = 10;\n```\n\nElimina **filas completas** de una tabla. No modifica la estructura, solo quita datos.\n\n> **Clave**: INSERT crea, UPDATE modifica, DELETE destruye. Las tres operaciones trabajan sobre **filas**, no sobre columnas ni tablas."
+        },
+        {
+          "type": "text",
+          "content": "## La mentalidad verificar antes de modificar\n\nModificar datos es la operación más **peligrosa** en SQL. Un DELETE sin WHERE puede vaciar una tabla entera.\n\n### La regla de oro\n\n**ANTES de ejecutar cualquier INSERT, UPDATE o DELETE:**\n\n1. **Escribe un SELECT** con la misma condición que vas a usar en el WHERE.\n2. **Revisa los resultados** — ¿son las filas que realmente quieres modificar?\n3. **Si es UPDATE**: prueba el SET en un solo registro primero.\n4. **Ejecuta la sentencia de modificación.**\n5. **Verifica** con otro SELECT que los cambios son correctos.\n\n### Ejemplo: metodología segura para un UPDATE\n\n```sql\n-- PASO 1: Ver qué filas se verán afectadas\nSELECT id, nombre, email\nFROM alumnos\nWHERE activo = FALSE;\n\n-- PASO 2: Revisar resultado\n\n-- PASO 3: Ejecutar el UPDATE\nUPDATE alumnos\nSET email = NULL\nWHERE activo = FALSE;\n\n-- PASO 4: Verificar\nSELECT id, nombre, email\nFROM alumnos\nWHERE activo = FALSE;\n```\n\n> **Analogía**: Es como un cirujano que marca con tinta antes de cortar. Primero localiza, luego opera, y finalmente verifica."
+        },
+        {
+          "type": "text",
+          "content": "## Dataset de práctica: academia\n\nTodas las lecciones de este módulo usan la base de datos `academia` con estas tablas:\n\n```sql\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  fecha_nacimiento DATE,\n  telefono VARCHAR(20),\n  direccion VARCHAR(150),\n  ciudad VARCHAR(50),\n  activo BOOLEAN DEFAULT TRUE\n);\n\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  especialidad VARCHAR(100),\n  fecha_alta DATE\n);\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  ciclo VARCHAR(10),\n  curso INT,\n  creditos DECIMAL(4,2),\n  id_profesor INT,\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(50),\n  fecha_evaluacion DATE,\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n\nCREATE TABLE matriculas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  id_asignatura INT,\n  fecha_matricula DATE,\n  estado VARCHAR(20) DEFAULT 'activa',\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```\n\n> **Importante**: Los id son AUTO_INCREMENT. Al insertar datos, puedes omitir la columna id y MySQL asignará automáticamente el siguiente valor."
         }
       ],
       "exercises": [
         {
           "id": "ex-12-1-1",
-          "title": "INSERT y INSERT SELECT",
+          "title": "Identificar familias SQL",
           "difficulty": "basic",
-          "description": "1. Inserta 3 productos nuevos en la tabla `productos`\n2. Crea una tabla `alumnos_dam` con los alumnos que están matriculados en asignaturas de ciclo DAM, usando INSERT SELECT",
-          "solution": "```sql\n-- 1. Insertar productos\nINSERT INTO productos (nombre, precio, stock, categoria) VALUES\n  ('Ratón inalámbrico', 24.99, 100, 'Periféricos'),\n  ('Teclado Bluetooth', 39.99, 50, 'Periféricos'),\n  ('Monitor 27\" 4K', 349.99, 15, 'Informática');\n\n-- 2. Crear tabla y copiar con INSERT SELECT\nCREATE TABLE alumnos_dam LIKE alumnos;\n\nINSERT INTO alumnos_dam\nSELECT DISTINCT a.*\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM';\n\n-- Verificar\nSELECT * FROM alumnos_dam;\n```"
+          "description": "Clasifica cada sentencia (DDL, DQL o DML):\n1. `SELECT nombre FROM alumnos;`\n2. `CREATE TABLE notas_backup (LIKE notas);`\n3. `INSERT INTO alumnos (nombre) VALUES ('Laura');`\n4. `UPDATE notas SET nota = 8.0 WHERE id = 5;`\n5. `DELETE FROM matriculas WHERE estado = 'cancelada';`\n6. `ALTER TABLE alumnos ADD COLUMN foto VARCHAR(255);`",
+          "solution": "1. **DQL**\n2. **DDL**\n3. **DML**\n4. **DML**\n5. **DML**\n6. **DDL**"
+        },
+        {
+          "id": "ex-12-1-2",
+          "title": "Metodología de verificación",
+          "difficulty": "intermediate",
+          "description": "Quieres eliminar todos los alumnos inactivos. Escribe:\n1. El SELECT de verificación previa\n2. El DELETE correspondiente\n3. El SELECT de comprobación posterior",
+          "solution": "```sql\n-- 1. Verificación previa\nSELECT id, nombre, apellido, activo\nFROM alumnos WHERE activo = FALSE;\n\n-- 2. Eliminación\nDELETE FROM alumnos WHERE activo = FALSE;\n\n-- 3. Comprobación posterior\nSELECT id, nombre, apellido, activo\nFROM alumnos WHERE activo = FALSE;\n-- Debe devolver 0 filas\n```"
+        },
+        {
+          "id": "ex-12-1-3",
+          "title": "Predicción de efectos",
+          "difficulty": "intermediate",
+          "description": "¿Qué efecto tendría cada sentencia?\n1. `UPDATE alumnos SET activo = TRUE;`\n2. `DELETE FROM notas;`\n3. `INSERT INTO alumnos (nombre) VALUES ('Test');`",
+          "solution": "1. **UPDATE sin WHERE**: Actualiza TODAS las filas. Todos los alumnos quedan activos.\n2. **DELETE sin WHERE**: Elimina TODAS las notas. La tabla queda vacía pero conserva estructura.\n3. **INSERT con solo nombre**: Inserta UNA fila. Las columnas omitidas obtienen NULL o su DEFAULT. El id se asigna automáticamente."
         }
       ]
     },
     {
       "id": "lesson-12-2",
-      "title": "UPDATE y DELETE",
+      "title": "INSERT: insertar una fila",
       "order": 2,
       "objectives": [
-        "Actualizar datos con UPDATE",
-        "Eliminar datos con DELETE",
-        "Diferenciar DELETE y TRUNCATE",
-        "Usar UPDATE con JOIN"
+        "Escribir sentencias INSERT INTO con lista explícita de columnas",
+        "Entender la correspondencia posición-columnas en VALUES",
+        "Manejar tipos de datos, cadenas de texto y valores NULL en INSERT",
+        "Comprender por qué se prefieren las columnas explícitas sobre las implícitas",
+        "Relacionar INSERT con columnas AUTO_INCREMENT"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## UPDATE\n\n`UPDATE` modifica filas existentes en una tabla.\n\n### Sintaxis\n\n```sql\nUPDATE tabla\nSET columna1 = valor1, columna2 = valor2, ...\nWHERE condición;\n```\n\n> **⚠️ IMPORTANTE**: Siempre usa `WHERE` en un UPDATE. Sin WHERE, se actualizan **TODAS las filas**.\n\n### Ejemplos\n\n```sql\n-- Actualizar el email de un alumno\nUPDATE alumnos\nSET email = 'juan.nuevo@email.com'\nWHERE id = 1;\n\n-- Actualizar varias columnas\nUPDATE alumnos\nSET nombre = 'Juan Carlos',\n    email = 'jc.garcia@email.com'\nWHERE id = 1;\n\n-- Actualizar el stock de todos los productos de una categoría\nUPDATE productos\nSET stock = stock + 10\nWHERE categoria = 'Periféricos';\n\n-- Actualizar con condición compuesta\nUPDATE notas\nSET nota = nota + 0.5\nWHERE id_alumno = 1 AND nota < 9;\n\n-- Actualizar usando otra tabla (UPDATE con JOIN)\nUPDATE notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nSET n.nota = n.nota * 1.1  -- Subir notas un 10%\nWHERE a.nombre = 'Juan';\n\n-- ⚠️ SIN WHERE: actualizar TODAS las filas\nUPDATE alumnos SET activo = FALSE;\n-- ¡Cuidado! Todos los alumnos quedan inactivos\n```\n\n### Usar UPDATE con subconsulta\n\n```sql\n-- Poner a NULL el email de alumnos sin notas\nUPDATE alumnos\nSET email = NULL\nWHERE id NOT IN (SELECT DISTINCT id_alumno FROM notas);\n```\n\n## DELETE\n\n`DELETE` elimina filas de una tabla.\n\n```sql\n-- Eliminar un alumno concreto\nDELETE FROM alumnos WHERE id = 10;\n\n-- Eliminar alumnos inactivos\nDELETE FROM alumnos WHERE activo = FALSE;\n\n-- Eliminar notas de una convocatoria específica\nDELETE FROM notas WHERE convocatoria = 'Junio 2025';\n\n-- ⚠️ SIN WHERE: eliminar TODAS las filas\nDELETE FROM alumnos;\n-- ¡Cuidado! La tabla queda vacía\n\n-- DELETE con JOIN\nDELETE n FROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.nombre = 'Pedro';\n```\n\n> **⚠️ ALERTA**: DELETE sin WHERE es **irreversible**. Siempre verifica la condición antes de ejecutar."
+          "content": "## Sintaxis de INSERT INTO\n\n### Forma recomendada: columnas explícitas\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento)\nVALUES ('Pedro', 'Sánchez', 'pedro@email.com', '2006-02-20');\n```\n\n### Forma abreviada: todas las columnas (NO recomendada)\n\n```sql\nINSERT INTO alumnos\nVALUES (DEFAULT, 'Laura', 'Torres', 'laura@email.com', '2005-09-10', '667890123', 'Gran Vía 45', 'Bilbao', TRUE);\n```\n\n> **Recomendación**: Usa SIEMPRE la forma con columnas explícitas. Es más legible, más robusta y no depende del orden de las columnas.\n\n### ¿Por qué las columnas explícitas son mejores?\n\n1. **Legibilidad**: Sabes exactamente a qué columna corresponde cada valor.\n2. **Resistencia al cambio**: Si alguien añade una columna, tu INSERT sigue funcionando.\n3. **Flexibilidad**: Puedes omitir columnas con valores por defecto.\n4. **Menos errores**: No dependes de recordar el orden exacto."
         },
         {
           "type": "text",
-          "content": "## DELETE vs TRUNCATE\n\n| Característica | DELETE | TRUNCATE |\n|---|---|---|\n| **Qué hace** | Elimina filas específicas | Elimina TODAS las filas |\n| **WHERE** | ✅ Permitido | ❌ No permitido |\n| **Velocidad** | Lenta (registra cada fila) | Rápida (libera páginas) |\n| **Rollback** | ✅ Se puede deshacer | ❌ No se puede deshacer |\n| **Autoincrement** | No resetea el contador | Resetea el contador |\n| **Triggers** | Sí ejecuta triggers BEFORE DELETE | No ejecuta triggers |\n| **Espacio** | No libera espacio inmediatamente | Libera espacio |\n\n```sql\n-- DELETE: eliminar filas una por una\nDELETE FROM notas WHERE id_alumno = 5;\n-- Se pueden deshacer con ROLLBACK (si hay transacción)\n\n-- TRUNCATE: vaciar la tabla completa\nTRUNCATE TABLE notas;\n-- No se puede deshacer\n-- El autoincrement vuelve a 1\n\n-- DELETE sin WHERE (equivalente a TRUNCATE pero más lento)\nDELETE FROM notas;\n```\n\n> **Cuándo usar cada uno:**\n> - `DELETE`: Cuando quieres eliminar filas específicas (con WHERE) o necesitas que se ejecuten triggers.\n> - `TRUNCATE`: Cuando quieres vaciar una tabla completamente y no necesitas rollback."
+          "content": "## Correspondencia posición-columnas\n\nEl orden de los valores en `VALUES` debe coincidir **exactamente** con el orden de las columnas:\n\n```sql\n-- Correcto: nombre -> 'Pedro', apellido -> 'Sánchez'\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Pedro', 'Sánchez', 'pedro@email.com');\n\n-- INCORRECTO: nombre -> 'Sánchez', apellido -> 'Pedro'\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Sánchez', 'Pedro', 'pedro@email.com');\n-- ¡El alumno se llama Sánchez Pedro en vez de Pedro Sánchez!\n```\n\n> **Consejo**: Antes de ejecutar, verifica mentalmente que cada valor coincide con su columna."
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de datos y valores NULL\n\n### Cadenas de texto\n\nLas cadenas van entre **comillas simples**:\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Ana', 'Ruiz', 'ana.ruiz@email.com');\n```\n\n**No uses comillas dobles** para cadenas en MySQL:\n\n```sql\n-- ❌ Incorrecto\nINSERT INTO alumnos (nombre) VALUES (\"Ana\");\n-- ✅ Correcto\nINSERT INTO alumnos (nombre) VALUES ('Ana');\n```\n\n### Números\n\nLos números **no llevan comillas**:\n\n```sql\nINSERT INTO asignaturas (nombre, ciclo, curso, creditos)\nVALUES ('Bases de Datos', 'DAM', 1, 6.00);\n```\n\n### Fechas\n\nFormato `YYYY-MM-DD` entre comillas simples:\n\n```sql\nINSERT INTO alumnos (nombre, apellido, fecha_nacimiento)\nVALUES ('Laura', 'Torres', '2005-09-10');\n```\n\n### Valores NULL\n\n`NULL` representa la **ausencia de valor**. Se escribe sin comillas:\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email, telefono)\nVALUES ('Carlos', 'Díaz', 'carlos@email.com', NULL);\n```\n\nSi omites una columna sin DEFAULT, MySQL pone NULL automáticamente."
+        },
+        {
+          "type": "text",
+          "content": "## AUTO_INCREMENT y el id\n\nLas columnas `id` son `AUTO_INCREMENT INT`. MySQL asigna automáticamente el siguiente valor.\n\n### Insertar omitiendo el id\n\n```sql\n-- MySQL asigna el siguiente id automáticamente\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Pedro', 'Sánchez', 'pedro@email.com');\n```\n\n### Usar DEFAULT para id\n\n```sql\nINSERT INTO alumnos (id, nombre, apellido, email)\nVALUES (DEFAULT, 'Pedro', 'Sánchez', 'pedro@email.com');\n```\n\n### ¿Qué pasa si duplicas un id?\n\n```sql\n-- Si ya existe un alumno con id = 5\nINSERT INTO alumnos (id, nombre, apellido, email)\nVALUES (5, 'Otro', 'Alumno', 'otro@email.com');\n-- Error: Duplicate entry '5' for key 'PRIMARY'\n```\n\n> **Regla**: Deja que MySQL maneje el AUTO_INCREMENT. Solo especifica el id al migrar datos."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: buenas prácticas de INSERT\n\n| Práctica | Recomendación |\n|---|---|\n| Columnas | Siempre especifica la lista de columnas |\n| Valores | Respeta la correspondencia posición-columnas |\n| Cadenas | Comillas simples: `'valor'` |\n| Números | Sin comillas: `42`, `3.14` |\n| Fechas | Comillas simples, YYYY-MM-DD: `'2026-01-15'` |\n| NULL | Sin comillas: `NULL` |\n| id AUTO_INCREMENT | Omítelo o usa `DEFAULT` |\n| Comillas dobles | ❌ No las uses para cadenas en MySQL |"
         }
       ],
       "exercises": [
         {
           "id": "ex-12-2-1",
-          "title": "UPDATE y DELETE",
+          "title": "INSERT básico con columnas explícitas",
+          "difficulty": "basic",
+          "description": "Inserta un nuevo alumno: Nombre 'Laura', Apellido 'Torres', Email 'laura.torres@email.com', Ciudad 'Bilbao'.",
+          "solution": "```sql\nINSERT INTO alumnos (nombre, apellido, email, ciudad)\nVALUES ('Laura', 'Torres', 'laura.torres@email.com', 'Bilbao');\n```"
+        },
+        {
+          "id": "ex-12-2-2",
+          "title": "INSERT con tipos variados",
+          "difficulty": "basic",
+          "description": "Inserta una asignatura: Nombre 'Programación Web', Ciclo 'DAW', Curso 2, Créditos 5.50, id_profesor 1.",
+          "solution": "```sql\nINSERT INTO asignaturas (nombre, ciclo, curso, creditos, id_profesor)\nVALUES ('Programación Web', 'DAW', 2, 5.50, 1);\n```"
+        },
+        {
+          "id": "ex-12-2-3",
+          "title": "INSERT con NULL",
           "difficulty": "intermediate",
-          "description": "Escribe las sentencias para:\n1. Subir un 0.5 puntos todas las notas de 'Convocatoria 1' que sean inferiores a 5\n2. Poner el email a NULL de todos los alumnos inactivos\n3. Eliminar todas las notas de un alumno concreto (id = 3)\n4. Eliminar los productos con stock 0",
-          "solution": "```sql\n-- 1. Subir notas inferiores a 5 en Convocatoria 1\nUPDATE notas\nSET nota = nota + 0.5\nWHERE convocatoria = 'Convocatoria 1' AND nota < 5;\n\n-- 2. Email a NULL de alumnos inactivos\nUPDATE alumnos\nSET email = NULL\nWHERE activo = FALSE;\n\n-- 3. Eliminar notas del alumno 3\nDELETE FROM notas WHERE id_alumno = 3;\n\n-- 4. Eliminar productos con stock 0\nDELETE FROM productos WHERE stock = 0;\n```\n\n**Verificación:**\n```sql\n-- Verificar cambios\nSELECT * FROM notas WHERE convocatoria = 'Convocatoria 1' AND nota < 5.5;\nSELECT * FROM alumnos WHERE activo = FALSE AND email IS NULL;\nSELECT * FROM notas WHERE id_alumno = 3;\nSELECT * FROM productos WHERE stock = 0;\n```"
+          "description": "Inserta un alumno con Nombre 'Sofía', Apellido 'Martín', Email 'sofia.martin@email.com', sin teléfono, sin dirección, sin ciudad. Luego inserta otro omitiendo esas columnas. ¿Son equivalentes?",
+          "solution": "```sql\n-- Forma 1: NULL explícito\nINSERT INTO alumnos (nombre, apellido, email, telefono, direccion, ciudad)\nVALUES ('Sofía', 'Martín', 'sofia.martin@email.com', NULL, NULL, NULL);\n\n-- Forma 2: omitir columnas\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Sofía', 'Martín', 'sofia.martin@email.com');\n\n-- SÍ son equivalentes: sin DEFAULT, MySQL asigna NULL automáticamente.\n```"
+        },
+        {
+          "id": "ex-12-2-4",
+          "title": "Corrección de INSERT con errores",
+          "difficulty": "intermediate",
+          "description": "Encuentra los 3 errores y corrige:\n```sql\nINSERT INTO alumnos\nVALUES (\"Ana\", 'López', \"ana@email.com\");\n```",
+          "solution": "Errores:\n1. **Sin lista de columnas**: MySQL espera 9 valores, solo hay 3.\n2. **Comillas dobles en \"Ana\"**: MySQL la interpreta como columna.\n3. **Comillas dobles en \"ana@email.com\"**: Mismo problema.\n\nCorrección:\n```sql\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Ana', 'López', 'ana@email.com');\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-3",
+      "title": "INSERT de múltiples filas y valores por defecto",
+      "order": 3,
+      "objectives": [
+        "Escribir INSERT que añadan múltiples filas en una sola llamada",
+        "Comprender las ventajas del INSERT múltiple frente a múltiples INSERT individuales",
+        "Usar la palabra clave DEFAULT para valores por defecto",
+        "Distinguir entre NULL, columna omitida y DEFAULT"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## INSERT de múltiples filas\n\nMySQL permite insertar **varias filas en una sola sentencia**:\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento) VALUES\n  ('Pedro', 'Sánchez', 'pedro@email.com', '2006-02-20'),\n  ('Laura', 'Torres', 'laura@email.com', '2005-09-10'),\n  ('Ana', 'Ruiz', 'ana.ruiz@email.com', '2004-12-05');\n```\n\nEsto crea **3 filas nuevas** en una sola ejecución.\n\n### Ventajas sobre múltiples INSERT individuales\n\n- **Rendimiento**: Se parsea y valida una sola vez.\n- **Atomicidad**: Si falla, MySQL reporta qué fila causó el error.\n- **Legibilidad**: Los datos se ven como un bloque coherente.\n\n> **Nota**: En MySQL, el límite es aproximadamente 1000 filas por sentencia INSERT múltiple."
+        },
+        {
+          "type": "text",
+          "content": "## Valores por defecto: DEFAULT\n\nLa palabra clave `DEFAULT` asigna el valor por defecto definido en la columna.\n\n```sql\n-- Con DEFAULT explícito\nINSERT INTO alumnos (nombre, apellido, email, activo)\nVALUES ('Ana', 'Ruiz', 'ana.ruiz@email.com', DEFAULT);\n-- activo = TRUE (el valor por defecto)\n\n-- Omitir la columna (equivalente)\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Ana', 'Ruiz', 'ana.ruiz@email.com');\n-- activo = TRUE (porque se omitió y tiene DEFAULT)\n```\n\n> **Buena práctica**: Usa `DEFAULT` explícito cuando quieras documentar que estás intencionalmente usando el valor por defecto."
+        },
+        {
+          "type": "text",
+          "content": "## NULL vs omitida vs DEFAULT: no siempre son equivalentes\n\nHay una sutileza importante:\n\n### Columna con DEFAULT\n\n```sql\n-- Columna: activo BOOLEAN DEFAULT TRUE\n\n-- Omitir la columna:\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('A', 'B', 'a@b.com');\n-- activo = TRUE (usa DEFAULT) ✅\n\n-- NULL explícito:\nINSERT INTO alumnos (nombre, apellido, email, activo)\nVALUES ('A', 'B', 'a@b.com', NULL);\n-- activo = NULL ❌ (NO es lo mismo que TRUE)\n```\n\n### Resumen\n\n| Situación | Omitir columna | DEFAULT explícito | NULL explícito |\n|---|---|---|---|\n| Columna con DEFAULT | Usa DEFAULT | Usa DEFAULT | Pone NULL |\n| Columna sin DEFAULT, nullable | Pone NULL | Pone NULL | Pone NULL |\n| Columna NOT NULL, sin DEFAULT | ❌ ERROR | ❌ ERROR | ❌ ERROR |\n\n> **Conclusión**: Si una columna tiene DEFAULT que NO es NULL, usar `NULL` es diferente a omitir la columna."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: datos de prueba\n\n```sql\n-- Crear 8 alumnos de prueba en una sola sentencia\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento, telefono, direccion, ciudad, activo) VALUES\n  ('Juan', 'García López', 'juan.garcia@email.com', '2000-05-15', '612345678', 'Calle Mayor 10', 'Madrid', TRUE),\n  ('María', 'Fernández Ruiz', 'maria.fernandez@email.com', '1999-11-22', '623456789', 'Avda. de la Paz 5', 'Barcelona', TRUE),\n  ('Pedro', 'Martínez Sánchez', 'pedro.martinez@email.com', '2001-03-08', '634567890', 'Calle Sol 23', 'Valencia', TRUE),\n  ('Ana', 'López García', 'ana.lopez@email.com', '2000-07-30', '645678901', 'Paseo del Prado 12', 'Madrid', TRUE),\n  ('Carlos', 'Rodríguez Pérez', 'carlos.rodriguez@email.com', '1998-09-14', '656789012', 'Calle Luna 8', 'Sevilla', FALSE),\n  ('Laura', 'Sánchez Martín', 'laura.sanchez@email.com', '2001-01-25', '667890123', 'Gran Vía 45', 'Bilbao', TRUE),\n  ('Pablo', 'Jiménez Díaz', 'pablo.jimenez@email.com', '2000-12-03', '678901234', 'Calle Río 17', 'Zaragoza', TRUE),\n  ('Sofía', 'Moreno Castro', 'sofia.moreno@email.com', '1999-06-18', '689012345', 'Avda. Libertad 33', 'Valencia', TRUE);\n```\n\n> **Consejo**: Cuando necesites crear datos de prueba, usa un INSERT múltiple. Es más rápido y más fácil de mantener."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-3-1",
+          "title": "INSERT múltiple de asignaturas",
+          "difficulty": "basic",
+          "description": "Inserta estas 4 asignaturas en UNA sola sentencia:\n1. 'Bases de Datos', DAM, 1, 6.00, profesor 1\n2. 'Programación', DAM, 1, 8.00, profesor 2\n3. 'Lenguajes de Marcas', DAW, 1, 4.00, profesor 3\n4. 'Desarrollo Web', DAW, 2, 6.50, profesor 2",
+          "solution": "```sql\nINSERT INTO asignaturas (nombre, ciclo, curso, creditos, id_profesor) VALUES\n  ('Bases de Datos', 'DAM', 1, 6.00, 1),\n  ('Programación', 'DAM', 1, 8.00, 2),\n  ('Lenguajes de Marcas', 'DAW', 1, 4.00, 3),\n  ('Desarrollo Web', 'DAW', 2, 6.50, 2);\n```"
+        },
+        {
+          "id": "ex-12-3-2",
+          "title": "INSERT con DEFAULT",
+          "difficulty": "intermediate",
+          "description": "Inserta una matrícula para el alumno 1 en la asignatura 3, con fecha hoy. Usa DEFAULT para el estado. Luego inserta otra omitiendo la columna estado.",
+          "solution": "```sql\n-- Con DEFAULT explícito\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\nVALUES (1, 3, '2026-09-23', DEFAULT);\n\n-- Omitiendo la columna\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (1, 3, '2026-09-23');\n\n-- Ambas son equivalentes: estado = 'activa'\n```"
+        },
+        {
+          "id": "ex-12-3-3",
+          "title": "NULL vs DEFAULT en BOOLEAN",
+          "difficulty": "hard",
+          "description": "Dada la tabla alumnos con `activo BOOLEAN DEFAULT TRUE`, indica qué valor tendrá `activo` en cada caso:\n1. INSERT omitiendo activo\n2. INSERT con activo = DEFAULT\n3. INSERT con activo = NULL\n4. INSERT con activo = TRUE\n5. INSERT con activo = FALSE",
+          "solution": "1. **TRUE** — se usa el valor por defecto\n2. **TRUE** — DEFAULT significa usar el valor por defecto\n3. **NULL** — NULL explícito SOBRESCRIBE el DEFAULT\n4. **TRUE** — valor explícito\n5. **FALSE** — valor explícito\n\n> **Punto clave**: Si una columna tiene DEFAULT TRUE y le pasas NULL explícitamente, el resultado es NULL, no TRUE."
+        },
+        {
+          "id": "ex-12-3-4",
+          "title": "INSERT múltiple con verificación",
+          "difficulty": "intermediate",
+          "description": "Inserta 3 profesores nuevos en UNA sentencia y verifica:\n1. 'Elena', 'Vega López', 'elena.vega@email.com', 'IA', '2025-01-10'\n2. 'Marcos', 'Díaz Ruiz', 'marcos.diaz@email.com', 'Ciberseguridad', '2025-03-15'\n3. 'Carmen', 'Soto García', 'carmen.soto@email.com', 'Cloud', '2025-06-01'",
+          "solution": "```sql\nINSERT INTO profesores (nombre, apellido, email, especialidad, fecha_alta) VALUES\n  ('Elena', 'Vega López', 'elena.vega@email.com', 'IA', '2025-01-10'),\n  ('Marcos', 'Díaz Ruiz', 'marcos.diaz@email.com', 'Ciberseguridad', '2025-03-15'),\n  ('Carmen', 'Soto García', 'carmen.soto@email.com', 'Cloud', '2025-06-01');\n\nSELECT * FROM profesores\nWHERE email IN ('elena.vega@email.com', 'marcos.diaz@email.com', 'carmen.soto@email.com');\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-4",
+      "title": "INSERT ... SELECT",
+      "order": 4,
+      "objectives": [
+        "Escribir INSERT ... SELECT para copiar datos entre tablas",
+        "Comprender los casos de uso: tablas de respaldo, datos históricos, datos auxiliares",
+        "Verificar la compatibilidad de columnas en número, tipo y orden",
+        "Aplicar INSERT SELECT al dataset academia"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es INSERT ... SELECT?\n\n`INSERT ... SELECT` combina inserción con consulta. Los datos provienen de otra tabla mediante un SELECT.\n\n### Sintaxis básica\n\n```sql\nINSERT INTO tabla_destino (columna1, columna2, ...)\nSELECT columna1, columna2, ...\nFROM tabla_origen\nWHERE condición;\n```\n\n### Ejemplo: copiar alumnos activos\n\n```sql\n-- Crear tabla de respaldo\nCREATE TABLE alumnos_backup LIKE alumnos;\n\n-- Copiar todos los alumnos activos\nINSERT INTO alumnos_backup\nSELECT * FROM alumnos\nWHERE activo = TRUE;\n```\n\n> **Analogía**: Es como usar un filtro de copia. En vez de copiar archivos uno por uno, le dices al sistema: \"copia todos los que cumplan esta condición\"."
+        },
+        {
+          "type": "text",
+          "content": "## Casos de uso habituales\n\n### 1. Tabla de respaldo (backup)\n\n```sql\nCREATE TABLE notas_backup LIKE notas;\nINSERT INTO notas_backup SELECT * FROM notas;\n```\n\nAhora puedes modificar `notas` con tranquilidad.\n\n### 2. Datos históricos\n\n```sql\nCREATE TABLE notas_historico LIKE notas;\nINSERT INTO notas_historico\nSELECT * FROM notas\nWHERE convocatoria IN ('Convocatoria 1', 'Convocatoria 2');\n```\n\n### 3. Tabla de resumen o agregación\n\n```sql\nCREATE TABLE resumen_notas (\n  id_alumno INT,\n  nombre VARCHAR(50),\n  nota_media DECIMAL(4,2)\n);\n\nINSERT INTO resumen_notas (id_alumno, nombre, nota_media)\nSELECT\n  a.id,\n  a.nombre,\n  ROUND(AVG(n.nota), 2)\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre;\n```\n\n> **Importante**: Las tablas destino deben existir antes de ejecutar INSERT ... SELECT."
+        },
+        {
+          "type": "text",
+          "content": "## Compatibilidad de columnas\n\nEl SELECT debe devolver columnas **compatibles** con el INSERT:\n\n### Número de columnas\n\n```sql\n-- ✅ 3 columnas en INSERT, 3 en SELECT\nINSERT INTO alumnos_backup (nombre, apellido, email)\nSELECT nombre, apellido, email FROM alumnos;\n\n-- ❌ 3 en INSERT, 2 en SELECT\nINSERT INTO alumnos_backup (nombre, apellido, email)\nSELECT nombre, apellido FROM alumnos;\n-- Error: Column count doesn't match\n```\n\n### Tipos de datos\n\nLas columnas deben ser compatibles (MySQL intenta conversión automática).\n\n### Orden de columnas\n\nEl orden del SELECT debe coincidir con el del INSERT:\n\n```sql\n-- ✅ Correcto\nINSERT INTO alumnos_backup (nombre, apellido, email)\nSELECT nombre, apellido, email FROM alumnos;\n\n-- ❌ Orden cambiado\nINSERT INTO alumnos_backup (nombre, apellido, email)\nSELECT apellido, nombre, email FROM alumnos;\n-- ¡apellido va en la columna nombre!\n```\n\n> **Regla**: El primer valor del SELECT va a la primera columna del INSERT."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: alumnos de DAM\n\n```sql\n-- 1. Crear la tabla destino\nCREATE TABLE alumnos_dam (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\n-- 2. Insertar con SELECT\nINSERT INTO alumnos_dam (nombre, apellido, email)\nSELECT DISTINCT a.nombre, a.apellido, a.email\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM';\n\n-- 3. Verificar\nSELECT * FROM alumnos_dam;\n```\n\n### Ejemplo: ranking de alumnos\n\n```sql\nCREATE TABLE ranking_alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre_completo VARCHAR(100),\n  total_evaluaciones INT,\n  nota_media DECIMAL(4,2),\n  mejor_nota DECIMAL(4,2)\n);\n\nINSERT INTO ranking_alumnos (nombre_completo, total_evaluaciones, nota_media, mejor_nota)\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido),\n  COUNT(n.id),\n  ROUND(AVG(n.nota), 2),\n  MAX(n.nota)\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido;\n\nSELECT * FROM ranking_alumnos ORDER BY nota_media DESC;\n```\n\n> **Consejo**: INSERT ... SELECT es especialmente útil para migrar datos, crear tablas de resumen y hacer respaldos parciales."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-4-1",
+          "title": "Crear tabla de respaldo con INSERT SELECT",
+          "difficulty": "basic",
+          "description": "Crea `profesores_backup` con la misma estructura que `profesores` y copia todos los profesores.",
+          "solution": "```sql\nCREATE TABLE profesores_backup LIKE profesores;\nINSERT INTO profesores_backup\nSELECT * FROM profesores;\nSELECT * FROM profesores_backup;\n```"
+        },
+        {
+          "id": "ex-12-4-2",
+          "title": "INSERT SELECT con JOIN",
+          "difficulty": "intermediate",
+          "description": "Crea `notas_detalladas` con: nombre_alumno (VARCHAR 100), asignatura (VARCHAR 100), nota (DECIMAL 4,2), convocatoria (VARCHAR 50). Llénala con INSERT SELECT usando JOINs.",
+          "solution": "```sql\nCREATE TABLE notas_detalladas (\n  nombre_alumno VARCHAR(100),\n  asignatura VARCHAR(100),\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(50)\n);\n\nINSERT INTO notas_detalladas (nombre_alumno, asignatura, nota, convocatoria)\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido),\n  asig.nombre,\n  n.nota,\n  n.convocatoria\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nORDER BY a.nombre, asig.nombre;\n\nSELECT * FROM notas_detalladas;\n```"
+        },
+        {
+          "id": "ex-12-4-3",
+          "title": "INSERT SELECT con agregación",
+          "difficulty": "intermediate",
+          "description": "Crea `resumen_ciclos` con: ciclo (VARCHAR 10), total_asignaturas (INT), total_creditos (DECIMAL 6,2). Llénala con GROUP BY.",
+          "solution": "```sql\nCREATE TABLE resumen_ciclos (\n  ciclo VARCHAR(10),\n  total_asignaturas INT,\n  total_creditos DECIMAL(6,2)\n);\n\nINSERT INTO resumen_ciclos (ciclo, total_asignaturas, total_creditos)\nSELECT\n  ciclo,\n  COUNT(*),\n  SUM(creditos)\nFROM asignaturas\nGROUP BY ciclo;\n\nSELECT * FROM resumen_ciclos;\n```"
+        },
+        {
+          "id": "ex-12-4-4",
+          "title": "Error de compatibilidad",
+          "difficulty": "hard",
+          "description": "Corrige este INSERT ... SELECT:\n```sql\nINSERT INTO alumnos_backup (nombre, email)\nSELECT nombre, apellido, email\nFROM alumnos;\n```",
+          "solution": "El error: el INSERT especifica 2 columnas pero el SELECT devuelve 3.\n\nCorrección:\n```sql\nINSERT INTO alumnos_backup (nombre, apellido, email)\nSELECT nombre, apellido, email\nFROM alumnos;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-5",
+      "title": "UPDATE: modificar información existente",
+      "order": 5,
+      "objectives": [
+        "Escribir sentencias UPDATE con SET y WHERE",
+        "Comprender el peligro del UPDATE sin WHERE",
+        "Aplicar la metodología SELECT → revisar → UPDATE → verificar",
+        "Realizar actualizaciones multicolumen"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Sintaxis de UPDATE\n\n`UPDATE` modifica los valores de una o más columnas en filas existentes.\n\n```sql\nUPDATE tabla\nSET columna1 = valor1, columna2 = valor2, ...\nWHERE condición;\n```\n\n### Ejemplo básico\n\n```sql\nUPDATE alumnos\nSET email = 'juan.nuevo@email.com'\nWHERE id = 1;\n```\n\n### Actualizar varias columnas\n\n```sql\nUPDATE alumnos\nSET nombre = 'Juan Carlos',\n    email = 'jc.garcia@email.com'\nWHERE id = 1;\n```\n\nLas columnas se separan con comas."
+        },
+        {
+          "type": "text",
+          "content": "## ⚠️ PELIGRO: UPDATE sin WHERE\n\n```sql\n-- Sin WHERE: TODAS las filas se modifican\nUPDATE alumnos SET activo = FALSE;\n```\n\nSi tienes 8 alumnos, los 8 quedan inactivos. Si tienes 8 millones, los 8 millones.\n\n### ¿Por qué es peligroso?\n\n- No hay \"deshacer\" fácil en MySQL.\n- Los datos reales se pierden.\n- Puede afectar miles de filas en milisegundos.\n\n> **Regla de oro**: NUNCA ejecutes un UPDATE sin WHERE sin haber revisado primero con un SELECT qué filas se verían afectadas."
+        },
+        {
+          "type": "text",
+          "content": "## Metodología segura: SELECT → revisar → UPDATE → verificar\n\n### Paso 1: Ver las filas afectadas\n\n```sql\nSELECT id, nombre, apellido, email, activo\nFROM alumnos\nWHERE activo = FALSE;\n```\n\n### Paso 2: Revisar\n\n¿Son las filas que quieres modificar? Si SÍ, procede.\n\n### Paso 3: Ejecutar\n\n```sql\nUPDATE alumnos\nSET email = NULL\nWHERE activo = FALSE;\n```\n\n### Paso 4: Verificar\n\n```sql\nSELECT id, nombre, apellido, email, activo\nFROM alumnos\nWHERE activo = FALSE;\n-- Todos deberían tener email = NULL\n```\n\n### Ejemplo completo: subir notas\n\n```sql\n-- PASO 1\nSELECT a.nombre, n.nota, n.convocatoria\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.convocatoria = 'Convocatoria 1' AND n.nota < 5;\n\n-- PASO 2: Revisar\n\n-- PASO 3\nUPDATE notas\nSET nota = nota + 0.5\nWHERE convocatoria = 'Convocatoria 1' AND nota < 5;\n\n-- PASO 4\nSELECT a.nombre, n.nota, n.convocatoria\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.convocatoria = 'Convocatoria 1' AND n.nota < 5.5;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## UPDATE multicolumen y expresiones\n\n### Varias columnas a la vez\n\n```sql\nUPDATE alumnos\nSET telefono = '699999999',\n    direccion = 'Calle Nueva 10',\n    ciudad = 'Valencia'\nWHERE id = 5;\n```\n\n### Expresiones matemáticas\n\n```sql\n-- Subir un 5% los créditos de DAM\nUPDATE asignaturas\nSET creditos = creditos * 1.05\nWHERE ciclo = 'DAM';\n```\n\n### Funciones en SET\n\n```sql\n-- Poner fecha de hoy\nUPDATE notas\nSET fecha_evaluacion = CURDATE()\nWHERE convocatoria = 'Convocatoria 3';\n```\n\n> **Importante**: En el SET puedes usar expresiones que involucren el valor actual de la columna."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-5-1",
+          "title": "UPDATE básico con WHERE",
+          "difficulty": "basic",
+          "description": "Actualiza el email del alumno con id = 5 a 'carlos.nuevo@email.com'. Incluye SELECT previo y posterior.",
+          "solution": "```sql\nSELECT id, nombre, email FROM alumnos WHERE id = 5;\n\nUPDATE alumnos\nSET email = 'carlos.nuevo@email.com'\nWHERE id = 5;\n\nSELECT id, nombre, email FROM alumnos WHERE id = 5;\n```"
+        },
+        {
+          "id": "ex-12-5-2",
+          "title": "UPDATE multicolumen",
+          "difficulty": "intermediate",
+          "description": "Actualiza al alumno id=3: teléfono '633333333', ciudad 'Sevilla', dirección 'Calle Nueva 5'.",
+          "solution": "```sql\nSELECT id, nombre, telefono, ciudad, direccion\nFROM alumnos WHERE id = 3;\n\nUPDATE alumnos\nSET telefono = '633333333',\n    ciudad = 'Sevilla',\n    direccion = 'Calle Nueva 5'\nWHERE id = 3;\n\nSELECT id, nombre, telefono, ciudad, direccion\nFROM alumnos WHERE id = 3;\n```"
+        },
+        {
+          "id": "ex-12-5-3",
+          "title": "UPDATE con expresión matemática",
+          "difficulty": "intermediate",
+          "description": "Sube un 10% los créditos de las asignaturas de DAM. Muestra antes, ejecuta, verifica.",
+          "solution": "```sql\nSELECT id, nombre, ciclo, creditos\nFROM asignaturas WHERE ciclo = 'DAM';\n\nUPDATE asignaturas\nSET creditos = creditos * 1.10\nWHERE ciclo = 'DAM';\n\nSELECT id, nombre, ciclo, creditos\nFROM asignaturas WHERE ciclo = 'DAM';\n```"
+        },
+        {
+          "id": "ex-12-5-4",
+          "title": "Predicción de UPDATE sin WHERE",
+          "difficulty": "hard",
+          "description": "¿Qué resultado produce cada sentencia?\n1. `UPDATE alumnos SET activo = TRUE;`\n2. `UPDATE notas SET convocatoria = 'Extra' WHERE nota < 5;`\n3. `UPDATE asignaturas SET creditos = creditos + 1;`",
+          "solution": "1. TODOS los alumnos quedan activos. No hay WHERE.\n2. Solo las notas con nota < 5 cambian su convocatoria. Es seguro porque tiene WHERE.\n3. TODAS las asignaturas suman 1 crédito. No hay WHERE. Peligroso si no era la intención."
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-6",
+      "title": "UPDATE con condiciones y expresiones",
+      "order": 6,
+      "objectives": [
+        "Usar expresiones matemáticas y funciones en SET",
+        "Actualizar columnas a NULL explícitamente",
+        "Distinguir entre NULL y cadena vacía",
+        "Usar subconsultas en la cláusula SET"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Expresiones en SET\n\nEl SET acepta expresiones matemáticas, funciones y operaciones sobre el valor actual.\n\n### Expresiones matemáticas\n\n```sql\n-- Subir notas un 0.5 puntos\nUPDATE notas SET nota = nota + 0.5;\n\n-- Aplicar descuento del 20%\nUPDATE productos SET precio = precio * 0.80;\n```\n\n### Funciones en SET\n\n```sql\n-- Poner nombre en mayúsculas\nUPDATE alumnos\nSET nombre = UPPER(nombre)\nWHERE id = 5;\n```\n\n### CASE en SET\n\n```sql\n-- Clasificar notas\nUPDATE notas\nSET convocatoria = CASE\n  WHEN nota >= 9 THEN 'Sobresaliente'\n  WHEN nota >= 7 THEN 'Notable'\n  WHEN nota >= 5 THEN 'Aprobado'\n  ELSE 'Suspenso'\nEND\nWHERE convocatoria = 'Sin calificar';\n```\n\n> **Consejo**: El CASE en SET es útil para aplicar diferentes valores a diferentes filas en un solo UPDATE."
+        },
+        {
+          "type": "text",
+          "content": "## UPDATE con NULL\n\n### Poner una columna a NULL\n\n```sql\nUPDATE alumnos\nSET telefono = NULL\nWHERE id = 3;\n```\n\n### ¿Cuándo usar NULL vs cadena vacía?\n\n| Valor | Significado | Ejemplo |\n|---|---|---|\n| `NULL` | No hay dato — desconocido | Un alumno sin teléfono |\n| `''` (cadena vacía) | Hay dato, pero está vacío | Un campo de formulario en blanco |\n\n```sql\n-- NULL: no se puede comparar con =\nSELECT * FROM alumnos WHERE telefono = NULL;  -- ❌ No devuelve nada\nSELECT * FROM alumnos WHERE telefono IS NULL; -- ✅ Funciona\n\n-- Cadena vacía: sí se puede comparar con =\nSELECT * FROM alumnos WHERE telefono = '';     -- ✅ Funciona\n```\n\n> **Regla**: Usa `NULL` cuando el dato **no existe o es desconocido**. Usa `''` cuando el dato existe pero está vacío."
+        },
+        {
+          "type": "text",
+          "content": "## UPDATE con subconsultas en SET\n\nPuedes usar una subconsulta como valor en SET, siempre que devuelva **un solo valor** (escalar).\n\n```sql\n-- Poner email con formato nombre.apellido@academia.com\nUPDATE alumnos\nSET email = CONCAT(LOWER(nombre), '.', LOWER(apellido), '@academia.com')\nWHERE id = 5;\n```\n\n> **Precaución**: La subconsulta en SET debe devolver **exactamente un valor**."
+        },
+        {
+          "type": "text",
+          "content": "## UPDATE con JOIN\n\nMySQL permite actualizar filas basándose en condiciones de otra tabla:\n\n```sql\n-- Subir un 5% las notas de Juan García\nUPDATE notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nSET n.nota = n.nota * 1.05\nWHERE a.nombre = 'Juan' AND a.apellido = 'García López';\n```\n\n### Ejemplo: cancelar matrículas de un ciclo\n\n```sql\nUPDATE matriculas m\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nSET m.estado = 'cancelada'\nWHERE asig.ciclo = 'DAW';\n```\n\n> **Ventaja**: El UPDATE con JOIN te permite modificar filas usando condiciones de otra tabla, sin subconsultas."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-6-1",
+          "title": "UPDATE con expresión matemática",
+          "difficulty": "basic",
+          "description": "Sube un 0.5 puntos las notas < 5 en Convocatoria 1. Muestra antes, ejecuta, verifica.",
+          "solution": "```sql\nSELECT a.nombre, n.nota, n.convocatoria\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.convocatoria = 'Convocatoria 1' AND n.nota < 5;\n\nUPDATE notas\nSET nota = nota + 0.5\nWHERE convocatoria = 'Convocatoria 1' AND nota < 5;\n\nSELECT a.nombre, n.nota, n.convocatoria\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.convocatoria = 'Convocatoria 1' AND n.nota < 5.5;\n```"
+        },
+        {
+          "id": "ex-12-6-2",
+          "title": "UPDATE a NULL",
+          "difficulty": "intermediate",
+          "description": "Pone el teléfono y la dirección a NULL de todos los alumnos inactivos.",
+          "solution": "```sql\nSELECT id, nombre, telefono, direccion, activo\nFROM alumnos WHERE activo = FALSE;\n\nUPDATE alumnos\nSET telefono = NULL, direccion = NULL\nWHERE activo = FALSE;\n\nSELECT id, nombre, telefono, direccion, activo\nFROM alumnos WHERE activo = FALSE;\n```"
+        },
+        {
+          "id": "ex-12-6-3",
+          "title": "UPDATE con CASE",
+          "difficulty": "hard",
+          "description": "Usa UPDATE con CASE para poner la convocatoria según nota: >= 9 Sobresaliente, >= 7 Notable, >= 5 Aprobado, < 5 Suspenso. Solo para Convocatoria 1.",
+          "solution": "```sql\nSELECT a.nombre, n.nota, n.convocatoria\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.convocatoria = 'Convocatoria 1';\n\nUPDATE notas\nSET convocatoria = CASE\n  WHEN nota >= 9 THEN 'Sobresaliente'\n  WHEN nota >= 7 THEN 'Notable'\n  WHEN nota >= 5 THEN 'Aprobado'\n  ELSE 'Suspenso'\nEND\nWHERE convocatoria = 'Convocatoria 1';\n\nSELECT a.nombre, n.nota, n.convocatoria\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.convocatoria IN ('Sobresaliente', 'Notable', 'Aprobado', 'Suspenso');\n```"
+        },
+        {
+          "id": "ex-12-6-4",
+          "title": "UPDATE con JOIN",
+          "difficulty": "intermediate",
+          "description": "Usa UPDATE con JOIN para subir un 10% las notas de asignaturas del ciclo DAM.",
+          "solution": "```sql\nSELECT a.nombre, asig.nombre AS asignatura, n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM';\n\nUPDATE notas n\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nSET n.nota = n.nota * 1.10\nWHERE asig.ciclo = 'DAM';\n\nSELECT a.nombre, asig.nombre AS asignatura, n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM';\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-7",
+      "title": "DELETE: eliminar información",
+      "order": 7,
+      "objectives": [
+        "Escribir sentencias DELETE FROM con WHERE",
+        "Comprender que DELETE elimina FILAS, no estructura",
+        "Distinguir entre DELETE, DROP TABLE y TRUNCATE TABLE",
+        "Usar TRUNCATE para vaciar tablas rápidamente",
+        "Aplicar la metodología SELECT antes de DELETE"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## DELETE: eliminar filas\n\n`DELETE` elimina **filas completas** de una tabla. No modifica la estructura.\n\n### Sintaxis\n\n```sql\nDELETE FROM tabla\nWHERE condición;\n```\n\n### Ejemplo\n\n```sql\n-- Verificar\nSELECT id, nombre, apellido FROM alumnos WHERE id = 5;\n\n-- Eliminar\nDELETE FROM alumnos WHERE id = 5;\n\n-- Verificar\nSELECT id, nombre, apellido FROM alumnos WHERE id = 5;\n-- Debe devolver 0 filas\n```\n\n### DELETE con JOIN\n\n```sql\n-- Eliminar notas de alumnos inactivos\nDELETE n FROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.activo = FALSE;\n```\n\n> **Recuerda**: DELETE elimina FILAS completas. No puedes borrar solo una columna (para eso usa UPDATE SET columna = NULL)."
+        },
+        {
+          "type": "text",
+          "content": "## ⚠️ PELIGRO: DELETE sin WHERE\n\n```sql\n-- Sin WHERE: elimina TODAS las filas\nDELETE FROM alumnos;\n```\n\nLa tabla queda vacía pero la estructura permanece.\n\n### ¿Por qué es peligroso?\n\n- No hay \"deshacer\" fácil.\n- Los datos reales se pierden.\n- Puede afectar millones de filas en segundos.\n\n> **Regla de oro**: NUNCA ejecutes un DELETE sin WHERE sin haber revisado primero con un SELECT."
+        },
+        {
+          "type": "text",
+          "content": "## DELETE vs DROP TABLE vs TRUNCATE TABLE\n\n| Característica | DELETE | TRUNCATE TABLE | DROP TABLE |\n|---|---|---|---|\n| **Qué hace** | Elimina filas específicas | Elimina TODAS las filas | Elimina la tabla COMPLETA |\n| **WHERE** | ✅ Permitido | ❌ No permitido | N/A |\n| **Estructura** | Se conserva | Se conserva | **Se destruye** |\n| **Velocidad** | Lenta | Rápida | Rápida |\n| **Autoincrement** | No resetea | **Resetea a 1** | N/A |\n| **Triggers** | ✅ Ejecuta | ❌ No ejecuta | N/A |\n| **ROLLBACK** | ✅ Se puede deshacer | ❌ No se puede | ❌ No se puede |\n\n### Ejemplo de cada uno\n\n```sql\n-- DELETE: eliminar filas específicas\nDELETE FROM notas WHERE id_alumno = 5;\n\n-- TRUNCATE: vaciar la tabla completamente\nTRUNCATE TABLE notas;\n-- El autoincrement vuelve a 1\n\n-- DROP: eliminar la tabla completamente\nDROP TABLE notas;\n-- La tabla NO existe\n```\n\n> **Cuándo usar cada uno:**\n> - **DELETE**: Filas específicas (con WHERE).\n> - **TRUNCATE**: Vaciar tabla completamente, sin rollback.\n> - **DROP**: Tabla ya no se necesita."
+        },
+        {
+          "type": "text",
+          "content": "## TRUNCATE: características especiales\n\n### ¿Cuándo usar TRUNCATE?\n\n- Vaciar tabla de datos de prueba.\n- Limpiar tabla temporal.\n- Reiniciar AUTO_INCREMENT.\n\n### Ejemplo: reiniciar datos de práctica\n\n```sql\nTRUNCATE TABLE notas;\n-- Tabla vacía, autoincrement vuelve a 1\n\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion) VALUES\n  (1, 1, 7.50, 'Convocatoria 1', '2026-11-15'),\n  (1, 2, 8.25, 'Convocatoria 2', '2027-01-20'),\n  (2, 1, 9.00, 'Convocatoria 1', '2026-11-15');\n```\n\n### ⚠️ Precaución con TRUNCATE y claves foráneas\n\nSi otra tabla tiene FK que referencia la que quieres truncar, MySQL la bloqueará:\n\n```sql\nTRUNCATE TABLE alumnos;\n-- Error: Cannot truncate a table referenced in a foreign key constraint\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Metodología: SELECT antes de DELETE\n\n### Ejemplo: eliminar matrículas canceladas\n\n```sql\n-- PASO 1\nSELECT m.id, a.nombre, asig.nombre AS asignatura, m.estado\nFROM matriculas m\n  INNER JOIN alumnos a ON m.id_alumno = a.id\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE m.estado = 'cancelada';\n\n-- PASO 2: Revisar\n\n-- PASO 3\nDELETE FROM matriculas WHERE estado = 'cancelada';\n\n-- PASO 4\nSELECT * FROM matriculas WHERE estado = 'cancelada';\n-- 0 filas\n```\n\n> **Consejo**: Si vas a eliminar TODAS las filas, TRUNCATE es más rápido que DELETE sin WHERE."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-7-1",
+          "title": "DELETE básico con WHERE",
+          "difficulty": "basic",
+          "description": "Elimina la matrícula con id = 1. Incluye SELECT previo, DELETE y verificación.",
+          "solution": "```sql\nSELECT * FROM matriculas WHERE id = 1;\nDELETE FROM matriculas WHERE id = 1;\nSELECT * FROM matriculas WHERE id = 1;\n-- Debe devolver 0 filas\n```"
+        },
+        {
+          "id": "ex-12-7-2",
+          "title": "DELETE con JOIN",
+          "difficulty": "intermediate",
+          "description": "Elimina todas las notas de los alumnos de Madrid.",
+          "solution": "```sql\nSELECT n.id, a.nombre, a.ciudad, n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.ciudad = 'Madrid';\n\nDELETE n FROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.ciudad = 'Madrid';\n\nSELECT n.id, a.nombre, a.ciudad, n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.ciudad = 'Madrid';\n-- 0 filas\n```"
+        },
+        {
+          "id": "ex-12-7-3",
+          "title": "DELETE vs TRUNCATE vs DROP",
+          "difficulty": "intermediate",
+          "description": "¿Qué pasaría con cada sentencia?\n1. `DELETE FROM notas;`\n2. `TRUNCATE TABLE notas;`\n3. `DROP TABLE notas;`\n\n¿Cuáles conservan estructura? ¿Cuáles resetean autoincrement? ¿Cuáles se pueden deshacer?",
+          "solution": "1. DELETE: elimina filas, conserva estructura, NO resetea autoincrement, SÍ se puede deshacer (ROLLBACK).\n2. TRUNCATE: elimina filas, conserva estructura, SÍ resetea autoincrement, NO se puede deshacer.\n3. DROP: elimina la tabla COMPLETA (estructura + datos + índices + constraints). NO se puede deshacer."
+        },
+        {
+          "id": "ex-12-7-4",
+          "title": "Metodología completa de DELETE",
+          "difficulty": "hard",
+          "description": "¿Se pueden eliminar todas las matrículas del alumno 2 sin afectar sus notas? Justifica.",
+          "solution": "SÍ. Las tablas `notas` y `matriculas` son independientes. La FK de `notas` referencia `alumnos.id` y `asignaturas.id`, no `matriculas`. Eliminar la matrícula no borra las notas.\n\n```sql\n-- Verificar\nSELECT m.id, asig.nombre, m.estado\nFROM matriculas m\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE m.id_alumno = 2;\n\n-- Eliminar\nDELETE FROM matriculas WHERE id_alumno = 2;\n\n-- Verificar que las notas siguen\nSELECT n.id, asig.nombre, n.nota\nFROM notas n\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.id_alumno = 2;\n-- Las notas NO desaparecen\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-8",
+      "title": "Integridad y errores al modificar datos",
+      "order": 8,
+      "objectives": [
+        "Reconocer y resolver errores de clave primaria duplicada",
+        "Comprender errores de restricción UNIQUE",
+        "Entender errores de NOT NULL y CHECK",
+        "Manejar errores de clave foránea en INSERT",
+        "Interpretar los mensajes de error como protección del modelo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Errores de clave primaria duplicada\n\nCuando insertas un registro con un id que ya existe:\n\n```sql\nINSERT INTO alumnos (id, nombre, apellido, email)\nVALUES (5, 'Otro', 'Alumno', 'otro@email.com');\n```\n\n**Error:**\n```\nERROR 1062 (23000): Duplicate entry '5' for key 'alumnos.PRIMARY'\n```\n\n### ¿Qué significa?\n\nLa PK garantiza que cada fila tiene un id **único**. MySQL rechaza la inserción.\n\n### Cómo resolverlo\n\n1. **No especificar el id** (dejar AUTO_INCREMENT):\n```sql\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Otro', 'Alumno', 'otro@email.com');\n```\n\n2. **Usar ON DUPLICATE KEY UPDATE**:\n```sql\nINSERT INTO alumnos (id, nombre, apellido, email)\nVALUES (5, 'Otro', 'Alumno', 'otro@email.com')\nON DUPLICATE KEY UPDATE nombre = VALUES(nombre);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Errores de restricción UNIQUE\n\nLa columna `email` tiene UNIQUE: no puede haber duplicados.\n\n```sql\n-- Si ya existe 'juan.garcia@email.com'\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Otro', 'Juan', 'juan.garcia@email.com');\n```\n\n**Error:**\n```\nERROR 1062 (23000): Duplicate entry 'juan.garcia@email.com' for key 'alumnos.email'\n```\n\n### Lo mismo en UPDATE\n\n```sql\nUPDATE alumnos\nSET email = 'juan.garcia@email.com'\nWHERE id = 2;\n-- Error si ese email ya pertenece a otro alumno\n```\n\n### Verificar antes de insertar\n\n```sql\nSELECT COUNT(*) FROM alumnos WHERE email = 'juan.garcia@email.com';\n-- 0: no existe, puedes insertar\n-- 1+: ya existe, elijes otro email\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Errores de NOT NULL\n\n```sql\n-- 'nombre' es NOT NULL\nINSERT INTO alumnos (apellido, email)\nVALUES ('SoloApellido', 'test@email.com');\n```\n\n**Error:**\n```\nERROR 1364 (HY000): Field 'nombre' doesn't have a default value\n```\n\n### Con UPDATE\n\n```sql\nUPDATE alumnos SET nombre = NULL WHERE id = 1;\n```\n\n**Error:**\n```\nERROR 1048 (23000): Column 'nombre' cannot be null\n```\n\n### Cómo resolverlo\n\n1. Proporcionar un valor válido en el INSERT.\n2. Añadir un DEFAULT a la columna si tiene sentido."
+        },
+        {
+          "type": "text",
+          "content": "## Errores de CHECK constraint\n\n```sql\n-- Si nota tiene CHECK (nota >= 0 AND nota <= 10)\nINSERT INTO notas (id_alumno, id_asignatura, nota)\nVALUES (1, 1, 15);\n```\n\n**Error:**\n```\nERROR 3819 (HY000): Check constraint 'notas_chk_1' is violated\n```\n\n> **Clave**: CHECK, ENUM y NOT NULL existen para garantizar datos válidos. Los errores son tu aliado."
+        },
+        {
+          "type": "text",
+          "content": "## Errores de clave foránea (FK)\n\n```sql\n-- Si no existe alumno con id = 999\nINSERT INTO notas (id_alumno, id_asignatura, nota)\nVALUES (999, 1, 7.50);\n```\n\n**Error:**\n```\nERROR 1452 (23000): Cannot add or update a child row:\na foreign key constraint fails\n```\n\n### Cómo resolverlo\n\n1. Verificar que la referencia existe.\n2. Insertar primero en la tabla padre.\n\n```sql\n-- Crear el alumno primero\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Nuevo', 'Alumno', 'nuevo@email.com');\n-- Ahora sí puedes insertar la nota\nINSERT INTO notas (id_alumno, id_asignatura, nota)\nVALUES (LAST_INSERT_ID(), 1, 7.50);\n```\n\n> **Analogía**: Es como añadir un capítulo a un libro que no existe. Primero necesitas el libro."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: los errores como protección\n\n| Error | Restricción | Mensaje típico | Solución |\n|---|---|---|---|\n| PK duplicada | PRIMARY KEY | Duplicate entry 'X' | Dejar AUTO_INCREMENT o usar id diferente |\n| Email duplicado | UNIQUE | Duplicate entry for key 'email' | Usar otro email |\n| Campo obligatorio | NOT NULL | Field 'X' doesn't have default | Proporcionar valor o añadir DEFAULT |\n| Valor fuera de rango | CHECK | Check constraint violated | Ajustar valor al rango |\n| Referencia inexistente | FOREIGN KEY | Cannot add or update child row | Verificar referencia en tabla padre |\n\n> **Mentalidad**: Si MySQL da error de integridad, **celebra**. Significa que tu modelo está bien definido."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-8-1",
+          "title": "Identificar el tipo de error",
+          "difficulty": "basic",
+          "description": "¿Qué tipo de error produce cada sentencia?\n1. `INSERT INTO alumnos (id, ...) VALUES (1, ...);` (id 1 ya existe)\n2. `INSERT INTO alumnos (...) VALUES (..., 'juan.garcia@email.com');` (email ya existe)\n3. `INSERT INTO notas (...) VALUES (..., 12);` (nota > 10)\n4. `INSERT INTO notas (id_asignatura, nota) VALUES (1, 7);` (id_alumno NOT NULL)",
+          "solution": "1. **PK duplicada**: Duplicate entry for key 'PRIMARY'\n2. **UNIQUE**: Duplicate entry for key 'email'\n3. **CHECK**: Check constraint violated (nota fuera de rango)\n4. **NOT NULL**: Field 'id_alumno' doesn't have a default value"
+        },
+        {
+          "id": "ex-12-8-2",
+          "title": "FK error y resolución",
+          "difficulty": "intermediate",
+          "description": "Intenta insertar una nota para alumno id=999. Explica el error y escribe la secuencia correcta.",
+          "solution": "```sql\n-- Intento fallido\nINSERT INTO notas (id_alumno, id_asignatura, nota)\nVALUES (999, 1, 7.50);\n-- Error: Cannot add child row\n\n-- Secuencia correcta:\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Nuevo', 'Alumno', 'nuevo@email.com');\n\nINSERT INTO notas (id_alumno, id_asignatura, nota)\nVALUES (LAST_INSERT_ID(), 1, 7.50);\n```"
+        },
+        {
+          "id": "ex-12-8-3",
+          "title": "Corregir errores de INSERT",
+          "difficulty": "intermediate",
+          "description": "Corrige estos INSERT:\n1. `INSERT INTO alumnos (id, ...) VALUES (2, ...);` (id 2 duplicado)\n2. `INSERT INTO alumnos (email) VALUES ('test@email.com');` (NOT NULL)\n3. `INSERT INTO notas (id_alumno, ...) VALUES (50, ...);` (FK inexistente)",
+          "solution": "```sql\n-- 1. Omitir el id\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Ana', 'Ríos', 'ana@email.com');\n\n-- 2. Añadir nombre y apellido\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Test', 'Usuario', 'test@email.com');\n\n-- 3. Verificar que el alumno existe\nSELECT id FROM alumnos WHERE id = 50;\n-- Si no existe, usar un id válido\nINSERT INTO notas (id_alumno, id_asignatura, nota)\nVALUES (1, 1, 8);\n```"
+        },
+        {
+          "id": "ex-12-8-4",
+          "title": "Errores en UPDATE",
+          "difficulty": "hard",
+          "description": "Escribe un UPDATE que falle por: 1) email duplicado, 2) nombre a NULL, 3) nota fuera de rango. Luego corrígelo.",
+          "solution": "```sql\n-- 1. Email duplicado\nUPDATE alumnos SET email = 'maria@email.com' WHERE id = 1;\n-- Error: Duplicate entry for key 'email'\nUPDATE alumnos SET email = 'juan.nuevo@email.com' WHERE id = 1;\n\n-- 2. Nombre a NULL en NOT NULL\nUPDATE alumnos SET nombre = NULL WHERE id = 1;\n-- Error: Column 'nombre' cannot be null\nUPDATE alumnos SET nombre = 'Juan Carlos' WHERE id = 1;\n\n-- 3. Nota fuera de rango (CHECK)\nUPDATE notas SET nota = 12 WHERE id = 1;\n-- Error: Check constraint violated\nUPDATE notas SET nota = 9.5 WHERE id = 1;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-9",
+      "title": "Claves foráneas y acciones referenciales",
+      "order": 9,
+      "objectives": [
+        "Comprender qué sucede al eliminar una fila referenciada por una FK",
+        "Distinguir entre RESTRICT, CASCADE y SET NULL",
+        "Entender ON DELETE y ON UPDATE como decisiones de diseño",
+        "Usar ejemplos prácticos con el dataset academia"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué pasa al eliminar una fila referenciada?\n\nCuando eliminas una fila que es referenciada por otra tabla (FK), hay un problema: ¿qué hacer con las filas hijas?\n\n### Ejemplo con academia\n\n```sql\n-- El alumno 1 tiene notas y matrículas\nDELETE FROM alumnos WHERE id = 1;\n```\n\n**Resultado depende de la FK:**\n\n- **RESTRICT**: MySQL bloquea la eliminación.\n- **ON DELETE CASCADE**: Elimina automáticamente las notas y matrículas.\n- **ON DELETE SET NULL**: Pone a NULL las referencias.\n\n```\nalumnos (1) ---- FK ----> (N) notas\n                     |\n                     +-- RESTRICT: No puedes borrar el alumno\n                     +-- CASCADE: Borrar alumno -> borra sus notas\n                     +-- SET NULL: Borrar alumno -> notas.id_alumno = NULL\n```"
+        },
+        {
+          "type": "text",
+          "content": "## RESTRICT / NO ACTION: la opción por defecto\n\nSin `ON DELETE` definido, MySQL usa `RESTRICT`.\n\n```sql\n-- FK así definida:\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n  -- Sin ON DELETE -> RESTRICT\n);\n\n-- Intentar borrar alumno con notas:\nDELETE FROM alumnos WHERE id = 1;\n```\n\n**Error:**\n```\nERROR 1451: Cannot delete or update a parent row:\na foreign key constraint fails\n```\n\n### ¿Por qué es útil?\n\nProtege contra eliminaciones accidentales. No puedes borrar un alumno si tiene notas.\n\n> `NO ACTION` es equivalente a `RESTRICT` en MySQL."
+        },
+        {
+          "type": "text",
+          "content": "## ON DELETE CASCADE: eliminación en cascada\n\nCuando borras la fila padre, **todas las filas hijas se borran automáticamente**.\n\n### Ejemplo: pedido y líneas de pedido\n\n```sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE,\n  cliente VARCHAR(100)\n);\n\nCREATE TABLE lineas_pedido (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_pedido INT,\n  producto VARCHAR(100),\n  cantidad INT,\n  precio DECIMAL(8,2),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE CASCADE\n);\n```\n\n```sql\n-- Crear pedido con 3 líneas\nINSERT INTO pedidos (fecha, cliente) VALUES ('2026-09-23', 'Juan');\nSET @pid = LAST_INSERT_ID();\n\nINSERT INTO lineas_pedido (id_pedido, producto, cantidad, precio) VALUES\n  (@pid, 'Ratón', 1, 24.99),\n  (@pid, 'Teclado', 1, 39.99),\n  (@pid, 'Monitor', 1, 349.99);\n\n-- Eliminar el pedido\nDELETE FROM pedidos WHERE id = @pid;\n-- Las 3 líneas también se eliminaron\nSELECT * FROM lineas_pedido WHERE id_pedido = @pid;\n-- 0 filas\n```\n\n> **⚠️ CUIDADO**: CASCADE puede eliminar miles de filas sin que lo esperes."
+        },
+        {
+          "type": "text",
+          "content": "## ON DELETE SET NULL\n\nCuando borras la fila padre, las hijas **conservan datos** pero la FK se pone a NULL.\n\n```sql\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  nota DECIMAL(4,2),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n    ON DELETE SET NULL\n);\n```\n\n```sql\n-- La nota NO se elimina, pero id_alumno = NULL\nDELETE FROM alumnos WHERE id = 3;\nSELECT * FROM notas WHERE id_alumno IS NULL;\n-- La fila sigue, sin referencia al alumno\n```\n\n### ¿Cuándo usar SET NULL?\n\n- Notas con **valor histórico** que no quieres perder.\n- Referencia **opcional** o temporal."
+        },
+        {
+          "type": "text",
+          "content": "## ON UPDATE CASCADE\n\nCuando cambias el id del padre, las hijas **se actualizan automáticamente**.\n\n```sql\nUPDATE alumnos SET id = 100 WHERE id = 1;\n-- Con ON UPDATE CASCADE, notas y matriculas\n-- actualizan id_alumno de 1 a 100\n```\n\nCasi nunca es necesario con AUTO_INCREMENT, porque el id nunca cambia."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen de acciones referenciales\n\n| Acción | Al ELIMINAR padre | Al ACTUALIZAR padre |\n|---|---|---|\n| **RESTRICT / NO ACTION** | Bloquea la eliminación | Bloquea la actualización |\n| **CASCADE** | Elimina hijos automáticamente | Actualiza hijos automáticamente |\n| **SET NULL** | Pone FK = NULL en hijos | Pone FK = NULL en hijos |\n\n### CASCADE no es una solución mágica\n\n1. **Revisa la cadena de FKs** antes de usar CASCADE.\n2. **En producción**, prefiere RESTRICT.\n3. **Usa CASCADE solo** cuando la dependencia es absoluta.\n\n### Ver las foreign keys de tu base de datos\n\n```sql\nSELECT\n  TABLE_NAME, COLUMN_NAME,\n  REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME\nFROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE\nWHERE TABLE_SCHEMA = 'academia'\n  AND REFERENCED_TABLE_NAME IS NOT NULL;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-9-1",
+          "title": "RESTRICT en acción",
+          "difficulty": "basic",
+          "description": "Intenta eliminar el profesor con id = 1. ¿Qué pasa si tiene asignaturas?",
+          "solution": "```sql\nSELECT id, nombre, id_profesor\nFROM asignaturas WHERE id_profesor = 1;\n\nDELETE FROM profesores WHERE id = 1;\n-- Error: Cannot delete parent row\n-- La FK de asignaturas.id_profesor bloquea la eliminación\n```\n\nPrimero debes reasignar o eliminar esas asignaturas."
+        },
+        {
+          "id": "ex-12-9-2",
+          "title": "Diseñar con CASCADE y SET NULL",
+          "difficulty": "intermediate",
+          "description": "Diseña las FK con ON DELETE para:\n1. `lineas_pedido.id_pedido` → `pedidos.id`\n2. `notas.id_alumno` → `alumnos.id`\n3. `matriculas.id_asignatura` → `asignaturas.id`",
+          "solution": "1. **lineas_pedido → pedidos: ON DELETE CASCADE** — Si se borra el pedido, sus líneas no tienen sentido.\n\n2. **notas → alumnos: ON DELETE SET NULL** — Las notas son datos históricos. Si el alumno se da baja, las notas se conservan.\n\n3. **matriculas → asignaturas: ON DELETE RESTRICT** — No se debería eliminar una asignatura con alumnos matriculados."
+        },
+        {
+          "id": "ex-12-9-3",
+          "title": "Cadena de CASCADE",
+          "difficulty": "hard",
+          "description": "Si `alumnos` → CASCADE → `notas` y `notas` → CASCADE → `calificaciones`, ¿qué pasa con `DELETE FROM alumnos WHERE id = 5`?",
+          "solution": "Tres tablas afectadas por un solo DELETE:\n1. `alumnos`: se elimina la fila del alumno 5\n2. `notas`: se eliminan todas sus notas (por CASCADE)\n3. `calificaciones`: se eliminan todas las calificaciones de esas notas (por CASCADE)\n\n**Lección**: Antes de usar CASCADE, traza la cadena completa de dependencias."
+        },
+        {
+          "id": "ex-12-9-4",
+          "title": "Verificar foreign keys",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre todas las FK de la base de datos academia.",
+          "solution": "```sql\nSELECT\n  TABLE_NAME AS tabla_origen,\n  COLUMN_NAME AS columna,\n  REFERENCED_TABLE_NAME AS tabla_referenciada,\n  REFERENCED_COLUMN_NAME AS columna_referenciada\nFROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE\nWHERE TABLE_SCHEMA = 'academia'\n  AND REFERENCED_TABLE_NAME IS NOT NULL\nORDER BY TABLE_NAME, COLUMN_NAME;\n```\n\nResultado: asignaturas->profesores, notas->alumnos, notas->asignaturas, matriculas->alumnos, matriculas->asignaturas."
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-10",
+      "title": "Subconsultas en INSERT, UPDATE y DELETE",
+      "order": 10,
+      "objectives": [
+        "Usar subconsultas en WHERE de UPDATE y DELETE",
+        "Ejecutar DELETE con subconsultas IN y EXISTS",
+        "Comprender la limitación de MySQL 1093",
+        "Aplicar subconsultas en DML al dataset academia"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## UPDATE con subconsulta en WHERE\n\nPuedes usar subconsultas en el WHERE de un UPDATE para filtrar filas.\n\n```sql\n-- Subir 0.5 las notas de alumnos de Madrid\nUPDATE notas\nSET nota = nota + 0.5\nWHERE id_alumno IN (\n  SELECT id FROM alumnos WHERE ciudad = 'Madrid'\n);\n```\n\n### Subconsulta escalar\n\n```sql\n-- Subir 10% las notas superiores a la media\nUPDATE notas\nSET nota = nota * 1.10\nWHERE nota > (SELECT AVG(nota) FROM notas);\n```\n\n### EXISTS\n\n```sql\n-- Poner email a NULL de alumnos sin notas\nUPDATE alumnos\nSET email = NULL\nWHERE NOT EXISTS (\n  SELECT 1 FROM notas WHERE notas.id_alumno = alumnos.id\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## DELETE con subconsulta\n\n### Con IN\n\n```sql\n-- Eliminar notas de alumnos inactivos\nDELETE FROM notas\nWHERE id_alumno IN (\n  SELECT id FROM alumnos WHERE activo = FALSE\n);\n```\n\n### Con NOT IN\n\n```sql\n-- Eliminar notas de alumnos sin matrícula\nDELETE FROM notas\nWHERE id_alumno NOT IN (\n  SELECT DISTINCT id_alumno FROM matriculas\n);\n```\n\n### Con EXISTS\n\n```sql\n-- Eliminar matrículas de asignaturas sin profesor\nDELETE FROM matriculas\nWHERE EXISTS (\n  SELECT 1 FROM asignaturas\n  WHERE asignaturas.id = matriculas.id_asignatura\n    AND asignaturas.id_profesor IS NULL\n);\n```\n\n> **Importante**: EXISTS es generalmente más eficiente que IN para subconsultas grandes."
+        },
+        {
+          "type": "text",
+          "content": "## MySQL error 1093: auto-referencia\n\n### El problema\n\nMySQL **no permite** que una subconsulta en WHERE referencie la misma tabla:\n\n```sql\n-- ❌ ERROR 1093\nDELETE FROM notas\nWHERE id_alumno = (\n  SELECT id_alumno FROM notas\n  GROUP BY id_alumno HAVING COUNT(*) = 1\n);\n-- You can't specify target table 'notas' for update in FROM clause\n```\n\n### ¿Por qué?\n\nSi MySQL ejecutara el SELECT primero y luego el DELETE, podría eliminar filas que el SELECT ya procesó.\n\n### Solución: subconsulta derivada\n\n```sql\n-- ✅ Envolver en subconsulta derivada\nDELETE FROM notas\nWHERE id_alumno IN (\n  SELECT id_alumno FROM (\n    SELECT id_alumno FROM notas\n    GROUP BY id_alumno\n    HAVING COUNT(*) = 1\n  ) AS tmp\n);\n```\n\n> **Regla**: Si modificas una tabla basándote en una subconsulta sobre la misma tabla, envuélvela en una subconsulta derivada con alias."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplos prácticos\n\n### Eliminar notas de la peor asignatura\n\n```sql\n-- 1. ¿Cuál es la peor?\nSELECT asig.nombre, ROUND(AVG(n.nota), 2) AS media\nFROM notas n\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nGROUP BY asig.id, asig.nombre\nORDER BY media ASC LIMIT 1;\n\n-- 2. Eliminar (con subconsulta derivada)\nDELETE FROM notas\nWHERE id_asignatura = (\n  SELECT id_asignatura FROM (\n    SELECT id_asignatura FROM notas\n    GROUP BY id_asignatura\n    HAVING AVG(nota) = (\n      SELECT MIN(media) FROM (\n        SELECT AVG(nota) AS media FROM notas\n        GROUP BY id_asignatura\n      ) AS tmp\n    )\n  ) AS tmp2\n);\n```\n\n### Actualizar email basado en convocatoria\n\n```sql\nUPDATE alumnos\nSET email = CONCAT(LOWER(nombre), '.', LOWER(apellido), '@academia.com')\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 9\n);\n```\n\n### Eliminar alumnos sin actividad\n\n```sql\nDELETE FROM alumnos\nWHERE id NOT IN (SELECT DISTINCT id_alumno FROM notas)\nAND id NOT IN (SELECT DISTINCT id_alumno FROM matriculas);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: subconsultas en DML\n\n| Sentencia | Subconsulta en | Tipo habitual |\n|---|---|---|\n| **UPDATE** | WHERE | Filtrar filas a modificar |\n| **UPDATE** | SET | Calcular nuevo valor (escalar) |\n| **DELETE** | WHERE | Filtrar filas a eliminar |\n\n### Reglas clave\n\n1. **UPDATE SET**: subconsulta debe devolver **un solo valor** (escalar).\n2. **WHERE**: puede usar IN, NOT IN, EXISTS, NOT EXISTS.\n3. **Error 1093**: envolver en subconsulta derivada.\n4. **Siempre verifica** con un SELECT antes del DML."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-10-1",
+          "title": "UPDATE con subconsulta IN",
+          "difficulty": "basic",
+          "description": "Sube 0.5 puntos las notas de alumnos de Valencia.",
+          "solution": "```sql\nSELECT n.id, a.nombre, n.nota\nFROM notas n INNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.ciudad = 'Valencia';\n\nUPDATE notas SET nota = nota + 0.5\nWHERE id_alumno IN (\n  SELECT id FROM alumnos WHERE ciudad = 'Valencia'\n);\n\nSELECT n.id, a.nombre, n.nota\nFROM notas n INNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.ciudad = 'Valencia';\n```"
+        },
+        {
+          "id": "ex-12-10-2",
+          "title": "DELETE con NOT IN",
+          "difficulty": "intermediate",
+          "description": "Elimina las matrículas de alumnos sin notas.",
+          "solution": "```sql\nSELECT m.id, a.nombre, asig.nombre AS asignatura\nFROM matriculas m\n  INNER JOIN alumnos a ON m.id_alumno = a.id\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE m.id_alumno NOT IN (SELECT DISTINCT id_alumno FROM notas);\n\nDELETE FROM matriculas\nWHERE id_alumno NOT IN (SELECT DISTINCT id_alumno FROM notas);\n\nSELECT COUNT(*) FROM matriculas\nWHERE id_alumno NOT IN (SELECT DISTINCT id_alumno FROM notas);\n-- 0\n```"
+        },
+        {
+          "id": "ex-12-10-3",
+          "title": "Error 1093 y solución",
+          "difficulty": "hard",
+          "description": "¿Por qué falla este DELETE? Corrígelo.\n```sql\nDELETE FROM notas\nWHERE id_alumno = (\n  SELECT id_alumno FROM notas\n  GROUP BY id_alumno HAVING COUNT(*) = 1\n);\n```",
+          "solution": "Error 1093: no puedes referenciar la misma tabla en DELETE y subconsulta.\n\nSolución:\n```sql\nDELETE FROM notas\nWHERE id_alumno IN (\n  SELECT id_alumno FROM (\n    SELECT id_alumno FROM notas\n    GROUP BY id_alumno\n    HAVING COUNT(*) = 1\n  ) AS tmp\n);\n```"
+        },
+        {
+          "id": "ex-12-10-4",
+          "title": "DELETE con EXISTS",
+          "difficulty": "intermediate",
+          "description": "Elimina las notas de alumnos cuyo email sea NULL.",
+          "solution": "```sql\nSELECT n.id, a.nombre, a.email, n.nota\nFROM notas n INNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.email IS NULL;\n\nDELETE n FROM notas n\nWHERE EXISTS (\n  SELECT 1 FROM alumnos\n  WHERE alumnos.id = n.id_alumno\n    AND alumnos.email IS NULL\n);\n\nSELECT n.id, a.nombre, a.email, n.nota\nFROM notas n INNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.email IS NULL;\n-- 0 filas\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-11",
+      "title": "Modificaciones seguras y depuración",
+      "order": 11,
+      "objectives": [
+        "Comprender el Safe Update Mode en MySQL Workbench",
+        "Usar ROW_COUNT() para verificar filas afectadas",
+        "Aplicar la rutina BEFORE → MODIFY → AFTER",
+        "Entender las transacciones como vista previa del módulo 13",
+        "Usar LIMIT en UPDATE y DELETE con precaución"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Safe Update Mode en MySQL Workbench\n\n### ¿Qué es?\n\nProtección que bloquea UPDATE o DELETE sin WHERE o sin columna clave.\n\n### El error típico\n\n```sql\nUPDATE alumnos SET activo = FALSE;\n```\n\n```\nError Code: 1175. You are using safe update mode and you tried\nto update a table without a WHERE that uses a KEY column.\n```\n\n### ¿Por qué existe?\n\nEs una **red de seguridad** que evita modificaciones accidentales masivas.\n\n### Desactivarlo (solo si es necesario)\n\n```sql\nSET SQL_SAFE_UPDATES = 0;  -- Desactivar\n-- ... ejecutar sentencia ...\nSET SQL_SAFE_UPDATES = 1;  -- Reactivar\n```\n\n> **Recomendación**: Mantén Safe Update Mode ACTIVADO."
+        },
+        {
+          "type": "text",
+          "content": "## ROW_COUNT(): filas afectadas\n\nMySQL devuelve el número de filas modificadas.\n\n```sql\nUPDATE notas SET nota = nota + 0.5 WHERE convocatoria = 'Convocatoria 1';\n-- Resultado: 5 row(s) affected\n```\n\n### Uso práctico\n\n```sql\nDELETE FROM notas WHERE YEAR(fecha_evaluacion) < 2025;\n-- Revisar cuántas se eliminaron\n-- En MySQL Workbench: \"Row(s) affected: X\"\n```\n\n### En scripts\n\n```sql\nUPDATE notas SET nota = 8.0 WHERE id = 999;\n-- Si 0 filas: no se encontró la fila\n-- Si 1: OK\n-- Si >1: ¡Cuidado! Más filas de las esperadas\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Rutina: BEFORE → MODIFY → AFTER\n\n### Ejemplo completo\n\n```sql\n-- ═══ BEFORE ═══\nSELECT id, nombre, apellido, activo\nFROM alumnos WHERE activo = FALSE;\n-- ¿Cuántas filas? ¿Son las correctas?\n\n-- ═══ MODIFY ═══\nDELETE FROM alumnos WHERE activo = FALSE;\n-- Row(s) affected: 1\n\n-- ═══ AFTER ═══\nSELECT id, nombre, apellido, activo\nFROM alumnos WHERE activo = FALSE;\n-- Debe devolver 0 filas\n\nSELECT COUNT(*) FROM alumnos; -- ¿7 en vez de 8?\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Transacciones: vista previa del módulo 13\n\nLas transacciones agrupan DML en una unidad atómica.\n\n```sql\n-- Conceptual (el módulo 13 cubrirá COMMIT/ROLLBACK)\nSTART TRANSACTION;\n\nDELETE FROM notas WHERE id_alumno = 5;\nDELETE FROM matriculas WHERE id_alumno = 5;\n\n-- Si AMBOS pasaron bien -> COMMIT\n-- Si algo falló -> ROLLBACK\n```\n\nSin transacciones, cada DML se confirma inmediatamente. Si borras notas y falla el DELETE de matrículas, quedas en estado inconsistente.\n\n> **Vista previa**: En el módulo 13 aprenderás START TRANSACTION, COMMIT y ROLLBACK."
+        },
+        {
+          "type": "text",
+          "content": "## LIMIT en UPDATE y DELETE\n\nMySQL permite limitar filas afectadas.\n\n```sql\n-- LIMIT en DELETE\nDELETE FROM notas WHERE convocatoria = 'Convocatoria 1' LIMIT 5;\n-- Elimina solo 5 filas\n\n-- LIMIT en UPDATE\nUPDATE notas SET nota = 9.0 WHERE nota < 5 LIMIT 3;\n-- Actualiza solo 3 filas\n```\n\n### ¿Cuándo usar LIMIT?\n\n- **Procesamiento por lotes**: miles de filas, eliminar en grupos.\n- **Pruebas**: verificar efecto sin afectar todas.\n\n### LIMIT NO sustituye un buen WHERE\n\n```sql\n-- ❌ MAL\nDELETE FROM notas LIMIT 5;\n-- Elimina 5 filas al azar\n\n-- ✅ BIEN\nDELETE FROM notas WHERE nota < 3 LIMIT 5;\n-- Elimina las 5 peores notas\n```\n\n> **Advertencia**: LIMIT en DML es específico de MySQL."
+        },
+        {
+          "type": "text",
+          "content": "## Script de reset para práctica\n\n```sql\n-- RESTAURAR DATASET DE PRÁCTICA\nDELETE FROM notas;\nDELETE FROM matriculas;\nDELETE FROM asignaturas;\nDELETE FROM profesores;\nDELETE FROM alumnos;\n\nALTER TABLE notas AUTO_INCREMENT = 1;\nALTER TABLE matriculas AUTO_INCREMENT = 1;\nALTER TABLE asignaturas AUTO_INCREMENT = 1;\nALTER TABLE profesores AUTO_INCREMENT = 1;\nALTER TABLE alumnos AUTO_INCREMENT = 1;\n\n-- Reinsertar datos estándar\n-- (ejecutar el script de creación del módulo 8)\n```\n\n> **Consejo**: Guarda este script. Cada vez que practiques DML, ejecútalo para empezar con datos consistentes."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-11-1",
+          "title": "Rutina completa BEFORE-MODIFY-AFTER",
+          "difficulty": "intermediate",
+          "description": "Ejecuta la rutina completa para subir 1 punto a todas las notas < 5.",
+          "solution": "```sql\n-- BEFORE\nSELECT n.id, a.nombre, n.nota, n.convocatoria\nFROM notas n INNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE n.nota < 5;\n\n-- MODIFY\nUPDATE notas SET nota = nota + 1.0 WHERE nota < 5;\n-- Row(s) affected: X\n\n-- AFTER\nSELECT n.id, a.nombre, n.nota, n.convocatoria\nFROM notas n INNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE n.nota < 6;\n```"
+        },
+        {
+          "id": "ex-12-11-2",
+          "title": "Safe Update Mode",
+          "difficulty": "basic",
+          "description": "Intenta `UPDATE alumnos SET activo = TRUE;`. ¿Qué error obtienes? ¿Por qué existe? ¿Cómo lo solucionas?",
+          "solution": "Error: 1175 Safe Update Mode.\n\nExiste como red de seguridad para evitar modificaciones masivas accidentales.\n\nSolución: añadir WHERE con columna clave:\n```sql\nUPDATE alumnos SET activo = TRUE WHERE id > 0;\n```\n\nO desactivar temporalmente:\n```sql\nSET SQL_SAFE_UPDATES = 0;\nUPDATE alumnos SET activo = TRUE;\nSET SQL_SAFE_UPDATES = 1;\n```"
+        },
+        {
+          "id": "ex-12-11-3",
+          "title": "LIMIT para procesamiento por lotes",
+          "difficulty": "intermediate",
+          "description": "Elimina las primeras 100 notas de Convocatoria 1 usando LIMIT.",
+          "solution": "```sql\nDELETE FROM notas\nWHERE convocatoria = 'Convocatoria 1'\nLIMIT 100;\n\n-- Repetir hasta eliminar todas\nSELECT COUNT(*) FROM notas WHERE convocatoria = 'Convocatoria 1';\n```\n\n> LIMIT en DELETE es específico de MySQL."
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-12",
+      "title": "Caso práctico completo y repaso",
+      "order": 12,
+      "objectives": [
+        "Integrar todas las operaciones DML en un caso práctico real",
+        "Secuenciar correctamente INSERT, UPDATE y DELETE",
+        "Manejar errores de integridad en un escenario real",
+        "Verificar la integridad referencial tras múltiples modificaciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Caso práctico: gestión de la academia\n\nVamos a simular un día completo de trabajo con `academia`. Seguiremos 15 operaciones, cada una con explicación paso a paso.\n\n### Escenario\n\nEres el administrador de la academia. Hoy necesitas:\n1. Dar de alta un alumno nuevo\n2. Crear asignaturas\n3. Matricular alumnos\n4. Actualizar datos\n5. Gestionar eliminaciones\n6. Verificar integridad"
+        },
+        {
+          "type": "text",
+          "content": "## Secuencia de operaciones\n\n### Paso 1: Insertar un alumno nuevo\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento, ciudad)\nVALUES ('Elena', 'Vega Torres', 'elena.vega@email.com', '2004-03-15', 'Valencia');\n```\n\n### Paso 2: Insertar múltiples asignaturas\n\n```sql\nINSERT INTO asignaturas (nombre, ciclo, curso, creditos, id_profesor) VALUES\n  ('Inteligencia Artificial', 'DAM', 2, 6.00, 1),\n  ('Ciberseguridad', 'DAW', 2, 5.50, 2),\n  ('Cloud Computing', 'DAM', 2, 4.00, 3);\n```\n\n### Paso 3: Crear matrículas\n\n```sql\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado) VALUES\n  (9, 5, '2026-09-23', DEFAULT),\n  (9, 7, '2026-09-23', DEFAULT),\n  (1, 5, '2026-09-23', DEFAULT);\n```\n\n### Paso 4: Modificar email\n\n```sql\nSELECT id, nombre, email FROM alumnos WHERE id = 9;\nUPDATE alumnos SET email = 'elena.vega.2@academia.com' WHERE id = 9;\nSELECT id, nombre, email FROM alumnos WHERE id = 9;\n```\n\n### Paso 5: Cambiar estado de matrícula\n\n```sql\nUPDATE matriculas\nSET estado = 'completada'\nWHERE id_alumno = 1 AND id_asignatura = 1;\n```\n\n### Paso 6: Actualizar múltiples filas\n\n```sql\nSELECT n.id, a.nombre, n.nota FROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id WHERE n.nota < 5;\n\nUPDATE notas SET nota = nota + 0.5 WHERE nota < 5;\n\nSELECT n.id, a.nombre, n.nota FROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id WHERE n.nota < 5.5;\n```\n\n### Paso 7: Verificar cambios\n\n```sql\nSELECT COUNT(*) AS total_alumnos FROM alumnos;\nSELECT COUNT(*) AS total_asignaturas FROM asignaturas;\nSELECT COUNT(*) AS total_matriculas FROM matriculas;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Gestión de errores e integridad\n\n### Paso 8: Intentar UNIQUE violation\n\n```sql\n-- Intentar insertar email duplicado\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Test', 'Duplicado', 'elena.vega.2@academia.com');\n-- Error: Duplicate entry for key 'email'\n\n-- Solución: usar otro email\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Test', 'Duplicado', 'test.duplicado@email.com');\n```\n\n### Paso 9: Intentar FK inexistente\n\n```sql\n-- Intentar matricular en asignatura inexistente\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (1, 999, '2026-09-23');\n-- Error: Cannot add child row\n\n-- Solución: verificar que la asignatura existe\nSELECT id, nombre FROM asignaturas WHERE id = 999;\n-- 0 resultados -> usar un id válido\n```\n\n### Paso 10: Corregir la matrícula\n\n```sql\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (1, 3, '2026-09-23');\n-- Ahora sí funciona\n```\n\n### Paso 11: INSERT SELECT\n\n```sql\n-- Crear tabla de respaldo de notas aprobadas\nCREATE TABLE notas_aprobadas LIKE notas;\nINSERT INTO notas_aprobadas\nSELECT * FROM notas WHERE nota >= 5;\n\nSELECT COUNT(*) FROM notas_aprobadas;\n```\n\n### Paso 12: DELETE de matrícula\n\n```sql\nSELECT * FROM matriculas WHERE id_alumno = 9;\nDELETE FROM matriculas WHERE id_alumno = 9 AND id_asignatura = 7;\nSELECT * FROM matriculas WHERE id_alumno = 9;\n```\n\n### Paso 13: Verificar integridad\n\n```sql\n-- ¿Hay notas huérfanas?\nSELECT n.id FROM notas n\nLEFT JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.id IS NULL;\n-- Debe devolver 0\n\n-- ¿Hay matrículas huérfanas?\nSELECT m.id FROM matriculas m\nLEFT JOIN alumnos a ON m.id_alumno = a.id\nWHERE a.id IS NULL;\n-- Debe devolver 0\n```\n\n### Paso 14: Analizar eliminación de entidad referenciada\n\n```sql\n-- ¿Qué pasaría si eliminamos al alumno 9?\n-- 1. Verificar referencias\nSELECT COUNT(*) FROM notas WHERE id_alumno = 9;\nSELECT COUNT(*) FROM matriculas WHERE id_alumno = 9;\n\n-- 2. Si la FK es RESTRICT: hay que eliminar dependencias primero\nDELETE FROM notas WHERE id_alumno = 9;\nDELETE FROM matriculas WHERE id_alumno = 9;\nDELETE FROM alumnos WHERE id = 9;\n```\n\n### Paso 15: Restaurar dataset de práctica\n\n```sql\nDELETE FROM notas;\nDELETE FROM matriculas;\nDELETE FROM asignaturas;\nDELETE FROM profesores;\nDELETE FROM alumnos;\n\nALTER TABLE notas AUTO_INCREMENT = 1;\nALTER TABLE matriculas AUTO_INCREMENT = 1;\nALTER TABLE asignaturas AUTO_INCREMENT = 1;\nALTER TABLE profesores AUTO_INCREMENT = 1;\nALTER TABLE alumnos AUTO_INCREMENT = 1;\n\n-- Reinsertar datos estándar del módulo 8\n```\n\n> **Lección final**: Cada operación DML debe ser **deliberada** y **verificada**. La base de datos es tu aliada: sus restricciones protegen la integridad de tus datos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-12-1",
+          "title": "Caso práctico completo",
+          "difficulty": "hard",
+          "description": "Ejecuta la secuencia completa:\n1. Inserta un alumno: 'Miguel', 'Torres', 'miguel@email.com'\n2. Inserta 2 asignaturas: 'DevOps' (DAW, 2, 4.00, prof 1) y 'Big Data' (DAM, 2, 5.00, prof 2)\n3. Matricula al alumno nuevo en ambas asignaturas\n4. Modifica su email a 'miguel.torres@academia.com'\n5. Intenta insertar un email duplicado (el de Juan García)\n6. Intenta matricular en asignatura id=999\n7. Corrige el error de matrícula (usar asignatura id=1)\n8. Crea una tabla respaldo con INSERT SELECT de las notas aprobadas\n9. Elimina la matrícula del paso 7\n10. Verifica que no hay referencias huérfanas",
+          "solution": "```sql\n-- 1. Insertar alumno\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Miguel', 'Torres', 'miguel@email.com');\n\n-- 2. Insertar asignaturas\nINSERT INTO asignaturas (nombre, ciclo, curso, creditos, id_profesor) VALUES\n  ('DevOps', 'DAW', 2, 4.00, 1),\n  ('Big Data', 'DAM', 2, 5.00, 2);\n\n-- 3. Matricular\nSET @idalumno = (SELECT id FROM alumnos WHERE email = 'miguel@email.com');\nSET @idasig1 = (SELECT id FROM asignaturas WHERE nombre = 'DevOps');\nSET @idasig2 = (SELECT id FROM asignaturas WHERE nombre = 'Big Data');\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula) VALUES\n  (@idalumno, @idasig1, CURDATE()),\n  (@idalumno, @idasig2, CURDATE());\n\n-- 4. Modificar email\nUPDATE alumnos SET email = 'miguel.torres@academia.com' WHERE id = @idalumno;\n\n-- 5. Intentar UNIQUE violation\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Test', 'Duplicado', 'juan.garcia@email.com');\n-- Error: Duplicate entry\n\n-- 6. Intentar FK inexistente\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (@idalumno, 999, CURDATE());\n-- Error: Cannot add child row\n\n-- 7. Corregir\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (@idalumno, 1, CURDATE());\n\n-- 8. INSERT SELECT\nCREATE TABLE notas_aprobadas LIKE notas;\nINSERT INTO notas_aprobadas SELECT * FROM notas WHERE nota >= 5;\nSELECT COUNT(*) FROM notas_aprobadas;\n\n-- 9. DELETE matrícula\nDELETE FROM matriculas\nWHERE id_alumno = @idalumno AND id_asignatura = 1;\n\n-- 10. Verificar integridad\nSELECT n.id FROM notas n\nLEFT JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.id IS NULL;\n-- Debe devolver 0\n\nSELECT m.id FROM matriculas m\nLEFT JOIN alumnos a ON m.id_alumno = a.id\nWHERE a.id IS NULL;\n-- Debe devolver 0\n```"
         }
       ]
     }

@@ -85,14 +85,23 @@
 | UNION | mod-11 | lesson-11-2 |
 | EXPLAIN y optimización | mod-11 | lesson-11-3 |
 
-### RA4: Modificar datos, transacciones y concurrencia
+### RA4: Modificar datos, transacciones y concurrencia (PARTIAL — M12)
 
 | Contenido | Módulo | Lección |
 |---|---|---|
-| INSERT individual y múltiple | mod-12 | lesson-12-1 |
-| INSERT SELECT | mod-12 | lesson-12-1 |
-| UPDATE simple y con JOIN | mod-12 | lesson-12-2 |
-| DELETE y TRUNCATE | mod-12 | lesson-12-2 |
+| DML: INSERT, UPDATE, DELETE | mod-12 | lesson-12-1 |
+| INSERT: insertar una fila | mod-12 | lesson-12-2 |
+| INSERT múltiple y valores por defecto | mod-12 | lesson-12-3 |
+| INSERT ... SELECT | mod-12 | lesson-12-4 |
+| UPDATE: modificar información | mod-12 | lesson-12-5 |
+| UPDATE con condiciones y expresiones | mod-12 | lesson-12-6 |
+| DELETE: eliminar información | mod-12 | lesson-12-7 |
+| DELETE vs TRUNCATE vs DROP | mod-12 | lesson-12-7 |
+| Integridad y errores al modificar datos | mod-12 | lesson-12-8 |
+| Claves foráneas y acciones referenciales | mod-12 | lesson-12-9 |
+| Subconsultas en INSERT, UPDATE y DELETE | mod-12 | lesson-12-10 |
+| Modificaciones seguras y depuración | mod-12 | lesson-12-11 |
+| Caso práctico completo | mod-12 | lesson-12-12 |
 | Propiedades ACID | mod-13 | lesson-13-1 |
 | COMMIT, ROLLBACK, SAVEPOINT | mod-13 | lesson-13-2 |
 | Problemas de concurrencia | mod-13 | lesson-13-3 |
@@ -146,33 +155,33 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 75 |
-| Bloques de contenido | ~265 |
-| Ejercicios | ~62 |
+| Lecciones totales | 138 |
+| Bloques de contenido | ~455 |
+| Ejercicios | ~196 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
 
 | Módulo | Lecciones | Bloques aprox. | Ejercicios |
 |---|---|---|---|
-| mod-01: Introducción | 12 | 36 | 12 |
-| mod-02: Entorno | 5 | 15 | 3 |
-| mod-03: Modelo E/R | 5 | 15 | 3 |
-| mod-04: E/R a Relacional | 5 | 15 | 3 |
-| mod-05: Normalización | 5 | 15 | 3 |
-| mod-06: Creación SQL | 4 | 12 | 3 |
-| mod-07: Vistas, índices, usuarios y privilegios | 8 | 24 | 14 |
-| mod-08: Consultas básicas | 4 | 12 | 3 |
-| mod-09: Funciones y resumen | 3 | 9 | 3 |
-| mod-10: Consultas multitabla | 3 | 9 | 2 |
-| mod-11: Subconsultas | 3 | 9 | 2 |
-| mod-12: Modificación datos | 2 | 6 | 2 |
-| mod-13: Transacciones | 3 | 9 | 2 |
-| mod-14: Programación almacenada | 4 | 12 | 3 |
-| mod-15: Triggers/cursores | 2 | 6 | 2 |
-| mod-16: NoSQL | 2 | 6 | 2 |
-| mod-17: Proyecto final | 3 | 9 | 3 |
-| **TOTAL** | **75** | **~265** | **~62** |
+| mod-01: Introducción | 12 | 38 | 12 |
+| mod-02: Entorno | 12 | 39 | 12 |
+| mod-03: Modelo E/R | 12 | 64 | 12 |
+| mod-04: E/R a Relacional | 12 | 39 | 12 |
+| mod-05: Normalización | 12 | 27 | 12 |
+| mod-06: Creación SQL | 12 | 42 | 12 |
+| mod-07: Vistas, índices, usuarios | 8 | 27 | 14 |
+| mod-08: Consultas básicas | 8 | 20 | 8 |
+| mod-09: Funciones y resumen | 8 | 22 | 8 |
+| mod-10: Consultas multitabla | 8 | 24 | 8 |
+| mod-11: Subconsultas | 8 | 36 | 29 |
+| mod-12: Modificación datos | 12 | 56 | 43 |
+| mod-13: Transacciones | 3 | 4 | 3 |
+| mod-14: Programación almacenada | 4 | 5 | 4 |
+| mod-15: Triggers/cursores | 2 | 3 | 2 |
+| mod-16: NoSQL | 2 | 5 | 2 |
+| mod-17: Proyecto final | 3 | 4 | 3 |
+| **TOTAL** | **138** | **~455** | **~196** |
 
 ## Bases de datos de ejemplo utilizadas
 
@@ -196,7 +205,7 @@
 | mod-09: Funciones y resumen | ⏳ Pendiente |
 | mod-10: Consultas multitabla | ⏳ Pendiente |
 | mod-11: Subconsultas | ⏳ Pendiente |
-| mod-12: Modificación datos | ⏳ Pendiente |
+| mod-12: Modificación datos | ✅ Implementado (12 lecciones, 43 ejercicios) |
 | mod-13: Transacciones | ⏳ Pendiente |
 | mod-14: Programación almacenada | ⏳ Pendiente |
 | mod-15: Triggers/cursores | ⏳ Pendiente |
