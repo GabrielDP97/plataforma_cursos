@@ -7,43 +7,18 @@ import { getPhaseColors } from '../../components/course/phase-colors';
 import { progressApi } from '../../api/modules/progress';
 import type { ActivityNodeData } from '../../components/course/ActivityNode';
 import type { ViewMode, ModuleJson } from '../../components/course/types';
-import courseData from '../../../../courses/programming/course.json';
-import mod01 from '../../../../courses/programming/modules/mod-01.json';
-import mod02 from '../../../../courses/programming/modules/mod-02.json';
-import mod03 from '../../../../courses/programming/modules/mod-03.json';
-import mod04 from '../../../../courses/programming/modules/mod-04.json';
-import mod05 from '../../../../courses/programming/modules/mod-05.json';
-import mod06 from '../../../../courses/programming/modules/mod-06.json';
-import mod07 from '../../../../courses/programming/modules/mod-07.json';
-import mod08 from '../../../../courses/programming/modules/mod-08.json';
-import mod09 from '../../../../courses/programming/modules/mod-09.json';
-import mod10 from '../../../../courses/programming/modules/mod-10.json';
-import mod11 from '../../../../courses/programming/modules/mod-11.json';
-import mod12 from '../../../../courses/programming/modules/mod-12.json';
-import mod13 from '../../../../courses/programming/modules/mod-13.json';
-import mod14 from '../../../../courses/programming/modules/mod-14.json';
-import mod15 from '../../../../courses/programming/modules/mod-15.json';
-import mod16 from '../../../../courses/programming/modules/mod-16.json';
-import mod17 from '../../../../courses/programming/modules/mod-17.json';
-import mod18 from '../../../../courses/programming/modules/mod-18.json';
-
-// -- Module registry ----------------------------------------------------------
-
-const ALL_MODULES: Record<string, ModuleJson> = {
-  'mod-01': mod01, 'mod-02': mod02, 'mod-03': mod03, 'mod-04': mod04,
-  'mod-05': mod05, 'mod-06': mod06, 'mod-07': mod07, 'mod-08': mod08,
-  'mod-09': mod09, 'mod-10': mod10, 'mod-11': mod11, 'mod-12': mod12,
-  'mod-13': mod13, 'mod-14': mod14, 'mod-15': mod15, 'mod-16': mod16,
-  'mod-17': mod17, 'mod-18': mod18,
-};
+import { getCourseData } from '../../data/course-registry';
 
 // -- Helpers ------------------------------------------------------------------
 
-function getPhaseForModule(moduleId: string) {
-  for (const phase of courseData.phases) {
+function getPhaseForModule(
+  moduleId: string,
+  phases: { id: string; title: string; description: string; modules: string[] }[],
+) {
+  for (const phase of phases) {
     if (phase.modules.includes(moduleId)) return phase;
   }
-  return courseData.phases[0];
+  return phases[0];
 }
 
 function contentTypeToActivityType(type: string): ActivityNodeData['type'] {
@@ -100,7 +75,10 @@ export default function CourseHome() {
   const navigate = useNavigate();
 
   const mode: ViewMode = searchParams.get('admin_preview') === 'true' ? 'admin_preview' : 'student';
-  const resolvedCourseId = courseId || courseData.id;
+
+  // Resolve course from registry (falls back to programming if unknown)
+  const resolvedCourseId = courseId || 'programming-0485';
+  const { courseData, modules: ALL_MODULES } = getCourseData(resolvedCourseId);
 
   // -- Progress state --------------------------------------------------------
 
@@ -182,7 +160,7 @@ export default function CourseHome() {
     const lastId = allModuleIds[allModuleIds.length - 1];
     return ALL_MODULES[lastId] || ALL_MODULES['mod-01'];
   }, [completedLessonIds]);
-  const currentPhase = getPhaseForModule(currentModule.id);
+  const currentPhase = getPhaseForModule(currentModule.id, courseData.phases);
   const currentColors = getPhaseColors(currentPhase.id);
   const currentActivities = useMemo(() => deriveActivities(currentModule), [currentModule]);
 
