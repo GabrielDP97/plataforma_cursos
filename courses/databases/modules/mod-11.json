@@ -1,95 +1,493 @@
 {
   "id": "mod-11",
   "courseId": "databases-0484",
-  "title": "Subconsultas y consultas avanzadas",
-  "slug": "subconsultas-avanzadas",
+  "title": "Consultas avanzadas",
+  "slug": "consultas-avanzadas",
   "order": 11,
-  "description": "Subconsultas escalares, múltiples, IN, EXISTS, ANY/ALL. UNION. Introducción a la optimización con EXPLAIN.",
+  "description": "Domina las subconsultas en MySQL: escalares, de varias filas, correlacionadas, EXISTS, NOT EXISTS, IN, ANY y ALL. Aprende a combinar resultados con UNION y UNION ALL, y a comparar el rendimiento de subconsultas frente a JOINs usando EXPLAIN. Resuelve un caso práctico completo que integra todas las técnicas del módulo.",
   "objectives": [
-    "Escribir subconsultas escalares",
-    "Usar subconsultas con IN y EXISTS",
-    "Comprender ANY y ALL",
-    "Combinar resultados con UNION",
-    "Analizar consultas con EXPLAIN"
+    "Comprender qué es una subconsulta y en qué cláusulas se puede usar",
+    "Escribir subconsultas escalares y de varias filas",
+    "Dominar IN, ANY y ALL para filtrar con resultados de subconsultas",
+    "Usar EXISTS y NOT EXISTS para comprobar la existencia de registros",
+    "Escribir subconsultas correlacionadas y entender su comportamiento",
+    "Unir resultados con UNION y UNION ALL",
+    "Comparar subconsultas vs JOINs y usar EXPLAIN para analizar rendimiento",
+    "Resolver un caso práctico completo integrando todas las técnicas"
   ],
-  "estimatedMinutes": 360,
+  "estimatedMinutes": 480,
   "lessons": [
     {
       "id": "lesson-11-1",
-      "title": "Subconsultas escalares y con IN",
+      "title": "Introducción a las subconsultas",
       "order": 1,
       "objectives": [
-        "Escribir subconsultas que devuelven un solo valor",
-        "Usar subconsultas con IN para filtrar por listas",
-        "Comprender la diferencia entre subconsulta correlacionada y no correlacionada"
+        "Comprender qué es una subconsulta y cómo se anida dentro de otra consulta",
+        "Identificar los tipos de subconsultas según su ubicación (WHERE, FROM, SELECT)",
+        "Escribir subconsultas simples en cláusula WHERE",
+        "Entender el orden de ejecución de una consulta con subconsulta"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## ¿Qué es una subconsulta?\n\nUna **subconsulta** (o subquery) es una consulta SQL dentro de otra consulta. Se ejecuta primero y su resultado se usa en la consulta exterior.\n\n### Subconsulta escalar\n\nDevuelve **un solo valor**. Se puede usar en SELECT, WHERE o HAVING.\n\n```sql\n-- ¿Cuántos alumnos hay?\nSELECT\n  nombre,\n  (SELECT COUNT(*) FROM alumnos) AS total_alumnos\nFROM alumnos;\n\n-- Alumnos cuya nota es superior a la media global\nSELECT a.nombre, n.nota\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > (SELECT AVG(nota) FROM notas);\n\n-- Asignaturas con más créditos que la media\nSELECT * FROM asignaturas\nWHERE creditos > (SELECT AVG(creditos) FROM asignaturas);\n```\n\n### Subconsulta con IN\n\nDevuelve **una lista de valores**.\n\n```sql\n-- Alumnos que tienen notas\nSELECT * FROM alumnos\nWHERE id IN (SELECT id_alumno FROM notas);\n\n-- Alumnos que NO tienen notas\nSELECT * FROM alumnos\nWHERE id NOT IN (SELECT id_alumno FROM notas);\n\n-- Asignaturas que tienen al menos un alumno matriculado\nSELECT * FROM asignaturas\nWHERE id IN (SELECT id_asignatura FROM matriculas);\n\n-- Notas de alumnos de ciclo DAM\nSELECT * FROM notas\nWHERE id_alumno IN (\n  SELECT DISTINCT m.id_alumno\n  FROM matriculas m\n  INNER JOIN asignaturas a ON m.id_asignatura = a.id\n  WHERE a.ciclo = 'DAM'\n);\n```"
+          "content": "## Dataset de práctica: academia\n\nTodas las lecciones de este módulo usan la base de datos `academia`. Si no la tienes creada, ejecuta el script del módulo anterior (mod-10) para crear las tablas `alumnos`, `profesores`, `asignaturas`, `notas` y `matriculas`.\n\n> **Importante**: En este módulo solo usamos consultas SELECT. No hay INSERT, UPDATE ni DELETE."
         },
         {
           "type": "text",
-          "content": "## Subconsulta correlacionada\n\nUna subconsulta **correlacionada** hace referencia a una columna de la consulta exterior. Se ejecuta **una vez por cada fila** de la consulta exterior.\n\n```sql\n-- Alumnos cuya nota es la más alta de su asignatura\nSELECT\n  a.nombre,\n  asig.nombre AS asignatura,\n  n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota = (\n  SELECT MAX(n2.nota)\n  FROM notas n2\n  WHERE n2.id_asignatura = n.id_asignatura  -- Referencia a la consulta exterior\n);\n\n-- Alumnos que tienen nota superior a la media de su asignatura\nSELECT\n  a.nombre,\n  asig.nombre AS asignatura,\n  n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota > (\n  SELECT AVG(n2.nota)\n  FROM notas n2\n  WHERE n2.id_asignatura = n.id_asignatura\n);\n```\n\n> **Diferencia**: La subconsulta no correlacionada se ejecuta una vez. La correlacionada se ejecuta por cada fila."
+          "content": "## ¿Qué es una subconsulta?\n\nUna **subconsulta** (o subquery) es una consulta SELECT que se escribe **dentro de otra consulta**. La consulta interna se ejecuta primero y su resultado se usa por la consulta externa.\n\n### Anatomía de una subconsulta\n\n```sql\nSELECT columna1, columna2\nFROM tabla\nWHERE columna IN (\n  SELECT columna\n  FROM otra_tabla\n  WHERE condicion\n);\n```\n\nLa consulta entre paréntesis es la **subconsulta**. Se ejecuta primero, devuelve un resultado, y la consulta externa lo usa para filtrar o calcular.\n\n### Analogía: preguntas dentro de preguntas\n\nImagina que preguntas: \"¿Qué alumnos sacan nota mayor que la media?\". Para responder necesitas **dos pasos**:\n\n1. Primero: ¿Cuál es la media? → `SELECT AVG(nota) FROM notas`\n2. Después: ¿Quiénes superan esa media? → `SELECT nombre FROM alumnos WHERE nota > (resultado del paso 1)`\n\nLa subconsulta es el paso 1, la consulta externa es el paso 2."
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta en cláusula WHERE\n\nEl uso más común es filtrar filas usando el resultado de una subconsulta.\n\n### Ejemplo 1: Alumnos con nota superior a la media\n\n```sql\nSELECT\n  a.nombre,\n  a.apellido,\n  n.nota,\n  n.convocatoria\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > (\n  SELECT AVG(nota) FROM notas\n)\nORDER BY n.nota DESC;\n```\n\n**Resultado esperado:**\n\n```\n+-------+-----------+------+-------------+\n| nombre| apellido  | nota | convocatoria|\n+-------+-----------+------+-------------+\n| Ana   | López     | 9.50 | Conv. 1     |\n| Sofía | Moreno    | 9.25 | Conv. 1     |\n| María | Fernández | 9.00 | Conv. 1     |\n| Pedro | Martínez  | 8.75 | Conv. 1     |\n| María | Fernández | 8.50 | Conv. 3     |\n| Juan  | García    | 8.25 | Conv. 2     |\n| Laura | Sánchez   | 8.00 | Conv. 1     |\n| Sofía | Moreno    | 7.75 | Conv. 1     |\n+-------+-----------+------+-------------+\n```\n\nLa subconsulta `(SELECT AVG(nota) FROM notas)` devuelve un **único valor** (la media). Se compara fila a fila con `n.nota`."
+        },
+        {
+          "type": "text",
+          "content": "### Ejemplo 2: Asignaturas con al menos un alumno matriculado\n\n```sql\nSELECT nombre, ciclo\nFROM asignaturas\nWHERE id IN (\n  SELECT DISTINCT id_asignatura\n  FROM matriculas\n)\nORDER BY ciclo;\n```\n\nLa subconsulta devuelve una **lista de IDs**. El operador `IN` comprueba si el `id` de cada asignatura está en esa lista."
+        },
+        {
+          "type": "text",
+          "content": "### Ejemplo 3: Profesores que imparten al menos una asignatura\n\n```sql\nSELECT nombre, apellido, especialidad\nFROM profesores\nWHERE id IN (\n  SELECT DISTINCT id_profesor\n  FROM asignaturas\n  WHERE id_profesor IS NOT NULL\n);\n```\n\n### Ejemplo 4: Subconsulta con múltiples condiciones\n\n```sql\n-- Alumnos que tienen al menos una nota >= 8 Y al menos una nota < 5\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE a.id IN (\n  SELECT id_alumno FROM notas WHERE nota >= 8\n)\nAND a.id IN (\n  SELECT id_alumno FROM notas WHERE nota < 5\n);\n```\n\n> **Punto clave**: Las subconsultas en WHERE se ejecutan **primero**. MySQL resuelve la subconsulta, obtiene un resultado, y luego la consulta externa lo usa."
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta en cláusula FROM\n\nTambién puedes usar una subconsulta como si fuera una tabla (se llama **subconsulta derivada**):\n\n```sql\n-- Media de notas por alumno como \"tabla temporal\"\nSELECT\n  sub.alumno,\n  sub.nota_media\nFROM (\n  SELECT\n    CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n    ROUND(AVG(n.nota), 2) AS nota_media\n  FROM alumnos a\n  INNER JOIN notas n ON a.id = n.id_alumno\n  GROUP BY a.id, a.nombre, a.apellido\n) AS sub\nWHERE sub.nota_media >= 7\nORDER BY sub.nota_media DESC;\n```\n\nLa subconsulta entre paréntesis devuelve un resultado con columnas `alumno` y `nota_media`. La consulta externa filtra y ordena ese resultado.\n\n> **Alias obligatorio**: Toda subconsulta en FROM **debe** tener un alias (ej: `AS sub`)."
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta en cláusula SELECT\n\nPuedes incluir una subconsulta como una columna más del resultado:\n\n```sql\n-- Cada asignatura con su nota media y la nota media global\nSELECT\n  asig.nombre AS asignatura,\n  ROUND(AVG(n.nota), 2) AS nota_media_asig,\n  (\n    SELECT ROUND(AVG(nota), 2) FROM notas\n  ) AS nota_media_global,\n  ROUND(AVG(n.nota) - (SELECT AVG(nota) FROM notas), 2) AS diferencia\nFROM asignaturas asig\nINNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre;\n```\n\nCada fila calcula la media de la asignatura y la compara con la media global (obtenida por subconsulta)."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: tipos de subconsultas por ubicación\n\n| Ubicación | Tipo de resultado | Ejemplo de uso |\n|---|---|---|\n| **WHERE** | Escalar o lista | Filtrar filas: `WHERE x > (SELECT ...)` |\n| **FROM** | Conjunto de filas (tabla derivada) | Calcular algo y luego filtrar sobre ello |\n| **SELECT** | Escalar | Mostrar un valor calculado como columna |\n\n### Reglas clave\n\n1. **Siempre entre paréntesis**: la subconsulta va entre `(` y `)`.\n2. **WHERE admite**: `=`, `>`, `<`, `IN`, `NOT IN`, `EXISTS`.\n3. **FROM requiere alias**: la subconsulta derivada necesita un alias.\n4. **SELECT necesita escalar**: solo puede devolver UN solo valor."
         }
       ],
       "exercises": [
         {
           "id": "ex-11-1-1",
-          "title": "Subconsultas",
+          "title": "Subconsulta escalar en WHERE",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre, apellido y nota de las evaluaciones cuya nota sea **superior a la nota media** de todas las evaluaciones. Usa una subconsulta en el WHERE.",
+          "solution": "```sql\nSELECT\n  a.nombre,\n  a.apellido,\n  n.nota,\n  n.convocatoria\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > (\n  SELECT AVG(nota) FROM notas\n)\nORDER BY n.nota DESC;\n```"
+        },
+        {
+          "id": "ex-11-1-2",
+          "title": "Subconsulta con IN en WHERE",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre y apellido de los alumnos que **están matriculados** en al menos una asignatura. Usa una subconsulta con IN.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM matriculas\n)\nORDER BY nombre;\n```"
+        },
+        {
+          "id": "ex-11-1-3",
+          "title": "Subconsulta en FROM",
           "difficulty": "intermediate",
-          "description": "Escribe consultas con subconsultas para:\n1. Alumnos cuya nota es igual a la nota más alta de la base de datos\n2. Asignaturas que tienen alumnos matriculados pero no tienen notas\n3. Alumnos cuyo número de notas es superior a la media de notas por alumno",
-          "solution": "```sql\n-- 1. Alumnos con la nota más alta\nSELECT a.nombre, n.nota\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota = (SELECT MAX(nota) FROM notas);\n\n-- 2. Asignaturas con matrículas pero sin notas\nSELECT asig.nombre\nFROM asignaturas asig\nWHERE asig.id IN (SELECT id_asignatura FROM matriculas)\n  AND asig.id NOT IN (SELECT DISTINCT id_asignatura FROM notas);\n\n-- 3. Alumnos con más notas que la media\nSELECT\n  a.nombre,\n  COUNT(n.id) AS num_notas\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre\nHAVING COUNT(n.id) > (\n  SELECT AVG(cnt) FROM (\n    SELECT COUNT(id) AS cnt FROM notas GROUP BY id_alumno\n  ) AS medias\n);\n```"
+          "description": "Escribe una consulta que muestre los alumnos cuya **nota media** sea superior a 7. Usa una subconsulta derivada en FROM para calcular primero la media por alumno.",
+          "solution": "```sql\nSELECT\n  sub.alumno,\n  sub.nota_media\nFROM (\n  SELECT\n    CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n    ROUND(AVG(n.nota), 2) AS nota_media\n  FROM alumnos a\n  INNER JOIN notas n ON a.id = n.id_alumno\n  GROUP BY a.id, a.nombre, a.apellido\n) AS sub\nWHERE sub.nota_media > 7\nORDER BY sub.nota_media DESC;\n```"
+        },
+        {
+          "id": "ex-11-1-4",
+          "title": "Subconsulta en SELECT",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre cada alumno con su nota media y la diferencia respecto a la nota media global. Usa una subconsulta en el SELECT para obtener la media global.",
+          "solution": "```sql\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n  ROUND(AVG(n.nota), 2) AS nota_media,\n  (\n    SELECT ROUND(AVG(nota), 2) FROM notas\n  ) AS media_global,\n  ROUND(AVG(n.nota) - (SELECT AVG(nota) FROM notas), 2) AS diferencia\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido\nORDER BY diferencia DESC;\n```"
         }
       ]
     },
     {
       "id": "lesson-11-2",
-      "title": "EXISTS, ANY/ALL y UNION",
+      "title": "Subconsultas escalares y de varias filas",
       "order": 2,
       "objectives": [
-        "Usar EXISTS para verificar existencia de registros",
-        "Comprender ANY y ALL",
-        "Combinar resultados con UNION"
+        "Distinguir entre subconsultas escalares (un solo valor) y de varias filas (múltiples valores)",
+        "Usar subconsultas escalares con operadores de comparación (=, >, <, >=, <=)",
+        "Usar subconsultas de varias filas con IN y NOT IN",
+        "Comprender los errores comunes al mezclar subconsultas escalares y de varias filas"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## EXISTS\n\n`EXISTS` comprueba si una subconsulta devuelve **al menos una fila**. Es más eficiente que IN para subconsultas grandes.\n\n```sql\n-- Alumnos que tienen notas (con EXISTS)\nSELECT * FROM alumnos a\nWHERE EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_alumno = a.id\n);\n\n-- Alumnos que NO tienen notas (con NOT EXISTS)\nSELECT * FROM alumnos a\nWHERE NOT EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_alumno = a.id\n);\n\n-- Asignaturas que tienen al menos un alumno matriculado\nSELECT * FROM asig WHERE EXISTS (\n  SELECT 1 FROM matriculas m WHERE m.id_asignatura = asig.id\n);\n```\n\n> **EXISTS vs IN**: `EXISTS` suele ser más rápido cuando la subconsulta es grande, porque para en la primera fila encontrada. `IN` puede ser más rápido cuando la lista de valores es pequeña.\n\n## ANY y ALL\n\n`ANY` y `ALL` se usan con subconsultas que devuelven **múltiples valores**.\n\n| Operador | Significado |\n|---|---|\n| `= ANY` | Igual a al menos uno (equivalente a IN) |\n| `> ANY` | Mayor que al menos uno |\n| `< ANY` | Menor que al menos uno |\n| `= ALL` | Igual a todos |\n| `> ALL` | Mayor que todos |\n| `< ALL` | Menor que todos |\n\n```sql\n-- Alumnos con nota mayor que ALGUNA nota de 'Bases de datos'\nSELECT a.nombre, n.nota\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > ANY (\n  SELECT n2.nota FROM notas n2\n  INNER JOIN asignaturas asig ON n2.id_asignatura = asig.id\n  WHERE asig.nombre = 'Bases de datos'\n);\n\n-- Alumnos con nota mayor que TODAS las notas de 'Bases de datos'\nSELECT a.nombre, n.nota\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > ALL (\n  SELECT n2.nota FROM notas n2\n  INNER JOIN asignaturas asig ON n2.id_asignatura = asig.id\n  WHERE asig.nombre = 'Bases de datos'\n);\n```\n\n## UNION\n\n`UNION` combina los resultados de dos o más SELECT en un solo conjunto.\n\n```sql\n-- Todos los nombres (alumnos y profesores)\nSELECT nombre, apellido, 'Alumno' AS tipo FROM alumnos\nUNION\nSELECT nombre, apellido, 'Profesor' AS tipo FROM profesores;\n\n-- NOTA: UNION elimina duplicados. UNION ALL los mantiene.\nSELECT nombre FROM alumnos\nUNION ALL\nSELECT nombre FROM profesores;  -- Incluye duplicados si hay\n```\n\n> **Regla**: Cada SELECT en UNION debe tener el **mismo número de columnas** y tipos de datos compatibles."
+          "content": "## Subconsulta escalar\n\nUna **subconsulta escalar** devuelve **un solo valor** (una fila, una columna). Es el tipo más simple y se puede usar con cualquier operador de comparación.\n\n```sql\n-- Una sola nota: la nota máxima\nSELECT MAX(nota) FROM notas;\n-- Devuelve: 9.50\n\n-- Una sola fila: el alumno más joven\nSELECT nombre FROM alumnos ORDER BY fecha_nacimiento DESC LIMIT 1;\n-- Devuelve: 'Pedro'\n```\n\n### Usos con operadores de comparación\n\n```sql\n-- Notas iguales a la máxima\nSELECT a.nombre, n.nota\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota = (SELECT MAX(nota) FROM notas);\n\n-- Notas superiores a la mínima\nSELECT a.nombre, n.nota\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > (SELECT MIN(nota) FROM notas);\n\n-- Notas entre la mínima y la máxima\nSELECT a.nombre, n.nota\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota BETWEEN (SELECT MIN(nota) FROM notas) AND (SELECT MAX(nota) FROM notas);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta de varias filas\n\nUna **subconsulta de varias filas** devuelve **múltiples valores** (una columna con varias filas). No puedes compararla con `=` directamente.\n\n```sql\n-- Lista de IDs de alumnos con nota >= 8\nSELECT DISTINCT id_alumno FROM notas WHERE nota >= 8;\n-- Devuelve: 1, 2, 3, 4, 6, 7, 8 (varios valores)\n```\n\n### ¿Qué pasa si usas `=` con varias filas?\n\n```sql\n-- ❌ ERROR: Subquery returns more than 1 row\nSELECT nombre FROM alumnos\nWHERE id = (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n```\n\nMySQL no puede comparar un valor con una lista de valores usando `=`. Necesitas `IN`."
+        },
+        {
+          "type": "text",
+          "content": "## IN: pertenece a la lista\n\n`IN` comprueba si un valor **existe dentro de una lista** de valores.\n\n```sql\n-- Alumnos que tienen al menos una nota >= 8\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n)\nORDER BY nombre;\n\n-- Alumnos que NO tienen nota >= 8\nSELECT nombre, apellido\nFROM alumnos\nWHERE id NOT IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n)\nORDER BY nombre;\n```\n\n### Ejemplo práctico: alumnos con la mejor nota en cada asignatura\n\n```sql\n-- Para cada asignatura, el alumno con la nota más alta\nSELECT\n  asig.nombre AS asignatura,\n  a.nombre AS alumno,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota = (\n  SELECT MAX(n.nota)\n  FROM notas n2\n  WHERE n2.id_asignatura = n.id_asignatura\n)\nORDER BY asig.nombre;\n```\n\n> **Atención**: Esta subconsulta es **correlacionada** (la veremos en detalle en la lección 5). Depende de la fila externa."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: escalar vs varias filas\n\n| Tipo | Devuelve | Operadores válidos |\n|---|---|---|\n| **Escalar** | 1 fila, 1 columna | `=`, `>`, `<`, `>=`, `<=`, `<>` |\n| **Varias filas** | Múltiples filas, 1 columna | `IN`, `NOT IN`, `ANY`, `ALL` |\n\n### Errores comunes\n\n1. **Usar `=` con subconsulta de varias filas** → Error de MySQL.\n2. **Olvidar `DISTINCT`** en la subconsulta → lista duplicada (funciona pero es ineficiente).\n3. **Subconsulta escalar con resultado NULL** → el operador `=` falla silenciosamente (NULL = NULL es NULL, no TRUE)."
         }
       ],
       "exercises": [
         {
           "id": "ex-11-2-1",
-          "title": "EXISTS, ANY/ALL, UNION",
+          "title": "Subconsulta escalar: nota máxima",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre del alumno, la asignatura y la nota de todas las evaluaciones que tengan la **nota más alta** del dataset. Usa una subconsulta escalar con MAX.",
+          "solution": "```sql\nSELECT\n  a.nombre AS alumno,\n  asig.nombre AS asignatura,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota = (\n  SELECT MAX(nota) FROM notas\n)\nORDER BY asig.nombre;\n```"
+        },
+        {
+          "id": "ex-11-2-2",
+          "title": "Subconsulta de varias filas con IN",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre y apellido de los alumnos que tienen **al menos una nota inferior a 5**. Usa una subconsulta con IN.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota < 5\n)\nORDER BY nombre;\n```"
+        },
+        {
+          "id": "ex-11-2-3",
+          "title": "NOT IN: alumnos sin notas bajas",
           "difficulty": "intermediate",
-          "description": "Escribe consultas para:\n1. Alumnos que tienen al menos una nota superior a 8 (con EXISTS)\n2. Alumnos cuyas notas son todas superiores a 5 (con ALL)\n3. Un listado único de todos los emails de alumnos y profesores (con UNION)",
-          "solution": "```sql\n-- 1. Alumnos con alguna nota > 8 (EXISTS)\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1 FROM notas n\n  WHERE n.id_alumno = a.id AND n.nota > 8\n);\n\n-- 2. Alumnos con todas las notas > 5 (ALL)\nSELECT a.nombre, a.apellido\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > ALL (\n  SELECT n2.nota FROM notas n2\n  WHERE n2.id_alumno = a.id AND n2.nota <= 5\n);\n\n-- 3. Listado único de emails\nSELECT email, 'Alumno' AS tipo FROM alumnos WHERE email IS NOT NULL\nUNION\nSELECT email, 'Profesor' AS tipo FROM profesores WHERE email IS NOT NULL\nORDER BY email;\n```"
+          "description": "Escribe una consulta que muestre el nombre y apellido de los alumnos que **NO tienen ninguna nota inferior a 5**. Usa NOT IN.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id NOT IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota < 5\n)\nORDER BY nombre;\n```"
+        },
+        {
+          "id": "ex-11-2-4",
+          "title": "Mejor nota por asignatura",
+          "difficulty": "hard",
+          "description": "Escribe una consulta que muestre para cada asignatura el nombre del alumno que obtuvo la **mejor nota**. Incluye: asignatura, alumno y nota. Si hay empate, incluye todos.",
+          "solution": "```sql\nSELECT\n  asig.nombre AS asignatura,\n  a.nombre AS alumno,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota = (\n  SELECT MAX(n2.nota)\n  FROM notas n2\n  WHERE n2.id_asignatura = n.id_asignatura\n)\nORDER BY asig.nombre, a.nombre;\n```"
         }
       ]
     },
     {
       "id": "lesson-11-3",
-      "title": "Optimización: EXPLAIN",
+      "title": "IN, ANY y ALL",
       "order": 3,
       "objectives": [
-        "Usar EXPLAIN para analizar consultas",
-        "Interpretar la salida de EXPLAIN",
-        "Identificar problemas de rendimiento comunes"
+        "Dominar IN y NOT IN para filtrar con listas de valores",
+        "Usar ANY para comparar con al menos un valor de la subconsulta",
+        "Usar ALL para comparar con todos los valores de la subconsulta",
+        "Saber cuándo usar IN, ANY o ALL según el problema"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## EXPLAIN: Analizar consultas\n\n`EXPLAIN` muestra el **plan de ejecución** de una consulta: qué tablas usa, qué tipo de acceso, si usa índices, etc.\n\n```sql\n-- Analizar una consulta\nEXPLAIN SELECT a.nombre, n.nota\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > 7;\n```\n\n### Campos importantes de EXPLAIN\n\n| Campo | Significado |\n|---|---|\n| **type** | Tipo de acceso (const, eq_ref, ref, range, index, ALL) |\n| **possible_keys** | Índices que podrían usarse |\n| **key** | Índice realmente usado |\n| **key_length** | Longitud del índice usado |\n| **rows** | Filas estimadas que se examinarán |\n| **Extra** | Información adicional |\n\n### Tipos de acceso (de mejor a peor)\n\n| Tipo | Significado | Rendimiento |\n|---|---|---|\n| `const` | Acceso a una fila por PK/UNIQUE | Excelente |\n| `eq_ref` | JOIN por PK/UNIQUE, una fila por vez | Muy bueno |\n| `ref` | JOIN por índice, varias filas | Bueno |\n| `range` | Búsqueda por rango (BETWEEN, >, <, IN) | Aceptable |\n| `index` | Escaneo completo del índice | Regular |\n| `ALL` | Escaneo completo de la tabla | **Malo** |\n\n```sql\n-- Ejemplo: si ves type = ALL, necesitas un índice\nEXPLAIN SELECT * FROM notas WHERE id_alumno = 5;\n-- Si type = ALL, crea un índice:\nCREATE INDEX idx_id_alumno ON notas(id_alumno);\n-- Vuelve a ejecutar EXPLAIN y verás type = ref\n```\n\n### Consejos de optimización\n\n1. **Evita SELECT ***: Selecciona solo las columnas necesarias.\n2. **Usa índices** en columnas de WHERE, JOIN y ORDER BY.\n3. **Evita LIKE '%texto%'**: No puede usar índices.\n4. **Usa LIMIT** cuando solo necesites las primeras filas.\n5. **Evita subconsultas correlacionadas** cuando puedas usar JOIN.\n6. **Usa EXPLAIN** antes de optimizar para saber dónde está el problema."
+          "content": "## IN y NOT IN (repaso profundo)\n\n`IN` es el operador más usado con subconsultas de varias filas. Comprueba si un valor **existe** en la lista devuelta por la subconsulta.\n\n```sql\n-- Alumnos matriculados en asignaturas del ciclo DAW\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno\n  FROM matriculas m\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\n  WHERE asig.ciclo = 'DAW'\n);\n```\n\n`NOT IN` es lo contrario: el valor **NO existe** en la lista.\n\n```sql\n-- Alumnos NO matriculados en asignaturas del ciclo DAW\nSELECT nombre, apellido\nFROM alumnos\nWHERE id NOT IN (\n  SELECT DISTINCT id_alumno\n  FROM matriculas m\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\n  WHERE asig.ciclo = 'DAW'\n);\n```\n\n### ⚠️ El problema de NOT IN con NULLs\n\n```sql\n-- Si la subconsulta devuelve algún NULL, NOT IN falla silenciosamente\nSELECT * FROM alumnos\nWHERE id NOT IN (SELECT id_alumno FROM notas WHERE nota IS NOT NULL);\n-- Funciona bien\n\nSELECT * FROM alumnos\nWHERE id NOT IN (SELECT id_alumno FROM notas);\n-- Si alguna fila tiene id_alumno = NULL, el resultado es VACÍO\n```\n\n> **Regla de oro**: Con `NOT IN`, asegúrate de que la subconsulta **no devuelva NULLs**. Usa `IS NOT NULL` o `COALESCE`."
+        },
+        {
+          "type": "text",
+          "content": "## ANY: al menos uno\n\n`ANY` (o `SOME`) compara cada valor con **al menos un valor** de la subconsulta. Funciona con operadores de comparación.\n\n```sql\n-- Notas mayores que ALGUNA nota de la asignatura 'Programación'\nSELECT a.nombre, asig.nombre AS asignatura, n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota > ANY (\n  SELECT n2.nota\n  FROM notas n2\n  INNER JOIN asignaturas asig2 ON n2.id_asignatura = asig2.id\n  WHERE asig2.nombre = 'Programación'\n)\nAND asig.nombre != 'Programación'\nORDER BY n.nota DESC;\n```\n\n**Significado**: \"nota mayor que **ALGUNA** nota de Programación\". Es decir, mayor que la nota mínima de Programación.\n\n### ANY con diferentes operadores\n\n| Operador | ANY significa |\n|---|---|\n| `> ANY` | Mayor que al menos uno (es decir, mayor que el mínimo) |\n| `< ANY` | Menor que al menos uno (es decir, menor que el máximo) |\n| `= ANY` | Igual que al menos uno (equivalente a IN) |\n| `>= ANY` | Mayor o igual que al menos uno |\n| `<= ANY` | Menor o igual que al menos uno |"
+        },
+        {
+          "type": "text",
+          "content": "## ALL: todos\n\n`ALL` compara cada valor con **todos los valores** de la subconsulta.\n\n```sql\n-- Notas mayores que TODAS las notas de la asignatura 'Redes'\nSELECT a.nombre, asig.nombre AS asignatura, n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota > ALL (\n  SELECT n2.nota\n  FROM notas n2\n  INNER JOIN asignaturas asig2 ON n2.id_asignatura = asig2.id\n  WHERE asig2.nombre = 'Redes'\n)\nAND asig.nombre != 'Redes'\nORDER BY n.nota DESC;\n```\n\n**Significado**: \"nota mayor que **TODAS** las notas de Redes\". Es decir, mayor que la nota máxima de Redes.\n\n### ALL con diferentes operadores\n\n| Operador | ALL significa |\n|---|---|\n| `> ALL` | Mayor que todos (es decir, mayor que el máximo) |\n| `< ALL` | Menor que todos (es decir, menor que el mínimo) |\n| `= ALL` | Igual que todos (solo posible si todos los valores son iguales) |\n| `>= ALL` | Mayor o igual que todos |\n| `<= ALL` | Menor o igual que todos |\n\n> **Atención**: `= ALL` es muy restrictivo. Solo funciona si la subconsulta devuelve un solo valor o todos los valores son iguales."
+        },
+        {
+          "type": "text",
+          "content": "## Comparación: ANY vs ALL\n\n```sql\n-- Mayor que ALGUNA nota de Programación (= mayor que el mínimo)\nWHERE nota > ANY (SELECT nota FROM notas WHERE id_asignatura = 1)\n-- Equivalente a:\nWHERE nota > (SELECT MIN(nota) FROM notas WHERE id_asignatura = 1)\n\n-- Mayor que TODAS las notas de Programación (= mayor que el máximo)\nWHERE nota > ALL (SELECT nota FROM notas WHERE id_asignatura = 1)\n-- Equivalente a:\nWHERE nota > (SELECT MAX(nota) FROM notas WHERE id_asignatura = 1)\n```\n\n### Resumen práctico\n\n| Necesitas... | Usa | Equivalente |\n|---|---|---|\n| Existe en la lista | `IN` | `= ANY` |\n| No existe en la lista | `NOT IN` | `<> ALL` |\n| Mayor que el mínimo | `> ANY` | `> (SELECT MIN(...))` |\n| Mayor que el máximo | `> ALL` | `> (SELECT MAX(...))` |"
         }
       ],
       "exercises": [
         {
           "id": "ex-11-3-1",
-          "title": "EXPLAIN y optimización",
+          "title": "IN con subconsulta multinivel",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre y apellido de los alumnos matriculados en alguna asignatura impartida por el profesor 'Miguel Álvarez'. Usa IN.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno\n  FROM matriculas m\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\n  INNER JOIN profesores p ON asig.id_profesor = p.id\n  WHERE p.nombre = 'Miguel' AND p.apellido = 'Álvarez'\n)\nORDER BY nombre;\n```"
+        },
+        {
+          "id": "ex-11-3-2",
+          "title": "ANY: notas superiores a alguna de Bases de datos",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre la asignatura, el alumno y la nota de todas las evaluaciones cuya nota sea **mayor que al menos una nota** de la asignatura 'Bases de datos'. Excluye las evaluaciones de 'Bases de datos' del resultado.",
+          "solution": "```sql\nSELECT\n  asig.nombre AS asignatura,\n  a.nombre AS alumno,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota > ANY (\n  SELECT n2.nota\n  FROM notas n2\n  INNER JOIN asignaturas asig2 ON n2.id_asignatura = asig2.id\n  WHERE asig2.nombre = 'Bases de datos'\n)\nAND asig.nombre != 'Bases de datos'\nORDER BY n.nota DESC;\n```"
+        },
+        {
+          "id": "ex-11-3-3",
+          "title": "ALL: notas superiores a todas las de Redes",
           "difficulty": "hard",
-          "description": "Ejecuta EXPLAIN en las siguientes consultas e identifica cuáles necesitan índices:\n1. `SELECT * FROM notas WHERE id_alumno = 5;`\n2. `SELECT * FROM alumnos WHERE nombre LIKE '%uan%';`\n3. `SELECT a.nombre, n.nota FROM alumnos a JOIN notas n ON a.id = n.id_alumno WHERE n.nota > 8;`",
-          "solution": "```sql\n-- 1. type probable: ALL (sin índice en id_alumno)\nEXPLAIN SELECT * FROM notas WHERE id_alumno = 5;\n-- Solución: CREATE INDEX idx_id_alumno ON notas(id_alumno);\n\n-- 2. type: ALL (LIKE con % al inicio no puede usar índice)\nEXPLAIN SELECT * FROM alumnos WHERE nombre LIKE '%uan%';\n-- Solución: Usar un índice de texto completo:\n-- CREATE FULLTEXT INDEX ft_nombre ON alumnos(nombre);\n-- Y cambiar la consulta a: WHERE MATCH(nombre) AGAINST('uan');\n-- O aceptar el escaneo completo si la tabla es pequeña.\n\n-- 3. type: ALL en notas (sin índice en nota)\nEXPLAIN SELECT a.nombre, n.nota\nFROM alumnos a JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > 8;\n-- Solución: CREATE INDEX idx_nota ON notas(nota);\n```\n\n**Regla**: Si `type = ALL` y `rows` es alto, necesitas un índice."
+          "description": "Escribe una consulta que muestre asignatura, alumno y nota de todas las evaluaciones cuya nota sea **mayor que todas las notas** de la asignatura 'Redes'. Excluye 'Redes' del resultado.",
+          "solution": "```sql\nSELECT\n  asig.nombre AS asignatura,\n  a.nombre AS alumno,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota > ALL (\n  SELECT n2.nota\n  FROM notas n2\n  INNER JOIN asignaturas asig2 ON n2.id_asignatura = asig2.id\n  WHERE asig2.nombre = 'Redes'\n)\nAND asig.nombre != 'Redes'\nORDER BY n.nota DESC;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-11-4",
+      "title": "EXISTS y NOT EXISTS",
+      "order": 4,
+      "objectives": [
+        "Comprender EXISTS como operador de existencia (no devuelve datos, solo TRUE/FALSE)",
+        "Usar EXISTS para comprobar si una subconsulta devuelve al menos una fila",
+        "Usar NOT EXISTS para encontrar registros sin relación en otra tabla",
+        "Comparar EXISTS con IN: cuándo conviene usar cada uno"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es EXISTS?\n\n`EXISTS` comprueba si una subconsulta **devuelve al menos una fila**. No le importa el contenido de las filas, solo si hay alguna.\n\n```sql\n-- ¿Existen alumnos en la academia?\nSELECT EXISTS (SELECT 1 FROM alumnos WHERE activo = TRUE);\n-- Devuelve: 1 (TRUE)\n\n-- ¿Existen alumnos con nota > 10?\nSELECT EXISTS (SELECT 1 FROM notas WHERE nota > 10);\n-- Devuelve: 0 (FALSE)\n```\n\n### EXISTS en la cláusula WHERE\n\nEl uso más práctico es filtrar filas según la existencia de registros relacionados:\n\n```sql\n-- Alumnos que tienen al menos una nota\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1\n  FROM notas n\n  WHERE n.id_alumno = a.id\n)\nORDER BY a.nombre;\n```\n\n**¿Por qué `SELECT 1`?** EXISTS no necesita datos de la subconsulta, solo necesita que devuelva algo. `SELECT 1` es la convención más común (podría ser `SELECT *` o cualquier columna)."
+        },
+        {
+          "type": "text",
+          "content": "## EXISTS vs IN: la diferencia clave\n\n`EXISTS` y `IN` suelen dar el mismo resultado, pero su comportamiento interno es diferente:\n\n| Característica | IN | EXISTS |\n|---|---|---|\n| **Cómo funciona** | Obtiene TODA la lista, luego compara | Para en la primera coincidencia |\n| **Subconsulta** | Se ejecuta una vez | Se ejecuta por cada fila externa |\n| **Rendimiento** | Mejor si la lista es pequeña | Mejor si la tabla externa es grande |\n| **Legibilidad** | Más intuitivo | Más explícito sobre la relación |\n\n### Ejemplo: mismo resultado con ambas formas\n\n```sql\n-- Con IN\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (SELECT DISTINCT id_alumno FROM notas);\n\n-- Con EXISTS\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_alumno = a.id\n);\n```\n\n> **Consejo**: Usa `EXISTS` cuando la relación entre tablas es lo importante, no los valores concretos."
+        },
+        {
+          "type": "text",
+          "content": "## NOT EXISTS: buscar ausencia\n\n`NOT EXISTS` es lo contrario: devuelve TRUE si la subconsulta **no devuelve ninguna fila**.\n\n### Alumnos que NO tienen notas\n\n```sql\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM notas n\n  WHERE n.id_alumno = a.id\n)\nORDER BY a.nombre;\n```\n\n### Asignaturas sin alumnos matriculados\n\n```sql\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM matriculas m\n  WHERE m.id_asignatura = asig.id\n)\nORDER BY asig.nombre;\n```\n\n### NOT EXISTS vs LEFT JOIN + IS NULL\n\n```sql\n-- Con NOT EXISTS\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE NOT EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_alumno = a.id\n);\n\n-- Con LEFT JOIN + IS NULL (mismo resultado)\nSELECT a.nombre, a.apellido\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nWHERE n.id IS NULL;\n```\n\n> **Diferencia de rendimiento**: `NOT EXISTS` suele ser más eficiente porque para en la primera fila encontrada. `LEFT JOIN + IS NULL` necesita procesar todas las filas."
+        },
+        {
+          "type": "text",
+          "content": "## EXISTS con correlación\n\n`EXISTS` casi siempre usa una **subconsulta correlacionada** (que referencia columnas de la consulta externa):\n\n```sql\n-- Alumnos que tienen al menos una nota >= 8\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1\n  FROM notas n\n  WHERE n.id_alumno = a.id    -- ← referencia a la fila externa\n    AND n.nota >= 8\n)\nORDER BY a.nombre;\n```\n\nLa subconsulta se ejecuta **una vez por cada fila** de `alumnos`. Para cada alumno, comprueba si existe alguna nota >= 8."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-4-1",
+          "title": "EXISTS: alumnos con notas",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre y apellido de los alumnos que tienen **al menos una nota**. Usa EXISTS.",
+          "solution": "```sql\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1\n  FROM notas n\n  WHERE n.id_alumno = a.id\n)\nORDER BY a.nombre;\n```"
+        },
+        {
+          "id": "ex-11-4-2",
+          "title": "NOT EXISTS: asignaturas sin evaluaciones",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre las asignaturas que **NO tienen ninguna nota registrada**. Usa NOT EXISTS.",
+          "solution": "```sql\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM notas n\n  WHERE n.id_asignatura = asig.id\n)\nORDER BY asig.nombre;\n```"
+        },
+        {
+          "id": "ex-11-4-3",
+          "title": "EXISTS con doble condición",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre los alumnos que tienen **al menos una nota >= 8** en la asignatura 'Bases de datos'. Usa EXISTS con una subconsulta que filtre por ambas condiciones.",
+          "solution": "```sql\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1\n  FROM notas n\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\n  WHERE n.id_alumno = a.id\n    AND asig.nombre = 'Bases de datos'\n    AND n.nota >= 8\n)\nORDER BY a.nombre;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-11-5",
+      "title": "Subconsultas correlacionadas",
+      "order": 5,
+      "objectives": [
+        "Comprender qué hace que una subconsulta esté correlacionada",
+        "Escribir subconsultas correlacionadas en WHERE y SELECT",
+        "Usar correlaciones para resolver problemas de \"por cada fila\"",
+        "Comparar el rendimiento de subconsultas correlacionadas vs alternativas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una subconsulta correlacionada?\n\nUna **subconsulta correlacionada** es una subconsulta que **referencia columnas de la consulta externa**. Esto significa que no se puede ejecutar de forma independiente: depende de la fila actual de la consulta externa.\n\n```sql\n-- Subconsulta NO correlacionada (se ejecuta una vez)\nSELECT nombre FROM alumnos\nWHERE id IN (SELECT id_alumno FROM notas WHERE nota >= 8);\n-- La subconsulta no depende de 'alumnos': se ejecuta 1 vez\n\n-- Subconsulta CORRELACIONADA (se ejecuta por cada fila externa)\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_alumno = a.id AND n.nota >= 8\n);\n-- La subconsulta depende de 'a.id': se ejecuta 8 veces (1 por alumno)\n```\n\n### Analogía: cartas de recomendación\n\nImagina que preguntas a cada alumno: \"¿Tienes alguna nota >= 8?\". Para cada alumno, miras **su** expediente (subconsulta filtrada por su ID). No puedes responder la pregunta de todos a la vez; necesitas preguntar **uno por uno**."
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta correlacionada en WHERE\n\nEl uso más común es comprobar existencia condicional:\n\n```sql\n-- Alumnos que tienen al menos una nota >= 8\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1\n  FROM notas n\n  WHERE n.id_alumno = a.id\n    AND n.nota >= 8\n)\nORDER BY a.nombre;\n```\n\n```sql\n-- Alumnos que tienen notas en TODAS las asignaturas en las que están matriculados\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE NOT EXISTS (\n  SELECT 1\n  FROM matriculas m\n  WHERE m.id_alumno = a.id\n    AND NOT EXISTS (\n      SELECT 1\n      FROM notas n\n      WHERE n.id_alumno = m.id_alumno\n        AND n.id_asignatura = m.id_asignatura\n    )\n)\nORDER BY a.nombre;\n```\n\n> **Nota**: Este último ejemplo usa un NOT EXISTS **dentro** de otro NOT EXISTS (doble negación). Significa: \"no existe una matrícula sin nota correspondiente\"."
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta correlacionada en SELECT\n\nPuedes usar una subconsulta correlacionada como columna calculada:\n\n```sql\n-- Cada alumno con su número de asignaturas matriculadas\nSELECT\n  a.nombre,\n  a.apellido,\n  (\n    SELECT COUNT(*)\n    FROM matriculas m\n    WHERE m.id_alumno = a.id\n  ) AS num_asignaturas,\n  (\n    SELECT ROUND(AVG(n.nota), 2)\n    FROM notas n\n    WHERE n.id_alumno = a.id\n  ) AS nota_media\nFROM alumnos a\nORDER BY num_asignaturas DESC;\n```\n\nPara cada fila de `alumnos`, las subconsultas calculan valores **sobre los datos de ese alumno**."
+        },
+        {
+          "type": "text",
+          "content": "## Subconsulta correlacionada en FROM\n\n```sql\n-- Alumnos con su mejor nota, usando subconsulta correlacionada en FROM\nSELECT\n  a.nombre,\n  a.apellido,\n  sub.mejor_nota\nFROM alumnos a\nINNER JOIN (\n  SELECT id_alumno, MAX(nota) AS mejor_nota\n  FROM notas\n  GROUP BY id_alumno\n) sub ON a.id = sub.id_alumno\nORDER BY sub.mejor_nota DESC;\n```\n\n> **Aunque esta usa una subconsulta en FROM, la subconsulta NO está correlacionada** (se ejecuta una vez y el resultado se une con alumnos)."
+        },
+        {
+          "type": "text",
+          "content": "## Rendimiento: correlacionada vs alternativas\n\nLas subconsultas correlacionadas pueden ser **lentas** en tablas grandes porque se ejecutan una vez por cada fila externa.\n\n```sql\n-- lento en tablas grandes (O(n×m))\nSELECT a.nombre\nFROM alumnos a\nWHERE EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_alumno = a.id AND n.nota >= 8\n);\n\n-- alternativa equivalente con JOIN (potencialmente más rápido)\nSELECT DISTINCT a.nombre\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8;\n```\n\n### Cuándo usar cada forma\n\n| Forma | Cuándo preferirla |\n|---|---|\n| **Subconsulta correlacionada** | Cuando la lógica es más clara con EXISTS/NOT EXISTS |\n| **JOIN** | Cuando el rendimiento es crítico y hay índices adecuados |\n| **Subconsulta no correlacionada** | Cuando la subconsulta puede ejecutarse de forma independiente |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-5-1",
+          "title": "Correlacionada: mejor nota por alumno",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre de cada alumno junto con su **mejor nota** usando una subconsulta correlacionada en SELECT.",
+          "solution": "```sql\nSELECT\n  a.nombre,\n  a.apellido,\n  (\n    SELECT MAX(n.nota)\n    FROM notas n\n    WHERE n.id_alumno = a.id\n  ) AS mejor_nota\nFROM alumnos a\nORDER BY mejor_nota DESC;\n```"
+        },
+        {
+          "id": "ex-11-5-2",
+          "title": "Correlacionada: último examen por alumno",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre el nombre del alumno, la asignatura y la fecha de su **última evaluación** (la más reciente). Usa una subconsulta correlacionada.",
+          "solution": "```sql\nSELECT\n  a.nombre AS alumno,\n  asig.nombre AS asignatura,\n  n.fecha_evaluacion,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.fecha_evaluacion = (\n  SELECT MAX(n2.fecha_evaluacion)\n  FROM notas n2\n  WHERE n2.id_alumno = n.id_alumno\n)\nORDER BY a.nombre;\n```"
+        },
+        {
+          "id": "ex-11-5-3",
+          "title": "Correlacionada en SELECT: resumen por asignatura",
+          "difficulty": "hard",
+          "description": "Escribe una consulta que muestre cada asignatura con su número de evaluaciones, nota media y la nota media global. Usa subconsultas correlacionadas en SELECT.",
+          "solution": "```sql\nSELECT\n  asig.nombre AS asignatura,\n  (\n    SELECT COUNT(*)\n    FROM notas n\n    WHERE n.id_asignatura = asig.id\n  ) AS num_evaluaciones,\n  (\n    SELECT ROUND(AVG(n.nota), 2)\n    FROM notas n\n    WHERE n.id_asignatura = asig.id\n  ) AS nota_media,\n  (\n    SELECT ROUND(AVG(n.nota), 2)\n    FROM notas n\n  ) AS media_global\nFROM asignaturas asig\nORDER BY nota_media DESC;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-11-6",
+      "title": "UNION y UNION ALL",
+      "order": 6,
+      "objectives": [
+        "Comprender qué hace UNION: combinar resultados de dos o más consultas SELECT",
+        "Diferenciar UNION (elimina duplicados) de UNION ALL (los conserva)",
+        "Escribir consultas con UNION que cumplan las reglas de compatibilidad de columnas",
+        "Usar UNION para resolver problemas que no se pueden resolver con JOIN"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué hace UNION?\n\n`UNION` combina los resultados de **dos o más consultas SELECT** en un solo conjunto de resultados. A diferencia de JOIN (que une columnas de tablas distintas), UNION **apila filas** de consultas con la misma estructura.\n\n### Analogía: dos listas en una sola\n\nImagina que tienes dos listas: \"Alumnos de Madrid\" y \"Alumnos de Barcelona\". UNION las convierte en una sola lista: \"Alumnos de Madrid O Barcelona\".\n\n```\nConsulta 1: Alumnos de Madrid     Consulta 2: Alumnos de Barcelona\n┌──────────────┐                 ┌──────────────┐\n│ Juan García  │                 │ María F.     │\n│ Ana López    │                 │ Pedro M.     │\n└──────────────┘                 └──────────────┘\n\nUNION:\n┌──────────────┐\n│ Juan García  │\n│ Ana López    │\n│ María F.     │\n│ Pedro M.     │\n└──────────────┘\n```"
+        },
+        {
+          "type": "text",
+          "content": "## UNION vs UNION ALL\n\n| Operador | Duplicados | Rendimiento |\n|---|---|---|\n| **UNION** | Los **elimina** (requiere comparar todas las filas) | Más lento |\n| **UNION ALL** | Los **conserva** (no compara) | Más rápido |\n\n```sql\n-- UNION: elimina duplicados\nSELECT id_alumno FROM notas WHERE nota >= 8\nUNION\nSELECT id_alumno FROM notas WHERE nota < 5;\n-- Si un alumno tiene nota >= 8 Y nota < 5, aparece solo una vez\n\n-- UNION ALL: conserva duplicados\nSELECT id_alumno FROM notas WHERE nota >= 8\nUNION ALL\nSELECT id_alumno FROM notas WHERE nota < 5;\n-- Si un alumno cumple ambas condiciones, aparece dos veces\n```\n\n> **Regla práctica**: Usa `UNION ALL` siempre que puedas. Solo usa `UNION` cuando realmente necesites eliminar duplicados."
+        },
+        {
+          "type": "text",
+          "content": "## Reglas de UNION\n\n### 1. Mismo número de columnas\n\n```sql\n-- ❌ Error: las consultas tienen diferente número de columnas\nSELECT nombre, apellido FROM alumnos\nUNION\nSELECT nota FROM notas;\n\n-- ✅ Correcto: mismo número de columnas\nSELECT nombre, apellido FROM alumnos\nUNION\nSELECT nombre, apellido FROM profesores;\n```\n\n### 2. Tipos de datos compatibles\n\n```sql\n-- ✅ Correcto: ambas columnas son VARCHAR\nSELECT nombre FROM alumnos\nUNION\nSELECT especialidad FROM profesores;\n\n-- ⚠️ Cuidado: MySQL puede convertir tipos, pero es mejor ser explícito\nSELECT CAST(nota AS CHAR) FROM notas\nUNION\nSELECT nombre FROM alumnos;\n```\n\n### 3. ORDER BY solo al final\n\n```sql\n-- ❌ Error\nSELECT nombre FROM alumnos ORDER BY nombre\nUNION\nSELECT nombre FROM profesores ORDER BY nombre;\n\n-- ✅ Correcto: un solo ORDER BY al final\nSELECT nombre FROM alumnos\nUNION\nSELECT nombre FROM profesores\nORDER BY nombre;\n```\n\n### 4. Aliases: se toman de la primera consulta\n\n```sql\nSELECT nombre AS persona, 'alumno' AS tipo FROM alumnos\nUNION\nSELECT nombre, 'profesor' FROM profesores\nORDER BY persona;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## UNION con WHERE y filtros diferentes\n\nUNION es útil cuando necesitas combinar resultados que **no se pueden obtener con un solo WHERE**:\n\n```sql\n-- Alumnos con nota >= 8 O alumnos de Sevilla\nSELECT a.nombre, a.apellido, 'Alto rendimiento' AS motivo\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8\nUNION\nSELECT a.nombre, a.apellido, 'De Sevilla' AS motivo\nFROM alumnos a\nWHERE a.ciudad = 'Sevilla'\nORDER BY nombre, apellido;\n```\n\n```sql\n-- Resumen de actividad: alumnos activos + inactivos en una sola tabla\nSELECT\n  CASE WHEN activo = TRUE THEN 'Activos' ELSE 'Inactivos' END AS estado,\n  COUNT(*) AS total\nFROM alumnos\nGROUP BY activo\nUNION ALL\nSELECT\n  'Con notas' AS estado,\n  COUNT(DISTINCT id_alumno) AS total\nFROM notas;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## UNION con múltiples consultas\n\nPuedes encadenar más de dos consultas:\n\n```sql\n-- Tres consultas unidas\nSELECT nombre, 'Alumno' AS rol FROM alumnos\nUNION ALL\nSELECT nombre, 'Profesor' AS rol FROM profesores\nUNION ALL\nSELECT CONCAT(nombre, ' ', apellido), 'Director' AS rol\nFROM profesores\nWHERE especialidad = 'Administración'\nORDER BY rol, nombre;\n```\n\n> **Diferencia con JOIN**: JOIN combina columnas de tablas distintas (ej: alumno + nota). UNION apila filas de consultas con la misma estructura (ej: alumnos de Madrid + alumnos de Barcelona)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-6-1",
+          "title": "UNION: alumnos y profesores en una lista",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre una lista unificada con el nombre y apellido de **todos los alumnos y todos los profesores**, indicando el rol de cada uno ('Alumno' o 'Profesor'). Usa UNION.",
+          "solution": "```sql\nSELECT nombre, apellido, 'Alumno' AS rol FROM alumnos\nUNION ALL\nSELECT nombre, apellido, 'Profesor' AS rol FROM profesores\nORDER BY rol, nombre, apellido;\n```"
+        },
+        {
+          "id": "ex-11-6-2",
+          "title": "UNION: alumnos destacados y suspendedores",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre los alumnos con **alguna nota >= 8** (marcados como 'Destacado') junto con los alumnos que tienen **alguna nota < 5** (marcados como 'En riesgo'). Elimina duplicados.",
+          "solution": "```sql\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n  'Destacado' AS perfil\nFROM alumnos a\nWHERE a.id IN (SELECT id_alumno FROM notas WHERE nota >= 8)\nUNION\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n  'En riesgo' AS perfil\nFROM alumnos a\nWHERE a.id IN (SELECT id_alumno FROM notas WHERE nota < 5)\nORDER BY alumno;\n```"
+        },
+        {
+          "id": "ex-11-6-3",
+          "title": "UNION con ORDER BY y alias",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre todas las personas de la academia (alumnos y profesores) ordenadas por apellido, con columnas: nombre completo y tipo (Alumno/Profesor). Usa un solo ORDER BY al final.",
+          "solution": "```sql\nSELECT\n  CONCAT(nombre, ' ', apellido) AS nombre_completo,\n  'Alumno' AS tipo\nFROM alumnos\nUNION ALL\nSELECT\n  CONCAT(nombre, ' ', apellido) AS nombre_completo,\n  'Profesor' AS tipo\nFROM profesores\nORDER BY nombre_completo;\n```"
+        },
+        {
+          "id": "ex-11-6-4",
+          "title": "UNION: resumen por categorías",
+          "difficulty": "hard",
+          "description": "Escribe una consulta que muestre un resumen con tres categorías:\n1. Total de alumnos activos\n2. Total de alumnos inactivos\n3. Total de profesores\nCada fila debe mostrar: categoría y total. Usa UNION ALL.",
+          "solution": "```sql\nSELECT 'Alumnos activos' AS categoria, COUNT(*) AS total\nFROM alumnos WHERE activo = TRUE\nUNION ALL\nSELECT 'Alumnos inactivos', COUNT(*)\nFROM alumnos WHERE activo = FALSE\nUNION ALL\nSELECT 'Profesores', COUNT(*)\nFROM profesores;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-11-7",
+      "title": "JOIN vs subconsultas y primer contacto con EXPLAIN",
+      "order": 7,
+      "objectives": [
+        "Saber cuándo usar JOIN y cuándo subconsultas para el mismo problema",
+        "Reescribir subconsultas como JOINs y viceversa",
+        "Introducir EXPLAIN para analizar el plan de ejecución de una consulta",
+        "Interpretar los campos básicos de EXPLAIN (type, key, rows)"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## JOIN vs subconsultas: mismo resultado, diferente enfoque\n\nMuchos problemas se pueden resolver con JOIN o con subconsultas. La elección depende de **legibilidad** y **rendimiento**.\n\n### Ejemplo 1: Alumnos con notas >= 8\n\n```sql\n-- Con subconsulta\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n\n-- Con JOIN\nSELECT DISTINCT a.nombre, a.apellido\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8;\n```\n\n### Ejemplo 2: Asignaturas sin notas\n\n```sql\n-- Con NOT EXISTS\nSELECT nombre, ciclo\nFROM asignaturas asig\nWHERE NOT EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_asignatura = asig.id\n);\n\n-- Con LEFT JOIN + IS NULL\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nLEFT JOIN notas n ON asig.id = n.id_asignatura\nWHERE n.id IS NULL;\n```\n\n> **Mismo resultado, diferente enfoque**. En la práctica, ambos suelen funcionar igual de bien."
+        },
+        {
+          "type": "text",
+          "content": "## Cuándo usar cada forma\n\n| Situación | Recomendación |\n|---|---|\n| Necesitas filas de A que **no tienen relación** en B | `NOT EXISTS` o `LEFT JOIN + IS NULL` |\n| Necesitas filas de A que **sí tienen relación** en B | `EXISTS`, `IN` o `INNER JOIN` |\n| Necesitas **datos de ambas tablas** en el resultado | `JOIN` (las subconsultas no devuelven columnas de otra tabla) |\n| La lógica es **\"existe al menos uno\"** | `EXISTS` (más claro que IN o JOIN) |\n| Necesitas **agregados por grupo** | Subconsulta en FROM o JOIN con GROUP BY |\n| El **rendimiento** es crítico | Prueba ambas formas con EXPLAIN |\n\n### Regla práctica\n\n- Si solo necesitas **filas de una tabla**, usa JOIN.\n- Si necesitas **comprobar existencia**, usa EXISTS.\n- Si necesitas **datos de otra tabla**, usa JOIN."
+        },
+        {
+          "type": "text",
+          "content": "## Primer contacto con EXPLAIN\n\n`EXPLAIN` es una instrucción de MySQL que muestra el **plan de ejecución** de una consulta. No ejecuta la consulta, solo muestra cómo MySQL piensa ejecutarla.\n\n```sql\n-- Consulta con subconsulta\nEXPLAIN\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n\n-- Misma consulta con JOIN\nEXPLAIN\nSELECT DISTINCT a.nombre, a.apellido\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8;\n```\n\n### Campos importantes de EXPLAIN\n\n| Campo | Qué significa |\n|---|---|\n| **type** | Cómo accede MySQL a la tabla (ALL = escaneo completo, ref = usa índice) |\n| **key** | Qué índice usa (NULL = no usa índice) |\n| **rows** | Número estimado de filas que examinará |\n| **Extra** | Información adicional (Using where, Using index, etc.) |\n\n### Tipos de acceso (de mejor a peor)\n\n| type | Significado |\n|---|---|\n| **system** | 1 sola fila |\n| **const** | PK o UNIQUE, 1 fila |\n| **eq_ref** | JOIN por PK/UNIQUE, 1 fila |\n| **ref** | JOIN por índice, pocas filas |\n| **range** | Rango en índice |\n| **index** | Recorre todo el índice |\n| **ALL** | Escaneo completo de la tabla (peor caso) |\n\n> **Objetivo**: Evitar `type = ALL` y `key = NULL` en tablas grandes."
+        },
+        {
+          "type": "text",
+          "content": "## Comparar rendimiento con EXPLAIN\n\n```sql\n-- Opción 1: subconsulta\nEXPLAIN\nSELECT a.nombre, a.apellido\nFROM alumnos a\nWHERE a.id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n\n-- Opción 2: JOIN\nEXPLAIN\nSELECT DISTINCT a.nombre, a.apellido\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8;\n```\n\n### Qué mirar\n\n1. **¿Cuántas tablas examina?** Menos tablas = potencialmente más rápido.\n2. **¿Usa índices?** `key` no es NULL = usa índice.\n3. **¿Cuántas filas examina?** Menos filas = más eficiente.\n4. **¿Aparece 'Using temporary' o 'Using filesort'?** Puede indicar ineficiencia.\n\n> **Nota**: En nuestro dataset pequeño, la diferencia será insignificante. En tablas con millones de filas, la diferencia puede ser de segundos vs minutos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-7-1",
+          "title": "Reescribir subconsulta como JOIN",
+          "difficulty": "basic",
+          "description": "Toma esta consulta con subconsulta y reescríbela usando JOIN:\n```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n```\nMuestra ambas versiones.",
+          "solution": "```sql\n-- Versión con subconsulta\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n\n-- Versión con JOIN (mismo resultado)\nSELECT DISTINCT a.nombre, a.apellido\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8;\n```"
+        },
+        {
+          "id": "ex-11-7-2",
+          "title": "EXPLAIN: analizar dos versiones",
+          "difficulty": "intermediate",
+          "description": "Ejecuta EXPLAIN sobre ambas versiones de la consulta anterior (subconsulta vs JOIN) y compara los resultados. ¿Qué campos difieren?",
+          "solution": "```sql\n-- EXPLAIN con subconsulta\nEXPLAIN\nSELECT nombre, apellido\nFROM alumnos\nWHERE id IN (\n  SELECT DISTINCT id_alumno FROM notas WHERE nota >= 8\n);\n\n-- EXPLAIN con JOIN\nEXPLAIN\nSELECT DISTINCT a.nombre, a.apellido\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota >= 8;\n```\n\n**Esperado**: En nuestro dataset pequeño, ambas usarán escaneo completo (type ALL) o índices (type ref). En tablas grandes, el JOIN suele ser más eficiente porque MySQL puede usar índices de forma más directa."
+        },
+        {
+          "id": "ex-11-7-3",
+          "title": "NOT EXISTS vs LEFT JOIN + IS NULL",
+          "difficulty": "intermediate",
+          "description": "Escribe la misma consulta de dos formas: 1) con NOT EXISTS, 2) con LEFT JOIN + IS NULL. La consulta debe encontrar las asignaturas que **no tienen ninguna nota registrada**.",
+          "solution": "```sql\n-- 1. Con NOT EXISTS\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nWHERE NOT EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_asignatura = asig.id\n)\nORDER BY asig.nombre;\n\n-- 2. Con LEFT JOIN + IS NULL\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nLEFT JOIN notas n ON asig.id = n.id_asignatura\nWHERE n.id IS NULL\nORDER BY asig.nombre;\n```"
+        },
+        {
+          "id": "ex-11-7-4",
+          "title": "EXPLAIN: comparar NOT EXISTS vs LEFT JOIN",
+          "difficulty": "hard",
+          "description": "Ejecuta EXPLAIN sobre ambas versiones del ejercicio anterior. ¿Cuál usa índices? ¿Cuál examina más filas? En un dataset grande, ¿cuál sería más eficiente y por qué?",
+          "solution": "```sql\n-- EXPLAIN con NOT EXISTS\nEXPLAIN\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nWHERE NOT EXISTS (\n  SELECT 1 FROM notas n WHERE n.id_asignatura = asig.id\n);\n\n-- EXPLAIN con LEFT JOIN + IS NULL\nEXPLAIN\nSELECT asig.nombre, asig.ciclo\nFROM asignaturas asig\nLEFT JOIN notas n ON asig.id = n.id_asignatura\nWHERE n.id IS NULL;\n```\n\n**Análisis**: `NOT EXISTS` puede detenerse en la primera fila encontrada por cada asignatura (más eficiente). `LEFT JOIN + IS NULL` debe procesar todas las filas de `notas`. En tablas grandes con índice en `id_asignatura`, `NOT EXISTS` suele ser más rápido."
+        }
+      ]
+    },
+    {
+      "id": "lesson-11-8",
+      "title": "Caso práctico completo y repaso",
+      "order": 8,
+      "objectives": [
+        "Integrar subconsultas, EXISTS, UNION y JOIN en un caso práctico completo",
+        "Resolver problemas de negocio que requieren múltiples técnicas",
+        "Repasar los conceptos clave del módulo",
+        "Evaluar la comprensión con un caso práctico progresivo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\n### Técnicas aprendidas\n\n| Técnica | Cuándo usarla |\n|---|---|\n| **Subconsulta en WHERE** | Filtrar con un valor o lista calculada |\n| **Subconsulta en FROM** | Calcular algo y luego filtrar sobre ello |\n| **Subconsulta en SELECT** | Mostrar un valor calculado como columna |\n| **IN / NOT IN** | Comprobar pertenencia a una lista |\n| **ANY / ALL** | Comparar con al menos uno o con todos |\n| **EXISTS / NOT EXISTS** | Comprobar existencia/ausencia de registros relacionados |\n| **UNION / UNION ALL** | Combinar filas de múltiples consultas |\n| **EXPLAIN** | Analizar el plan de ejecución |\n\n### Reglas clave\n\n1. **Subconsultas escalares** → un solo valor, se usan con `=`, `>`, `<`.\n2. **Subconsultas de varias filas** → múltiples valores, se usan con `IN`, `ANY`, `ALL`.\n3. **EXISTS** → comprueba si la subconsulta devuelve filas. Más eficiente que IN en tablas grandes.\n4. **NOT IN con NULLs** → puede fallar silenciosamente. Asegúrate de que no haya NULLs.\n5. **UNION ALL** → más rápido que UNION. Solo usa UNION si necesitas eliminar duplicados.\n6. **EXPLAIN** → siempre úsalo para comparar rendimiento en consultas complejas."
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: informe avanzado de la academia\n\nEl director necesita un informe completo que solo se puede resolver con consultas avanzadas.\n\n### Peticiones del director\n\n1. **Alumnos destacados**: alumnos con media >= 8 y al menos 2 evaluaciones\n2. **Asignaturas críticas**: asignaturas donde la nota media es inferior a la media global\n3. **Profesores estrella**: profesores cuyos alumnos tienen mejor media que la global\n4. **Alumno completo**: alumno con más materias matriculadas y su nota media\n5. **Resumen ejecutivo**: una tabla con contadores clave usando UNION\n6. **Comparativa**: cada asignatura con su mejor alumno usando subconsulta correlacionada\n7. **Actividad reciente**: las 3 evaluaciones más recientes de cada alumno\n8. **Análisis de rendimiento**: usar EXPLAIN para comparar dos enfoques de la misma consulta"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-11-8-1",
+          "title": "Alumnos destacados",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre los alumnos con **nota media >= 8** y **al menos 2 evaluaciones**. Incluye: nombre, ciudad, número de evaluaciones, nota media y mejor nota.",
+          "solution": "```sql\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n  a.ciudad,\n  COUNT(n.id) AS evaluaciones,\n  ROUND(AVG(n.nota), 2) AS nota_media,\n  MAX(n.nota) AS mejor_nota\nFROM alumnos a\n  INNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido, a.ciudad\nHAVING AVG(n.nota) >= 8 AND COUNT(n.id) >= 2\nORDER BY nota_media DESC;\n```"
+        },
+        {
+          "id": "ex-11-8-2",
+          "title": "Asignaturas críticas",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre las asignaturas cuya **nota media** sea **inferior a la nota media global**. Incluye: asignatura, ciclo, nota media de la asignatura y nota media global. Usa subconsulta escalar.",
+          "solution": "```sql\nSELECT\n  asig.nombre AS asignatura,\n  asig.ciclo,\n  ROUND(AVG(n.nota), 2) AS nota_media_asig,\n  (\n    SELECT ROUND(AVG(nota), 2) FROM notas\n  ) AS media_global\nFROM asignaturas asig\n  INNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre, asig.ciclo\nHAVING AVG(n.nota) < (\n  SELECT AVG(nota) FROM notas\n)\nORDER BY nota_media_asig;\n```"
+        },
+        {
+          "id": "ex-11-8-3",
+          "title": "Profesores estrella",
+          "difficulty": "hard",
+          "description": "Escribe una consulta que muestre los profesores cuyos alumnos tienen **mejor nota media** que la media global. Incluye: profesor, especialidad, nota media de sus alumnos y media global. Usa EXISTS o subconsulta correlacionada.",
+          "solution": "```sql\nSELECT\n  CONCAT(p.nombre, ' ', p.apellido) AS profesor,\n  p.especialidad,\n  ROUND(AVG(n.nota), 2) AS media_alumnos,\n  (\n    SELECT ROUND(AVG(nota), 2) FROM notas\n  ) AS media_global\nFROM profesores p\n  INNER JOIN asignaturas asig ON p.id = asig.id_profesor\n  INNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY p.id, p.nombre, p.apellido, p.especialidad\nHAVING AVG(n.nota) > (\n  SELECT AVG(nota) FROM notas\n)\nORDER BY media_alumnos DESC;\n```"
+        },
+        {
+          "id": "ex-11-8-4",
+          "title": "Mejor alumno por asignatura",
+          "difficulty": "hard",
+          "description": "Escribe una consulta que muestre para cada asignatura el nombre del alumno que obtuvo la **mejor nota**. Usa subconsulta correlacionada. Si hay empate, incluye todos los empatados.",
+          "solution": "```sql\nSELECT\n  asig.nombre AS asignatura,\n  a.nombre AS alumno,\n  n.nota\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE n.nota = (\n  SELECT MAX(n2.nota)\n  FROM notas n2\n  WHERE n2.id_asignatura = n.id_asignatura\n)\nORDER BY asig.nombre, a.nombre;\n```"
+        },
+        {
+          "id": "ex-11-8-5",
+          "title": "Resumen conceptual final",
+          "difficulty": "intermediate",
+          "description": "Responde con tus palabras:\n1. ¿Cuál es la diferencia entre una subconsulta correlacionada y una no correlacionada?\n2. ¿Cuándo usarías EXISTS en lugar de IN?\n3. ¿Qué hace EXPLAIN y por qué es útil?\n4. ¿En qué se diferencia UNION de JOIN?\n5. ¿Qué problema puede causar NOT IN con NULLs y cómo lo evitas?",
+          "solution": "1. Una **subconsulta no correlacionada** se ejecuta una sola vez y su resultado se usa por la consulta externa. Una **subconsulta correlacionada** referencia columnas de la consulta externa y se ejecuta **una vez por cada fila externa**.\n\n2. Usa **EXISTS** cuando la relación entre tablas es lo importante, no los valores concretos. EXISTS es más eficiente en tablas grandes porque para en la primera fila encontrada, mientras que IN necesita obtener toda la lista primero.\n\n3. **EXPLAIN** muestra el plan de ejecución de una consulta sin ejecutarla. Es útil para **comparar rendimiento** entre dos enfoques (subconsulta vs JOIN, por ejemplo) y detectar problemas como escaneos completos de tablas.\n\n4. **UNION** combina **filas** de consultas con la misma estructura (apila resultados verticalmente). **JOIN** combina **columnas** de tablas distintas (une datos horizontalmente).\n\n5. Si la subconsulta de un NOT IN devuelve algún **NULL**, el resultado completo puede ser **vacío** (porque `NULL NOT IN (...)` siempre es NULL/false). Lo evitas usando `IS NOT NULL` en la subconsulta o usando NOT EXISTS en su lugar."
         }
       ]
     }

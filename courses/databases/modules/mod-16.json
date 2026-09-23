@@ -60,7 +60,7 @@
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## MongoDB: Documentos y colecciones\n\nMongoDB es la base de datos documental más popular. Los conceptos clave:\n\n| SQL | MongoDB |\n|---|---|\n| Base de datos | Base de datos |\n| Tabla | **Colección** |\n| Fila | **Documento** |\n| Columna | **Campo** |\n| PRIMARY KEY | **_id** (generado automáticamente) |\n| JOIN | **Embedding** (documentos anidados) o **$lookup** |\n\n### Instalación\n\n- **Local**: Descarga desde [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)\n- **Atlas (nube)**: [https://www.mongodb.com/atlas](https://www.mongodb.com/atlas) (tier gratuito)\n- **Docker**: `docker run -d -p 27017:27017 mongo`\n\n### Shell de MongoDB\n\n```bash\n# Conectar a MongoDB\nmongosh\n\n# o con URI\nmongosh \"mongodb://localhost:27017\"\n```
+          "content": "## MongoDB: Documentos y colecciones\n\nMongoDB es la base de datos documental más popular. Los conceptos clave:\n\n| SQL | MongoDB |\n|---|---|\n| Base de datos | Base de datos |\n| Tabla | **Colección** |\n| Fila | **Documento** |\n| Columna | **Campo** |\n| PRIMARY KEY | **_id** (generado automáticamente) |\n| JOIN | **Embedding** (documentos anidados) o **$lookup** |\n\n### Instalación\n\n- **Local**: Descarga desde [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)\n- **Atlas (nube)**: [https://www.mongodb.com/atlas](https://www.mongodb.com/atlas) (tier gratuito)\n- **Docker**: `docker run -d -p 27017:27017 mongo`\n\n### Shell de MongoDB\n\n```bash\n# Conectar a MongoDB\nmongosh\n\n# o con URI\nmongosh \"mongodb://localhost:27017\"\n```"
         },
         {
           "type": "text",
