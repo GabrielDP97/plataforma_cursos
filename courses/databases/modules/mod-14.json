@@ -4,117 +4,833 @@
   "title": "Programación almacenada",
   "slug": "programacion-almacenada",
   "order": 14,
-  "description": "Variables, funciones del SGBD, bloques de código, condicionales, bucles, procedimientos almacenados y funciones de usuario.",
+  "description": "Domina la programación almacenada en MySQL: bloques BEGIN...END, variables locales, condicionales IF y CASE, bucles WHILE y LOOP, procedimientos almacenados con parámetros IN/OUT/INOUT, funciones de usuario, y buenas prácticas. Incluye un caso práctico completo de gestión de academia.",
   "objectives": [
-    "Declarar y usar variables en MySQL",
-    "Conocer las funciones integradas del SGBD",
-    "Usar estructuras de control: IF, CASE, WHILE, LOOP",
-    "Crear y ejecutar procedimientos almacenados con parámetros",
-    "Crear funciones de usuario"
+    "Comprender qué es la programación almacenada y cuándo usarla",
+    "Escribir bloques BEGIN...END y manejar DELIMITER correctamente",
+    "Declarar variables locales y asignar valores con SET y SELECT INTO",
+    "Usar condicionales IF y CASE dentro de procedimientos",
+    "Implementar bucles WHILE, REPEAT y LOOP con LEAVE e ITERATE",
+    "Crear, ejecutar y eliminar procedimientos almacenados con CREATE PROCEDURE",
+    "Usar parámetros IN, OUT e INOUT correctamente",
+    "Crear funciones de usuario con CREATE FUNCTION y RETURN",
+    "Distinguir entre procedimientos y funciones y cuándo usar cada uno",
+    "Aplicar buenas prácticas y evitar errores comunes en programación almacenada",
+    "Diseñar y ejecutar un caso práctico completo de gestión de academia"
   ],
-  "estimatedMinutes": 420,
+  "estimatedMinutes": 720,
   "lessons": [
     {
       "id": "lesson-14-1",
-      "title": "Variables y funciones del SGBD",
+      "title": "Introducción a la programación almacenada",
       "order": 1,
       "objectives": [
-        "Declarar variables con DECLARE y SET",
-        "Usar variables de sesión y globales",
-        "Conocer las funciones más utilizadas de MySQL"
+        "Definir qué es la programación almacenada y sus componentes",
+        "Distinguir entre procedimientos almacenados y funciones de usuario",
+        "Comprender los casos de uso apropiados e inapropiados",
+        "Entender las limitaciones arquitectónicas de la programación almacenada"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Variables en MySQL\n\n### Variables locales (dentro de bloques BEGIN...END)\n\n```sql\n-- Declarar variables (solo dentro de BEGIN...END)\nDECLARE nombre VARCHAR(50) DEFAULT 'Juan';\nDECLARE edad INT;\nDECLARE fecha_actual DATE DEFAULT CURDATE();\n\n-- Asignar valores\nSET nombre = 'María';\nSET edad = 25;\n\n-- Asignar con SELECT INTO\nSELECT COUNT(*) INTO total_alumnos FROM alumnos;\nSELECT nota INTO media_nota FROM notas WHERE id = 1;\n```\n\n### Variables de sesión\n\n```sql\n-- Variable de sesión (persiste durante la conexión)\nSET @mi_variable = 100;\nSELECT @mi_variable;\n\n-- Asignar con resultado de consulta\nSET @total = (SELECT COUNT(*) FROM alumnos);\nSELECT @total;\n\n-- Útil paraLAST_INSERT_ID()\nINSERT INTO alumnos (nombre, apellido) VALUES ('Test', 'User');\nSET @nuevo_id = LAST_INSERT_ID();\nSELECT @nuevo_id;\n```\n\n### Variables globales\n\n```sql\n-- Variables globales (requieren privilegios especiales)\nSET GLOBAL max_connections = 200;\nSELECT @@max_connections;\n\n-- Ver todas las variables globales\nSHOW GLOBAL VARIABLES;\n\n-- Ver variables de sesión\nSHOW SESSION VARIABLES;\n```\n\n## Funciones del SGBD más utilizadas\n\n### Funciones de cadena\n\n```sql\nSELECT CONCAT('Hola', ' ', 'Mundo');  -- 'Hola Mundo'\nSELECT LENGTH('MySQL');               -- 5\nSELECT UPPER('mysql');                -- 'MYSQL'\nSELECT LOWER('MYSQL');                -- 'mysql'\nSELECT SUBSTRING('MySQL', 1, 2);      -- 'My'\nSELECT REPLACE('Hola', 'o', '0');     -- 'H0la'\nSELECT TRIM('  hola  ');             -- 'hola'\nSELECT LPAD('5', 3, '0');           -- '005'\nSELECT RPAD('5', 3, '0');           -- '500'\n```\n\n### Funciones numéricas\n\n```sql\nSELECT ROUND(8.567, 2);   -- 8.57\nSELECT TRUNCATE(8.567, 2);-- 8.56\nSELECT CEIL(8.1);         -- 9\nSELECT FLOOR(8.9);        -- 8\nSELECT ABS(-5);           -- 5\nSELECT MOD(10, 3);        -- 1\nSELECT POWER(2, 3);       -- 8\nSELECT SQRT(9);           -- 3\n```\n\n### Funciones de fecha\n\n```sql\nSELECT NOW();              -- '2026-09-22 14:30:00'\nSELECT CURDATE();          -- '2026-09-22'\nSELECT CURTIME();          -- '14:30:00'\nSELECT DATE_FORMAT(NOW(), '%d/%m/%Y');  -- '22/09/2026'\nSELECT DATEDIFF('2026-12-31', '2026-01-01');  -- 364\nSELECT TIMESTAMPDIFF(YEAR, '2005-03-15', CURDATE());  -- 21\nSELECT DATE_ADD(CURDATE(), INTERVAL 7 DAY);\nSELECT YEAR(CURDATE());   -- 2026\nSELECT MONTH(CURDATE());  -- 9\nSELECT DAY(CURDATE());    -- 22\n```\n\n### Funciones de control\n\n```sql\nSELECT IF(5 > 3, 'Verdadero', 'Falso');  -- 'Verdadero'\nSELECT IFNULL(NULL, 'Valor por defecto');  -- 'Valor por defecto'\nSELECT COALESCE(NULL, NULL, 'Final');     -- 'Final'\nSELECT NULLIF(5, 5);   -- NULL\nSELECT NULLIF(5, 3);   -- 5\nSELECT CASE\n  WHEN nota >= 9 THEN 'Sobresaliente'\n  WHEN nota >= 7 THEN 'Notable'\n  WHEN nota >= 5 THEN 'Aprobado'\n  ELSE 'Suspenso'\nEND AS calificacion\nFROM notas;\n```"
+          "content": "## Qué es la programación almacenada\n\nLa **programación almacenada** es la capacidad de almacenar código SQL en el servidor de base de datos para ejecutarlo posteriormente. Combina sentencias SQL con elementos de lenguaje procedural: variables, condicionales, bucles y parámetros.\n\n### Componentes fundamentales\n\n| Componente | Qué es | Ejemplo |\n|---|---|---|\n| **Variables** | Almacenan datos temporalmente | `DECLARE v_total INT;` |\n| **Condicionales** | Ejecutan código según condiciones | `IF nota >= 5 THEN...END IF;` |\n| **Bucles** | Repiten código múltiples veces | `WHILE i <= 10 DO...END WHILE;` |\n| **Parámetros** | Entrada y salida de datos | `IN p_id INT, OUT p_total INT` |\n| **Sentencias SQL** | Consultas y modificaciones | `SELECT COUNT(*) INTO v_total FROM alumnos;` |\n\n> **Analogía**: Sin programación almacenada, cada consulta es como una instrucción suelta. Con ella, puedes crear \"recetas\" completas que el servidor guarda y ejecuta cuando se lo pides."
+        },
+        {
+          "type": "text",
+          "content": "## Dos tipos principales\n\n### Procedimientos almacenados (Stored Procedures)\n\nUn **procedimiento** es un bloque de código que se ejecuta con `CALL`. Puede recibir parámetros, contiene lógica compleja y puede devolver resultados mediante parámetros OUT o sentencias SELECT.\n\n```sql\n-- Definición (se almacena en el servidor)\nCREATE PROCEDURE sp_saludar(IN p_nombre VARCHAR(50))\nBEGIN\n  SELECT CONCAT('Hola, ', p_nombre, '!') AS mensaje;\nEND;\n\n-- Ejecución\nCALL sp_saludar('Carlos');\n```\n\n### Funciones de usuario (Stored Functions)\n\nUna **función** devuelve un valor y se puede usar directamente en expresiones SQL.\n\n```sql\n-- Definición\nCREATE FUNCTION fn_edad(fecha_nac DATE)\nRETURNS INT\nDETERMINISTIC\nBEGIN\n  RETURN TIMESTAMPDIFF(YEAR, fecha_nac, CURDATE());\nEND;\n\n-- Uso directo en consultas\nSELECT nombre, fn_edad(fecha_nacimiento) AS edad FROM alumnos;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Cuándo usar programación almacenada\n\n### Casos de uso APROPIADOS\n\n- **Operaciones repetitivas**: Si escribes el mismo JOIN + GROUP BY en 10 consultas, crea un procedimiento.\n- **Lógica de datos centralizada**: Validaciones, clasificaciones y cálculos que deben ser consistentes.\n- **Interfaz de parámetros**: Cuando múltiples aplicaciones necesitan la misma lógica.\n- **Seguridad por defecto**: El procedimiento puede acceder a tablas sin dar permisos directos al usuario.\n- **Reducción de tráfico**: Un CALL puede reemplazar 5 sentencias de ida y vuelta.\n\n### Casos de uso INAPROPIDOS\n\n- **Lógica de presentación**: La UI no debe vivir en la base de datos.\n- **Operaciones que involucran servicios externos**: Llamadas a APIs, envío de emails.\n- **Transacciones complejas con manejo de estado**: Mejor en la capa de aplicación.\n- **Algoritmos pesados de procesamiento**: CPU-bound work belongs in application code.\n\n> **Principio clave**: La programación almacenada es una herramienta poderosa, NO una solución universal. La lógica de negocio pertenece a la aplicación; la lógica de datos pertenece a la base de datos."
+        },
+        {
+          "type": "text",
+          "content": "## Lo que la programación almacenada NO resuelve\n\nMuchos desarrolladores caen en la trampa de meter TODA la lógica en la base de datos. Esto causa:\n\n- **Acoplamiento excesivo**: Difícil de versionar, testear y depurar.\n- **Portabilidad**: Lo que funciona en MySQL no funciona en PostgreSQL ni en SQL Server.\n- **Escalabilidad**: La lógica pesada en la BD dificulta escalar horizontalmente.\n- **Testing**: Las pruebas unitarias de SQL almacenado son mucho más difíciles que las de código Python o Java.\n\n### La regla práctica\n\nUsa programación almacenada cuando:\n1. La lógica trabaja DIRECTAMENTE con datos en la BD.\n2. La misma lógica es necesaria en múltiples puntos de acceso.\n3. La latencia de ida y vuelta entre app y BD es un problema.\n\nNO la uses cuando:\n1. La lógica depende de servicios externos.\n2. Necesitas testing extensivo o CI/CD complejo.\n3. La lógica es específica de una sola llamada de la aplicación."
         }
       ],
       "exercises": [
         {
           "id": "ex-14-1-1",
-          "title": "Variables y funciones",
+          "title": "Clasificar elementos de programación almacenada",
           "difficulty": "basic",
-          "description": "Escribe scripts que:\n1. Declaren una variable @media_nota y almacenen la media de todas las notas\n2. Usen IFNULL para mostrar 'Sin nota' cuando la nota sea NULL\n3. Usen CASE para clasificar notas en: Sobresaliente (≥9), Notable (≥7), Aprobado (≥5), Suspenso (<5)",
-          "solution": "```sql\n-- 1. Variable con media de notas\nSET @media_nota = (SELECT ROUND(AVG(nota), 2) FROM notas);\nSELECT @media_nota AS media_global;\n\n-- 2. IFNULL para notas NULL\nSELECT\n  a.nombre,\n  IFNULL(n.nota, 'Sin nota') AS nota\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno;\n\n-- 3. CASE para clasificar notas\nSELECT\n  a.nombre,\n  n.nota,\n  CASE\n    WHEN n.nota >= 9 THEN 'Sobresaliente'\n    WHEN n.nota >= 7 THEN 'Notable'\n    WHEN n.nota >= 5 THEN 'Aprobado'\n    ELSE 'Suspenso'\n  END AS calificacion\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno;\n```"
+          "description": "Identifica qué componente de programación almacenada se usa en cada caso:\n1. `DECLARE v_total INT DEFAULT 0;`\n2. `IF nota >= 5 THEN SET v_estado = 'Aprobado'; END IF;`\n3. `WHILE i <= 10 DO SET suma = suma + i; END WHILE;`\n4. `CREATE PROCEDURE sp_listar(IN p_ciclo VARCHAR(10))`\n5. `SELECT COUNT(*) INTO v_total FROM alumnos;`\n6. `CREATE FUNCTION fn_calcular(n DECIMAL(4,2)) RETURNS INT`",
+          "solution": "1. **Variable** — Declaración de variable local con tipo y valor por defecto.\n2. **Condicional IF** — Ejecuta código según una condición.\n3. **Bucle WHILE** — Repite código mientras se cumpla la condición.\n4. **Procedimiento con parámetro IN** — Bloque con nombre que recibe datos de entrada.\n5. **SELECT INTO** — Almacena el resultado de una consulta en una variable.\n6. **Función de usuario** — Bloque que devuelve un valor para usar en expresiones SQL."
+        },
+        {
+          "id": "ex-14-1-2",
+          "title": "Procedimiento vs función",
+          "difficulty": "intermediate",
+          "description": "Para cada caso, indica si usarías un procedimiento o una función y justifica:\n1. Calcular la nota media de un alumno y mostrarla como tabla con el nombre del alumno\n2. Clasificar una nota en texto (Sobresaliente, Notable, etc.) para usar en un SELECT\n3. Registrar un alumno nuevo, validando que el email no exista y devolviendo un mensaje\n4. Calcular el número de días entre la fecha de matrícula y hoy",
+          "solution": "1. **Procedimiento** — Devuelve una tabla con múltiples columnas (nombre + media). Una función solo devuelve un escalar.\n2. **Función** — Se usa directamente en SELECT: `SELECT fn_calificar(n.nota) FROM notas`. Ideal para expresiones.\n3. **Procedimiento** — Contiene lógica de validación, INSERT y devuelve un mensaje. Las funciones no pueden hacer INSERT.\n4. **Función** — Devuelve un solo valor (número entero) y se puede usar en SELECT."
+        },
+        {
+          "id": "ex-14-1-3",
+          "title": "Análisis de uso apropiado",
+          "difficulty": "intermediate",
+          "description": "Evalúa si la programación almacenada es apropiada para cada escenario. Justifica:\n1. Un sistema de academia necesita validar que la nota esté entre 0 y 10 antes de insertar, y esta validación se usa desde 3 aplicaciones diferentes.\n2. Una tienda online necesita enviar un email de confirmación después de cada pedido.\n3. Un sistema financiero necesita transferir dinero entre cuentas con validación de saldo.\n4. Una aplicación web necesita mostrar los 5 alumnos con mejor nota media.",
+          "solution": "1. **APROPIADO** — La validación se repite en 3 puntos de acceso y trabaja directamente con datos.\n2. **NO APROPIADO** — Enviar emails implica servicios externos (SMTP).\n3. **APROPIADO** — La transferencia es 100% lógica de datos (UPDATEs con validación).\n4. **NO APROPIADO** — Consulta simple con ORDER BY y LIMIT. Un SELECT es suficiente."
         }
       ]
     },
     {
       "id": "lesson-14-2",
-      "title": "Estructuras de control",
+      "title": "Bloques BEGIN...END y DELIMITER",
       "order": 2,
       "objectives": [
-        "Usar IF...THEN...ELSE en bloques PL/SQL",
-        "Usar CASE WHEN en bloques",
-        "Implementar bucles WHILE y LOOP"
+        "Escribir bloques BEGIN...END para agrupar múltiples sentencias",
+        "Comprender el problema del DELIMITER y por qué es necesario",
+        "Configurar DELIMITER correctamente en MySQL Workbench",
+        "Distinguir entre BEGIN...END de programación y START TRANSACTION"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Bloques BEGIN...END\n\nEn MySQL, la programación almacenada se escribe en bloques delimitados por BEGIN y END.\n\n```sql\n-- Bloque anónimo (no se almacena)\nBEGIN\n  DECLARE total INT;\n  SELECT COUNT(*) INTO total FROM alumnos;\n  SELECT total AS total_alumnos;\nEND;\n```\n\n## IF...THEN...ELSE\n\n```sql\n-- Evaluar la nota de un alumno\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_resultado VARCHAR(20);\n\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n\n  IF v_nota >= 9 THEN\n    SET v_resultado = 'Sobresaliente';\n  ELSEIF v_nota >= 7 THEN\n    SET v_resultado = 'Notable';\n  ELSEIF v_nota >= 5 THEN\n    SET v_resultado = 'Aprobado';\n  ELSE\n    SET v_resultado = 'Suspenso';\n  END IF;\n\n  SELECT v_nota, v_resultado;\nEND;\n```\n\n## CASE WHEN\n\n```sql\nBEGIN\n  DECLARE v_ciclo VARCHAR(10);\n  DECLARE v_dept VARCHAR(50);\n\n  SELECT ciclo INTO v_ciclo FROM asignaturas WHERE id = 1;\n\n  SET v_dept = CASE v_ciclo\n    WHEN 'DAM' THEN 'Desarrollo de Aplicaciones Multiplataforma'\n    WHEN 'DAW' THEN 'Desarrollo de Aplicaciones Web'\n    WHEN 'ASIR' THEN 'Administración de Sistemas Informáticos'\n    ELSE 'Desconocido'\n  END;\n\n  SELECT v_ciclo, v_dept;\nEND;\n```\n\n## WHILE loop\n\n```sql\n-- Imprimir números del 1 al 10\nBEGIN\n  DECLARE i INT DEFAULT 1;\n\n  WHILE i <= 10 DO\n    SELECT i;\n    SET i = i + 1;\n  END WHILE;\nEND;\n\n-- Sumar los primeros N números\nBEGIN\n  DECLARE i INT DEFAULT 1;\n  DECLARE suma INT DEFAULT 0;\n  DECLARE n INT DEFAULT 100;\n\n  WHILE i <= n DO\n    SET suma = suma + i;\n    SET i = i + 1;\n  END WHILE;\n\n  SELECT suma AS suma_total;  -- Resultado: 5050\nEND;\n```\n\n## LOOP con LEAVE\n\n```sql\n-- LOOP es un bucle infinito que se sale con LEAVE\nBEGIN\n  DECLARE i INT DEFAULT 1;\n\n  mi_loop: LOOP\n    IF i > 10 THEN\n      LEAVE mi_loop;  -- Sale del bucle\n    END IF;\n\n    SELECT i;\n    SET i = i + 1;\n  END LOOP mi_loop;\nEND;\n\n-- ITERATE: salta a la siguiente iteración (como 'continue')\nBEGIN\n  DECLARE i INT DEFAULT 0;\n\n  mi_loop: LOOP\n    SET i = i + 1;\n\n    IF i > 20 THEN\n      LEAVE mi_loop;\n    END IF;\n\n    IF i % 2 = 0 THEN\n      ITERATE mi_loop;  -- Saltar pares\n    END IF;\n\n    SELECT i;  -- Solo muestra impares\n  END LOOP mi_loop;\nEND;\n```\n\n### Resumen\n\n| Estructura | Uso |\n|---|---|\n| `IF...THEN...ELSEIF...ELSE...END IF` | Condicional |\n| `CASE...WHEN...THEN...ELSE...END CASE` | Condicional con múltiples opciones |\n| `WHILE...DO...END WHILE` | Bucle con condición al inicio |\n| `LOOP...END LOOP` | Bucle infinito (se sale con LEAVE) |\n| `LEAVE` | Sale del bucle (como 'break') |\n| `ITERATE` | Salta a la siguiente iteración (como 'continue') |"
+          "content": "## Bloques BEGIN...END\n\nEn la programación almacenada, las sentencias se agrupan en bloques delimitados por `BEGIN` y `END`. Un bloque puede contener declaraciones de variables, sentencias SQL y estructuras de control.\n\n### Sintaxis básica\n\n```sql\nBEGIN\n  DECLARE v_total INT;\n  DECLARE v_nombre VARCHAR(50);\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  SELECT CONCAT('Total: ', v_total) AS resultado;\nEND;\n```\n\n> **Importante**: Cada sentencia dentro del bloque termina con `;`."
+        },
+        {
+          "type": "text",
+          "content": "## El problema del DELIMITER\n\nMySQL usa `;` como delimitador de sentencias. Cuando escribes un procedimiento almacenado que contiene múltiples sentencias separadas por `;`, MySQL intenta ejecutar cada una por separado.\n\n```sql\n-- MySQL lee hasta el primer ; y piensa que la sentencia terminó\nCREATE PROCEDURE sp_listar()\nBEGIN\n  SELECT * FROM alumnos;  -- MySQL ejecuta esto como sentencia separada\nEND;                       -- ERROR\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Solución: DELIMITER\n\n`DELIMITER` cambia temporalmente el carácter que MySQL usa para separar sentencias.\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_listar()\nBEGIN\n  SELECT * FROM alumnos;\n  SELECT COUNT(*) AS total FROM alumnos;\nEND //\nDELIMITER ;\n\nCALL sp_listar();\n```\n\n### Flujo paso a paso\n\n```\n1. DELIMITER //     → MySQL ahora espera // para terminar sentencias\n2. CREATE PROCEDURE → MySQL lee todo hasta que encuentra //\n3. BEGIN...END //   → El ; interno NO termina la sentencia\n4. DELIMITER ;      → MySQL vuelve a usar ; como delimitador normal\n```\n\n> **CRÍTICO**: `DELIMITER` es una instrucción del **cliente** (MySQL Workbench, mysql CLI), NO del servidor."
+        },
+        {
+          "type": "text",
+          "content": "## DELIMITER en scripts .sql\n\n```sql\n-- Al inicio del script\nDELIMITER //\n\nCREATE PROCEDURE sp_uno() BEGIN SELECT 1; END //\nCREATE PROCEDURE sp_dos() BEGIN SELECT 2; END //\nCREATE FUNCTION fn_calc(n INT) RETURNS INT DETERMINISTIC BEGIN RETURN n * 2; END //\n\n-- Al final del script, restaurar\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## BEGIN...END vs START TRANSACTION\n\nSon conceptos **completamente diferentes** que comparten palabras similares.\n\n| Característica | BEGIN...END | START TRANSACTION |\n|---|---|---|\n| **Propósito** | Agrupar sentencias de programación | Iniciar una transacción atómica |\n| **Contiene** | Variables, condicionales, bucles | DML (INSERT, UPDATE, DELETE) |\n| **Termina con** | END | COMMIT o ROLLBACK |\n| **Requiere DELIMITER** | Sí | No |\n| **Se puede anidar** | Sí | No |\n\n> **Error común**: Confundir `BEGIN` de programación con `BEGIN` de transacción."
+        },
+        {
+          "type": "text",
+          "content": "## Aclaración visual: estructura completa\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_demo()\nBEGIN\n  DECLARE v_x INT;\n  SET v_x = 10;\n\n  START TRANSACTION;\n  INSERT INTO alumnos (nombre) VALUES ('Test');\n  UPDATE notas SET nota = 7 WHERE id = 1;\n  COMMIT;\n\n  SELECT v_x AS resultado;\nEND //\n\nDELIMITER ;\n\nCALL sp_demo();\n```\n\nUna transacción puede vivir dentro de un bloque BEGIN...END, pero el bloque BEGIN...END NO es una transacción."
         }
       ],
       "exercises": [
         {
           "id": "ex-14-2-1",
-          "title": "Estructuras de control",
+          "title": "Escribir un bloque BEGIN...END",
+          "difficulty": "basic",
+          "description": "Escribe un bloque BEGIN...END (sin procedimiento) que declare una variable, almacene el total de alumnos activos y muestre el resultado.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_total INT;\n  SELECT COUNT(*) INTO v_total FROM alumnos WHERE activo = TRUE;\n  SELECT v_total AS total_activos;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-2-2",
+          "title": "Corregir errores de DELIMITER",
           "difficulty": "intermediate",
-          "description": "Escribe un bloque BEGIN...END que:\n1. Declare una variable @ciclo y almacene el ciclo de la asignatura con id=1\n2. Use CASE para traducir el ciclo: 'DAM'→'Multiplataforma', 'DAW'→'Web'\n3. Use WHILE para calcular la suma de los créditos de todas las asignaturas",
-          "solution": "```sql\nBEGIN\n  -- 1. Obtener ciclo de la asignatura 1\n  DECLARE v_ciclo VARCHAR(10);\n  DECLARE v_traduccion VARCHAR(50);\n\n  SELECT ciclo INTO v_ciclo FROM asignaturas WHERE id = 1;\n\n  -- 2. CASE para traducir\n  SET v_traduccion = CASE v_ciclo\n    WHEN 'DAM' THEN 'Multiplataforma'\n    WHEN 'DAW' THEN 'Web'\n    ELSE 'Otro ciclo'\n  END;\n\n  SELECT v_ciclo AS ciclo_original, v_traduccion AS ciclo_traducido;\n\n  -- 3. WHILE para sumar créditos\n  DECLARE v_suma DECIMAL(6,2) DEFAULT 0;\n  DECLARE v_creditos DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n  DECLARE cur CURSOR FOR SELECT creditos FROM asignaturas;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  bucle: LOOP\n    FETCH cur INTO v_creditos;\n    IF v_fin THEN\n      LEAVE bucle;\n    END IF;\n    SET v_suma = v_suma + v_creditos;\n  END LOOP bucle;\n\n  CLOSE cur;\n\n  SELECT v_suma AS suma_creditos;\nEND;\n```"
+          "description": "Encuentra y corrige los errores:\n```sql\nCREATE PROCEDURE sp_resumen()\nBEGIN\n  SELECT COUNT(*) as total FROM alumnos;\n  SELECT COUNT(*) as notas FROM notas;\nEND;\n```",
+          "solution": "**Errores:**\n1. Falta `DELIMITER //` al inicio.\n2. El `;` después de `FROM alumnos` hace que MySQL termine la sentencia.\n3. Falta `DELIMITER ;` al final.\n\n**Corrección:**\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_resumen()\nBEGIN\n  SELECT COUNT(*) AS total FROM alumnos;\n  SELECT COUNT(*) AS notas FROM notas;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-14-2-3",
+          "title": "BEGIN...END vs START TRANSACTION",
+          "difficulty": "intermediate",
+          "description": "Explica qué hace cada bloque y por qué no son intercambiables:\n```sql\n-- Bloque A\nBEGIN\n  DECLARE v_total INT;\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  SELECT v_total;\nEND;\n\n-- Bloque B\nBEGIN;\n  UPDATE notas SET nota = nota + 0.5;\n  COMMIT;\nEND;\n```",
+          "solution": "**Bloque A (BEGIN...END de programación):**\nDeclara una variable, ejecuta una consulta y muestra el resultado. Es un bloque de código procedural.\n\n**Bloque B (BEGIN de transacción):**\nInicia una transacción, modifica notas y confirma. `BEGIN;` es equivalente a `START TRANSACTION;`.\n\n**No son intercambiables porque:**\n- El bloque A agrupa lógica procedural.\n- El bloque B agrupa operaciones DML en una transacción atómica."
         }
       ]
     },
     {
       "id": "lesson-14-3",
-      "title": "Procedimientos almacenados",
+      "title": "Variables locales y asignación",
       "order": 3,
       "objectives": [
-        "Crear procedimientos almacenados con CREATE PROCEDURE",
-        "Usar parámetros de entrada (IN), salida (OUT) y entrada-salida (INOUT)",
-        "Ejecutar procedimientos con CALL"
+        "Declarar variables locales con DECLARE y tipos de datos",
+        "Asignar valores con SET y la diferencia con operador de comparación",
+        "Comprender el alcance de las variables locales",
+        "Distinguir entre variables locales y variables de sesión (@variable)",
+        "Respetar el orden de DECLARE antes de sentencias ejecutables"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## ¿Qué es un procedimiento almacenado?\n\nUn **procedimiento almacenado** es un bloque de código SQL que se almacena en el servidor y se ejecuta con `CALL`. Puede tener parámetros y lógica compleja.\n\n> **Analogía**: Un procedimiento es como una función de programación: tiene nombre, parámetros, lógica y puede devolver resultados.\n\n### Crear un procedimiento\n\n```sql\n-- Procedimiento simple: listar alumnos\nDELIMITER //\n\nCREATE PROCEDURE sp_listar_alumnos()\nBEGIN\n  SELECT id, nombre, apellido, email\n  FROM alumnos\n  WHERE activo = TRUE\n  ORDER BY apellido;\nEND //\n\nDELIMITER ;\n\n-- Ejecutar\nCALL sp_listar_alumnos();\n\n-- Eliminar\nDROP PROCEDURE IF EXISTS sp_listar_alumnos;\n```\n\n> **DELIMITER**: Cambia el delimitador de sentencias temporalmente para que MySQL no interprete el `;` dentro del procedimiento como el fin de la sentencia."
+          "content": "## Declaración de variables locales: DECLARE\n\nLas variables locales se declaran con `DECLARE` dentro de un bloque `BEGIN...END`. Solo existen dentro de ese bloque.\n\n### Sintaxis\n\n```sql\nDECLARE nombre_var tipo [DEFAULT valor];\n```\n\n### Ejemplos\n\n```sql\nDECLARE v_nombre VARCHAR(50);\nDECLARE v_total INT DEFAULT 0;\nDECLARE v_fecha DATE DEFAULT CURDATE();\nDECLARE v_media DECIMAL(4,2) DEFAULT 0.00;\nDECLARE v_activo BOOLEAN DEFAULT TRUE;\n```\n\n> **Importante**: `DECLARE` solo es válido DENTRO de bloques `BEGIN...END`. Fuera de ellos, usa `SET @variable`."
         },
         {
           "type": "text",
-          "content": "### Parámetros IN, OUT, INOUT\n\n```sql\n-- IN: parámetro de entrada (valor que se pasa al procedimiento)\nDELIMITER //\n\nCREATE PROCEDURE sp_buscar_por_ciclo(IN p_ciclo VARCHAR(10))\nBEGIN\n  SELECT a.nombre, a.creditos\n  FROM asignaturas a\n  WHERE a.ciclo = p_ciclo;\nEND //\n\nDELIMITER ;\n\nCALL sp_buscar_por_ciclo('DAM');\n```\n\n```sql\n-- OUT: parámetro de salida (el procedimiento devuelve un valor)\nDELIMITER //\n\nCREATE PROCEDURE sp_contar_alumnos(OUT p_total INT)\nBEGIN\n  SELECT COUNT(*) INTO p_total FROM alumnos;\nEND //\n\nDELIMITER ;\n\nCALL sp_contar_alumnos(@total);\nSELECT @total AS total_alumnos;\n```\n\n```sql\n-- INOUT: parámetro de entrada y salida\nDELIMITER //\n\nCREATE PROCEDURE sp_doblar(INOUT p_valor INT)\nBEGIN\n  SET p_valor = p_valor * 2;\nEND //\n\nDELIMITER ;\n\nSET @numero = 5;\nCALL sp_doblar(@numero);\nSELECT @numero AS resultado;  -- 10\n```\n\n### Procedimiento completo con lógica\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_registrar_nota(\n  IN p_id_alumno INT,\n  IN p_id_asignatura INT,\n  IN p_nota DECIMAL(4,2),\n  IN p_convocatoria VARCHAR(20)\n)\nBEGIN\n  -- Validar nota\n  IF p_nota < 0 OR p_nota > 10 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'La nota debe estar entre 0 y 10';\n  END IF;\n\n  -- Verificar que el alumno está matriculado\n  IF NOT EXISTS (\n    SELECT 1 FROM matriculas\n    WHERE id_alumno = p_id_alumno AND id_asignatura = p_id_asignatura\n  ) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno no está matriculado en esta asignatura';\n  END IF;\n\n  -- Insertar nota\n  INSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion)\n  VALUES (p_id_alumno, p_id_asignatura, p_nota, p_convocatoria, CURDATE());\n\n  -- Mostrar confirmación\n  SELECT 'Nota registrada correctamente' AS resultado;\nEND //\n\nDELIMITER ;\n\n-- Uso\nCALL sp_registrar_nota(1, 1, 8.5, 'Convocatoria 1');\n```\n\n### Listar procedimientos\n\n```sql\n-- Ver todos los procedimientos de una BD\nSHOW PROCEDURE STATUS WHERE Db = 'academia';\n\n-- Ver el código de un procedEDURE\nSHOW CREATE PROCEDURE sp_listar_alumnos;\n```\n\n### SIGNAL: Lanzar errores\n\n```sql\n-- Lanzar un error personalizado\nSIGNAL SQLSTATE '45000'\nSET MESSAGE_TEXT = 'Error: nota fuera de rango';\n\n-- El '45000' es un estado de error genérico definido por el usuario"
+          "content": "## Asignación con SET\n\n`SET` es la forma principal de asignar valores a variables.\n\n```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  SET v_nombre = 'Carlos';\n  SET v_nombre = UPPER('maría');\nEND;\n```\n\n### SET (=) NO es comparación\n\n```sql\n-- Esto es ASIGNACIÓN\nSET v_x = 5;\n\n-- Para comparar, usa IF:\nIF v_x = 5 THEN\n  -- ...\nEND IF;\n```\n\n> **Confusión común**: En contextos SQL normales (WHERE, SELECT), `=` es comparación. En `SET`, `=` es asignación."
+        },
+        {
+          "type": "text",
+          "content": "## Alcance de las variables locales\n\nUna variable local solo existe dentro del bloque `BEGIN...END` donde se declara.\n\n```sql\nBEGIN\n  DECLARE v_externa INT DEFAULT 10;\n  BEGIN\n    DECLARE v_interna INT DEFAULT 20;\n    SELECT v_externa;  -- Puede acceder a la externa\n    SELECT v_interna;  -- Accede a la suya\n  END;\n  SELECT v_externa;  -- Sigue existiendo\n  -- SELECT v_interna;  -- ERROR: variable no existe\nEND;\n```\n\n> **Regla**: Los bloques internos pueden ver las variables externas, pero no al revés."
+        },
+        {
+          "type": "text",
+          "content": "## Variables locales vs variables de sesión (@variable)\n\n| Característica | Variable local (DECLARE) | Variable de sesión (@variable) |\n|---|---|---|\n| **Declaración** | `DECLARE v_x INT;` | `SET @x = 10;` (sin DECLARE) |\n| **Ubicación** | Solo dentro de BEGIN...END | En cualquier contexto |\n| **Persistencia** | Solo durante el bloque | Durante toda la conexión |\n| **Tipo** | Obligatorio | Inferido del valor |"
+        },
+        {
+          "type": "text",
+          "content": "## Orden de DECLARE: REGLA CRÍTICA\n\nLas declaraciones `DECLARE` deben aparecer **ANTES** de cualquier sentencia ejecutable.\n\n```sql\n-- Correcto\nBEGIN\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_media DECIMAL(4,2);\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  SELECT v_total;\nEND;\n\n-- Incorrecto\nBEGIN\n  SELECT COUNT(*) INTO v_total FROM alumnos;  -- ERROR\n  DECLARE v_total INT DEFAULT 0;\n  SELECT v_total;\nEND;\n```\n\n> **Regla inquebrantable**: DECLARE siempre va primero."
         }
       ],
       "exercises": [
         {
           "id": "ex-14-3-1",
-          "title": "Procedimientos almacenados",
+          "title": "Declarar variables con diferentes tipos",
+          "difficulty": "basic",
+          "description": "Escribe un bloque BEGIN...END que declare:\n1. Una variable VARCHAR(100) con valor 'Academia'\n2. Una variable INT con valor 25\n3. Una variable DECIMAL(4,2) con valor 8.75\n4. Una variable DATE con la fecha actual\n5. Muestra todas las variables con SELECT",
+          "solution": "```sql\nBEGIN\n  DECLARE v_institucion VARCHAR(100) DEFAULT 'Academia';\n  DECLARE v_edad INT DEFAULT 25;\n  DECLARE v_nota DECIMAL(4,2) DEFAULT 8.75;\n  DECLARE v_fecha DATE DEFAULT CURDATE();\n  SELECT v_institucion AS institucion, v_edad AS edad, v_nota AS nota, v_fecha AS fecha;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-3-2",
+          "title": "SET vs comparación",
+          "difficulty": "intermediate",
+          "description": "Explica qué hace cada sentencia:\n```sql\nSET v_x = 10;\nIF v_x = 10 THEN SELECT 'Igual'; END IF;\nSET v_x = v_x + 1;\nSELECT v_x = 10 AS resultado;\n```",
+          "solution": "1. `SET v_x = 10;` — Asignación. Guarda 10 en v_x.\n2. `IF v_x = 10` — Comparación. Verifica si v_x es igual a 10.\n3. `SET v_x = v_x + 1;` — Asignación. Calcula v_x + 1 y guarda (v_x ahora es 11).\n4. `SELECT v_x = 10` — Comparación dentro de SELECT. Devuelve 0 (v_x es 11)."
+        },
+        {
+          "id": "ex-14-3-3",
+          "title": "Alcance de variables y orden DECLARE",
+          "difficulty": "intermediate",
+          "description": "Corrige este código:\n```sql\nBEGIN\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_nombre VARCHAR(50);\n  SET v_nombre = 'Carlos';\n  SELECT v_nombre, v_total;\nEND;\n```",
+          "solution": "```sql\nBEGIN\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_nombre VARCHAR(50);\n  SET v_nombre = 'Carlos';\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  SELECT v_nombre, v_total;\nEND;\n```\nTodas las declaraciones van primero, luego las sentencias ejecutables."
+        },
+        {
+          "id": "ex-14-3-4",
+          "title": "Variables locales vs sesión",
           "difficulty": "hard",
-          "description": "Crea los siguientes procedimientos:\n1. `sp_nota_media_alumno(id_alumno)`: Muestra la nota media de un alumno\n2. `sp_listar_asignaturas(ciclo)`: Lista las asignaturas de un ciclo\n3. `sp_aprobar alumno(id_alumno, id_asignatura)`: Cambia todas las notas de un alumno en una asignatura a 5.0 si están por debajo de 5",
-          "solution": "```sql\n-- 1. Nota media de un alumno\nDELIMITER //\n\nCREATE PROCEDURE sp_nota_media_alumno(IN p_id_alumno INT)\nBEGIN\n  SELECT\n    a.nombre,\n    a.apellido,\n    ROUND(AVG(n.nota), 2) AS nota_media,\n    COUNT(n.id) AS total_notas\n  FROM alumnos a\n  LEFT JOIN notas n ON a.id = n.id_alumno\n  WHERE a.id = p_id_alumno\n  GROUP BY a.id, a.nombre, a.apellido;\nEND //\n\nDELIMITER ;\n\n-- Uso\nCALL sp_nota_media_alumno(1);\n\n-- 2. Asignaturas por ciclo\nDELIMITER //\n\nCREATE PROCEDURE sp_listar_asignaturas(IN p_ciclo VARCHAR(10))\nBEGIN\n  SELECT a.nombre, a.creditos,\n    CONCAT(p.nombre, ' ', p.apellido) AS profesor\n  FROM asignaturas a\n  LEFT JOIN profesores p ON a.id_profesor = p.id\n  WHERE a.ciclo = p_ciclo;\nEND //\n\nDELIMITER ;\n\n-- Uso\nCALL sp_listar_asignaturas('DAM');\n\n-- 3. Aprobar notas bajas\nDELIMITER //\n\nCREATE PROCEDURE sp_aprobar_alumno(\n  IN p_id_alumno INT,\n  IN p_id_asignatura INT\n)\nBEGIN\n  DECLARE v_afectadas INT;\n\n  UPDATE notas\n  SET nota = 5.0\n  WHERE id_alumno = p_id_alumno\n    AND id_asignatura = p_id_asignatura\n    AND nota < 5;\n\n  SET v_afectadas = ROW_COUNT();\n\n  SELECT CONCAT(v_afectadas, ' notas actualizadas a 5.0') AS resultado;\nEND //\n\nDELIMITER ;\n\n-- Uso\nCALL sp_aprobar_alumno(3, 1);  -- Carlos en Bases de datos\n```"
+          "description": "¿Cuál es el resultado de cada sentencia?\n```sql\nSET @mi_var = 100;\nSELECT @mi_var;\nBEGIN\n  DECLARE v_local INT DEFAULT 50;\n  SELECT v_local AS local, @mi_var AS sesion;\nEND;\nSELECT @mi_var;\n-- SELECT v_local;\n```",
+          "solution": "`SET @mi_var = 100;` — Variable de sesión. Persiste toda la conexión.\n`SELECT @mi_var;` — Muestra 100.\nDentro del BEGIN...END: ambas variables son accesibles.\nDespués del END:\n- `SELECT @mi_var;` — Funciona (persiste).\n- `SELECT v_local;` — Error (ya no existe)."
         }
       ]
     },
     {
       "id": "lesson-14-4",
-      "title": "Funciones de usuario",
+      "title": "SELECT ... INTO y trabajo con datos",
       "order": 4,
       "objectives": [
-        "Crear funciones de usuario con CREATE FUNCTION",
-        "Diferenciar entre procedimientos y funciones",
-        "Usar funciones en consultas SQL"
+        "Escribir SELECT ... INTO para almacenar resultados en variables",
+        "Comprender las restricciones de filas (una sola fila)",
+        "Manejar el caso de múltiples filas y ausencia de filas",
+        "Construir ejemplos paso a paso con el dataset academia"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Funciones de usuario\n\nUna **función de usuario** es similar a un procedimiento, pero **devuelve un valor** y se puede usar directamente en consultas SQL.\n\n### Diferencia entre procedimiento y función\n\n| Característica | Procedimiento | Función |\n|---|---|---|\n| **Devuelve valor** | No (o通过 OUT) | Sí (con RETURN) |\n| **Se ejecuta con** | CALL | Se usa en SELECT, WHERE, etc. |\n| **Parámetros** | IN, OUT, INOUT | Solo IN |\n| **En SELECT** | No se puede usar | Sí se puede usar |\n\n### Crear una función\n\n```sql\nDELIMITER //\n\nCREATE FUNCTION fn_calcula_edad(fecha_nac DATE)\nRETURNS INT\nDETERMINISTIC\nBEGIN\n  RETURN TIMESTAMPDIFF(YEAR, fecha_nac, CURDATE());\nEND //\n\nDELIMITER ;\n\n-- Usar en una consulta\nSELECT\n  nombre,\n  fecha_nacimiento,\n  fn_calcula_edad(fecha_nacimiento) AS edad\nFROM alumnos;\n\n-- Usar en WHERE\nSELECT * FROM alumnos\nWHERE fn_calcula_edad(fecha_nacimiento) >= 21;\n```\n\n### Más ejemplos de funciones\n\n```sql\n-- Función para calcular el calificativo\nDELIMITER //\n\nCREATE FUNCTION fn_calificativo(nota DECIMAL(4,2))\nRETURNS VARCHAR(20)\nDETERMINISTIC\nBEGIN\n  RETURN CASE\n    WHEN nota >= 9 THEN 'Sobresaliente'\n    WHEN nota >= 7 THEN 'Notable'\n    WHEN nota >= 5 THEN 'Aprobado'\n    ELSE 'Suspenso'\n  END;\nEND //\n\nDELIMITER ;\n\n-- Usar en SELECT\nSELECT\n  a.nombre,\n  n.nota,\n  fn_calificativo(n.nota) AS calificacion\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno;\n\n-- Función para calcular nota con recargo por Convocatoria Extra\nDELIMITER //\n\nCREATE FUNCTION fn_nota_con_recargo(\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(20)\n)\nRETURNS DECIMAL(4,2)\nDETERMINISTIC\nBEGIN\n  IF convocatoria = 'Extraordinaria' THEN\n    RETURN nota * 0.9;  -- 10% de descuento en extraordinaria\n  ELSE\n    RETURN nota;\n  END IF;\nEND //\n\nDELIMITER ;\n\nSELECT\n  nota,\n  convocatoria,\n  fn_nota_con_recargo(nota, convocatoria) AS nota_ajustada\nFROM notas;\n```\n\n> **DETERMINISTIC**: Indica que la función siempre devuelve el mismo resultado para los mismos argumentos. Si depende de datos externos (como NOW()), usa `NOT DETERMINISTIC`.\n\n### Listar funciones\n\n```sql\nSHOW FUNCTION STATUS WHERE Db = 'academia';\nSHOW CREATE FUNCTION fn_calcula_edad;\n\n-- Eliminar\nDROP FUNCTION IF EXISTS fn_calcula_edad;\n```"
+          "content": "## SELECT ... INTO: almacenar resultados en variables\n\n`SELECT ... INTO` ejecuta una consulta y almacena el resultado directamente en variables locales.\n\n```sql\nBEGIN\n  DECLARE v_total INT;\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  SELECT v_total AS total_alumnos;\nEND;\n```\n\n### Múltiples columnas\n\n```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  SELECT nombre, apellido INTO v_nombre, v_apellido FROM alumnos WHERE id = 1;\n  SELECT v_nombre, v_apellido;\nEND;\n```\n\n> **Regla**: El número de columnas en SELECT debe coincidir EXACTAMENTE con el número de variables en INTO."
+        },
+        {
+          "type": "text",
+          "content": "## Restricción: debe devolver exactamente una fila\n\nSi la consulta devuelve múltiples filas, MySQL lanza un error.\n\n```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  SELECT nombre INTO v_nombre FROM alumnos;  -- ERROR: múltiples filas\nEND;\n```\n\n### Solución: filtrar para una sola fila\n\n```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  SELECT nombre INTO v_nombre FROM alumnos WHERE id = 1;  -- OK\n  SELECT v_nombre;\nEND;\n```\n\n> Para múltiples filas, usa cursores (Módulo 15) o bucles."
+        },
+        {
+          "type": "text",
+          "content": "## Ausencia de filas: NULL en la variable\n\nSi la consulta no devuelve ninguna fila, la variable queda con su valor anterior o NULL.\n\n```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50) DEFAULT 'Desconocido';\n  SELECT nombre INTO v_nombre FROM alumnos WHERE id = 999;\n  SELECT v_nombre;  -- 'Desconocido'\nEND;\n```\n\n### Verificar existencia antes\n\n```sql\nBEGIN\n  DECLARE v_existe INT DEFAULT 0;\n  SELECT COUNT(*) INTO v_existe FROM alumnos WHERE id = 999;\n  IF v_existe > 0 THEN\n    SELECT 'Encontrado' AS resultado;\n  ELSE\n    SELECT 'No encontrado' AS resultado;\n  END IF;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo paso a paso: resumen de alumno\n\nDado un id, mostrar nombre completo, total de notas y nota media.\n\n```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  DECLARE v_total_notas INT DEFAULT 0;\n  DECLARE v_nota_media DECIMAL(4,2) DEFAULT 0.00;\n\n  -- Paso 1: Datos del alumno\n  SELECT nombre, apellido INTO v_nombre, v_apellido FROM alumnos WHERE id = 1;\n\n  -- Paso 2: Contar notas y calcular media\n  SELECT COUNT(*), IFNULL(AVG(nota), 0)\n  INTO v_total_notas, v_nota_media FROM notas WHERE id_alumno = 1;\n\n  -- Paso 3: Mostrar\n  SELECT CONCAT(v_nombre, ' ', v_apellido) AS alumno,\n         v_total_notas AS total_notas, ROUND(v_nota_media, 2) AS nota_media;\nEND;\n```\n\n> **Patrón**: Primero declaras, luego obtienes datos, procesas y muestras."
         }
       ],
       "exercises": [
         {
           "id": "ex-14-4-1",
-          "title": "Funciones de usuario",
+          "title": "SELECT INTO básico",
+          "difficulty": "basic",
+          "description": "Escribe un bloque que declare una variable y almacene el total de alumnos activos con SELECT INTO.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_total INT DEFAULT 0;\n  SELECT COUNT(*) INTO v_total FROM alumnos WHERE activo = TRUE;\n  SELECT v_total AS total_activos;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-4-2",
+          "title": "SELECT INTO con múltiples columnas",
+          "difficulty": "intermediate",
+          "description": "Obtén nombre, email y ciudad del alumno con id = 3 usando SELECT INTO.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_email VARCHAR(100);\n  DECLARE v_ciudad VARCHAR(50);\n  SELECT nombre, email, ciudad INTO v_nombre, v_email, v_ciudad FROM alumnos WHERE id = 3;\n  SELECT v_nombre AS nombre, v_email AS email, v_ciudad AS ciudad;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-4-3",
+          "title": "SELECT INTO con verificación",
+          "difficulty": "intermediate",
+          "description": "Intenta obtener el email del alumno id = 999. Si no existe, muestra 'Alumno no encontrado'.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_email VARCHAR(100);\n  DECLARE v_existe INT DEFAULT 0;\n  SELECT COUNT(*) INTO v_existe FROM alumnos WHERE id = 999;\n  IF v_existe > 0 THEN\n    SELECT email INTO v_email FROM alumnos WHERE id = 999;\n    SELECT v_email AS email_encontrado;\n  ELSE\n    SELECT 'Alumno no encontrado' AS mensaje;\n  END IF;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-4-4",
+          "title": "Múltiples SELECT INTO",
           "difficulty": "hard",
-          "description": "Crea las siguientes funciones:\n1. `fn_nombre_completo(id)`: Devuelve el nombre completo de un alumno (Nombre Apellido)\n2. `fn_total_notas(alumno_id)`: Devuelve cuántas notas tiene un alumno\n3. `fn_aprobado(nota)`: Devuelve 1 si la nota es ≥ 5, 0 si no\n\nUsa cada función en una consulta SELECT.",
-          "solution": "```sql\n-- 1. Nombre completo\nDELIMITER //\n\nCREATE FUNCTION fn_nombre_completo(p_id INT)\nRETURNS VARCHAR(100)\nDETERMINISTIC\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n\n  SELECT nombre, apellido INTO v_nombre, v_apellido\n  FROM alumnos WHERE id = p_id;\n\n  RETURN CONCAT(v_nombre, ' ', v_apellido);\nEND //\n\nDELIMITER ;\n\n-- Uso\nSELECT fn_nombre_completo(1) AS nombre_completo;\n\n-- 2. Total de notas\nDELIMITER //\n\nCREATE FUNCTION fn_total_notas(p_alumno_id INT)\nRETURNS INT\nDETERMINISTIC\nBEGIN\n  DECLARE v_total INT;\n\n  SELECT COUNT(*) INTO v_total\n  FROM notas WHERE id_alumno = p_alumno_id;\n\n  RETURN v_total;\nEND //\n\nDELIMITER ;\n\n-- Uso\nSELECT\n  fn_nombre_completo(id) AS alumno,\n  fn_total_notas(id) AS total_notas\nFROM alumnos;\n\n-- 3. Aprobado\nDELIMITER //\n\nCREATE FUNCTION fn_aprobado(nota DECIMAL(4,2))\nRETURNS INT\nDETERMINISTIC\nBEGIN\n  RETURN IF(nota >= 5, 1, 0);\nEND //\n\nDELIMITER ;\n\n-- Uso\nSELECT\n  a.nombre,\n  n.nota,\n  fn_aprobado(n.nota) AS aprobado\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno;\n```"
+          "description": "Dado un id de alumno, muestra: su nombre, el total de matrículas, y su mejor nota.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  DECLARE v_total_matriculas INT DEFAULT 0;\n  DECLARE v_mejor_nota DECIMAL(4,2) DEFAULT 0.00;\n\n  SELECT nombre, apellido INTO v_nombre, v_apellido FROM alumnos WHERE id = 1;\n  SELECT COUNT(*) INTO v_total_matriculas FROM matriculas WHERE id_alumno = 1;\n  SELECT IFNULL(MAX(nota), 0) INTO v_mejor_nota FROM notas WHERE id_alumno = 1;\n\n  SELECT CONCAT(v_nombre, ' ', v_apellido) AS alumno,\n         v_total_matriculas AS matriculas, v_mejor_nota AS mejor_nota;\nEND;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-5",
+      "title": "Condicionales con IF",
+      "order": 5,
+      "objectives": [
+        "Escribir sentencias IF...THEN...END IF",
+        "Usar IF...ELSE y ELSEIF para múltiples condiciones",
+        "Distinguir entre IF procedural e IF() función de MySQL",
+        "Aplicar IF en un ejemplo práctico completo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## IF simple: una condición\n\n```sql\nIF condición THEN\n  -- código si la condición es verdadera\nEND IF;\n```\n\n### Ejemplo\n\n```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_estado VARCHAR(20);\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n  IF v_nota >= 5 THEN\n    SET v_estado = 'Aprobado';\n  END IF;\n  SELECT v_nota, v_estado;\nEND;\n```\n\nSi `v_nota` es 4.0, `v_estado` queda NULL (no se asignó nada)."
+        },
+        {
+          "type": "text",
+          "content": "## IF...ELSE: dos caminos\n\n```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_estado VARCHAR(20);\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n  IF v_nota >= 5 THEN\n    SET v_estado = 'Aprobado';\n  ELSE\n    SET v_estado = 'Suspenso';\n  END IF;\n  SELECT v_nota, v_estado;\nEND;\n```\n\nAhora `v_estado` SIEMPRE tiene un valor."
+        },
+        {
+          "type": "text",
+          "content": "## ELSEIF: múltiples condiciones\n\n```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_clasificacion VARCHAR(20);\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n\n  IF v_nota >= 9 THEN\n    SET v_clasificacion = 'Sobresaliente';\n  ELSEIF v_nota >= 7 THEN\n    SET v_clasificacion = 'Notable';\n  ELSEIF v_nota >= 5 THEN\n    SET v_clasificacion = 'Aprobado';\n  ELSE\n    SET v_clasificacion = 'Suspenso';\n  END IF;\n\n  SELECT v_nota, v_clasificacion;\nEND;\n```\n\n> **Nota**: En MySQL se escribe `ELSEIF` (junto, sin espacio)."
+        },
+        {
+          "type": "text",
+          "content": "## IF procedural vs IF() función\n\nSon cosas **completamente diferentes**.\n\n| Característica | IF procedural | IF() función |\n|---|---|---|\n| **Uso** | Dentro de BEGIN...END | En cualquier SELECT/WHERE |\n| **Sintaxis** | IF...THEN...ELSE...END IF | IF(condición, verdadero, falso) |\n| **Retorna** | Control de flujo | Un valor |\n| **Puede tener ELSEIF** | Sí | No |\n\n```sql\n-- IF procedural\nBEGIN\n  IF v_x > 5 THEN SELECT 'Mayor'; END IF;\nEND;\n\n-- IF() función\nSELECT IF(nota >= 5, 'Aprobado', 'Suspenso') AS estado FROM notas;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: validar matrícula\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_puede_matricular(\n  IN p_id_alumno INT, IN p_id_asignatura INT)\nBEGIN\n  DECLARE v_activo BOOLEAN;\n  DECLARE v_ya_matriculado INT DEFAULT 0;\n  DECLARE v_resultado VARCHAR(100);\n\n  SELECT activo INTO v_activo FROM alumnos WHERE id = p_id_alumno;\n\n  IF v_activo IS NULL THEN\n    SET v_resultado = 'Error: alumno no encontrado';\n  ELSEIF v_activo = FALSE THEN\n    SET v_resultado = 'Error: alumno inactivo';\n  ELSE\n    SELECT COUNT(*) INTO v_ya_matriculado\n    FROM matriculas WHERE id_alumno = p_id_alumno AND id_asignatura = p_id_asignatura;\n    IF v_ya_matriculado > 0 THEN\n      SET v_resultado = 'Error: ya está matriculado';\n    ELSE\n      SET v_resultado = 'Puede matricularse';\n    END IF;\n  END IF;\n  SELECT v_resultado AS resultado;\nEND //\nDELIMITER ;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-5-1",
+          "title": "IF simple y ELSE",
+          "difficulty": "basic",
+          "description": "Escribe un bloque que declare v_nota con valor 4.5 y use IF para mostrar 'Aprobado' si >= 5, o 'Suspenso' si < 5.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2) DEFAULT 4.5;\n  DECLARE v_estado VARCHAR(20);\n  IF v_nota >= 5 THEN SET v_estado = 'Aprobado';\n  ELSE SET v_estado = 'Suspenso';\n  END IF;\n  SELECT v_nota, v_estado;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-5-2",
+          "title": "ELSEIF para clasificar notas",
+          "difficulty": "intermediate",
+          "description": "Obtén la nota del alumno id=1 y clasifícala: >= 9 Sobresaliente, >= 7 Notable, >= 5 Aprobado, < 5 Suspenso.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_clasificacion VARCHAR(20);\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n  IF v_nota >= 9 THEN SET v_clasificacion = 'Sobresaliente';\n  ELSEIF v_nota >= 7 THEN SET v_clasificacion = 'Notable';\n  ELSEIF v_nota >= 5 THEN SET v_clasificacion = 'Aprobado';\n  ELSE SET v_clasificacion = 'Suspenso';\n  END IF;\n  SELECT v_nota, v_clasificacion;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-5-3",
+          "title": "IF procedural vs IF() función",
+          "difficulty": "intermediate",
+          "description": "Reescribe usando IF() función:\n```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n  IF v_nota >= 5 THEN SELECT 'Aprobado' AS estado;\n  ELSE SELECT 'Suspenso' AS estado;\n  END IF;\nEND;\n```",
+          "solution": "```sql\nSELECT n.nota, IF(n.nota >= 5, 'Aprobado', 'Suspenso') AS estado FROM notas n WHERE n.id = 1;\n```\nLa versión procedural necesita DECLARE, SELECT INTO, IF...END IF y múltiples SELECTs. La versión con IF()函数 hace todo en UNA sola sentencia."
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-6",
+      "title": "Condicionales con CASE",
+      "order": 6,
+      "objectives": [
+        "Escribir sentencias CASE WHEN...THEN...ELSE...END CASE en procedimientos",
+        "Usar la variante CASE simple (sin WHEN)",
+        "Distinguir entre CASE expression y CASE statement",
+        "Elegir entre IF y CASE según el contexto"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## CASE statement en procedimientos\n\n```sql\nCASE\n  WHEN condición1 THEN resultado1\n  WHEN condición2 THEN resultado2\n  ELSE resultado_defecto\nEND CASE;\n```\n\n### Ejemplo\n\n```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_clasificacion VARCHAR(20);\n  SELECT nota INTO v_nota FROM notas WHERE id = 1;\n  CASE\n    WHEN v_nota >= 9 THEN SET v_clasificacion = 'Sobresaliente';\n    WHEN v_nota >= 7 THEN SET v_clasificacion = 'Notable';\n    WHEN v_nota >= 5 THEN SET v_clasificacion = 'Aprobado';\n    ELSE SET v_clasificacion = 'Suspenso';\n  END CASE;\n  SELECT v_nota, v_clasificacion;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## CASE simple: comparar un valor\n\nCuando comparas UNA variable contra múltiples valores exactos:\n\n```sql\nBEGIN\n  DECLARE v_ciclo VARCHAR(10);\n  DECLARE v_nombre_completo VARCHAR(100);\n  SELECT ciclo INTO v_ciclo FROM asignaturas WHERE id = 1;\n  CASE v_ciclo\n    WHEN 'DAM' THEN SET v_nombre_completo = 'Multiplataforma';\n    WHEN 'DAW' THEN SET v_nombre_completo = 'Web';\n    WHEN 'ASIR' THEN SET v_nombre_completo = 'Redes';\n    ELSE SET v_nombre_completo = 'Desconocido';\n  END CASE;\n  SELECT v_ciclo, v_nombre_completo;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## CASE expression vs CASE statement\n\n| Característica | CASE statement | CASE expression |\n|---|---|---|\n| **Ubicación** | Dentro de BEGIN...END | En SELECT, WHERE, INSERT |\n| **Asignación** | Con SET explícito | Devuelve valor directamente |\n| **Uso** | Para lógica procedural | Para transformar datos |\n\n```sql\n-- CASE statement (en procedimiento)\nCASE v_estado WHEN 'activa' THEN SET v_texto = 'Activa'; END CASE;\n\n-- CASE expression (en SELECT)\nSELECT CASE WHEN n.nota >= 9 THEN 'Sobresaliente' ELSE 'Normal' END AS calif FROM notas n;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Cuándo usar IF vs CASE\n\n**Usa IF** cuando:\n- Las condiciones son complejas y secuenciales.\n- Necesitas ejecutar múltiples sentencias en cada rama.\n\n**Usa CASE** cuando:\n- Estás evaluando UNA variable contra múltiples valores.\n- Quieres código más conciso para clasificaciones."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-6-1",
+          "title": "CASE statement simple",
+          "difficulty": "basic",
+          "description": "Obtén el ciclo de la asignatura id=1 y usa CASE simple para asignar el nombre completo.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_ciclo VARCHAR(10);\n  DECLARE v_nombre VARCHAR(80);\n  SELECT ciclo INTO v_ciclo FROM asignaturas WHERE id = 1;\n  CASE v_ciclo\n    WHEN 'DAM' THEN SET v_nombre = 'Multiplataforma';\n    WHEN 'DAW' THEN SET v_nombre = 'Web';\n    WHEN 'ASIR' THEN SET v_nombre = 'Redes';\n    ELSE SET v_nombre = 'Desconocido';\n  END CASE;\n  SELECT v_ciclo, v_nombre;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-6-2",
+          "title": "CASE WHEN para estados",
+          "difficulty": "intermediate",
+          "description": "Obtén el estado de la matrícula id=1 y asigne: 'activa'→verde, 'suspendida'→amarillo, 'cancelada'→rojo.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_estado VARCHAR(20);\n  DECLARE v_color VARCHAR(10);\n  SELECT estado INTO v_estado FROM matriculas WHERE id = 1;\n  CASE v_estado\n    WHEN 'activa' THEN SET v_color = 'Verde';\n    WHEN 'suspendida' THEN SET v_color = 'Amarillo';\n    WHEN 'cancelada' THEN SET v_color = 'Rojo';\n    ELSE SET v_color = 'Gris';\n  END CASE;\n  SELECT v_estado, v_color;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-6-3",
+          "title": "CASE expression en SELECT",
+          "difficulty": "intermediate",
+          "description": "Usa CASE expression para mostrar nombre y clasificación: >= 9 'Excelente', >= 7 'Bueno', >= 5 'Regular', < 5 'Deficiente'.",
+          "solution": "```sql\nSELECT a.nombre, n.nota,\n  CASE WHEN n.nota >= 9 THEN 'Excelente'\n       WHEN n.nota >= 7 THEN 'Bueno'\n       WHEN n.nota >= 5 THEN 'Regular'\n       ELSE 'Deficiente' END AS clasificacion\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno;\n```"
+        },
+        {
+          "id": "ex-14-6-4",
+          "title": "IF vs CASE",
+          "difficulty": "hard",
+          "description": "Reescribe este IF usando CASE. ¿Por qué CASE es mejor aquí?\n```sql\nBEGIN\n  DECLARE v_dia INT;\n  DECLARE v_tipo VARCHAR(20);\n  SET v_dia = DAYOFWEEK(CURDATE());\n  IF v_dia = 1 THEN SET v_tipo = 'Domingo';\n  ELSEIF v_dia = 2 THEN SET v_tipo = 'Lunes';\n  ELSEIF v_dia = 3 THEN SET v_tipo = 'Martes';\n  ELSEIF v_dia = 4 THEN SET v_tipo = 'Miercoles';\n  ELSEIF v_dia = 5 THEN SET v_tipo = 'Jueves';\n  ELSEIF v_dia = 6 THEN SET v_tipo = 'Viernes';\n  ELSE SET v_tipo = 'Sabado';\n  END IF;\n  SELECT v_dia, v_tipo;\nEND;\n```",
+          "solution": "```sql\nBEGIN\n  DECLARE v_dia INT;\n  DECLARE v_tipo VARCHAR(20);\n  SET v_dia = DAYOFWEEK(CURDATE());\n  CASE v_dia\n    WHEN 1 THEN SET v_tipo = 'Domingo';\n    WHEN 2 THEN SET v_tipo = 'Lunes';\n    WHEN 3 THEN SET v_tipo = 'Martes';\n    WHEN 4 THEN SET v_tipo = 'Miercoles';\n    WHEN 5 THEN SET v_tipo = 'Jueves';\n    WHEN 6 THEN SET v_tipo = 'Viernes';\n    WHEN 7 THEN SET v_tipo = 'Sabado';\n    ELSE SET v_tipo = 'Desconocido';\n  END CASE;\n  SELECT v_dia, v_tipo;\nEND;\n```\nCASE es mejor porque compara UNA variable contra valores exactos. Más limpio y menos propenso a errores."
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-7",
+      "title": "Bucles WHILE",
+      "order": 7,
+      "objectives": [
+        "Escribir bucles WHILE con la sintaxis correcta",
+        "Usar WHILE con contadores para iteraciones controladas",
+        "Comprender la diferencia entre SQL set-based y loops",
+        "Identificar cuándo un bucle es apropiado y cuándo no"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## WHILE: el bucle que verifica antes\n\n```sql\n[etiqueta:] WHILE condición DO\n  -- código del bucle\nEND WHILE [etiqueta];\n```\n\n### Ejemplo: contar del 1 al 5\n\n```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  WHILE v_i <= 5 DO\n    SELECT v_i AS numero;\n    SET v_i = v_i + 1;\n  END WHILE;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## SQL set-based vs bucles: EL TEMA CRÍTICO\n\n**SQL trabaja con conjuntos (sets), no fila por fila.**\n\n```sql\n-- MAL: N UPDATEs individuales\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_total INT;\n  SELECT COUNT(*) INTO v_total FROM notas;\n  WHILE v_i <= v_total DO\n    UPDATE notas SET nota = nota + 0.5 WHERE id = v_i;\n    SET v_i = v_i + 1;\n  END WHILE;\nEND;\n\n-- BIEN: un solo UPDATE\nUPDATE notas SET nota = nota + 0.5;\n```\n\n**La regla**: Si un UPDATE/DELETE/INSERT puede hacerse sin bucle, HAZLO sin bucle."
+        },
+        {
+          "type": "text",
+          "content": "## Cuándo SÍ usar WHILE\n\n1. **La lógica depende de resultados anteriores** (acumulación secuencial).\n2. **Necesitas generar datos secuenciales** (números, fechas, series).\n3. **Procesas datos que no están en tablas** (cálculos matemáticos).\n\n```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_suma INT DEFAULT 0;\n  DECLARE v_n INT DEFAULT 100;\n  WHILE v_i <= v_n DO\n    SET v_suma = v_suma + v_i;\n    SET v_i = v_i + 1;\n  END WHILE;\n  SELECT v_suma AS suma_total;  -- 5050\nEND;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-7-1",
+          "title": "WHILE básico",
+          "difficulty": "basic",
+          "description": "Muestra los números del 1 al 10 con su cuadrado.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  WHILE v_i <= 10 DO\n    SELECT v_i AS numero, v_i * v_i AS cuadrado;\n    SET v_i = v_i + 1;\n  END WHILE;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-7-2",
+          "title": "Factorial con WHILE",
+          "difficulty": "intermediate",
+          "description": "Calcula el factorial de 7 (7! = 5040).",
+          "solution": "```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_n INT DEFAULT 7;\n  DECLARE v_factorial BIGINT DEFAULT 1;\n  WHILE v_i <= v_n DO\n    SET v_factorial = v_factorial * v_i;\n    SET v_i = v_i + 1;\n  END WHILE;\n  SELECT v_n AS n, v_factorial AS factorial;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-7-3",
+          "title": "Set-based o bucle",
+          "difficulty": "intermediate",
+          "description": "1. Subir 10% las notas de Convocatoria 1\n2. Generar tabla de multiplicar del 1 al 10\n3. Eliminar matrículas canceladas\n4. Calcular suma de 1 a N",
+          "solution": "1. **Set-based**: `UPDATE notas SET nota = nota * 1.10 WHERE convocatoria = 'Convocatoria 1';`\n2. **Bucle**: Generar filas con valores calculados secuencialmente.\n3. **Set-based**: `DELETE FROM matriculas WHERE estado = 'cancelada';`\n4. **Ninguno**: Fórmula N*(N+1)/2."
+        },
+        {
+          "id": "ex-14-7-4",
+          "title": "WHILE con acumulación",
+          "difficulty": "hard",
+          "description": "Recorre las notas del alumno id=1 con WHILE y calcula: total, máxima, mínima, media. NO uses AVG, MAX, MIN.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_max DECIMAL(4,2) DEFAULT 0;\n  DECLARE v_min DECIMAL(4,2) DEFAULT 10;\n  DECLARE v_suma DECIMAL(6,2) DEFAULT 0;\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_count INT DEFAULT 0;\n  SELECT COUNT(*) INTO v_count FROM notas WHERE id_alumno = 1;\n  WHILE v_i <= v_count DO\n    SELECT nota INTO v_nota FROM notas WHERE id_alumno = 1 LIMIT 1 OFFSET v_i - 1;\n    SET v_total = v_total + 1;\n    SET v_suma = v_suma + v_nota;\n    IF v_nota > v_max THEN SET v_max = v_nota; END IF;\n    IF v_nota < v_min THEN SET v_min = v_nota; END IF;\n    SET v_i = v_i + 1;\n  END WHILE;\n  SELECT v_total, v_max, v_min, ROUND(v_suma/v_total, 2) AS media;\nEND;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-8",
+      "title": "REPEAT, LOOP, LEAVE e ITERATE",
+      "order": 8,
+      "objectives": [
+        "Escribir bucles REPEAT con su condición de salida",
+        "Distinguir entre WHILE (verifica antes) y REPEAT (verifica después)",
+        "Usar LOOP con etiquetas para bucles que requieren lógica de salida explícita",
+        "Aplicar LEAVE para salir de un bucle y ITERATE para saltar iteraciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## REPEAT: el bucle que verifica DESPUÉS\n\n```sql\n[etiqueta:] REPEAT\n  -- código\nUNTIL condición\nEND REPEAT [etiqueta];\n```\n\n### Ejemplo\n\n```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  REPEAT\n    SELECT v_i AS numero;\n    SET v_i = v_i + 1;\n  UNTIL v_i > 5\n  END REPEAT;\nEND;\n```\n\n### WHILE vs REPEAT\n\n| Característica | WHILE | REPEAT |\n|---|---|---|\n| **Verifica** | ANTES | DESPUÉS |\n| **Ejecuciones mínimas** | 0 | 1 |"
+        },
+        {
+          "type": "text",
+          "content": "## LOOP: bucle infinito con salida explícita\n\n```sql\n[etiqueta:] LOOP\n  -- código\n  LEAVE etiqueta;  -- para salir\nEND LOOP [etiqueta];\n```\n\n### Ejemplo\n\n```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  mi_bucle: LOOP\n    IF v_i > 5 THEN LEAVE mi_bucle; END IF;\n    SELECT v_i AS numero;\n    SET v_i = v_i + 1;\n  END LOOP mi_bucle;\nEND;\n```\n\n> **Advertencia**: Si olvidas el LEAVE, el bucle se ejecuta para siempre."
+        },
+        {
+          "type": "text",
+          "content": "## LEAVE: salir de un bucle o bloque\n\n```sql\nLEAVE etiqueta;\n```\n\n```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_encontrado BOOLEAN DEFAULT FALSE;\n  DECLARE v_nombre VARCHAR(50);\n  buscar: LOOP\n    IF v_i > 100 THEN LEAVE buscar; END IF;\n    SELECT nombre INTO v_nombre FROM alumnos WHERE id = v_i;\n    IF FOUND_ROWS() > 0 AND v_nombre LIKE 'C%' THEN\n      SET v_encontrado = TRUE;\n      LEAVE buscar;\n    END IF;\n    SET v_i = v_i + 1;\n  END LOOP buscar;\n  IF v_encontrado THEN SELECT v_nombre AS encontrado;\n  ELSE SELECT 'No encontrado'; END IF;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## ITERATE: saltar iteración\n\n```sql\nITERATE etiqueta;\n```\n\n### Solo números impares\n\n```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 0;\n  pares: LOOP\n    SET v_i = v_i + 1;\n    IF v_i > 10 THEN LEAVE pares; END IF;\n    IF v_i % 2 = 0 THEN ITERATE pares; END IF;\n    SELECT v_i AS impar;\n  END LOOP pares;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Bucles infinitos: prevención\n\nSiempre incluye:\n1. Variable contador que avance en cada iteración.\n2. Condición de salida clara.\n3. Límite de seguridad máximo.\n\n```sql\n-- ERROR: v_i nunca cambia\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  LOOP SELECT v_i; END LOOP;  -- infinito\nEND;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-8-1",
+          "title": "REPEAT para validar",
+          "difficulty": "basic",
+          "description": "Simula un número entre 1 y 10 (inicializado en 15). Resta 1 hasta que esté en rango.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_numero INT DEFAULT 15;\n  REPEAT\n    SELECT v_numero AS intento;\n    SET v_numero = v_numero - 1;\n  UNTIL v_numero BETWEEN 1 AND 10\n  END REPEAT;\n  SELECT v_numero AS valido;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-8-2",
+          "title": "LOOP con LEAVE",
+          "difficulty": "intermediate",
+          "description": "Busca el primer alumno cuyo apellido empiece por 'G'. Sal si lo encuentras o superas id=20.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_encontrado BOOLEAN DEFAULT FALSE;\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  buscar: LOOP\n    IF v_i > 20 THEN LEAVE buscar; END IF;\n    SELECT nombre, apellido INTO v_nombre, v_apellido FROM alumnos WHERE id = v_i;\n    IF FOUND_ROWS() > 0 AND v_apellido LIKE 'G%' THEN\n      SET v_encontrado = TRUE; LEAVE buscar;\n    END IF;\n    SET v_i = v_i + 1;\n  END LOOP buscar;\n  IF v_encontrado THEN SELECT CONCAT(v_nombre, ' ', v_apellido);\n  ELSE SELECT 'No encontrado'; END IF;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-8-3",
+          "title": "ITERATE para filtrar",
+          "difficulty": "intermediate",
+          "description": "Muestra solo los números del 1 al 20 divisibles por 3.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_i INT DEFAULT 0;\n  mi_bucle: LOOP\n    SET v_i = v_i + 1;\n    IF v_i > 20 THEN LEAVE mi_bucle; END IF;\n    IF v_i % 3 != 0 THEN ITERATE mi_bucle; END IF;\n    SELECT v_i AS multiplo_de_tres;\n  END LOOP mi_bucle;\nEND;\n```"
+        },
+        {
+          "id": "ex-14-8-4",
+          "title": "Elegir WHILE, REPEAT o LOOP",
+          "difficulty": "hard",
+          "description": "1. Procesar 10 alumnos si la tabla podría estar vacía\n2. Leer un valor hasta que sea válido (siempre al menos un intento)\n3. Buscar con múltiples puntos de salida",
+          "solution": "1. **WHILE** — Podría no ejecutarse si la tabla está vacía. WHILE verifica antes.\n2. **REPEAT** — Siempre al menos un intento. REPEAT ejecuta primero.\n3. **LOOP con LEAVE** — Múltiples puntos de salida (encontrado O límite)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-9",
+      "title": "Primer procedimiento almacenado",
+      "order": 9,
+      "objectives": [
+        "Crear procedimientos con CREATE PROCEDURE sin parámetros",
+        "Ejecutar procedimientos con CALL",
+        "Eliminar procedimientos con DROP PROCEDURE",
+        "Listar procedimientos disponibles con SHOW PROCEDURE STATUS"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## CREATE PROCEDURE: sintaxis completa\n\n```sql\nDELIMITER //\nCREATE PROCEDURE nombre_procedimiento()\nBEGIN\n  -- lógica del procedimiento\nEND //\nDELIMITER ;\n```\n\n### Primer procedimiento\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_listar_alumnos_activos()\nBEGIN\n  SELECT id, nombre, apellido, email, ciudad\n  FROM alumnos WHERE activo = TRUE ORDER BY apellido, nombre;\nEND //\nDELIMITER ;\n\nCALL sp_listar_alumnos_activos();\n```\n\n> **Convención**: Los procedimientos suelen empezar con `sp_` (stored procedure)."
+        },
+        {
+          "type": "text",
+          "content": "## CALL: ejecutar\n\n```sql\nCALL sp_listar_alumnos_activos();\n```\n\n### Ejemplo con múltiples SELECT\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_resumen_academia()\nBEGIN\n  SELECT '--- Total ---' AS seccion;\n  SELECT COUNT(*) AS total FROM alumnos;\n  SELECT '--- Por Ciudad ---' AS seccion;\n  SELECT ciudad, COUNT(*) AS total FROM alumnos WHERE activo = TRUE GROUP BY ciudad;\nEND //\nDELIMITER ;\n\nCALL sp_resumen_academia();\n```"
+        },
+        {
+          "type": "text",
+          "content": "## DROP PROCEDURE\n\n```sql\nDROP PROCEDURE sp_listar_alumnos_activos;\nDROP PROCEDURE IF EXISTS sp_listar_alumnos_activos;\n```\n\n> Usa siempre `IF EXISTS` en scripts."
+        },
+        {
+          "type": "text",
+          "content": "## CREATE PROCEDURE IF NOT EXISTS\n\n```sql\nDELIMITER //\nCREATE PROCEDURE IF NOT EXISTS sp_listar_alumnos()\nBEGIN\n  SELECT * FROM alumnos WHERE activo = TRUE;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## SHOW PROCEDURE STATUS\n\n```sql\nSHOW PROCEDURE STATUS WHERE Db = 'academia';\nSHOW PROCEDURE STATUS LIKE 'sp_%';\nSHOW CREATE PROCEDURE sp_listar_alumnos_activos;\n```\n\n### Resumen\n\n| Operación | Sentencia |\n|---|---|\n| **Crear** | `CREATE PROCEDURE ... BEGIN ... END //` |\n| **Crear si no existe** | `CREATE PROCEDURE IF NOT EXISTS ...` |\n| **Ejecutar** | `CALL nombre();` |\n| **Eliminar** | `DROP PROCEDURE IF EXISTS nombre;` |\n| **Listar** | `SHOW PROCEDURE STATUS WHERE Db = '...';` |\n| **Ver código** | `SHOW CREATE PROCEDURE nombre;` |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-9-1",
+          "title": "Crear primer procedimiento",
+          "difficulty": "basic",
+          "description": "Crea sp_total_alumnos que muestre total de activos e inactivos por separado.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_total_alumnos()\nBEGIN\n  SELECT 'Activos' AS tipo, COUNT(*) AS total FROM alumnos WHERE activo = TRUE\n  UNION ALL\n  SELECT 'Inactivos', COUNT(*) FROM alumnos WHERE activo = FALSE;\nEND //\nDELIMITER ;\nCALL sp_total_alumnos();\n```"
+        },
+        {
+          "id": "ex-14-9-2",
+          "title": "Gestionar procedimientos",
+          "difficulty": "intermediate",
+          "description": "1) Crear sp_resumen_notas con total, media, max, min. 2) Listar. 3) Ver código. 4) Eliminar.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_resumen_notas()\nBEGIN\n  SELECT COUNT(*) AS total, ROUND(AVG(nota),2) AS media, MAX(nota) AS maxima, MIN(nota) AS minima FROM notas;\nEND //\nDELIMITER ;\nSHOW PROCEDURE STATUS WHERE Db = 'academia';\nSHOW CREATE PROCEDURE sp_resumen_notas;\nDROP PROCEDURE IF EXISTS sp_resumen_notas;\n```"
+        },
+        {
+          "id": "ex-14-9-3",
+          "title": "Múltiples SELECT",
+          "difficulty": "intermediate",
+          "description": "Crea sp_info_asignatura(IN p_ciclo) que muestre total, lista con profesor, y nota media por asignatura.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_info_asignatura(IN p_ciclo VARCHAR(10))\nBEGIN\n  SELECT COUNT(*) AS total FROM asignaturas WHERE ciclo = p_ciclo;\n  SELECT asig.nombre, CONCAT(p.nombre,' ',p.apellido) AS profesor\n  FROM asignaturas asig LEFT JOIN profesores p ON asig.id_profesor = p.id WHERE asig.ciclo = p_ciclo;\n  SELECT asig.nombre, ROUND(AVG(n.nota),2) AS media\n  FROM asignaturas asig LEFT JOIN notas n ON asig.id = n.id_asignatura WHERE asig.ciclo = p_ciclo GROUP BY asig.id;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-14-9-4",
+          "title": "Crear, verificar y eliminar",
+          "difficulty": "hard",
+          "description": "Crea sp_estadisticas_ciudad, verifica que aparece en SHOW, ver código, ejecutar, eliminar.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_estadisticas_ciudad()\nBEGIN\n  SELECT ciudad, COUNT(*) AS total FROM alumnos WHERE activo = TRUE AND ciudad IS NOT NULL\n  GROUP BY ciudad HAVING COUNT(*) > 1 ORDER BY total DESC;\nEND //\nDELIMITER ;\nSHOW PROCEDURE STATUS WHERE Db='academia' AND Name='sp_estadisticas_ciudad';\nSHOW CREATE PROCEDURE sp_estadisticas_ciudad;\nCALL sp_estadisticas_ciudad();\nDROP PROCEDURE IF EXISTS sp_estadisticas_ciudad;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-10",
+      "title": "Parámetros IN y procedimientos reutilizables",
+      "order": 10,
+      "objectives": [
+        "Declarar parámetros IN en procedimientos",
+        "Usar convenciones de nombres (prefijo p_)",
+        "Evitar nombres ambiguos en WHERE",
+        "Crear procedimientos reutilizables con múltiples IN"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Parámetros IN: entrada de datos\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_alumnos_por_ciudad(IN p_ciudad VARCHAR(50))\nBEGIN\n  SELECT id, nombre, apellido, email FROM alumnos\n  WHERE ciudad = p_ciudad AND activo = TRUE ORDER BY apellido;\nEND //\nDELIMITER ;\n\nCALL sp_alumnos_por_ciudad('Madrid');\nCALL sp_alumnos_por_ciudad('Barcelona');\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Convención: prefijo p_\n\n```sql\n-- MAL: nombre ambiguo\nCREATE PROCEDURE sp_buscar(IN ciudad VARCHAR(50))\nBEGIN SELECT * FROM alumnos WHERE ciudad = ciudad; END;\n\n-- BIEN: desambiguado\nCREATE PROCEDURE sp_buscar(IN p_ciudad VARCHAR(50))\nBEGIN SELECT * FROM alumnos WHERE ciudad = p_ciudad; END;\n```\n\n> **Regla**: SIEMPRE usa `p_` para parámetros."
+        },
+        {
+          "type": "text",
+          "content": "## Múltiples parámetros IN\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_matriculas_filtrar(\n  IN p_estado VARCHAR(20), IN p_desde DATE, IN p_hasta DATE)\nBEGIN\n  SELECT a.nombre, asig.nombre AS asignatura, m.fecha_matricula, m.estado\n  FROM matriculas m\n  INNER JOIN alumnos a ON m.id_alumno = a.id\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\n  WHERE m.estado = p_estado AND m.fecha_matricula BETWEEN p_desde AND p_hasta;\nEND //\nDELIMITER ;\n\nCALL sp_matriculas_filtrar('activa', '2026-01-01', '2026-12-31');\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Parámetros opcionales con IS NULL\n\nMySQL no soporta valores por defecto en parámetros. Solución:\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_buscar_alumnos(\n  IN p_ciudad VARCHAR(50), IN p_activo BOOLEAN)\nBEGIN\n  SELECT id, nombre, apellido, email FROM alumnos\n  WHERE (p_ciudad IS NULL OR ciudad = p_ciudad)\n    AND (p_activo IS NULL OR activo = p_activo);\nEND //\nDELIMITER ;\n\nCALL sp_buscar_alumnos('Madrid', TRUE);\nCALL sp_buscar_alumnos(NULL, NULL);  -- Todos\n```\n\n> **Patrón**: `WHERE (p_param IS NULL OR columna = p_param)`"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-10-1",
+          "title": "Procedimiento con un IN",
+          "difficulty": "basic",
+          "description": "Crea sp_ver_notas_alumno(IN p_id_alumno) que muestre todas sus notas.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_ver_notas_alumno(IN p_id_alumno INT)\nBEGIN\n  SELECT asig.nombre, n.nota, n.convocatoria\n  FROM notas n INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\n  WHERE n.id_alumno = p_id_alumno;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-14-10-2",
+          "title": "Múltiples IN",
+          "difficulty": "intermediate",
+          "description": "Crea sp_profesores_por_especialidad(IN p_especialidad) con total de asignaturas.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_profesores_por_especialidad(IN p_especialidad VARCHAR(100))\nBEGIN\n  SELECT p.nombre, p.apellido, COUNT(a.id) AS total_asignaturas\n  FROM profesores p LEFT JOIN asignaturas a ON p.id = a.id_profesor\n  WHERE p.especialidad = p_especialidad GROUP BY p.id;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-14-10-3",
+          "title": "Evitar ambigüedad",
+          "difficulty": "intermediate",
+          "description": "Corrige: `CREATE PROCEDURE sp_filtrar(IN nombre VARCHAR(50), IN ciclo VARCHAR(10)) SELECT a.nombre, asig.nombre FROM alumnos a JOIN matriculas m ON a.id=m.id_alumno JOIN asignaturas asig ON m.id_asignatura=asig.id WHERE a.nombre=nombre AND asig.ciclo=ciclo;`",
+          "solution": "Renombrar parámetros a `p_nombre` y `p_ciclo` para evitar ambigüedad con las columnas."
+        },
+        {
+          "id": "ex-14-10-4",
+          "title": "Parámetros opcionales",
+          "difficulty": "hard",
+          "description": "Crea sp_buscar_asignaturas con 3 IN opcionales: ciclo, curso, min_creditos.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_buscar_asignaturas(\n  IN p_ciclo VARCHAR(10), IN p_curso INT, IN p_min_creditos DECIMAL(4,2))\nBEGIN\n  SELECT asig.nombre, asig.ciclo, asig.curso, asig.creditos\n  FROM asignaturas asig\n  WHERE (p_ciclo IS NULL OR asig.ciclo = p_ciclo)\n    AND (p_curso IS NULL OR asig.curso = p_curso)\n    AND (p_min_creditos IS NULL OR asig.creditos >= p_min_creditos);\nEND //\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-11",
+      "title": "Parámetros OUT e INOUT",
+      "order": 11,
+      "objectives": [
+        "Crear procedimientos con parámetros OUT para devolver valores",
+        "Llamar a procedimientos con OUT usando variables de sesión",
+        "Usar INOUT para parámetros que entran y salen modificados",
+        "Comparar IN vs OUT vs INOUT"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Parámetros OUT: devolver valores\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_contar_activos(OUT p_total INT)\nBEGIN\n  SELECT COUNT(*) INTO p_total FROM alumnos WHERE activo = TRUE;\nEND //\nDELIMITER ;\n\nCALL sp_contar_activos(@total_activos);\nSELECT @total_activos AS total;\n```\n\n> **Clave**: Para recibir OUT, pasa una **variable de sesión** (@variable)."
+        },
+        {
+          "type": "text",
+          "content": "## Múltiples OUT\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_estadisticas_alumno(\n  IN p_id_alumno INT, OUT p_total INT, OUT p_media DECIMAL(4,2), OUT p_mejor DECIMAL(4,2))\nBEGIN\n  SELECT COUNT(*), IFNULL(AVG(nota),0), IFNULL(MAX(nota),0)\n  INTO p_total, p_media, p_mejor FROM notas WHERE id_alumno = p_id_alumno;\n  SET p_media = ROUND(p_media, 2);\nEND //\nDELIMITER ;\n\nCALL sp_estadisticas_alumno(1, @total, @media, @mejor);\nSELECT @total, @media, @mejor;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Parámetros INOUT: entrada y salida\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_incrementar(INOUT p_contador INT, IN p_paso INT)\nBEGIN\n  SET p_contador = p_contador + p_paso;\nEND //\nDELIMITER ;\n\nSET @contador = 0;\nCALL sp_incrementar(@contador, 5);  -- @contador = 5\nCALL sp_incrementar(@contador, 5);  -- @contador = 10\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Tabla comparativa: IN vs OUT vs INOUT\n\n| Característica | IN | OUT | INOUT |\n|---|---|---|---|\n| **Propósito** | Pasar datos | Recibir datos | Ambas |\n| **Valor inicial** | El que pasas | Ignorado | El que pasas |\n| **Modificable** | No | Sí | Sí |\n| **En CALL** | `CALL sp(10)` | `CALL sp(@var)` | `CALL sp(@var)` |\n\n```\nIN      → El valor ENTRA y se lee\nOUT     → El valor SE ESCRIBE (el inicial se ignora)\nINOUT   → El valor ENTRA, se lee Y se modifica\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-11-1",
+          "title": "Procedimiento con OUT",
+          "difficulty": "basic",
+          "description": "Crea sp_total_matriculas(OUT) que devuelva total de matrículas activas.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_total_matriculas(OUT p_total INT)\nBEGIN\n  SELECT COUNT(*) INTO p_total FROM matriculas WHERE estado = 'activa';\nEND //\nDELIMITER ;\nCALL sp_total_matriculas(@t); SELECT @t;\n```"
+        },
+        {
+          "id": "ex-14-11-2",
+          "title": "Múltiples OUT",
+          "difficulty": "intermediate",
+          "description": "Crea sp_resumen_notas con IN p_id_asignatura y OUT: total, media, % aprobados.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_resumen_notas(\n  IN p_id INT, OUT p_total INT, OUT p_media DECIMAL(4,2), OUT p_pct DECIMAL(5,2))\nBEGIN\n  SELECT COUNT(*), IFNULL(ROUND(AVG(nota),2),0),\n    ROUND(IFNULL(SUM(CASE WHEN nota>=5 THEN 1 ELSE 0 END)/COUNT(*)*100,0),2)\n  INTO p_total, p_media, p_pct FROM notas WHERE id_asignatura = p_id;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-14-11-3",
+          "title": "INOUT",
+          "difficulty": "intermediate",
+          "description": "Crea sp_aplicar_descuento(INOUT precio, IN porcentaje).",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_aplicar_descuento(INOUT p_precio DECIMAL(8,2), IN p_pct DECIMAL(5,2))\nBEGIN\n  SET p_precio = p_precio - (p_precio * p_pct / 100);\nEND //\nDELIMITER ;\nSET @precio = 100;\nCALL sp_aplicar_descuento(@precio, 15);\nSELECT @precio;  -- 85\n```"
+        },
+        {
+          "id": "ex-14-11-4",
+          "title": "Elegir IN, OUT o INOUT",
+          "difficulty": "hard",
+          "description": "1. sp_calcular_nota_media(id_alumno) 2. sp_filtrar_por_ciudad(ciudad) 3. sp_acumular_total(acumulador, valor) 4. sp_verificar_stock(id, cantidad)",
+          "solution": "1. **OUT** para la nota media (procedimiento la calcula).\n2. **IN** para la ciudad (solo recibe para filtrar).\n3. **INOUT** para acumulador + **IN** para valor.\n4. **IN** para ambos (resultado con SELECT)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-12",
+      "title": "Funciones almacenadas",
+      "order": 12,
+      "objectives": [
+        "Crear funciones con CREATE FUNCTION y RETURN",
+        "Usar DETERMINISTIC y NOT DETERMINISTIC correctamente",
+        "Emplear funciones en expresiones SELECT y WHERE",
+        "Comprender las restricciones de las funciones vs procedimientos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## CREATE FUNCTION: sintaxis\n\n```sql\nDELIMITER //\nCREATE FUNCTION nombre_funcion(param1 TIPO)\nRETURNS TIPO_RETORNO\nDETERMINISTIC\nBEGIN\n  RETURN valor;\nEND //\nDELIMITER ;\n```\n\n> **IMPORTANTE**: `RETURNS` (con S) es obligatorio y especifica el tipo. `RETURN` (sin S) devuelve el valor."
+        },
+        {
+          "type": "text",
+          "content": "## DETERMINISTIC vs NOT DETERMINISTIC\n\n| Si la función usa... | Entonces es... |\n|---|---|\n| Solo operaciones matemáticas | DETERMINISTIC |\n| CURDATE(), NOW(), RAND() | NOT DETERMINISTIC |\n| Consultas a tablas cambiantes | NOT DETERMINISTIC |\n\n```sql\nCREATE FUNCTION fn_doblar(n INT) RETURNS INT DETERMINISTIC\nBEGIN RETURN n * 2; END;\n\nCREATE FUNCTION fn_hoy() RETURNS DATE NOT DETERMINISTIC\nBEGIN RETURN CURDATE(); END;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Funciones en expresiones SQL\n\n```sql\nDELIMITER //\nCREATE FUNCTION fn_edad(fecha_nac DATE) RETURNS INT DETERMINISTIC\nBEGIN\n  RETURN TIMESTAMPDIFF(YEAR, fecha_nac, CURDATE());\nEND //\nDELIMITER ;\n\n-- En SELECT\nSELECT nombre, fn_edad(fecha_nacimiento) AS edad FROM alumnos;\n\n-- En WHERE\nSELECT * FROM alumnos WHERE fn_edad(fecha_nacimiento) >= 25;\n\n-- En ORDER BY\nSELECT nombre, fn_edad(fecha_nacimiento) AS edad FROM alumnos ORDER BY edad DESC;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Restricciones de las funciones\n\n### NO pueden:\n- Usar OUT o INOUT (solo IN)\n- Hacer INSERT, UPDATE o DELETE\n- Usar CALL\n\n### SÍ pueden:\n- Devolver un valor con RETURN\n- Usar variables locales, IF, CASE, WHILE, LOOP\n- Hacer SELECT INTO (solo para leer)\n\n| Característica | Función | Procedimiento |\n|---|---|---|\n| **Devuelve valor** | Sí (RETURN) | Solo con OUT |\n| **En SELECT** | Sí | No |\n| **Parámetros** | Solo IN | IN, OUT, INOUT |\n| **Modifica datos** | No | Sí |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-12-1",
+          "title": "Función básica",
+          "difficulty": "basic",
+          "description": "Crea fn_nombre_completo(p_id INT) que devuelva nombre + apellido.",
+          "solution": "```sql\nDELIMITER //\nCREATE FUNCTION fn_nombre_completo(p_id INT) RETURNS VARCHAR(100) DETERMINISTIC\nBEGIN\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  SELECT nombre, apellido INTO v_nombre, v_apellido FROM alumnos WHERE id = p_id;\n  RETURN CONCAT(v_nombre, ' ', v_apellido);\nEND //\nDELIMITER ;\nSELECT fn_nombre_completo(1);\n```"
+        },
+        {
+          "id": "ex-14-12-2",
+          "title": "Función con CASE",
+          "difficulty": "intermediate",
+          "description": "Crea fn_estado_matricula(p_estado) que devuelva: activa→'Activa', suspendida→'Suspendida', cancelada→'Cancelada'.",
+          "solution": "```sql\nDELIMITER //\nCREATE FUNCTION fn_estado_matricula(p VARCHAR(20)) RETURNS VARCHAR(20) DETERMINISTIC\nBEGIN\n  RETURN CASE p WHEN 'activa' THEN 'Activa' WHEN 'suspendida' THEN 'Suspendida' WHEN 'cancelada' THEN 'Cancelada' ELSE 'Desconocido' END;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-14-12-3",
+          "title": "DETERMINISTIC?",
+          "difficulty": "intermediate",
+          "description": "fn_sumar(a,b)→a+b. fn_hoy()→CURDATE(). fn_upper(t)→UPPER(t). fn_pct_aprobados(id)→calcular %",
+          "solution": "1. **DETERMINISTIC** — misma entrada, mismo resultado.\n2. **NOT DETERMINISTIC** — la hora cambia.\n3. **DETERMINISTIC** — UPPER siempre igual.\n4. **NOT DETERMINISTIC** — las notas pueden cambiar."
+        },
+        {
+          "id": "ex-14-12-4",
+          "title": "Función en WHERE/ORDER BY",
+          "difficulty": "hard",
+          "description": "Crea fn_dias_desde(p_fecha) y úsala en SELECT, WHERE y ORDER BY.",
+          "solution": "```sql\nDELIMITER //\nCREATE FUNCTION fn_dias_desde(p_fecha DATE) RETURNS INT DETERMINISTIC\nBEGIN RETURN DATEDIFF(CURDATE(), p_fecha); END //\nDELIMITER ;\n\nSELECT a.nombre, fn_dias_desde(n.fecha_evaluacion) AS dias FROM notas n JOIN alumnos a ON n.id_alumno = a.id;\nSELECT * FROM notas WHERE fn_dias_desde(fecha_evaluacion) < 30;\nSELECT * FROM notas ORDER BY fn_dias_desde(fecha_evaluacion) DESC;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-13",
+      "title": "Procedimientos vs funciones y buenas prácticas",
+      "order": 13,
+      "objectives": [
+        "Distinguir claramente entre procedimientos y funciones",
+        "Aplicar buenas prácticas en programación almacenada",
+        "Identificar y resolver errores comunes",
+        "Diseñar rutinas mantenibles y seguras"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Tabla detallada: PROCEDURE vs FUNCTION\n\n| Característica | PROCEDURE | FUNCTION |\n|---|---|---|\n| **Crear** | `CREATE PROCEDURE sp_x()` | `CREATE FUNCTION fn_x() RETURNS TIPO` |\n| **Ejecutar** | `CALL sp_x()` | `SELECT fn_x()` |\n| **Retorna valor** | Solo con OUT | Siempre (RETURN) |\n| **Parámetros** | IN, OUT, INOUT | Solo IN |\n| **En SELECT** | No | Sí |\n| **Modifica datos** | Sí | No |\n\n> **Regla de oro**: Calcular valor → FUNCION. Ejecutar lógica con datos → PROCEDIMIENTO."
+        },
+        {
+          "type": "text",
+          "content": "## Buenas prácticas\n\n### 1. Nombres descriptivos\n```sql\n-- Bueno\nCREATE PROCEDURE sp_obtener_notas_alumno(IN p_id_alumno INT)\n-- Malo\nCREATE PROCEDURE sp1(IN x INT)\n```\n\n### 2. Rutinas pequeñas y enfocadas\n\n### 3. Parámetros con prefijo p_\n\n### 4. Validar supuestos\n```sql\nIF p_nota < 0 OR p_nota > 10 THEN\n  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La nota debe estar entre 0 y 10';\nEND IF;\n```\n\n### 5. Usar comentarios\n\n### 6. Evitar duplicación"
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes\n\n### 1. Olvidar DELIMITER\n```sql\n-- ERROR\nCREATE PROCEDURE sp_demo() BEGIN SELECT 1; END;\n-- CORRECTO\nDELIMITER //\nCREATE PROCEDURE sp_demo() BEGIN SELECT 1; END //\nDELIMITER ;\n```\n\n### 2. DECLARE después de sentencia ejecutable\n```sql\n-- ERROR\nBEGIN SELECT 1; DECLARE v_x INT; END;\n-- CORRECTO\nBEGIN DECLARE v_x INT; SELECT 1; END;\n```\n\n### 3. Nombres ambiguos\n```sql\nWHERE ciudad = ciudad;  -- ERROR\nWHERE ciudad = p_ciudad;  -- CORRECTO\n```\n\n### 4. SELECT INTO con múltiples filas\n```sql\nSELECT nombre INTO v FROM alumnos;  -- ERROR\nSELECT nombre INTO v FROM alumnos WHERE id = 1;  -- CORRECTO\n```\n\n### 5. Olvidar RETURN en función\n```sql\nCREATE FUNCTION fn_calc(n INT) RETURNS INT DETERMINISTIC\nBEGIN SET n = n * 2; END;  -- ERROR: falta RETURN\n\nCREATE FUNCTION fn_calc(n INT) RETURNS INT DETERMINISTIC\nBEGIN RETURN n * 2; END;  -- CORRECTO\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-13-1",
+          "title": "PROCEDURE vs FUNCTION",
+          "difficulty": "basic",
+          "description": "1. Se usa en SELECT 2. Tiene OUT 3. Se ejecuta con CALL 4. RETURN 5. Hace INSERT",
+          "solution": "1. **FUNCTION** 2. **PROCEDURE** 3. **PROCEDURE** 4. **FUNCTION** 5. **PROCEDURE**"
+        },
+        {
+          "id": "ex-14-13-2",
+          "title": "Identificar errores",
+          "difficulty": "intermediate",
+          "description": "```sql\nCREATE PROCEDURE sp_demo(IN nombre VARCHAR(50))\nBEGIN\n  DECLARE v_total INT;\n  SELECT COUNT(*) INTO v_total FROM alumnos WHERE nombre = nombre;\n  SELECT v_total;\n```",
+          "solution": "1. Falta `DELIMITER //` y `//` al final.\n2. Falta `DELIMITER ;`.\n3. Parámetro `nombre` igual que columna → ambigüedad.\n4. Falta `END` del BEGIN."
+        },
+        {
+          "id": "ex-14-13-3",
+          "title": "Elegir PROCEDURE o FUNCTION",
+          "difficulty": "intermediate",
+          "description": "1. Clasificar nota para 10 SELECTs 2. Registrar pago y actualizar saldo 3. Calcular antigüedad en días 4. Dar de baja alumno",
+          "solution": "1. **FUNCTION** — valor simple en múltiples SELECT.\n2. **PROCEDURE** — INSERT + UPDATE.\n3. **FUNCTION** — valor simple en SELECT/WHERE.\n4. **PROCEDURE** — múltiples UPDATE/DELETE."
+        },
+        {
+          "id": "ex-14-13-4",
+          "title": "Diseñar con buenas prácticas",
+          "difficulty": "hard",
+          "description": "Crea sp_registrar_nota con: IN id_alumno, id_asignatura, nota, convocatoria. Valide nota 0-10, verifique matrícula, inserte nota.",
+          "solution": "```sql\nDELIMITER //\nCREATE PROCEDURE sp_registrar_nota(\n  IN p_id_alumno INT, IN p_id_asignatura INT,\n  IN p_nota DECIMAL(4,2), IN p_convocatoria VARCHAR(50))\nBEGIN\n  DECLARE v_matriculado INT DEFAULT 0;\n  IF p_nota < 0 OR p_nota > 10 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Nota entre 0 y 10';\n  END IF;\n  SELECT COUNT(*) INTO v_matriculado FROM matriculas\n  WHERE id_alumno = p_id_alumno AND id_asignatura = p_id_asignatura;\n  IF v_matriculado = 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No matriculado';\n  END IF;\n  INSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion)\n  VALUES (p_id_alumno, p_id_asignatura, p_nota, p_convocatoria, CURDATE());\n  SELECT 'OK' AS resultado;\nEND //\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-14-14",
+      "title": "Caso práctico completo y repaso",
+      "order": 14,
+      "objectives": [
+        "Diseñar y crear rutinas para gestión de academia",
+        "Aplicar procedimientos con IN, OUT e INOUT",
+        "Crear funciones para clasificación",
+        "Usar condicionales IF y CASE",
+        "Implementar un bucle donde sea apropiado"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Requisitos del caso práctico\n\nVamos a diseñar un conjunto de rutinas para el sistema de academia:\n\n1. **Obtener alumnos de un curso** (IN)\n2. **Contar matrículas** (IN + OUT)\n3. **Clasificar disponibilidad** (IF/CASE)\n4. **Clasificar notas** (función)\n5. **Estadísticas con bucle** (WHILE)\n\nSeguiremos: REQUISITO → DISEÑO → SQL → TEST → EXPLICACIÓN."
+        },
+        {
+          "type": "text",
+          "content": "## Rutina 1: Alumnos de un curso (IN)\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_alumnos_por_asignatura(IN p_id_asignatura INT)\nBEGIN\n  SELECT CONCAT(a.nombre,' ',a.apellido) AS alumno, a.email, m.estado, m.fecha_matricula\n  FROM matriculas m INNER JOIN alumnos a ON m.id_alumno = a.id\n  WHERE m.id_asignatura = p_id_asignatura ORDER BY a.apellido;\nEND //\nDELIMITER ;\n\nCALL sp_alumnos_por_asignatura(1);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Rutina 2: Contar matrículas (IN + OUT)\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_contar_matriculas(\n  IN p_id_asignatura INT, OUT p_total INT, OUT p_activas INT)\nBEGIN\n  SELECT COUNT(*), SUM(CASE WHEN estado='activa' THEN 1 ELSE 0 END)\n  INTO p_total, p_activas FROM matriculas WHERE id_asignatura = p_id_asignatura;\nEND //\nDELIMITER ;\n\nCALL sp_contar_matriculas(1, @total, @activas);\nSELECT @total AS total, @activas AS activas;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Rutina 3: Clasificar disponibilidad (CASE)\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_clasificar_disponibilidad(IN p_id_asignatura INT)\nBEGIN\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_clase VARCHAR(30);\n  SELECT nombre INTO v_nombre FROM asignaturas WHERE id = p_id_asignatura;\n  SELECT COUNT(*) INTO v_total FROM matriculas\n  WHERE id_asignatura = p_id_asignatura AND estado = 'activa';\n  CASE\n    WHEN v_total >= 30 THEN SET v_clase = 'Lleno';\n    WHEN v_total >= 20 THEN SET v_clase = 'Casi lleno';\n    ELSE SET v_clase = 'Disponible';\n  END CASE;\n  SELECT v_nombre AS asignatura, v_total AS matriculas, v_clase AS disponibilidad;\nEND //\nDELIMITER ;\n\nCALL sp_clasificar_disponibilidad(1);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Rutina 4: Función clasificar nota\n\n```sql\nDELIMITER //\nCREATE FUNCTION fn_clasificar_nota(p_nota DECIMAL(4,2)) RETURNS VARCHAR(20) DETERMINISTIC\nBEGIN\n  RETURN CASE\n    WHEN p_nota >= 9 THEN 'Sobresaliente'\n    WHEN p_nota >= 7 THEN 'Notable'\n    WHEN p_nota >= 5 THEN 'Aprobado'\n    ELSE 'Suspenso'\n  END;\nEND //\nDELIMITER ;\n\nSELECT a.nombre, n.nota, fn_clasificar_nota(n.nota) AS calificacion\nFROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Rutina 5: Estadísticas con WHILE\n\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_estadisticas_bucle(\n  IN p_id_alumno INT, OUT p_max DECIMAL(4,2), OUT p_min DECIMAL(4,2))\nBEGIN\n  DECLARE v_i INT DEFAULT 1;\n  DECLARE v_count INT DEFAULT 0;\n  DECLARE v_nota DECIMAL(4,2);\n  SET p_max = 0; SET p_min = 10;\n  SELECT COUNT(*) INTO v_count FROM notas WHERE id_alumno = p_id_alumno;\n  WHILE v_i <= v_count DO\n    SELECT nota INTO v_nota FROM notas WHERE id_alumno = p_id_alumno LIMIT 1 OFFSET v_i - 1;\n    IF v_nota > p_max THEN SET p_max = v_nota; END IF;\n    IF v_nota < p_min THEN SET p_min = v_nota; END IF;\n    SET v_i = v_i + 1;\n  END WHILE;\nEND //\nDELIMITER ;\n\nCALL sp_estadisticas_bucle(1, @max, @min);\nSELECT @max AS nota_maxima, @min AS nota_minima;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\n| Tema | Contenido |\n|---|---|\n| **BEGIN...END** | Agrupar sentencias, DELIMITER |\n| **Variables** | DECLARE, SET, alcance, @variable |\n| **SELECT INTO** | Almacenar resultados, una fila |\n| **IF/ELSEIF/ELSE** | Condicional procedural |\n| **CASE** |statement y expression |\n| **WHILE/REPEAT/LOOP** | Bucles con etiquetas |\n| **LEAVE/ITERATE** | Salir y saltar |\n| **CREATE PROCEDURE** | Parámetros IN, OUT, INOUT |\n| **CREATE FUNCTION** | RETURN, DETERMINISTIC |\n| **Buenas prácticas** | Nombres, validación, comentarios |\n| **Errores comunes** | DELIMITER, DECLARE order, ambigüedad |\n\n> **Próximo módulo**: El Módulo 15 cubre cursores y manejo de excepciones, que complementan lo aprendido aquí."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-14-14-1",
+          "title": "Caso práctico completo",
+          "difficulty": "hard",
+          "description": "Diseña el conjunto completo de rutinas para academia:\n1. sp_alumnos_por_asignatura(IN)\n2. sp_contar_matriculas(IN, OUT, OUT)\n3. sp_clasificar_disponibilidad(IN) con CASE\n4. fn_clasificar_nota(DECIMAL) RETURNS VARCHAR\n5. sp_estadisticas_bucle(IN, OUT, OUT) con WHILE\nIncluye: requisição, diseño, SQL, test y explicación para cada una.",
+          "solution": "**Rutina 1 — Alumnos por asignatura:**\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_alumnos_por_asignatura(IN p_id INT)\nBEGIN\n  SELECT CONCAT(a.nombre,' ',a.apellido) AS alumno, m.estado\n  FROM matriculas m JOIN alumnos a ON m.id_alumno = a.id WHERE m.id_asignatura = p_id;\nEND //\nDELIMITER ;\nCALL sp_alumnos_por_asignatura(1);\n```\n\n**Rutina 2 — Contar matrículas:**\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_contar_matriculas(IN p_id INT, OUT p_total INT, OUT p_activas INT)\nBEGIN\n  SELECT COUNT(*), SUM(CASE WHEN estado='activa' THEN 1 ELSE 0 END)\n  INTO p_total, p_activas FROM matriculas WHERE id_asignatura = p_id;\nEND //\nDELIMITER ;\nCALL sp_contar_matriculas(1, @t, @a); SELECT @t, @a;\n```\n\n**Rutina 3 — Clasificar disponibilidad:**\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_clasificar_disponibilidad(IN p_id INT)\nBEGIN\n  DECLARE v_total INT; DECLARE v_nombre VARCHAR(100); DECLARE v_clase VARCHAR(30);\n  SELECT nombre INTO v_nombre FROM asignaturas WHERE id = p_id;\n  SELECT COUNT(*) INTO v_total FROM matriculas WHERE id_asignatura = p_id AND estado='activa';\n  CASE WHEN v_total >= 30 THEN SET v_clase='Lleno'\n       WHEN v_total >= 20 THEN SET v_clase='Casi lleno'\n       ELSE SET v_clase='Disponible' END CASE;\n  SELECT v_nombre, v_total, v_clase;\nEND //\nDELIMITER ;\n```\n\n**Rutina 4 — Función clasificar nota:**\n```sql\nDELIMITER //\nCREATE FUNCTION fn_clasificar_nota(p DECIMAL(4,2)) RETURNS VARCHAR(20) DETERMINISTIC\nBEGIN\n  RETURN CASE WHEN p>=9 THEN 'Sobresaliente' WHEN p>=7 THEN 'Notable' WHEN p>=5 THEN 'Aprobado' ELSE 'Suspenso' END;\nEND //\nDELIMITER ;\nSELECT a.nombre, n.nota, fn_clasificar_nota(n.nota) FROM alumnos a JOIN notas n ON a.id=n.id_alumno;\n```\n\n**Rutina 5 — Estadísticas con WHILE:**\n```sql\nDELIMITER //\nCREATE PROCEDURE sp_estadisticas_bucle(IN p_id INT, OUT p_max DECIMAL(4,2), OUT p_min DECIMAL(4,2))\nBEGIN\n  DECLARE v_i INT DEFAULT 1; DECLARE v_c INT; DECLARE v_n DECIMAL(4,2);\n  SET p_max=0; SET p_min=10;\n  SELECT COUNT(*) INTO v_c FROM notas WHERE id_alumno=p_id;\n  WHILE v_i<=v_c DO\n    SELECT nota INTO v_n FROM notas WHERE id_alumno=p_id LIMIT 1 OFFSET v_i-1;\n    IF v_n>p_max THEN SET p_max=v_n; END IF;\n    IF v_n<p_min THEN SET p_min=v_n; END IF;\n    SET v_i=v_i+1;\n  END WHILE;\nEND //\nDELIMITER ;\nCALL sp_estadisticas_bucle(1,@max,@min); SELECT @max,@min;\n```"
         }
       ]
     }

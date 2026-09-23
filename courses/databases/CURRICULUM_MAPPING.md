@@ -115,15 +115,22 @@
 | Deadlocks | mod-13 | lesson-13-11 |
 | Diseño de transacciones seguras y caso práctico | mod-13 | lesson-13-12 |
 
-### RA5: Procedimientos almacenados y automatización
+### RA5: Procedimientos almacenados y automatización (PARTIAL — M14)
 
 | Contenido | Módulo | Lección |
 |---|---|---|
-| Variables en MySQL | mod-14 | lesson-14-1 |
-| Funciones del SGBD | mod-14 | lesson-14-1 |
-| Estructuras de control (IF, CASE, WHILE, LOOP) | mod-14 | lesson-14-2 |
-| Procedimientos almacenados (IN, OUT, INOUT) | mod-14 | lesson-14-3 |
-| Funciones de usuario | mod-14 | lesson-14-4 |
+| Introducción a programación almacenada | mod-14 | lesson-14-1 |
+| Bloques BEGIN...END y DELIMITER | mod-14 | lesson-14-2 |
+| Variables locales y asignación | mod-14 | lesson-14-3 |
+| SELECT ... INTO | mod-14 | lesson-14-4 |
+| Condicionales con IF | mod-14 | lesson-14-5 |
+| Condicionales con CASE | mod-14 | lesson-14-6 |
+| Bucles WHILE | mod-14 | lesson-14-7 |
+| REPEAT, LOOP, LEAVE, ITERATE | mod-14 | lesson-14-8 |
+| Procedimientos almacenados (IN, OUT, INOUT) | mod-14 | lesson-14-9 a lesson-14-11 |
+| Funciones almacenadas | mod-14 | lesson-14-12 |
+| Procedimientos vs funciones y buenas prácticas | mod-14 | lesson-14-13 |
+| Caso práctico completo | mod-14 | lesson-14-14 |
 | Triggers (BEFORE/AFTER) | mod-15 | lesson-15-1 |
 | NEW y OLD en triggers | mod-15 | lesson-15-1 |
 | Cursores | mod-15 | lesson-15-2 |
@@ -162,9 +169,9 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 147 |
-| Bloques de contenido | ~508 |
-| Ejercicios | ~237 |
+| Lecciones totales | 157 |
+| Bloques de contenido | ~566 |
+| Ejercicios | ~287 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
@@ -184,11 +191,11 @@
 | mod-11: Subconsultas | 8 | 36 | 29 |
 | mod-12: Modificación datos | 12 | 56 | 43 |
 | mod-13: Transacciones y concurrencia | 12 | 57 | 41 |
-| mod-14: Programación almacenada | 4 | 5 | 4 |
+| mod-14: Programación almacenada | 14 | 63 | 50 |
 | mod-15: Triggers/cursores | 2 | 3 | 2 |
 | mod-16: NoSQL | 2 | 5 | 2 |
 | mod-17: Proyecto final | 3 | 4 | 3 |
-| **TOTAL** | **147** | **~508** | **~237** |
+| **TOTAL** | **157** | **~566** | **~287** |
 
 ## Bases de datos de ejemplo utilizadas
 
@@ -214,7 +221,7 @@
 | mod-11: Subconsultas | ⏳ Pendiente |
 | mod-12: Modificación datos | ✅ Implementado (12 lecciones, 43 ejercicios) |
 | mod-13: Transacciones y concurrencia | ✅ Implementado (12 lecciones, 41 ejercicios) |
-| mod-14: Programación almacenada | ⏳ Pendiente |
+| mod-14: Programación almacenada | ✅ Implementado (14 lecciones, 50 ejercicios) |
 | mod-15: Triggers/cursores | ⏳ Pendiente |
 | mod-16: NoSQL | ⏳ Pendiente |
 | mod-17: Proyecto final | ⏳ Pendiente |
