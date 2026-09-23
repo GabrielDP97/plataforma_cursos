@@ -189,9 +189,9 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 181 |
-| Bloques de contenido | ~687 |
-| Ejercicios | ~386 |
+| Lecciones totales | 194 |
+| Bloques de contenido | ~759 |
+| Ejercicios | ~409 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
@@ -214,8 +214,8 @@
 | mod-14: Programación almacenada | 14 | 63 | 50 |
 | mod-15: Triggers, cursores y excepciones | 14 | 65 | 51 |
 | mod-16: Bases de datos no relacionales | 14 | 64 | 48 |
-| mod-17: Proyecto final | 3 | 4 | 3 |
-| **TOTAL** | **181** | **~687** | **~386** |
+| mod-17: Proyecto final | 16 | 76 | 23 |
+| **TOTAL** | **194** | **~759** | **~409** |
 
 ## Bases de datos de ejemplo utilizadas
 
@@ -244,4 +244,4 @@
 | mod-14: Programación almacenada | ✅ Implementado (14 lecciones, 50 ejercicios) |
 | mod-15: Triggers, cursores y excepciones | ✅ Implementado (14 lecciones, 51 ejercicios) |
 | mod-16: Bases de datos no relacionales | ✅ Implementado (14 lecciones, 48 ejercicios) |
-| mod-17: Proyecto final | ⏳ Pendiente |
+| mod-17: Proyecto final | ✅ Implementado (16 lecciones, 23 checkpoints) |
