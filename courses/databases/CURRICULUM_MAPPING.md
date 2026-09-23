@@ -163,14 +163,24 @@
 | Caso práctico y repaso | mod-07 | lesson-07-8 |
 | Proyecto final: diseño completo | mod-17 | lesson-17-1 a lesson-17-3 |
 
-### RA7: Bases de datos no relacionales
+### RA7: Bases de datos no relacionales (COMPLETE — M16)
 
 | Contenido | Módulo | Lección |
 |---|---|---|
-| Conceptos NoSQL | mod-16 | lesson-16-1 |
-| Tipos: documental, clave-valor, columnar, grafo | mod-16 | lesson-16-1 |
-| Introducción práctica a MongoDB | mod-16 | lesson-16-2 |
-| CRUD en MongoDB | mod-16 | lesson-16-2 |
+| Introducción a bases de datos no relacionales | mod-16 | lesson-16-1 |
+| Tipos NoSQL: documental, clave-valor, columnar, grafo | mod-16 | lesson-16-2 |
+| Bases documentales y MongoDB | mod-16 | lesson-16-3 |
+| Preparación del entorno MongoDB | mod-16 | lesson-16-4 |
+| Documentos, colecciones y BSON | mod-16 | lesson-16-5 |
+| Insertar y consultar documentos | mod-16 | lesson-16-6 |
+| Filtros, operadores y proyecciones | mod-16 | lesson-16-7 |
+| Actualizar y eliminar documentos | mod-16 | lesson-16-8 |
+| Diseñar documentos: embebido vs referencias | mod-16 | lesson-16-9 |
+| Índices en MongoDB | mod-16 | lesson-16-10 |
+| Aggregation Pipeline | mod-16 | lesson-16-11 |
+| Validación y calidad de los datos | mod-16 | lesson-16-12 |
+| Escalabilidad, replicación y sharding | mod-16 | lesson-16-13 |
+| Caso práctico y comparación SQL vs NoSQL | mod-16 | lesson-16-14 |
 
 ---
 
@@ -179,9 +189,9 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 169 |
-| Bloques de contenido | ~628 |
-| Ejercicios | ~338 |
+| Lecciones totales | 181 |
+| Bloques de contenido | ~687 |
+| Ejercicios | ~386 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
@@ -203,9 +213,9 @@
 | mod-13: Transacciones y concurrencia | 12 | 57 | 41 |
 | mod-14: Programación almacenada | 14 | 63 | 50 |
 | mod-15: Triggers, cursores y excepciones | 14 | 65 | 51 |
-| mod-16: NoSQL | 2 | 5 | 2 |
+| mod-16: Bases de datos no relacionales | 14 | 64 | 48 |
 | mod-17: Proyecto final | 3 | 4 | 3 |
-| **TOTAL** | **169** | **~628** | **~338** |
+| **TOTAL** | **181** | **~687** | **~386** |
 
 ## Bases de datos de ejemplo utilizadas
 
@@ -233,5 +243,5 @@
 | mod-13: Transacciones y concurrencia | ✅ Implementado (12 lecciones, 41 ejercicios) |
 | mod-14: Programación almacenada | ✅ Implementado (14 lecciones, 50 ejercicios) |
 | mod-15: Triggers, cursores y excepciones | ✅ Implementado (14 lecciones, 51 ejercicios) |
-| mod-16: NoSQL | ⏳ Pendiente |
+| mod-16: Bases de datos no relacionales | ✅ Implementado (14 lecciones, 48 ejercicios) |
 | mod-17: Proyecto final | ⏳ Pendiente |
