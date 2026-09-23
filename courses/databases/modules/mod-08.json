@@ -2,119 +2,534 @@
   "id": "mod-08",
   "courseId": "databases-0484",
   "title": "Consultas SQL básicas",
-  "slug": "consultas-basicas",
+  "slug": "consultas-sql-basicas",
   "order": 8,
-  "description": "Sentencias SELECT: columnas, alias, DISTINCT, WHERE, operadores, NULL, BETWEEN, IN, LIKE, ORDER BY y LIMIT.",
+  "description": "Domina las sentencias SELECT en MySQL: selección de columnas, alias, DISTINCT, filtrado con WHERE, operadores lógicos, manejo de NULL, BETWEEN/IN/LIKE, ordenación y limitación de resultados. Todo sobre la base de datos academia sin JOINs ni agregaciones.",
   "objectives": [
-    "Consultar datos con SELECT y alias",
-    "Usar DISTINCT para eliminar duplicados",
-    "Filtrar con WHERE y operadores de comparación",
-    "Manejar NULL con IS NULL / IS NOT NULL",
-    "Usar BETWEEN, IN y LIKE para búsquedas avanzadas",
-    "Ordenar resultados con ORDER BY",
-    "Limitar resultados con LIMIT"
+    "Escribir sentencias SELECT simples y compuestas en MySQL",
+    "Seleccionar columnas específicas, usar alias y DISTINCT",
+    "Filtrar filas con WHERE y operadores de comparación",
+    "Combinar condiciones con AND, OR, NOT y paréntesis",
+    "Entender y manejar valores NULL correctamente",
+    "Usar BETWEEN, IN y LIKE para filtros avanzados",
+    "Ordenar resultados con ORDER BY y limitar con LIMIT",
+    "Construir consultas completas sobre un dataset real"
   ],
   "estimatedMinutes": 420,
   "lessons": [
     {
       "id": "lesson-08-1",
-      "title": "SELECT básico: columnas y alias",
+      "title": "Introducción a SELECT",
       "order": 1,
       "objectives": [
+        "Comprender qué es una consulta SELECT y su propósito",
+        "Ejecutar SELECT con * para ver todas las columnas",
         "Seleccionar columnas específicas",
-        "Usar * para seleccionar todas las columnas",
-        "Renombrar columnas con alias (AS)"
+        "Entender la cláusula FROM",
+        "Usar SELECT con valores constantes y expresiones"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Sentencia SELECT\n\nLa sentencia `SELECT` es la más utilizada en SQL. Permite **consultar datos** de una o más tablas.\n\n### Sintaxis básica\n\n```sql\nSELECT columna1, columna2, ...\nFROM tabla\n[WHERE condición]\n[ORDER BY columna]\n[LIMIT n];\n```\n\n### Seleccionar columnas específicas\n\n```sql\n-- Seleccionar solo nombre y apellido de los alumnos\nSELECT nombre, apellido FROM alumnos;\n\n-- Seleccionar todas las columnas (no recomendado en producción)\nSELECT * FROM alumnos;\n\n-- Seleccionar con expresiones\nSELECT nombre, nota, nota * 10 AS nota_porcentaje\nFROM notas;\n```\n\n### Alias (AS)\n\nLos alias renombran temporalmente una columna o tabla en los resultados.\n\n```sql\n-- Alias en columnas\nSELECT\n  nombre AS \"Nombre del alumno\",\n  apellido AS \"Apellido\"\nFROM alumnos;\n\n-- Alias en tablas (útil en JOINs)\nSELECT a.nombre, n.nota\nFROM alumnos AS a\nINNER JOIN notas AS n ON a.id = n.id_alumno;\n\n-- Sin AS también funciona (pero es menos claro)\nSELECT nombre \"Nombre\", apellido \"Apellido\"\nFROM alumnos;\n```\n\n### Resultado\n\n```\n+----------------+----------+\n| Nombre del alum| Apellido |\n+----------------+----------+\n| Juan           | García   |\n| María          | López    |\n| Carlos         | Martínez |\n+----------------+----------+\n```"
+          "content": "## Dataset de práctica: academia\n\nTodas las lecciones de este módulo usan la base de datos `academia`. Antes de empezar, asegúrate de tener creadas estas tablas y datos de ejemplo:\n\n```sql\nCREATE DATABASE IF NOT EXISTS academia;\nUSE academia;\n\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  fecha_nacimiento DATE,\n  telefono VARCHAR(20),\n  direccion VARCHAR(150),\n  ciudad VARCHAR(50),\n  activo BOOLEAN DEFAULT TRUE\n);\n\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento, telefono, direccion, ciudad, activo) VALUES\n('Juan', 'García López', 'juan.garcia@email.com', '2000-05-15', '612345678', 'Calle Mayor 10', 'Madrid', TRUE),\n('María', 'Fernández Ruiz', 'maria.fernandez@email.com', '1999-11-22', '623456789', 'Avda. de la Paz 5', 'Barcelona', TRUE),\n('Pedro', 'Martínez Sánchez', 'pedro.martinez@email.com', '2001-03-08', '634567890', 'Calle Sol 23', 'Valencia', TRUE),\n('Ana', 'López García', 'ana.lopez@email.com', '2000-07-30', '645678901', 'Paseo del Prado 12', 'Madrid', TRUE),\n('Carlos', 'Rodríguez Pérez', 'carlos.rodriguez@email.com', '1998-09-14', '656789012', 'Calle Luna 8', 'Sevilla', FALSE),\n('Laura', 'Sánchez Martín', 'laura.sanchez@email.com', '2001-01-25', '667890123', 'Gran Vía 45', 'Bilbao', TRUE),\n('Pablo', 'Jiménez Díaz', 'pablo.jimenez@email.com', '2000-12-03', '678901234', 'Calle Río 17', 'Zaragoza', TRUE),\n('Sofía', 'Moreno Castro', 'sofia.moreno@email.com', '1999-06-18', '689012345', 'Avda. Libertad 33', 'Valencia', TRUE);\n\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  especialidad VARCHAR(100),\n  fecha_alta DATE\n);\n\nINSERT INTO profesores (nombre, apellido, email, especialidad, fecha_alta) VALUES\n('Miguel', 'Álvarez Torres', 'miguel.alvarez@email.com', 'Bases de Datos', '2018-09-01'),\n('Carmen', 'Díaz Fernández', 'carmen.diaz@email.com', 'Programación', '2019-01-15'),\n('Antonio', 'Romero Gil', 'antonio.romero@email.com', 'Redes', '2020-03-10');\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  id_profesor INT,\n  ciclo VARCHAR(50),\n  curso INT,\n  creditos DECIMAL(4,2),\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n\nINSERT INTO asignaturas (nombre, id_profesor, ciclo, curso, creditos) VALUES\n('Bases de Datos', 1, 'DAM', 1, 6.00),\n('Programación', 2, 'DAM', 1, 8.00),\n('Redes', 3, 'DAW', 1, 5.50),\n('Sistemas Operativos', 1, 'DAW', 2, 4.50),\n('Lenguajes de Marcas', 2, 'DAW', 1, 4.00);\n\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  convocatoria INT DEFAULT 1,\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria) VALUES\n(1, 1, 7.50, 1), (1, 2, 8.25, 1), (1, 3, 6.00, 1),\n(2, 1, 9.00, 1), (2, 2, 8.75, 1),\n(3, 1, 5.25, 1), (3, 2, 4.00, 1), (3, 1, 6.50, 2),\n(4, 1, 8.00, 1), (4, 3, 7.75, 1),\n(5, 2, 3.50, 1), (5, 2, 5.50, 2),\n(6, 1, 7.00, 1), (6, 2, 6.25, 1), (6, 3, 8.50, 1),\n(7, 1, 6.75, 1), (7, 3, 7.00, 1),\n(8, 1, 9.50, 1), (8, 2, 9.00, 1), (8, 3, 9.25, 1);\n```\n\n> **Importante**: Ejecuta este script una sola vez para crear el dataset. Todas las lecciones y ejercicios usan estas tablas."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Qué es una consulta SELECT?\n\nUna consulta `SELECT` es la forma de **recuperar datos** de una base de datos. Es la sentencia SQL más usada: el 70-80% de las consultas que ejecutarás serán SELECT.\n\n### Sintaxis básica\n\n```sql\nSELECT columnas\nFROM tabla;\n```\n\n### Seleccionar TODAS las columnas\n\n`*` significa \"todas las columnas\":\n\n```sql\nSELECT * FROM alumnos;\n```\n\nEsto devuelve todas las filas y todas las columnas de la tabla `alumnos`.\n\n### Seleccionar columnas específicas\n\nSi solo necesitas algunas columnas, enuméralas:\n\n```sql\nSELECT nombre, apellido, email\nFROM alumnos;\n```\n\n> **Buena práctica**: Evita `SELECT *` en producción. Siempre selecciona solo las columnas que necesitas. Menos datos = menos memoria y más velocidad."
+        },
+        {
+          "type": "text",
+          "content": "## SELECT con valores constantes y expresiones\n\nPuedes usar SELECT sin tablas para:\n\n```sql\n-- Valor constante\nSELECT 'Hola Mundo';\n\n-- Operación matemática\nSELECT 2 + 2 AS resultado;\n\n-- Función de MySQL\nSELECT NOW() AS fecha_actual;\n\n-- Múltiples valores constantes\nSELECT 'Juan' AS nombre, 25 AS edad, 1.75 AS estatura;\n```\n\n> **Analogía**: Piensa en SELECT como el foco de una cámara. Puedes enfocar toda la escena (`*`) o solo una parte concreta (columnas específicas)."
         }
       ],
       "exercises": [
         {
           "id": "ex-08-1-1",
-          "title": "SELECT básico",
+          "title": "Ver todo el contenido de una tabla",
           "difficulty": "basic",
-          "description": "Escribe consultas para:\n1. Seleccionar el nombre y email de todos los alumnos\n2. Seleccionar el nombre de las asignaturas y sus créditos, con alias 'Asignatura' y 'Créditos'\n3. Seleccionar todos los campos de los profesores que son de especialidad 'Bases de datos'",
-          "solution": "```sql\n-- 1. Nombre y email de alumnos\nSELECT nombre, email FROM alumnos;\n\n-- 2. Asignaturas con alias\nSELECT nombre AS \"Asignatura\", creditos AS \"Créditos\"\nFROM asignaturas;\n\n-- 3. Todos los campos de profesores de BD\nSELECT *\nFROM profesores\nWHERE especialidad = 'Bases de datos';\n```\n\nResultado esperado de la consulta 2:\n```\n+-----------------------------------------+----------+\n| Asignatura                              | Créditos |\n+-----------------------------------------+----------+\n| Bases de datos                          |     6.00 |\n| Programación                            |     8.00 |\n| Sistemas informáticos                   |     5.50 |\n| Desarrollo web en entorno cliente       |     7.00 |\n| Programación multimedia y disp. móviles |     6.50 |\n+-----------------------------------------+----------+\n```"
+          "description": "Escribe una consulta que muestre TODOS los datos de la tabla `alumnos`.",
+          "solution": "```sql\nSELECT * FROM alumnos;\n```\n\nResultado: todas las filas (8 registros) con todas las columnas (id, nombre, apellido, email, fecha_nacimiento, telefono, direccion, ciudad, activo)."
+        },
+        {
+          "id": "ex-08-1-2",
+          "title": "Seleccionar columnas concretas",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre solo el nombre, apellido y ciudad de todos los alumnos.",
+          "solution": "```sql\nSELECT nombre, apellido, ciudad\nFROM alumnos;\n```\n\nResultado: una tabla con 8 filas y solo 3 columnas."
+        },
+        {
+          "id": "ex-08-1-3",
+          "title": "SELECT sin tabla",
+          "difficulty": "basic",
+          "description": "Escribe un SELECT que muestre: tu nombre (como literal), tu edad (como número) y la fecha actual.",
+          "solution": "```sql\nSELECT 'Mi nombre' AS nombre, 25 AS edad, NOW() AS fecha_actual;\n```\n\nResultado: una sola fila con tres columnas: el literal, el número y la fecha/hora actual."
         }
       ]
     },
     {
       "id": "lesson-08-2",
-      "title": "DISTINCT y WHERE",
+      "title": "Seleccionar columnas, alias y DISTINCT",
       "order": 2,
       "objectives": [
-        "Usar DISTINCT para eliminar duplicados",
-        "Filtrar con WHERE y operadores de comparación",
-        "Combinar condiciones con AND, OR, NOT"
+        "Usar alias con AS para renombrar columnas en la salida",
+        "Aplicar DISTINCT para eliminar filas duplicadas",
+        "Combinar alias con DISTINCT",
+        "Entender cuándo es necesario DISTINCT"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## DISTINCT\n\n`DISTINCT` elimina las filas duplicadas de los resultados.\n\n```sql\n-- Sin DISTINCT: puede haber ciclos repetidos\nSELECT ciclo FROM asignaturas;\n+------+------+\n| ciclo|\n+------+------+\n| DAM  |\n| DAM  |\n| DAW  |\n| DAW  |\n| DAM  |\n+------+------+\n\n-- Con DISTINCT: solo valores únicos\nSELECT DISTINCT ciclo FROM asignaturas;\n+------+\n| ciclo|\n+------+\n| DAM  |\n| DAW  |\n+------+\n\n-- DISTINCT en combinación de columnas\nSELECT DISTINCT ciclo, creditos FROM asignaturas;\n```\n\n## WHERE: Filtrar filas\n\n`WHERE` permite filtrar filas según una condición.\n\n### Operadores de comparación\n\n| Operador | Significado |\n|---|---|\n| `=` | Igual |\n| `!=` o `<>` | Distinto |\n| `>` | Mayor que |\n| `<` | Menor que |\n| `>=` | Mayor o igual |\n| `<=` | Menor o igual |\n\n```sql\n-- Alumnos con id mayor que 3\nSELECT * FROM alumnos WHERE id > 3;\n\n-- Asignaturas de ciclo DAM\nSELECT * FROM asignaturas WHERE ciclo = 'DAM';\n\n-- Notas superiores a 7\nSELECT * FROM notas WHERE nota > 7;\n```\n\n### Combinar condiciones: AND, OR, NOT\n\n```sql\n-- AND: ambas condiciones deben cumplirse\nSELECT * FROM alumnos\nWHERE id > 2 AND activo = TRUE;\n\n-- OR: al menos una condición debe cumplirse\nSELECT * FROM alumnos\nWHERE nombre = 'Juan' OR nombre = 'María';\n\n-- NOT: invierte la condición\nSELECT * FROM alumnos\nWHERE NOT ciclo = 'DAW';\n\n-- Combinar AND, OR y paréntesis\nSELECT * FROM notas\nWHERE (id_alumno = 1 OR id_alumno = 2)\n  AND nota >= 7;\n```\n\n> **Regla**: Usa **paréntesis** cuando combines AND y OR para evitar ambigüedades."
+          "content": "## Alias con AS\n\nUn **alias** renombra temporalmente una columna en el resultado. Usa la palabra clave `AS`:\n\n```sql\n-- Sin alias: la columna se llama 'nombre'\nSELECT nombre FROM alumnos;\n\n-- Con alias: la columna se llama 'Nombre del Alumno'\nSELECT nombre AS 'Nombre del Alumno'\nFROM alumnos;\n\n-- Alias sin comillas (si no tiene espacios)\nSELECT nombre AS nombre_alumno\nFROM alumnos;\n```\n\n### Alias en expresiones\n\nCuando calculas un valor, el alias es imprescindible para que la columna tenga un nombre lógico:\n\n```sql\n-- Sin alias: MySQL pone un nombre automático (a veces confuso)\nSELECT nombre, YEAR(CURDATE()) - YEAR(fecha_nacimiento)\nFROM alumnos;\n\n-- Con alias claro\nSELECT\n  nombre,\n  YEAR(CURDATE()) - YEAR(fecha_nacimiento) AS edad\nFROM alumnos;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## DISTINCT: eliminar duplicados\n\n`DISTINCT` elimina filas duplicadas del resultado.\n\n### Ejemplo sin DISTINCT\n\n```sql\nSELECT ciudad FROM alumnos;\n```\nResultado: Madrid, Barcelona, Valencia, Madrid, Sevilla, Bilbao, Zaragoza, Valencia\n(8 filas, con duplicados: Madrid ×2, Valencia ×2)\n\n### Ejemplo con DISTINCT\n\n```sql\nSELECT DISTINCT ciudad FROM alumnos;\n```\nResultado: Madrid, Barcelona, Valencia, Sevilla, Bilbao, Zaragoza\n(6 filas, sin duplicados)\n\n### DISTINCT sobre varias columnas\n\n`DISTINCT` aplica sobre la COMBINACIÓN de columnas, no sobre cada una por separado:\n\n```sql\nSELECT DISTINCT ciudad, activo FROM alumnos;\n```\nResultado: todas las combinaciones únicas de ciudad y estado (activo/inactivo).\n\n### ¿Cuándo usar DISTINCT?\n\n| Situación | ¿DISTINCT? |\n|---|---|\n| Necesitas saber qué ciudades hay | ✅ Sí |\n| Necesitas saber cuántas ciudades distintas hay | ✅ Sí |\n| Necesitas ver TODOS los registros | ❌ No |\n| Tienes duplicados reales en los datos | ⚠️ Revisa la consulta |\n\n> **Consejo**: Si necesitas usar DISTINCT frecuentemente, puede ser una señal de que tu consulta necesita reestructurarse. En la mayoría de casos, los duplicados aparecen porque estás uniendo tablas."
         }
       ],
       "exercises": [
         {
           "id": "ex-08-2-1",
-          "title": "DISTINCT y WHERE",
+          "title": "Alias en columnas",
           "difficulty": "basic",
-          "description": "Escribe consultas para:\n1. ¿Qué ciclos diferentes hay en la tabla asignaturas?\n2. Seleccionar las asignaturas con más de 6 créditos\n3. Seleccionar los alumnos activos cuyo nombre empieza por 'J'\n4. Seleccionar las notas entre 5 y 8 (inclusive)",
-          "solution": "```sql\n-- 1. Ciclos distintos\nSELECT DISTINCT ciclo FROM asignaturas;\n\n-- 2. Asignaturas con más de 6 créditos\nSELECT * FROM asignaturas WHERE creditos > 6;\n\n-- 3. Alumnos activos cuyo nombre empieza por 'J'\nSELECT * FROM alumnos\nWHERE activo = TRUE AND nombre LIKE 'J%';\n\n-- 4. Notas entre 5 y 8 (inclusive)\nSELECT * FROM notas\nWHERE nota >= 5 AND nota <= 8;\n-- o equivalentemente:\nSELECT * FROM notas\nWHERE nota BETWEEN 5 AND 8;\n```"
+          "description": "Escribe una consulta que muestre nombre, apellido y una columna calculada llamada 'Nombre Completo' que concatene nombre y apellido separados por un espacio.",
+          "solution": "```sql\nSELECT\n  nombre,\n  apellido,\n  CONCAT(nombre, ' ', apellido) AS 'Nombre Completo'\nFROM alumnos;\n```\n\nResultado: por ejemplo, 'Juan García López' en la columna 'Nombre Completo'."
+        },
+        {
+          "id": "ex-08-2-2",
+          "title": "Alias con expresión matemática",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el id, nombre y creditos de las asignaturas, con una columna calculada llamada 'Horas Teóricas' que multiplique los créditos por 25.",
+          "solution": "```sql\nSELECT\n  id,\n  nombre,\n  creditos,\n  (creditos * 25) AS 'Horas Teóricas'\nFROM asignaturas;\n```\n\nResultado: por ejemplo, 'Bases de Datos' con 6.00 créditos mostraría 150.00 en 'Horas Teóricas'."
+        },
+        {
+          "id": "ex-08-2-3",
+          "title": "DISTINCT sobre una columna",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre las ciudades distintas donde viven los alumnos (sin duplicados).",
+          "solution": "```sql\nSELECT DISTINCT ciudad\nFROM alumnos;\n```\n\nResultado: 6 filas (Madrid, Barcelona, Valencia, Sevilla, Bilbao, Zaragoza) sin duplicados."
+        },
+        {
+          "id": "ex-08-2-4",
+          "title": "DISTINCT sobre dos columnas",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre las combinaciones únicas de ciclo de las asignaturas.",
+          "solution": "```sql\nSELECT DISTINCT ciclo\nFROM asignaturas;\n```\n\nResultado: DAM, DAW."
+        },
+        {
+          "id": "ex-08-2-5",
+          "title": "DISTINCT con conteo",
+          "difficulty": "intermediate",
+          "description": "¿Cuántas ciudades distintas hay en la tabla alumnos? Escribe una consulta que devuelva solo el número.",
+          "solution": "```sql\nSELECT COUNT(DISTINCT ciudad) AS total_ciudades\nFROM alumnos;\n```\n\nResultado: 6 (Madrid, Barcelona, Valencia, Sevilla, Bilbao, Zaragoza).\n\n> **Nota**: COUNT(DISTINCT columna) cuenta los valores únicos de esa columna."
         }
       ]
     },
     {
       "id": "lesson-08-3",
-      "title": "NULL, BETWEEN, IN y LIKE",
+      "title": "Filtrar datos con WHERE",
       "order": 3,
       "objectives": [
-        "Manejar valores NULL con IS NULL / IS NOT NULL",
-        "Usar BETWEEN para rangos",
-        "Usar IN para listas de valores",
-        "Usar LIKE para búsquedas de patrones"
+        "Usar WHERE para filtrar filas según una condición",
+        "Conocer los operadores de comparación: =, <>, <, >, <=, >=",
+        "Filtrar por valores de texto, fechas y números",
+        "Combinar SELECT con WHERE correctamente"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## NULL: Valores vacíos\n\n`NULL` significa \"valor desconocido\" o \"valor ausente\". **No es igual a 0 ni a una cadena vacía.**\n\n```sql\n-- ❌ INCORRECTO: esto NO funciona\nSELECT * FROM alumnos WHERE email = NULL;\n\n-- ✅ CORRECTO\nSELECT * FROM alumnos WHERE email IS NULL;\nSELECT * FROM alumnos WHERE email IS NOT NULL;\n\n-- Filtrar alumnos sin email\nSELECT nombre, apellido\nFROM alumnos\nWHERE email IS NULL;\n\n-- Contar alumnos sin email\nSELECT COUNT(*) AS sin_email\nFROM alumnos\nWHERE email IS NULL;\n```\n\n> **Importante**: `NULL != NULL`. En SQL, `NULL = NULL` devuelve `NULL`, no `TRUE`. Por eso se usa `IS NULL`.\n\n## BETWEEN: Rangos\n\n`WHERE columna BETWEEN valor1 AND valor2` incluye ambos extremos.\n\n```sql\n-- Notas entre 5 y 8 (inclusive)\nSELECT * FROM notas\nWHERE nota BETWEEN 5 AND 8;\n\n-- Equivalente a:\nSELECT * FROM notas\nWHERE nota >= 5 AND nota <= 8;\n\n-- Fechas en un rango\nSELECT * FROM notas\nWHERE fecha_evaluacion BETWEEN '2026-01-01' AND '2026-06-30';\n\n-- NOT BETWEEN\nSELECT * FROM notas\nWHERE nota NOT BETWEEN 0 AND 4;\n```\n\n## IN: Lista de valores\n\n`WHERE columna IN (valor1, valor2, ...)` filtra por varios valores.\n\n```sql\n-- Alumnos con id 1, 3 o 5\nSELECT * FROM alumnos\nWHERE id IN (1, 3, 5);\n\n-- Equivalente a:\nSELECT * FROM alumnos\nWHERE id = 1 OR id = 3 OR id = 5;\n\n-- NOT IN\nSELECT * FROM alumnos\nWHERE id NOT IN (1, 3, 5);\n\n-- IN con subconsulta\nSELECT * FROM alumnos\nWHERE id IN (SELECT id_alumno FROM notas WHERE nota > 9);\n```\n\n## LIKE: Búsquedas de patrones\n\n`LIKE` busca patrones en textos usando `%` (cualquier caracteres) y `_` (un carácter).\n\n| Patrón | Significado | Ejemplo |\n|---|---|---|\n| `%texto%` | Contiene \"texto\" | `%García%` → \"Juan García\" |\n| `texto%` | Empieza por \"texto\" | `%Juan%` → \"Juan García\" |\n| `%texto` | Termina en \"texto\" | `%ía%` → \"García\", \"Rodríguez\" |\n| `_` | Un carácter | `_uan` → \"Juan\" |\n\n```sql\n-- Alumnos cuyo nombre empieza por 'J'\nSELECT * FROM alumnos\nWHERE nombre LIKE 'J%';\n\n-- Alumnos cuyo apellido contiene 'arc'\nSELECT * FROM alumnos\nWHERE apellido LIKE '%arc%';\n\n-- Emails que terminan en '@estudiante.es'\nSELECT * FROM alumnos\nWHERE email LIKE '%@estudiante.es';\n\n-- NOT LIKE\nSELECT * FROM alumnos\nWHERE apellido NOT LIKE '%z%';\n```\n\n> **MySQL case-insensitive por defecto** con collation `utf8mb4_general_ci`. Si necesitas case-sensitive, usa `BINARY`:"
+          "content": "## La cláusula WHERE\n\n`WHERE` filtra las filas que devuelve un SELECT. Solo las filas que cumplen la condición aparecen en el resultado.\n\n### Sintaxis\n\n```sql\nSELECT columnas\nFROM tabla\nWHERE condición;\n```\n\n### Operadores de comparación\n\n| Operador | Significado | Ejemplo |\n|---|---|---|\n| `=` | Igual | `WHERE ciudad = 'Madrid'` |\n| `<>` o `!=` | Distinto | `WHERE ciudad <> 'Barcelona'` |\n| `<` | Menor que | `WHERE nota < 5` |\n| `>` | Mayor que | `WHERE nota > 7` |\n| `<=` | Menor o igual | `WHERE nota <= 6` |\n| `>=` | Mayor o igual | `WHERE nota >= 9` |\n\n### Ejemplos con la tabla alumnos\n\n```sql\n-- Alumnos de Madrid\nSELECT nombre, apellido, ciudad\nFROM alumnos\nWHERE ciudad = 'Madrid';\n\n-- Alumnos inactivos\nSELECT nombre, apellido\nFROM alumnos\nWHERE activo = FALSE;\n\n-- Alumnos con id mayor que 5\nSELECT id, nombre, apellido\nFROM alumnos\nWHERE id > 5;\n\n-- Alumnos nacidos después del año 2000\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nWHERE fecha_nacimiento > '2000-12-31';\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Comparación de cadenas de texto\n\nLas comparaciones de texto son **case-insensitive** por defecto en MySQL (con collation `utf8_general_ci`).\n\n```sql\n-- Estas dos consultas son equivalentes (en la mayoría de configuraciones)\nSELECT * FROM alumnos WHERE ciudad = 'madrid';\nSELECT * FROM alumnos WHERE ciudad = 'MADRID';\n```\n\n### Fechas con formato\n\nLas fechas en MySQL usan el formato `YYYY-MM-DD`:\n\n```sql\n-- Alumnos nacidos el 15 de mayo de 2000\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nWHERE fecha_nacimiento = '2000-05-15';\n\n-- Alumnos nacidos en el siglo XXI\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nWHERE fecha_nacimiento >= '2001-01-01';\n```\n\n> **Recuerda**: Las cadenas van entre comillas simples (`'valor'`), las fechas también. Los números NO llevan comillas."
         }
       ],
       "exercises": [
         {
           "id": "ex-08-3-1",
-          "title": "NULL, BETWEEN, IN, LIKE",
+          "title": "WHERE con valores de texto",
           "difficulty": "basic",
-          "description": "Escribe consultas para:\n1. Seleccionar alumnos que NO tienen email registrado\n2. Seleccionar notas entre 9 y 10 (inclusive)\n3. Seleccionar asignaturas que son de ciclo 'DAM' o 'DAW'\n4. Seleccionar alumnos cuyo apellido empieza por 'G'\n5. Seleccionar alumnos cuyo nombre tiene exactamente 4 caracteres",
-          "solution": "```sql\n-- 1. Alumnos sin email\nSELECT * FROM alumnos WHERE email IS NULL;\n\n-- 2. Notas entre 9 y 10\nSELECT * FROM notas WHERE nota BETWEEN 9 AND 10;\n\n-- 3. Asignaturas DAM o DAW\nSELECT * FROM asignaturas WHERE ciclo IN ('DAM', 'DAW');\n\n-- 4. Apellidos que empiezan por 'G'\nSELECT * FROM alumnos WHERE apellido LIKE 'G%';\n\n-- 5. Nombres de exactamente 4 caracteres\nSELECT * FROM alumnos WHERE nombre LIKE '____';\n-- Cada _ representa un carácter exacto\n```"
+          "description": "Escribe una consulta que muestre nombre y email de todos los alumnos de Valencia.",
+          "solution": "```sql\nSELECT nombre, email\nFROM alumnos\nWHERE ciudad = 'Valencia';\n```\n\nResultado: Pedro Martínez Sánchez y Sofía Moreno Castro."
+        },
+        {
+          "id": "ex-08-3-2",
+          "title": "WHERE con valores numéricos",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y apellido de los alumnos con id mayor o igual que 4.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id >= 4;\n```\n\nResultado: Ana, Carlos, Laura, Pablo, Sofía (ids 4-8)."
+        },
+        {
+          "id": "ex-08-3-3",
+          "title": "WHERE con fechas",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y fecha de nacimiento de los alumnos nacidos después del 31 de diciembre de 2000.",
+          "solution": "```sql\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nWHERE fecha_nacimiento > '2000-12-31';\n```\n\nResultado: Pedro, Laura, Pablo, Sofía (nacidos en 2001)."
+        },
+        {
+          "id": "ex-08-3-4",
+          "title": "WHERE con condición de estado",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y ciudad de los alumnos que están activos.",
+          "solution": "```sql\nSELECT nombre, ciudad\nFROM alumnos\nWHERE activo = TRUE;\n```\n\nResultado: todos excepto Carlos (activo = FALSE)."
+        },
+        {
+          "id": "ex-08-3-5",
+          "title": "WHERE con operador <>",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre nombre y apellido de los alumnos que NO viven en Madrid.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE ciudad <> 'Madrid';\n```\n\nResultado: María, Pedro, Carlos, Laura, Pablo, Sofía."
         }
       ]
     },
     {
       "id": "lesson-08-4",
-      "title": "ORDER BY y LIMIT",
+      "title": "Operadores lógicos y condiciones compuestas",
       "order": 4,
       "objectives": [
-        "Ordenar resultados con ORDER BY ASC/DESC",
-        "Ordenar por varias columnas",
-        "Limitar resultados con LIMIT",
-        "Usar OFFSET para paginación"
+        "Combinar condiciones con AND y OR",
+        "Usar NOT para invertir condiciones",
+        "Comprender la precedencia de operadores lógicos",
+        "Usar paréntesis para controlar el orden de evaluación"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## ORDER BY: Ordenar resultados\n\n`ORDER BY` ordena los resultados por una o más columnas.\n\n```sql\n-- Orden ascendente (ASC) - por defecto\nSELECT * FROM alumnos ORDER BY nombre ASC;\n\n-- Orden descendente (DESC)\nSELECT * FROM alumnos ORDER BY nombre DESC;\n\n-- Ordenar por varias columnas\nSELECT * FROM notas\nORDER BY id_alumno ASC, nota DESC;\n-- Primero ordena por alumno (ascendente), luego por nota (descendente)\n\n-- Ordenar por una columna calculada\nSELECT nombre, nota, nota * 10 AS porcentaje\nFROM notas\nORDER BY porcentaje DESC;\n\n-- Ordenar por alias de columna\nSELECT\n  a.nombre AS alumno,\n  asig.nombre AS asignatura,\n  n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nORDER BY alumno ASC, nota DESC;\n```\n\n## LIMIT: Limitar resultados\n\n`LIMIT` muestra solo las primeras N filas. Muy útil para paginación.\n\n```sql\n-- Los 5 alumnos con id más bajo\nSELECT * FROM alumnos LIMIT 5;\n\n-- Las 10 mejores notas\nSELECT * FROM notas ORDER BY nota DESC LIMIT 10;\n\n-- Paginación: página 2 con 5 elementos por página\nSELECT * FROM alumnos\nORDER BY id\nLIMIT 5 OFFSET 5;\n-- (saltar 5, mostrar los siguientes 5)\n\n-- Forma abreviada de LIMIT\nSELECT * FROM alumnos LIMIT 5, 5;\n-- (saltar 5, mostrar 5)\n\n-- Paginación dinámica\n-- Página 1: LIMIT 5 OFFSET 0\n-- Página 2: LIMIT 5 OFFSET 5\n-- Página 3: LIMIT 5 OFFSET 10\n```\n\n### Ejemplo práctico: Top 3 de cada asignatura\n\n```sql\n-- Las 3 mejores notas de cada asignatura\nSELECT\n  asig.nombre AS asignatura,\n  a.nombre AS alumno,\n  n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nORDER BY asig.nombre ASC, n.nota DESC\nLIMIT 3;  -- Esto no es exacto por asignatura, pero es un ejemplo\n```\n\n> **Nota**: Para obtener el Top N por grupo, necesitas subconsultas o `ROW_NUMBER()` (ver módulo 11)."
+          "content": "## AND: ambas condiciones deben cumplirse\n\n```sql\n-- Alumnos de Madrid Y activos\nSELECT nombre, apellido, ciudad\nFROM alumnos\nWHERE ciudad = 'Madrid' AND activo = TRUE;\n```\n\nSolo devuelve filas donde CUMPLE ambas condiciones.\n\n## OR: al menos una condición se cumple\n\n```sql\n-- Alumnos de Madrid O de Sevilla\nSELECT nombre, apellido, ciudad\nFROM alumnos\nWHERE ciudad = 'Madrid' OR ciudad = 'Sevilla';\n```\n\nDevuelve filas donde se cumple AL UNA de las condiciones.\n\n## NOT: invierte la condición\n\n```sql\n-- Alumnos que NO están en Madrid\nSELECT nombre, apellido, ciudad\nFROM alumnos\nWHERE NOT (ciudad = 'Madrid');\n```\n\nEquivalente a `WHERE ciudad <> 'Madrid'`."
+        },
+        {
+          "type": "text",
+          "content": "## Precedencia de operadores lógicos\n\nEn MySQL, la precedencia (de mayor a menor) es:\n\n1. `NOT`\n2. `AND`\n3. `OR`\n\n```sql\n-- Sin paréntesis: AND se evalúa primero\nWHERE activo = TRUE AND ciudad = 'Madrid' OR ciudad = 'Barcelona'\n-- Equivale a:\nWHERE (activo = TRUE AND ciudad = 'Madrid') OR ciudad = 'Barcelona'\n-- Esto puede NO ser lo que quieres\n\n-- Con paréntesis: controlas tú el orden\nWHERE activo = TRUE AND (ciudad = 'Madrid' OR ciudad = 'Barcelona')\n-- Solo muestra activos de Madrid O Barcelona\n```\n\n> **Regla de oro**: Usa SIEMPRE paréntesis cuando combines AND y OR. Es más claro y evita errores."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo compuesto completo\n\n```sql\n-- Alumnos de Madrid O Barcelona, que estén activos, y que NO se llamen Ana\nSELECT nombre, apellido, ciudad\nFROM alumnos\nWHERE (ciudad = 'Madrid' OR ciudad = 'Barcelona')\n  AND activo = TRUE\n  AND NOT (nombre = 'Ana');\n```\n\nResultado: Juan García López (Madrid, activo, no es Ana)."
         }
       ],
       "exercises": [
         {
           "id": "ex-08-4-1",
-          "title": "ORDER BY y LIMIT",
+          "title": "AND: dos condiciones",
           "difficulty": "basic",
-          "description": "Escribe consultas para:\n1. Todos los alumnos ordenados por apellido (A-Z)\n2. Las 5 asignaturas con más créditos\n3. Las 3 notas más altas con el nombre del alumno y la asignatura\n4. Paginación: página 1 (3 registros) de la tabla de alumnos",
-          "solution": "```sql\n-- 1. Alumnos por apellido A-Z\nSELECT * FROM alumnos ORDER BY apellido ASC;\n\n-- 2. Las 5 asignaturas con más créditos\nSELECT * FROM asignaturas ORDER BY creditos DESC LIMIT 5;\n\n-- 3. Las 3 notas más altas con nombres\nSELECT\n  a.nombre AS alumno,\n  asig.nombre AS asignatura,\n  n.nota\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nORDER BY n.nota DESC\nLIMIT 3;\n\n-- 4. Paginación: página 1 (3 registros)\nSELECT * FROM alumnos\nORDER BY id\nLIMIT 3 OFFSET 0;\n-- Página 2 sería: LIMIT 3 OFFSET 3\n```"
+          "description": "Escribe una consulta que muestre nombre y email de los alumnos de Valencia que estén activos.",
+          "solution": "```sql\nSELECT nombre, email\nFROM alumnos\nWHERE ciudad = 'Valencia' AND activo = TRUE;\n```\n\nResultado: Pedro Martínez Sánchez y Sofía Moreno Castro."
+        },
+        {
+          "id": "ex-08-4-2",
+          "title": "OR: dos condiciones",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y ciudad de los alumnos de Bilbao O Zaragoza.",
+          "solution": "```sql\nSELECT nombre, ciudad\nFROM alumnos\nWHERE ciudad = 'Bilbao' OR ciudad = 'Zaragoza';\n```\n\nResultado: Laura Sánchez Martín (Bilbao) y Pablo Jiménez Díaz (Zaragoza)."
+        },
+        {
+          "id": "ex-08-4-3",
+          "title": "NOT: negar una condición",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y ciudad de los alumnos que NO viven en Valencia.",
+          "solution": "```sql\nSELECT nombre, ciudad\nFROM alumnos\nWHERE NOT (ciudad = 'Valencia');\n```\n\nResultado: Juan, María, Ana, Carlos, Laura, Pablo."
+        },
+        {
+          "id": "ex-08-4-4",
+          "title": "AND + OR con paréntesis",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre nombre, ciudad y activo de los alumnos que estén activos y sean de Madrid O de Barcelona.",
+          "solution": "```sql\nSELECT nombre, ciudad, activo\nFROM alumnos\nWHERE activo = TRUE\n  AND (ciudad = 'Madrid' OR ciudad = 'Barcelona');\n```\n\nResultado: Juan (Madrid, activo), María (Barcelona, activo), Ana (Madrid, activo)."
+        },
+        {
+          "id": "ex-08-4-5",
+          "title": "Tres condiciones compuestas",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre nombre, ciudad y fecha de nacimiento de los alumnos que:\n1. Estén activos\n2. Vivan en Madrid O Valencia\n3. Sean del siglo XXI (nacidos en 2001 o posterior)",
+          "solution": "```sql\nSELECT nombre, ciudad, fecha_nacimiento\nFROM alumnos\nWHERE activo = TRUE\n  AND (ciudad = 'Madrid' OR ciudad = 'Valencia')\n  AND fecha_nacimiento >= '2001-01-01';\n```\n\nResultado: Pedro (Valencia, 2001). Sofía es de Valencia pero nació en 1999, no cumple la tercera condición."
+        }
+      ]
+    },
+    {
+      "id": "lesson-08-5",
+      "title": "NULL y valores desconocidos",
+      "order": 5,
+      "objectives": [
+        "Entender qué representa un valor NULL",
+        "Usar IS NULL e IS NOT NULL para comprobar NULL",
+        "Entender por qué = NULL no funciona",
+        "Conocer el comportamiento de NULL en expresiones y comparaciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es NULL?\n\n`NULL` significa **\"valor desconocido\"** o **\"valor no disponible\"**. NO es lo mismo que:\n- Cadena vacía (`''`)\n- Cero (`0`)\n- `FALSE`\n\n### Ejemplo práctico\n\nSi un alumno no tiene teléfono registrado, el campo `telefono` es `NULL`. No significa que no tenga teléfono (podría tener uno que no se ha registrado), sino que **no sabemos** cuál es.\n\n```sql\n-- Algunos alumnos tienen teléfono, otros no\nSELECT nombre, telefono FROM alumnos;\n```\n\nResultado:\n```\nJuan     | 612345678\nMaría    | 623456789\nPedro    | 634567890\nAna      | 645678901\nCarlos   | 656789012\nLaura    | 667890123\nPablo    | 678901234\nSofía    | 689012345\n```"
+        },
+        {
+          "type": "text",
+          "content": "## NULL en comparaciones\n\n**NULL no se puede comparar con `=` o `<>`**. Cualquier comparación con NULL devuelve `NULL` (ni TRUE ni FALSE).\n\n```sql\n-- Esto NO funciona como esperas\nSELECT * FROM alumnos WHERE telefono = NULL;\n-- Resultado: VACÍO (no devuelve nada)\n\n-- Tampoco esto\nSELECT * FROM alumnos WHERE telefono <> NULL;\n-- Resultado: VACÍO (no devuelve nada)\n```\n\n### Forma correcta: IS NULL e IS NOT NULL\n\n```sql\n-- Alumnos sin teléfono\nSELECT nombre, telefono\nFROM alumnos\nWHERE telefono IS NULL;\n\n-- Alumnos CON teléfono\nSELECT nombre, telefono\nFROM alumnos\nWHERE telefono IS NOT NULL;\n```\n\n> **Regla**: Para comprobar si un valor es NULL, usa SIEMPRE `IS NULL` o `IS NOT NULL`. NUNCA uses `= NULL`."
+        },
+        {
+          "type": "text",
+          "content": "## NULL en expresiones\n\nSi NULL aparece en una operación, el resultado es siempre NULL:\n\n```sql\nSELECT NULL + 1;           -- Resultado: NULL\nSELECT NULL * 5;           -- Resultado: NULL\nSELECT 'Hola' + NULL;      -- Resultado: NULL\nSELECT NULL = NULL;        -- Resultado: NULL (no TRUE)\n```\n\n### Excepciones con NULL\n\nAlgunas funciones manejan NULL de forma especial:\n\n```sql\n-- COALESCE devuelve el primer valor no NULL\nSELECT COALESCE(NULL, 0);  -- Resultado: 0\n\n-- CONCAT ignora los NULL\nSELECT CONCAT(NULL, 'Hola');  -- Resultado: 'Hola'\n\n-- COUNT(*) SÍ cuenta los NULL\n-- COUNT(columna) NO cuenta los NULL\n```\n\n> **Consejo**: Si tienes columnas que pueden ser NULL y necesitas usarlas en cálculos, usa `COALESCE(valor, 0)` para convertir NULL a 0."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-5-1",
+          "title": "IS NULL: buscar nulos",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y email de los alumnos cuyo teléfono sea NULL.",
+          "solution": "```sql\nSELECT nombre, email\nFROM alumnos\nWHERE telefono IS NULL;\n```\n\nResultado: en el dataset actual, todos los alumnos tienen teléfono, así que devolvería vacío. Si algún alumno no tuviera teléfono, aparecería aquí."
+        },
+        {
+          "id": "ex-08-5-2",
+          "title": "IS NOT NULL: buscar no nulos",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y teléfono de los alumnos que tengan teléfono registrado.",
+          "solution": "```sql\nSELECT nombre, telefono\nFROM alumnos\nWHERE telefono IS NOT NULL;\n```\n\nResultado: todos los alumnos del dataset (todos tienen teléfono)."
+        },
+        {
+          "id": "ex-08-5-3",
+          "title": "NULL vs cadena vacía",
+          "difficulty": "intermediate",
+          "description": "Explica la diferencia entre un campo con valor `NULL` y un campo con valor `''` (cadena vacía). Escribe dos consultas que devuelvan resultados diferentes sobre la misma tabla.",
+          "solution": "```sql\n-- Si la tabla tuviera un registro con email = '' y otro con email = NULL:\n\n-- Alumnos con email vacío (cadena vacía)\nSELECT nombre, email\nFROM alumnos\nWHERE email = '';\n-- Devuelve registros donde email = ''\n\n-- Alumnos con email NULL\nSELECT nombre, email\nFROM alumnos\nWHERE email IS NULL;\n-- Devuelve registros donde email es NULL\n\n-- DIFERENCIA:\n-- '' es un valor válido (una cadena de longitud 0)\n-- NULL es \"valor desconocido/no existe\"\n-- '' = '' es TRUE, NULL = NULL es NULL\n-- LENGTH('') = 0, LENGTH(NULL) = NULL\n```"
+        },
+        {
+          "id": "ex-08-5-4",
+          "title": "NULL en expresiones",
+          "difficulty": "intermediate",
+          "description": "¿Cuál es el resultado de las siguientes expresiones? Explica por qué.\n1. `SELECT NULL + 10;`\n2. `SELECT 5 * NULL;`\n3. `SELECT COALESCE(NULL, NULL, 'valor');`\n4. `SELECT IFNULL(NULL, 'por defecto');`",
+          "solution": "1. **NULL**: Cualquier operación aritmética con NULL devuelve NULL.\n2. **NULL**: Multiplicar por NULL da NULL.\n3. **'valor'**: COALESCE devuelve el primer argumento no NULL.\n4. **'por defecto'**: IFNULL sustituye NULL por el valor indicado.\n\n```sql\nSELECT NULL + 10;                     -- NULL\nSELECT 5 * NULL;                     -- NULL\nSELECT COALESCE(NULL, NULL, 'valor'); -- 'valor'\nSELECT IFNULL(NULL, 'por defecto');   -- 'por defecto'\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-08-6",
+      "title": "BETWEEN, IN y LIKE",
+      "order": 6,
+      "objectives": [
+        "Usar BETWEEN para filtrar por rangos (números y fechas)",
+        "Usar IN para filtrar por una lista de valores",
+        "Usar LIKE para búsquedas parciales con patrones",
+        "Combinar BETWEEN, IN y LIKE con AND/OR"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## BETWEEN: filtrar por rango\n\n`BETWEEN` selecciona valores dentro de un rango (inclusivo en ambos extremos).\n\n### Sintaxis\n\n```sql\nWHERE columna BETWEEN valor1 AND valor2;\n-- Equivalente a:\nWHERE columna >= valor1 AND columna <= valor2;\n```\n\n### Ejemplos\n\n```sql\n-- Alumnos con id entre 3 y 6 (inclusivo)\nSELECT id, nombre\nFROM alumnos\nWHERE id BETWEEN 3 AND 6;\n-- Resultado: ids 3, 4, 5, 6\n\n-- Alumnos nacidos entre 2000 y 2001\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nWHERE fecha_nacimiento BETWEEN '2000-01-01' AND '2001-12-31';\n\n-- NOT BETWEEN: fuera del rango\nSELECT nombre, id\nFROM alumnos\nWHERE id NOT BETWEEN 3 AND 6;\n-- Resultado: ids 1, 2, 7, 8\n```"
+        },
+        {
+          "type": "text",
+          "content": "## IN: filtrar por una lista de valores\n\n`IN` comprueba si un valor está en una lista de valores posibles.\n\n### Sintaxis\n\n```sql\nWHERE columna IN (valor1, valor2, valor3);\n-- Equivalente a:\nWHERE columna = valor1 OR columna = valor2 OR columna = valor3;\n```\n\n### Ejemplos\n\n```sql\n-- Alumnos de Madrid, Barcelona o Sevilla\nSELECT nombre, ciudad\nFROM alumnos\nWHERE ciudad IN ('Madrid', 'Barcelona', 'Sevilla');\n\n-- NOT IN: fuera de la lista\nSELECT nombre, ciudad\nFROM alumnos\nWHERE ciudad NOT IN ('Madrid', 'Barcelona');\n-- Devuelve: Valencia, Sevilla, Bilbao, Zaragoza\n\n-- IN con números\nSELECT id, nombre\nFROM alumnos\nWHERE id IN (1, 3, 5, 7);\n```\n\n> **Ventaja**: `IN` es más legible que escribir múltiples `OR`. Con 3 o más valores, usa `IN`."
+        },
+        {
+          "type": "text",
+          "content": "## LIKE: búsquedas con patrones\n\n`LIKE` permite buscar valores que sigan un patrón. Usa dos comodines:\n\n| Comodín | Significado |\n|---|---|\n| `%` | Cualquier cantidad de caracteres (incluido 0) |\n| `_` | Un solo carácter |\n\n### Ejemplos\n\n```sql\n-- Nombres que empiezan por 'J'\nSELECT nombre FROM alumnos WHERE nombre LIKE 'J%';\n-- Resultado: Juan\n\n-- Nombres que terminan por 'a'\nSELECT nombre FROM alumnos WHERE nombre LIKE '%a';\n-- Resultado: María, Ana, Sofía\n\n-- Nombres que contienen 'ar'\nSELECT nombre FROM alumnos WHERE nombre LIKE '%ar%';\n-- Resultado: Carlos (contiene 'ar')\n\n-- Apellidos con exactamente 5 caracteres\nSELECT apellido FROM alumnos WHERE apellido LIKE '_____';\n-- (5 guiones bajos = exactamente 5 caracteres)\n\n-- Emails que terminan por '@email.com'\nSELECT email FROM alumnos WHERE email LIKE '%@email.com';\n-- Resultado: todos\n\n-- Nombres que empiezan por 'M' y tienen exactamente 4 letras\nSELECT nombre FROM alumnos WHERE nombre LIKE 'M___';\n-- Resultado: María\n```\n\n### LIKE con NOT\n\n```sql\n-- Alumnos cuyo nombre NO empieza por 'J'\nSELECT nombre FROM alumnos WHERE nombre NOT LIKE 'J%';\n```\n\n> **Rendimiento**: `LIKE` con `%` al principio (`'%texto'`) NO puede usar índices. Es más lento que `LIKE 'texto%'`."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-6-1",
+          "title": "BETWEEN con números",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y apellido de los alumnos con id entre 2 y 5 (inclusivo).",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE id BETWEEN 2 AND 5;\n```\n\nResultado: María, Pedro, Ana, Carlos."
+        },
+        {
+          "id": "ex-08-6-2",
+          "title": "BETWEEN con fechas",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y fecha de nacimiento de los alumnos nacidos en el año 2000.",
+          "solution": "```sql\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nWHERE fecha_nacimiento BETWEEN '2000-01-01' AND '2000-12-31';\n```\n\nResultado: Juan (2000-05-15), Ana (2000-07-30), Pablo (2000-12-03)."
+        },
+        {
+          "id": "ex-08-6-3",
+          "title": "IN con lista de valores",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y ciudad de los alumnos de Bilbao, Zaragoza o Sevilla.",
+          "solution": "```sql\nSELECT nombre, ciudad\nFROM alumnos\nWHERE ciudad IN ('Bilbao', 'Zaragoza', 'Sevilla');\n```\n\nResultado: Carlos (Sevilla), Laura (Bilbao), Pablo (Zaragoza)."
+        },
+        {
+          "id": "ex-08-6-4",
+          "title": "LIKE con comodín %",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y email de los alumnos cuyo nombre empieza por 'P'.",
+          "solution": "```sql\nSELECT nombre, email\nFROM alumnos\nWHERE nombre LIKE 'P%';\n```\n\nResultado: Pedro, Pablo."
+        },
+        {
+          "id": "ex-08-6-5",
+          "title": "LIKE con comodín _",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre nombre de los alumnos cuyo nombre tiene exactamente 4 caracteres.",
+          "solution": "```sql\nSELECT nombre\nFROM alumnos\nWHERE nombre LIKE '____';\n```\n\nResultado: Juan, Ana."
+        },
+        {
+          "id": "ex-08-6-6",
+          "title": "NOT LIKE",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre nombre y apellido de los alumnos cuyo apellido NO empieza por 'G'.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nWHERE apellido NOT LIKE 'G%';\n```\n\nResultado: Fernández, Martínez, López, Rodríguez, Sánchez, Jiménez, Moreno."
+        },
+        {
+          "id": "ex-08-6-7",
+          "title": "Combinar BETWEEN, IN y LIKE",
+          "difficulty": "advanced",
+          "description": "Escribe una consulta que muestre nombre, ciudad y fecha de nacimiento de los alumnos que:\n1. Tengan id entre 1 y 6\n2. Sean de Madrid O Valencia\n3. Cuyo nombre empiece por 'J' o 'M'",
+          "solution": "```sql\nSELECT nombre, ciudad, fecha_nacimiento\nFROM alumnos\nWHERE id BETWEEN 1 AND 6\n  AND ciudad IN ('Madrid', 'Valencia')\n  AND (nombre LIKE 'J%' OR nombre LIKE 'M%');\n```\n\nResultado: Juan (id 1, Madrid, empieza por J). María es de Barcelona, no cumple ciudad."
+        }
+      ]
+    },
+    {
+      "id": "lesson-08-7",
+      "title": "ORDER BY y LIMIT",
+      "order": 7,
+      "objectives": [
+        "Ordenar resultados con ORDER BY de forma ascendente y descendente",
+        "Ordenar por varias columnas",
+        "Limitar resultados con LIMIT y OFFSET",
+        "Combinar ORDER BY con WHERE y LIMIT"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ORDER BY: ordenar resultados\n\n`ORDER BY` ordena las filas del resultado por una o más columnas.\n\n### Sintaxis\n\n```sql\nSELECT columnas\nFROM tabla\nWHERE condición\nORDER BY columna [ASC|DESC];\n```\n\n| Orden | Significado |\n|---|---|\n| `ASC` | Ascendente (A→Z, 0→9, fecha antigua→nueva). **Por defecto** |\n| `DESC` | Descendente (Z→A, 9→0, fecha nueva→antigua) |\n\n### Ejemplos\n\n```sql\n-- Alumnos ordenados por nombre (A-Z, ascendente por defecto)\nSELECT nombre, apellido\nFROM alumnos\nORDER BY nombre;\n\n-- Alumnos ordenados por nombre (Z-A)\nSELECT nombre, apellido\nFROM alumnos\nORDER BY nombre DESC;\n\n-- Alumnos ordenados por ciudad y luego por nombre\nSELECT nombre, ciudad\nFROM alumnos\nORDER BY ciudad ASC, nombre ASC;\n```\n\n### Ordenar por columna calculada\n\n```sql\n-- Alumnos ordenados por edad (más joven primero)\nSELECT nombre, fecha_nacimiento,\n       YEAR(CURDATE()) - YEAR(fecha_nacimiento) AS edad\nFROM alumnos\nORDER BY fecha_nacimiento DESC;\n```\n\n> **Recuerda**: Puedes usar el alias de la columna en ORDER BY:\n```sql\nSELECT nombre, fecha_nacimiento,\n       YEAR(CURDATE()) - YEAR(fecha_nacimiento) AS edad\nFROM alumnos\nORDER BY edad ASC;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## LIMIT: limitar resultados\n\n`LIMIT` controla cuántas filas devuelve la consulta.\n\n### Sintaxis\n\n```sql\nSELECT columnas\nFROM tabla\nORDER BY columna\nLIMIT cantidad;\n\n-- Con OFFSET (paginación)\nSELECT columnas\nFROM tabla\nORDER BY columna\nLIMIT cantidad OFFSET posición;\n```\n\n### Ejemplos\n\n```sql\n-- Los 3 primeros alumnos por nombre\nSELECT nombre, apellido\nFROM alumnos\nORDER BY nombre\nLIMIT 3;\n\n-- Saltar los 2 primeros y mostrar los siguientes 3\nSELECT nombre, apellido\nFROM alumnos\nORDER BY nombre\nLIMIT 3 OFFSET 2;\n-- O equivalente:\nSELECT nombre, apellido\nFROM alumnos\nORDER BY nombre\nLIMIT 2, 3;\n\n-- El alumno con id más alto (el último en insertarse)\nSELECT id, nombre\nFROM alumnos\nORDER BY id DESC\nLIMIT 1;\n\n-- Los 5 alumnos más jóvenes\nSELECT nombre, fecha_nacimiento\nFROM alumnos\nORDER BY fecha_nacimiento DESC\nLIMIT 5;\n```\n\n### Paginación con LIMIT\n\nPara mostrar resultados por páginas (10 por página):\n\n```sql\n-- Página 1\nSELECT * FROM alumnos ORDER BY id LIMIT 10 OFFSET 0;\n-- Página 2\nSELECT * FROM alumnos ORDER BY id LIMIT 10 OFFSET 10;\n-- Página 3\nSELECT * FROM alumnos ORDER BY id LIMIT 10 OFFSET 20;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-7-1",
+          "title": "ORDER BY ascendente",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y apellido de los alumnos ordenados por apellido de la A a la Z.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nORDER BY apellido ASC;\n```\n\nResultado: orden alfabético por apellido."
+        },
+        {
+          "id": "ex-08-7-2",
+          "title": "ORDER BY descendente",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre y apellido de los alumnos ordenados por id de mayor a menor.",
+          "solution": "```sql\nSELECT nombre, apellido\nFROM alumnos\nORDER BY id DESC;\n```\n\nResultado: Sofía, Pablo, Laura, Carlos, Ana, Pedro, María, Juan."
+        },
+        {
+          "id": "ex-08-7-3",
+          "title": "ORDER BY por dos columnas",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre, ciudad y apellido de los alumnos ordenados por ciudad (A-Z) y luego por apellido (A-Z).",
+          "solution": "```sql\nSELECT nombre, ciudad, apellido\nFROM alumnos\nORDER BY ciudad ASC, apellido ASC;\n```\n\nResultado: primero por ciudad (Barcelona, Bilbao, Madrid, Sevilla, Valencia, Zaragoza), dentro de cada ciudad por apellido."
+        },
+        {
+          "id": "ex-08-7-4",
+          "title": "LIMIT: los primeros N",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre los 3 primeros alumnos por id.",
+          "solution": "```sql\nSELECT id, nombre, apellido\nFROM alumnos\nORDER BY id\nLIMIT 3;\n```\n\nResultado: Juan (id 1), María (id 2), Pedro (id 3)."
+        },
+        {
+          "id": "ex-08-7-5",
+          "title": "LIMIT con OFFSET: paginación",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre los alumnos de la posición 4 a la 6 (paginación con 3 por página, página 2).",
+          "solution": "```sql\nSELECT id, nombre, apellido\nFROM alumnos\nORDER BY id\nLIMIT 3 OFFSET 3;\n-- O equivalente: LIMIT 3, 3\n```\n\nResultado: Ana (id 4), Carlos (id 5), Laura (id 6)."
+        },
+        {
+          "id": "ex-08-7-6",
+          "title": "ORDER BY + LIMIT: top 1",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que devuelva el alumno con el id más alto (el último registrado).",
+          "solution": "```sql\nSELECT id, nombre, apellido\nFROM alumnos\nORDER BY id DESC\nLIMIT 1;\n```\n\nResultado: Sofía (id 8)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-08-8",
+      "title": "Caso práctico completo y repaso",
+      "order": 8,
+      "objectives": [
+        "Integrar todos los conceptos del módulo en consultas complejas",
+        "Resolver problemas prácticos reales usando SELECT, WHERE, AND/OR, BETWEEN, IN, LIKE, ORDER BY y LIMIT",
+        "Repasar los conceptos clave del módulo",
+        "Evaluar la comprensión con un caso práctico completo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\n### Cláusulas aprendidas\n\n| Cláusula | Función | Ejemplo |\n|---|---|---|\n| `SELECT` | Seleccionar columnas | `SELECT nombre, email` |\n| `FROM` | Tabla de origen | `FROM alumnos` |\n| `WHERE` | Filtrar filas | `WHERE ciudad = 'Madrid'` |\n| `AND` / `OR` / `NOT` | Condiciones compuestas | `WHERE a AND (b OR c)` |\n| `IS NULL` / `IS NOT NULL` | Comprobar nulos | `WHERE telefono IS NULL` |\n| `BETWEEN` | Rango inclusivo | `WHERE id BETWEEN 1 AND 5` |\n| `IN` | Lista de valores | `WHERE ciudad IN ('Madrid', 'Barcelona')` |\n| `LIKE` | Patrón de texto | `WHERE nombre LIKE 'J%'` |\n| `DISTINCT` | Eliminar duplicados | `SELECT DISTINCT ciudad` |\n| `AS` | Alias de columna | `nombre AS 'Nombre'` |\n| `ORDER BY` | Ordenar | `ORDER BY apellido DESC` |\n| `LIMIT` | Limitar filas | `LIMIT 3 OFFSET 2` |\n\n### Reglas clave\n\n1. **`=` NULL no funciona**. Usa `IS NULL` / `IS NOT NULL`.\n2. **Usa paréntesis** cuando combines AND y OR.\n3. **`LIKE '%' al inicio`** no usa índice. Evítalo en tablas grandes.\n4. **DISTINCT** no es una solución mágica. Si lo usas mucho, revisa tu diseño.\n5. **LIMIT sin ORDER BY** da resultados impredecibles."
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: consultoría de una academia\n\nUn director de academia necesita información sobre sus alumnos, profesores y notas. Resuelve cada petición con una consulta SQL.\n\n### Datos disponibles\n\nUsamos las tablas `alumnos`, `profesores`, `asignaturas` y `notas` del dataset creado en la lección 1.\n\n### Peticiones del director\n\n1. Ver todos los alumnos ordenados por apellido\n2. Alumnos de Madrid o Valencia que estén activos\n3. Asignaturas con más de 5 créditos, ordenadas por creditos de mayor a menor\n4. Los 3 alumnos con id más bajo\n5. Alumnos cuyo nombre empieza por 'M' y tienen email registrado\n6. Profesores dados de alta a partir de 2020\n7. Asignaturas del ciclo 'DAM' ordenadas por curso"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-08-8-1",
+          "title": "Alumnos por apellido",
+          "difficulty": "basic",
+          "description": "El director quiere ver todos los alumnos ordenados alfabéticamente por apellido.",
+          "solution": "```sql\nSELECT id, nombre, apellido, ciudad\nFROM alumnos\nORDER BY apellido ASC;\n```\n\nResultado: orden alfabético por apellido."
+        },
+        {
+          "id": "ex-08-8-2",
+          "title": "Alumnos activos de ciudades específicas",
+          "difficulty": "intermediate",
+          "description": "El director quiere ver los alumnos activos de Madrid O Valencia.",
+          "solution": "```sql\nSELECT nombre, apellido, ciudad\nFROM alumnos\nWHERE activo = TRUE\n  AND (ciudad = 'Madrid' OR ciudad = 'Valencia');\n```\n\nResultado: Juan (Madrid), Pedro (Valencia), Ana (Madrid), Sofía (Valencia)."
+        },
+        {
+          "id": "ex-08-8-3",
+          "title": "Asignaturas con muchos créditos",
+          "difficulty": "basic",
+          "description": "El director quiere ver las asignaturas con más de 5 créditos, ordenadas de mayor a menor.",
+          "solution": "```sql\nSELECT nombre, creditos, ciclo\nFROM asignaturas\nWHERE creditos > 5\nORDER BY creditos DESC;\n```\n\nResultado: Programación (8.00), Bases de Datos (6.00)."
+        },
+        {
+          "id": "ex-08-8-4",
+          "title": "Top 3 alumnos",
+          "difficulty": "basic",
+          "description": "El director quiere ver los 3 primeros alumnos registrados.",
+          "solution": "```sql\nSELECT id, nombre, apellido\nFROM alumnos\nORDER BY id ASC\nLIMIT 3;\n```\n\nResultado: Juan (1), María (2), Pedro (3)."
+        },
+        {
+          "id": "ex-08-8-5",
+          "title": "Alumnos con nombre y email",
+          "difficulty": "intermediate",
+          "description": "El director quiere ver los alumnos cuyo nombre empieza por 'M' y tienen email.",
+          "solution": "```sql\nSELECT nombre, email\nFROM alumnos\nWHERE nombre LIKE 'M%'\n  AND email IS NOT NULL;\n```\n\nResultado: María (maria.fernandez@email.com)."
+        },
+        {
+          "id": "ex-08-8-6",
+          "title": "Profesores recientes",
+          "difficulty": "basic",
+          "description": "El director quiere ver los profesores dados de alta a partir de 2020.",
+          "solution": "```sql\nSELECT nombre, apellido, especialidad, fecha_alta\nFROM profesores\nWHERE fecha_alta >= '2020-01-01'\nORDER BY fecha_alta ASC;\n```\n\nResultado: Antonio Romero Gil (Redes, 2020-03-10)."
+        },
+        {
+          "id": "ex-08-8-7",
+          "title": "Asignaturas del ciclo DAM",
+          "difficulty": "basic",
+          "description": "El director quiere ver las asignaturas del ciclo 'DAM' ordenadas por curso.",
+          "solution": "```sql\nSELECT nombre, ciclo, curso, creditos\nFROM asignaturas\nWHERE ciclo = 'DAM'\nORDER BY curso ASC;\n```\n\nResultado: Bases de Datos (curso 1), Programación (curso 1)."
+        },
+        {
+          "id": "ex-08-8-8",
+          "title": "Consulta compuesta completa",
+          "difficulty": "advanced",
+          "description": "El director quiere un informe: alumnos activos de Madrid o Barcelona, nacidos entre 1999 y 2001, ordenados por fecha de nacimiento (más joven primero). Mostrar solo los 2 primeros.",
+          "solution": "```sql\nSELECT nombre, apellido, ciudad, fecha_nacimiento\nFROM alumnos\nWHERE activo = TRUE\n  AND (ciudad = 'Madrid' OR ciudad = 'Barcelona')\n  AND fecha_nacimiento BETWEEN '1999-01-01' AND '2001-12-31'\nORDER BY fecha_nacimiento DESC\nLIMIT 2;\n```\n\nResultado: Juan (2000-05-15, Madrid), María (1999-11-22, Barcelona)."
+        },
+        {
+          "id": "ex-08-8-9",
+          "title": "Resumen conceptual",
+          "difficulty": "intermediate",
+          "description": "Responde con tus palabras:\n1. ¿Cuándo usarías DISTINCT y cuándo NO?\n2. ¿Por qué `WHERE telefono = NULL` no funciona?\n3. ¿Cuál es la diferencia entre `LIMIT 3 OFFSET 2` y `LIMIT 2, 3`?\n4. ¿Qué pasa si combinas AND sin paréntesis y quieres usar OR?",
+          "solution": "1. **DISTINCT**: Lo uso cuando necesito valores únicos de una columna (ej: qué ciudades hay). NO lo uso cuando necesito todos los registros o cuando los \"duplicados\" son reales (un alumno puede tener varias notas).\n\n2. **`= NULL` no funciona** porque NULL no es un valor, es \"desconocido\". No puedes comparar \"desconocido\" con igualdad. MySQL devuelve NULL en esa comparación, que se evalúa como FALSE en WHERE. Por eso se usa `IS NULL`.\n\n3. **Son equivalentes**: `LIMIT 3 OFFSET 2` salta 2 filas y muestra 3. `LIMIT 2, 3` hace lo mismo: el primer número es el offset, el segundo es la cantidad.\n\n4. **Sin paréntesis, AND tiene precedencia** sobre OR. `WHERE a AND b OR c` equivale a `WHERE (a AND b) OR c`. Si querías `WHERE a AND (b OR c)`, necesitas paréntesis explícitos."
+        },
+        {
+          "id": "ex-08-8-10",
+          "title": "Prueba final: 5 consultas",
+          "difficulty": "advanced",
+          "description": "Escribe 5 consultas que combinen al menos 3 conceptos diferentes del módulo cada una:\n1. Alumnos + DISTINCT + WHERE\n2. Asignaturas + IN + ORDER BY\n3. Notas + BETWEEN + LIMIT\n4. Alumnos + LIKE + AND + ORDER BY\n5. Profesores + WHERE + IS NOT NULL + LIMIT",
+          "solution": "```sql\n-- 1. Ciudades distintas de alumnos activos\nSELECT DISTINCT ciudad\nFROM alumnos\nWHERE activo = TRUE;\n\n-- 2. Asignaturas de DAM o DAW, ordenadas por ciclo y curso\nSELECT nombre, ciclo, curso\nFROM asignaturas\nWHERE ciclo IN ('DAM', 'DAW')\nORDER BY ciclo ASC, curso ASC;\n\n-- 3. Las 5 notas más altas entre 5 y 9\nSELECT nota, convocatoria\nFROM notas\nWHERE nota BETWEEN 5.00 AND 9.00\nORDER BY nota DESC\nLIMIT 5;\n\n-- 4. Alumnos cuyo apellido contiene 'rz' o 'án', ordenados por apellido\nSELECT nombre, apellido\nFROM alumnos\nWHERE (apellido LIKE '%rz%' OR apellido LIKE '%án%')\nORDER BY apellido ASC;\n\n-- 5. Profesores con especialidad conocida, mostrar los 2 primeros por id\nSELECT nombre, especialidad\nFROM profesores\nWHERE especialidad IS NOT NULL\nORDER BY id ASC\nLIMIT 2;\n```"
         }
       ]
     }
