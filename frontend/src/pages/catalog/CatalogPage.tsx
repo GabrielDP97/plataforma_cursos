@@ -207,7 +207,7 @@ export function CatalogPage() {
                     <p className="mt-1.5 text-sm leading-relaxed text-gray-500 dark:text-gray-400 line-clamp-2">
                       {course.description || 'Curso para reforzar contenido de primero de DAM/DAW.'}
                     </p>
-                    <div className="mt-4 flex items-end justify-between">
+                    <div className="mt-2 flex items-end justify-between">
                       <span className="text-xs font-medium text-gray-400 dark:text-gray-500">
                         {new Date(course.createdAt).toLocaleDateString('es-ES', {
                           month: 'short',

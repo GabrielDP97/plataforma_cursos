@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { LegalPage } from './LegalPage';
 
 /* ============================================================================
-   CONDICIONES DE USO — AulaDev beta
+   CONDICIONES DE USO — AulaDev
    ============================================================================ */
 
 export function CondicionesUsoPage() {
@@ -20,13 +20,8 @@ export function CondicionesUsoPage() {
 
       <h2>2. Descripción del servicio</h2>
       <p>
-        AulaDev es una plataforma educativa de formaci\u00F3n inform\u00E1ctica. Ofrece
+        AulaDev es una plataforma educativa de formación informática. Ofrece
         cursos con lecciones, ejercicios prácticos y materiales complementarios.
-      </p>
-      <p>
-        Actualmente nos encontramos en fase beta. La plataforma está en proceso
-        de desarrollo y puede experimentar cambios, mejoras o interrupciones
-        temporales.
       </p>
 
       <h2>3. Cuentas de usuario</h2>

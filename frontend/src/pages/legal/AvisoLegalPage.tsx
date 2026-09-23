@@ -6,13 +6,17 @@ export function AvisoLegalPage() {
       <h2>1. Finalidad del sitio</h2>
       <p>
         AulaDev es una plataforma educativa orientada a la formación
-        práctica en informática y tecnología.
-        El sitio tiene carácter meramente educativo e informativo.
+        práctica en informática y tecnología, dedicada a ofrecer contenido
+        formativo para estudiantes de 1.º de DAM y DAW.
       </p>
       <p>
-        Durante la fase beta, la plataforma se ofrece como espacio de prueba y
-        aprendizaje. No existe venta, comercio electrónico ni transacciones
-        económicas a través del sitio.
+        AulaDev se encuentra actualmente en fase de validación y no procesa
+        pagos ni ventas a través de la plataforma.
+      </p>
+      <p>
+        A través de esta plataforma se ofrece contenido educativo e
+        informativo, así como la posibilidad de solicitar información sobre
+        servicios de clases particulares.
       </p>
 
       <h2>2. Acceso</h2>

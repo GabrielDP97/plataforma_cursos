@@ -1,0 +1,719 @@
+{
+  "id": "mod-13",
+  "courseId": "databases-0484",
+  "title": "Transacciones y concurrencia",
+  "slug": "transacciones-concurrencia",
+  "order": 13,
+  "description": "Domina las transacciones en MySQL: ACID, START TRANSACTION, COMMIT, ROLLBACK, SAVEPOINT. Comprende los problemas de concurrencia (dirty read, non-repeatable read, phantom read, lost update), niveles de aislamiento, bloqueos SELECT FOR UPDATE, deadlocks, y diseña transacciones seguras con un caso práctico completo de matrícula con plazas limitadas.",
+  "objectives": [
+    "Comprender qué es una transacción y por qué es necesaria en situaciones reales",
+    "Explicar y aplicar las 4 propiedades ACID con ejemplos concretos",
+    "Gestionar autocommit y control manual de transacciones en MySQL",
+    "Usar START TRANSACTION, COMMIT y ROLLBACK correctamente",
+    "Identificar el impacto de las sentencias DDL sobre las transacciones",
+    "Crear y usar SAVEPOINT para reversión parcial de operaciones",
+    "Comprender qué ocurre cuando múltiples usuarios trabajan simultáneamente",
+    "Identificar y distinguir los 4 problemas clásicos de concurrencia",
+    "Conocer y aplicar los niveles de aislamiento en MySQL",
+    "Usar SELECT ... FOR UPDATE para bloqueos explícitos de fila",
+    "Reconocer deadlocks, comprender sus causas y estrategias de prevención",
+    "Diseñar transacciones seguras y resolver un caso práctico completo de matrícula"
+  ],
+  "estimatedMinutes": 600,
+  "lessons": [
+    {
+      "id": "lesson-13-1",
+      "title": "Qué es una transacción y por qué la necesitamos",
+      "order": 1,
+      "objectives": [
+        "Definir qué es una transacción y cuándo es necesaria",
+        "Reconocer situaciones reales donde varias operaciones deben ser atómicas",
+        "Visualizar el peligro de ejecutar operaciones relacionadas sin transacción",
+        "Comprender la diferencia entre ejecución individual y ejecución atómica"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El problema: una transferencia bancaria\n\nImagina que tu banco te pide transferir 100 euros de tu cuenta a la de un amigo. Internamente, el banco ejecuta dos operaciones SQL:\n\n```sql\n-- Paso 1: restar 100 euros de mi cuenta\nUPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;\n\n-- Paso 2: sumar 100 euros a la cuenta de mi amigo\nUPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;\n```\n\nAhora imagina que **falla la conexión** justo entre el paso 1 y el paso 2. El paso 1 ya se ejecutó (se restaron 100 euros de mi cuenta), pero el paso 2 nunca llegó. **Resultado: 100 euros desaparecidos.**\n\nEste escenario no es teórico. Ocurre cuando un servidor se reinicia, cuando hay un error de red, cuando el disco se llena, o cuando una violación de integridad aborta la segunda sentencia. Sin transacciones, **los datos quedan en un estado inconsistente**."
+        },
+        {
+          "type": "text",
+          "content": "## La solución: transacciones\n\nUna **transacción** es un grupo de operaciones SQL que MySQL trata como una **unidad indivisible**. O se ejecutan **TODAS** con éxito, o se ejecuta **NINGUNA**.\n\n```sql\n-- Sin transacción: cada UPDATE se confirma automáticamente\nUPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;\n-- Si aquí falla, el dinero ya se restó\nUPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;\n\n-- Con transacción: las operaciones se agrupan\nSTART TRANSACTION;\nUPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;\nUPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;\nCOMMIT;  -- Solo aquí se confirman AMBOS cambios\n```\n\nSi algo falla entre el `START TRANSACTION` y el `COMMIT`, podemos ejecutar `ROLLBACK` para deshacer **todo** lo que hicimos en la transacción. La cuenta A vuelve a tener su saldo original y nada se perdió.\n\n> **Analogía**: Una transacción es como un cajero que mete tu billete en un sobre, cuenta el cambio completo, y solo entrega el sobre cuando todo cuadra. Si algo falla a mitad de proceso, devuelve el billete entero. No suelta el dinero a trozos."
+        },
+        {
+          "type": "text",
+          "content": "## Otros ejemplos del mundo real\n\nLas transacciones no son exclusivas de la banca. Cualquier operación que involucre **varias tablas relacionadas** necesita atomicidad:\n\n### Academia: matrícula de un alumno\n\n```sql\nSTART TRANSACTION;\n\n-- 1. Registrar al alumno en la asignatura\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\nVALUES (15, 3, CURDATE(), 'activa');\n\n-- 2. Reducir las plazas disponibles\nUPDATE asignaturas\nSET plazas_disponibles = plazas_disponibles - 1\nWHERE id = 3 AND plazas_disponibles > 0;\n\n-- 3. Registrar el pago asociado\nINSERT INTO pagos (id_alumno, id_asignatura, cantidad, fecha)\nVALUES (15, 3, 120.00, CURDATE());\n\nCOMMIT;\n```\n\nSi falla el paso 2 (por ejemplo, si no quedan plazas), el paso 1 no debería quedarse registrado. Sin transacción, tendríamos una matrícula fantasma.\n\n### Tienda: creación de pedido\n\n```sql\nSTART TRANSACTION;\n\n-- 1. Crear el pedido\nINSERT INTO pedidos (id_cliente, fecha, estado)\nVALUES (42, CURDATE(), 'pendiente');\n\nSET @pedido_id = LAST_INSERT_ID();\n\n-- 2. Insertar las líneas del pedido\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES (@pedido_id, 5, 2, 29.99);\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES (@pedido_id, 8, 1, 49.99);\n\n-- 3. Reducir stock de cada producto\nUPDATE productos SET stock = stock - 2 WHERE id = 5;\nUPDATE productos SET stock = stock - 1 WHERE id = 8;\n\nCOMMIT;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## La diferencia entre sin y con transacción\n\n| Escenario | Sin transacción | Con transacción |\n|---|---|---|\n| Todo funciona | Los cambios se aplican uno a uno | Los cambios se confirman juntos con COMMIT |\n| Error en medio | Los cambios previos quedan, los posteriores no | ROLLBACK deshace TODO, estado original |\n| Reinicio del servidor | Los cambios parciales pueden persistir | Los cambios no confirmados se pierden |\n\n### El peligro del autocommit\n\nSin `START TRANSACTION`, cada sentencia SQL se confirma **automáticamente**. Esto se llama **autocommit** (lo veremos en detalle en la lección 3). Si ejecutas dos UPDATE sin START TRANSACTION, cada uno se confirma por separado. Si la segunda falla, la primera ya está confirmada y no puedes deshacerla.\n\n```sql\n-- Sin transacción (autocommit activo)\nUPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;\n-- Este UPDATE ya se confirmó automáticamente\nUPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;\n-- Si este falla, el primero ya está committeado\n-- No hay forma de deshacerlo con ROLLBACK\n```\n\n> **Regla**: Siempre que necesites que varias operaciones se completen juntas o no se completen en absoluto, usa una transacción."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-1-1",
+          "title": "Identificar situaciones que necesitan transacciones",
+          "difficulty": "basic",
+          "description": "Para cada escenario, indica si necesita transacción y por qué:\n1. Insertar un solo alumno nuevo en la tabla alumnos\n2. Crear un pedido con 3 líneas de producto y reducir stock de cada uno\n3. Cambiar el email de un alumno existente\n4. Dar de baja un alumno: marcar como inactivo, cancelar sus matrículas y eliminar sus notas pendientes\n5. Insertar un comentario en un foro",
+          "solution": "1. **No necesita transacción** — es una sola operación, no hay nada que sincronizar.\n2. **SÍ necesita transacción** — crear pedido + insertar líneas + reducir stock son 5 operaciones que deben ser atómicas. Si falla la reducción de stock, el pedido no debería existir.\n3. **No necesita transacción** — es un solo UPDATE.\n4. **SÍ necesita transacción** — marcar inactivo + cancelar matrículas + eliminar notas son operaciones dependientes. Si falla la cancelación de matrículas, no debería quedar marcado como inactivo.\n5. **No necesita transacción** — es un solo INSERT."
+        },
+        {
+          "id": "ex-13-1-2",
+          "title": "Escribir una transacción para academia",
+          "difficulty": "intermediate",
+          "description": "Un alumno con id=10 quiere matricularse en la asignatura 'Bases de datos'. Escribe una transacción que:\n1. Inserte la matrícula\n2. Reduzca las plazas disponibles de la asignatura en 1\n3. Si todo va bien, confirme con COMMIT\nSi algo falla, explica qué ocurriría con ROLLBACK.",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Insertar matrícula\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\nVALUES (10, (SELECT id FROM asignaturas WHERE nombre = 'Bases de datos'), CURDATE(), 'activa');\n\n-- 2. Reducir plazas\nUPDATE asignaturas\nSET plazas_disponibles = plazas_disponibles - 1\nWHERE nombre = 'Bases de datos' AND plazas_disponibles > 0;\n\n-- 3. Confirmar\nCOMMIT;\n\n-- Si algo falla (por ejemplo, plazas_disponibles = 0), ejecutar:\n-- ROLLBACK;\n-- Esto deshace la matrícula insertada y la BD queda como estaba.\n```"
+        },
+        {
+          "id": "ex-13-1-3",
+          "title": "Predicción de estado tras error",
+          "difficulty": "intermediate",
+          "description": "Considera esta secuencia sin transacción (autocommit activo):\n```sql\nUPDATE asignaturas SET creditos = 7 WHERE id = 1;\n-- La sentencia siguiente tiene un error de sintaxis\nUPDATE asignaturas SET creditos = 5 WHERE id = 2 AND;\n```\n¿Qué estado queda en la tabla asignaturas? Ahora repite con transacción:\n```sql\nSTART TRANSACTION;\nUPDATE asignaturas SET creditos = 7 WHERE id = 1;\nUPDATE asignaturas SET creditos = 5 WHERE id = 2 AND;\nROLLBACK;\n```\n¿Qué estado queda ahora?",
+          "solution": "**Sin transacción (autocommit):**\nEl primer UPDATE se confirma automáticamente (id=1 tiene creditos=7). El segundo falla por error de sintaxis. Resultado: **id=1 tiene creditos=7, id=2 no cambió**. Los datos quedan a medias.\n\n**Con transacción:**\nEl primer UPDATE se ejecuta pero NO se confirma. El segundo falla. El ROLLBACK deshace el primer UPDATE. Resultado: **ambos ids conservan sus valores originales**. La BD queda exactamente como estaba antes."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-2",
+      "title": "Propiedades ACID",
+      "order": 2,
+      "objectives": [
+        "Explicar cada propiedad ACID con ejemplos concretos en MySQL",
+        "Relacionar cada propiedad con mecanismos específicos de la base de datos",
+        "Distinguir entre propiedades que el desarrollador controla y propiedades que el motor gestiona"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ACID: las cuatro propiedades de las transacciones\n\nACID son las siglas de cuatro propiedades que toda transacción bien diseñada debe garantizar. No son conceptos abstractos — cada una se manifiesta en comportamientos concretos de MySQL.\n\n| Propiedad | Significado rápido | Quién la garantiza |\n|---|---|---|\n| **A**tomicidad | Todo o nada | El motor (InnoDB) con COMMIT/ROLLBACK |\n| **C**onsistencia | Estado válido antes y después | Restricciones de la BD + lógica de la app |\n| **I**slamiento | Transacciones no se pisan entre sí | Nivel de aislamiento + bloqueos |\n| **D**urabilidad | Lo committeado sobrevive a fallos | Log de redo en InnoDB |"
+        },
+        {
+          "type": "text",
+          "content": "## Atomicidad: todo o nada\n\nLa atomicidad garantiza que **todas** las operaciones dentro de una transacción se completan, o **ninguna** se aplica.\n\n### Ejemplo concreto\n\n```sql\nSTART TRANSACTION;\n\n-- Operación 1: registrar matrícula\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\nVALUES (10, 3, CURDATE(), 'activa');\n\n-- Operación 2: reducir plazas\nUPDATE asignaturas SET plazas_disponibles = plazas_disponibles - 1\nWHERE id = 3 AND plazas_disponibles > 0;\n\n-- Si ROW_COUNT() devuelve 0, significa que no había plazas\n-- En ese caso: ROLLBACK (deshace el INSERT también)\n-- Si todo ok: COMMIT (confirma ambas operaciones)\n\nCOMMIT;\n```\n\n**Sin atomicidad** (autocommit): el INSERT se confirma antes de que el UPDATE compruebe las plazas. Podríamos tener una matrícula sin plaza disponible.\n\n**Con atomicidad**: si el UPDATE falla o devuelve 0 filas, el ROLLBACK deshace el INSERT. La matrícula fantasma nunca existió.\n\n> **Clave**: La atomicidad la controlas tú con `START TRANSACTION`, `COMMIT` y `ROLLBACK`. El motor InnoDB se encarga de ejecutar la mecánica."
+        },
+        {
+          "type": "text",
+          "content": "## Consistencia: estado válido antes y después\n\nConsistencia significa que la base de datos pasa de un **estado válido** a otro **estado válido**. Si antes de la transacción las restricciones se cumplían, después también deben cumplirse.\n\n### Ejemplo concreto\n\nAntes de la transacción, el saldo total de todas las cuentas es 1000 euros. La transacción transfiere 100 euros de cuenta A a cuenta B. Después de la transacción:\n\n- Cuenta A: 500 - 100 = 400\n- Cuenta B: 500 + 100 = 600\n- Total: 400 + 600 = 1000 ✓\n\nEl total **no cambió**. La transferencia es consistente.\n\n### Mecanismos que protegen la consistencia en MySQL\n\n- **Claves primarias**: no permiten IDs duplicados.\n- **Claves foráneas**: no permiten referencias a registros inexistentes.\n- **Constraints UNIQUE**: no permiten valores repetidos en columnas únicas.\n- **CHECK constraints**: validan rangos y condiciones.\n- **NOT NULL**: aseguran que columnas obligatorias tengan valor.\n\n```sql\n-- Esta transacción violaría consistencia si no hay constraint\nSTART TRANSACTION;\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (999, 3, CURDATE());\n-- ERROR: foreign key constraint fails (el alumno 999 no existe)\n-- InnoDB aborta la transacción automáticamente\nROLLBACK;\n```\n\n> **Importante**: La atomicidad protege el proceso. La consistencia protege los datos. Una transacción puede ser atómica pero generar un estado inconsistente si la lógica de la aplicación tiene errores. Las restricciones de la BD son la última línea de defensa."
+        },
+        {
+          "type": "text",
+          "content": "## Aislamiento: transacciones que no se interfieren\n\nEl aislamiento garantiza que transacciones concurrentes no vean los cambios no confirmados de otras. Cada transacción opera como si fuera la única en la base de datos.\n\n### Ejemplo concreto: dos clientes compran el último producto\n\n```\nSesión A                           Sesión B\n─────────                          ─────────\nSTART TRANSACTION;                 START TRANSACTION;\n\nSELECT stock FROM productos        SELECT stock FROM productos\nWHERE id = 5;                      WHERE id = 5;\n-- Resultado: 1                    -- Resultado: 1\n\nUPDATE productos SET stock = 0     UPDATE productos SET stock = 0\nWHERE id = 5;                      WHERE id = 5;\n\nCOMMIT;                            COMMIT;\n```\n\n**Sin aislamiento**: ambos ven stock=1 y ambos reducen a 0. El producto se vende dos veces.\n\n**Con aislamiento** (REPEATABLE READ): InnoDB usa bloqueos internos para que la segunda transacción **espere** a que la primera confirme. Cuando B lee stock después del COMMIT de A, ve 0 y no puede vender.\n\n> **Nota**: El nivel de aislamiento por defecto en MySQL es `REPEATABLE READ`. Lo veremos en detalle en la lección 9."
+        },
+        {
+          "type": "text",
+          "content": "## Durabilidad: los cambios confirmados persisten\n\nLa durabilidad garantiza que una vez ejecutado `COMMIT`, los cambios **sobreviven** a cualquier fallo posterior: corte de luz, crash del servidor, error de disco.\n\n### Cómo funciona en InnoDB\n\nCuando ejecutas `COMMIT`, InnoDB no solo escribe los datos en la tabla. También escribe un registro en el **log de redo** (un archivo de bitácora). Este log se escribe en disco **antes** de que el COMMIT se confirme al cliente.\n\nSi el servidor falla después del COMMIT:\n1. Al reiniciar, InnoDB revisa el log de redo.\n2. Encuentra la transacción committeada que podría no haberse escrito a las tablas.\n3. **Reaplica** los cambios automáticamente.\n\n```\nTransacción COMMIT → Log de redo escrito en disco → ACK al cliente\n                                                       ↓\n                                          (si hay crash aquí, el log\n                                           permite recuperar los datos)\n```\n\n> **Clave**: Por eso el COMMIT no es instantáneo. InnoDB invierte tiempo en garantizar que el log esté en disco. Si alguien te dice que COMMIT es \"solo cambiar un flag\", no entiende InnoDB."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-2-1",
+          "title": "Identificar propiedades ACID en situaciones reales",
+          "difficulty": "basic",
+          "description": "Para cada situación, indica qué propiedad ACID se está violando o garantizando:\n1. Un alumno se matricula pero la plaza no se reduce porque el servidor falló a mitad del proceso y no hubo ROLLBACK.\n2. Dos profesores asignan nota al mismo alumno en el mismo examen simultáneamente, y uno sobreescribe el resultado del otro.\n3. Tras un COMMIT exitoso, un corte de luz deja el servidor apagado. Al reiniciar, los datos siguen ahí.\n4. Una transacción inserta un alumno con un email que ya existe en otra transacción concurrente.",
+          "solution": "1. **Violación de Atomicidad** — La transacción no fue atómica: una operación se aplicó y la otra no.\n\n2. **Violación de Aislamiento** — Las transacciones se interferieron entre sí. El nivel de aislamiento era demasiado bajo.\n\n3. **Garantía de Durabilidad** — El log de redo de InnoDB aseguró que los cambios persistieran.\n\n4. **Garantía de Consistencia** — El constraint UNIQUE en email impidió un estado inválido."
+        },
+        {
+          "id": "ex-13-2-2",
+          "title": "Propiedades ACID en una transacción",
+          "difficulty": "intermediate",
+          "description": "Escribe una transacción en la base de datos `tienda` que realice un pedido completo. Luego indica cómo se manifiesta cada propiedad ACID en esa transacción:\n1. Crear el pedido\n2. Insertar 2 líneas de pedido\n3. Reducir stock de cada producto\n4. Calcular el total del pedido",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Crear el pedido\nINSERT INTO pedidos (id_cliente, fecha, estado)\nVALUES (1, CURDATE(), 'pendiente');\nSET @pedido_id = LAST_INSERT_ID();\n\n-- 2. Insertar líneas\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES\n  (@pedido_id, 1, 2, 19.99),\n  (@pedido_id, 3, 1, 34.99);\n\n-- 3. Reducir stock\nUPDATE productos SET stock = stock - 2 WHERE id = 1 AND stock >= 2;\nUPDATE productos SET stock = stock - 1 WHERE id = 3 AND stock >= 1;\n\n-- 4. Calcular total\nUPDATE pedidos SET total = (2 * 19.99 + 1 * 34.99) WHERE id = @pedido_id;\n\nCOMMIT;\n```\n\n**ACID en esta transacción:**\n- **Atomicidad**: Si falla la reducción de stock, el ROLLBACK deshace el INSERT del pedido y las líneas.\n- **Consistencia**: La FOREIGN KEY en lineas_pedido garantiza que el pedido existe.\n- **Aislamiento**: Si otro cliente intenta comprar el mismo producto mientras esta transacción está abierta, los bloqueos de InnoDB lo hacen esperar.\n- **Durabilidad**: Tras COMMIT, el pedido y las líneas persisten aunque el servidor falle."
+        },
+        {
+          "id": "ex-13-2-3",
+          "title": "Relación entre ACID y MySQL",
+          "difficulty": "intermediate",
+          "description": "Relaciona cada propiedad con su mecanismo en InnoDB:\n1. ¿Qué mecanismo garantiza la Atomicidad?\n2. ¿Qué mecanismo garantiza la Durabilidad?\n3. ¿Qué elemento de la BD protege la Consistencia?\n4. ¿Qué configuración controla el Aislamiento?",
+          "solution": "1. **Atomicidad**: Los logs de undo de InnoDB permiten deshacer operaciones no confirmadas con ROLLBACK.\n2. **Durabilidad**: Los logs de redo de InnoDB. El COMMIT no retorna hasta que el registro está escrito en disco.\n3. **Consistencia**: Las restricciones de integridad: PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, NOT NULL. También la lógica de la aplicación.\n4. **Aislamiento**: El nivel de aislamiento (`transaction_isolation`) y los bloqueos internos de InnoDB (row-level locking)."
+        },
+        {
+          "id": "ex-13-2-4",
+          "title": "Consistencia: ¿quién protege qué?",
+          "difficulty": "intermediate",
+          "description": "Indica si cada regla de integridad es responsabilidad de la BD (MySQL) o de la aplicación:\n1. No permitir emails duplicados en alumnos\n2. No matricular a un alumno que no existe\n3. No vender un producto con stock 0\n4. Que el total de un pedido sea la suma de sus líneas\n5. Que la nota esté entre 0 y 10",
+          "solution": "1. **MySQL** — El constraint UNIQUE en la columna email lo impide directamente.\n2. **MySQL** — La FOREIGN KEY entre matriculas y alumnos lo impide.\n3. **MySQL + Aplicación** — MySQL puede tener un CHECK constraint, pero la lógica de stock debe validarla también la aplicación.\n4. **Aplicación** — MySQL no sabe calcular la suma de las líneas. La aplicación debe calcular y actualizar el total.\n5. **MySQL** — Un CHECK constraint: `CHECK (nota >= 0 AND nota <= 10)`.\n\n> **Principio**: MySQL protege la estructura. La aplicación protege la lógica de negocio."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-3",
+      "title": "Autocommit y control manual de transacciones",
+      "order": 3,
+      "objectives": [
+        "Comprender qué es autocommit y cómo afecta al comportamiento de cada sentencia",
+        "Verificar el estado de autocommit en MySQL",
+        "Entender por qué ROLLBACK no funciona sin START TRANSACTION cuando autocommit está activo",
+        "Configurar autocommit a nivel de sesión"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es autocommit?\n\nEn MySQL, cuando escribes una sentencia SQL sin `START TRANSACTION`, cada sentencia se confirma **automáticamente** justo después de ejecutarse. Esto se llama **autocommit**.\n\n```sql\n-- Con autocommit activo (por defecto)\nUPDATE alumnos SET activo = FALSE WHERE id = 5;\n-- Esta sentencia ya se confirmó. No puedes deshacerla.\n\nDELETE FROM notas WHERE id_alumno = 5;\n-- Esta también se confirmó por separado.\n\n-- ROLLBACK aquí no hace nada: ya no hay transacción abierta\nROLLBACK;  -- No deshace nada\n```\n\nCada sentencia es su propia transacción de duración mínima. Es como si cada UPDATE, INSERT o DELETE tuviera un COMMIT implícito al final."
+        },
+        {
+          "type": "text",
+          "content": "## El peligro: pensar que puedes hacer ROLLBACK pero no puedes\n\nMuchos desarrolladores asumen que pueden ejecutar varias sentencias y luego hacer `ROLLBACK` si algo falla. Esto **solo funciona si usaste `START TRANSACTION`**.\n\n```sql\n-- SIN START TRANSACTION (autocommit activo)\nINSERT INTO alumnos (nombre, apellido) VALUES ('Fantasma', 'Test');\n-- Ya se insertó y confirmó\n\nDELETE FROM notas WHERE id_alumno = 999;\n-- Si falla, el INSERT anterior sigue ahí\n\nROLLBACK;  -- NO deshace el INSERT\n```\n\n```sql\n-- CON START TRANSACTION\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido) VALUES ('Fantasma', 'Test');\nDELETE FROM notas WHERE id_alumno = 999;\nROLLBACK;  -- SÍ deshace el INSERT y todo lo demás\n```\n\n> **Error común**: Ejecutar `ROLLBACK` después de varias sentencias sin `START TRANSACTION` y sorprenderte de que los cambios no se deshicieron. Si no iniciaste la transacción, no hay nada que deshacer."
+        },
+        {
+          "type": "text",
+          "content": "## Consultar el estado de autocommit\n\nPuedes verificar si autocommit está activo con estas consultas:\n\n```sql\n-- Ver el valor de autocommit\nSELECT @@autocommit;\n-- 1 = activado (por defecto)\n-- 0 = desactivado\n\n-- Alternativa más descriptiva\nSHOW SESSION VARIABLES LIKE 'autocommit';\n-- Resultado:\n-- Variable_name | Value\n-- autocommit    | 1\n```\n\n### Valor 1 (activado) — por defecto\n\nCada sentencia se confirma sola. Necesitas `START TRANSACTION` para agrupar operaciones.\n\n### Valor 0 (desactivado)\n\nLas sentencias NO se confirman automáticamente. Debes ejecutar `COMMIT` explícitamente para cada lote de operaciones.\n\n```sql\n-- Desactivar autocommit\nSET autocommit = 0;\n\n-- Ahora cada sentencia queda \"pendiente\" hasta que hagas COMMIT\nINSERT INTO alumnos (nombre, apellido) VALUES ('Pendiente', 'Test');\n-- Aún no se confirmó\n\nSELECT * FROM alumnos WHERE nombre = 'Pendiente';\n-- En otra sesión, no verías esta fila todavía\n\nCOMMIT;  -- Ahora sí se confirma\n```\n\n> **Recomendación**: No desactives autocommit globalmente. Usa `START TRANSACTION` cuando necesites agrupar operaciones. Es más claro y menos propenso a errores."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: autocommit vs START TRANSACTION\n\n| Situación | Comportamiento |\n|---|---|\n| Sin `START TRANSACTION` (autocommit=1) | Cada sentencia se confirma sola. ROLLBACK no tiene efecto. |\n| Con `START TRANSACTION` | Las sentencias quedan pendientes hasta COMMIT. ROLLBACK deshace todo. |\n| `SET autocommit = 0` | Las sentencias quedan pendientes sin necesidad de START TRANSACTION. Menos recomendado. |\n\n### La mejor práctica\n\n```sql\n-- USA ESTO:\nSTART TRANSACTION;\n-- operaciones...\nCOMMIT;  -- o ROLLBACK si algo falla\n\n-- NO ESTO (autocommit global desactivado):\nSET autocommit = 0;\n-- operaciones...\nCOMMIT;\n-- (olvidas reactivar autocommit y todo se vuelve lento)\n```\n\n`START TRANSACTION` es **explícito, claro y terminado**. Sabes exactamente dónde empieza y dónde acaba la transacción."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-3-1",
+          "title": "Verificar autocommit",
+          "difficulty": "basic",
+          "description": "Escribe las consultas necesarias para:\n1. Verificar si autocommit está activo\n2. Desactivarlo temporalmente\n3. Verificar que se desactivó\n4. Reactivarlo al terminar",
+          "solution": "```sql\n-- 1. Verificar estado actual\nSELECT @@autocommit;\n\n-- 2. Desactivar autocommit\nSET SESSION autocommit = 0;\n\n-- 3. Verificar que se desactivó\nSELECT @@autocommit;\n-- Debe mostrar 0\n\n-- 4. Reactivar al terminar\nCOMMIT;  -- Confirmar operaciones pendientes\nSET SESSION autocommit = 1;\n\n-- Verificar\nSELECT @@autocommit;\n-- Debe mostrar 1\n```"
+        },
+        {
+          "id": "ex-13-3-2",
+          "title": "ROLLBACK sin START TRANSACTION",
+          "difficulty": "intermediate",
+          "description": "Ejecuta este código en MySQL y explica qué resultado obtienes:\n```sql\nDELETE FROM notas WHERE id_alumno = 1;\nROLLBACK;\nSELECT COUNT(*) FROM notas WHERE id_alumno = 1;\n```\nLuego ejecuta este otro:\n```sql\nSTART TRANSACTION;\nDELETE FROM notas WHERE id_alumno = 1;\nROLLBACK;\nSELECT COUNT(*) FROM notas WHERE id_alumno = 1;\n```\nExplica por qué los resultados son diferentes.",
+          "solution": "**Código 1 (sin START TRANSACTION):**\nEl DELETE se ejecuta y se confirma automáticamente por autocommit. El ROLLBACK no tiene efecto porque ya no hay transacción abierta. El COUNT devolverá 0 (las notas se eliminaron permanentemente).\n\n**Código 2 (con START TRANSACTION):**\nEl DELETE queda pendiente dentro de la transacción. El ROLLBACK deshace el DELETE. El COUNT devolverá el número original de notas (las notas siguen intactas).\n\n**Por qué**: Sin `START TRANSACTION`, cada sentencia es su propia transacción que se confirma sola. Con `START TRANSACTION`, las sentencias quedan en una transacción que puede deshacerse."
+        },
+        {
+          "id": "ex-13-3-3",
+          "title": "Patrón correcto: START TRANSACTION + COMMIT/ROLLBACK",
+          "difficulty": "intermediate",
+          "description": "Un sistema de academia necesita dar de baja un alumno: cancelar sus matrículas activas, eliminar sus notas pendientes y marcarlo como inactivo. Escribe el código con el patrón correcto usando START TRANSACTION y manejo de errores.",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Cancelar matrículas activas\nUPDATE matriculas\nSET estado = 'cancelada'\nWHERE id_alumno = 10 AND estado = 'activa';\n\n-- 2. Eliminar notas pendientes\nDELETE FROM notas\nWHERE id_alumno = 10 AND convocatoria = 'Pendiente';\n\n-- 3. Marcar alumno como inactivo\nUPDATE alumnos SET activo = FALSE WHERE id = 10;\n\nCOMMIT;\n\n-- Si en cualquier paso hubiera un error, la aplicación ejecutaría:\n-- ROLLBACK;\n-- Y quedaría todo como estaba.\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-4",
+      "title": "START TRANSACTION, COMMIT y ROLLBACK",
+      "order": 4,
+      "objectives": [
+        "Ejecutar transacciones completas con START TRANSACTION, COMMIT y ROLLBACK",
+        "Comprender que ROLLBACK después de COMMIT no tiene efecto",
+        "Diseñar el patrón típico de transacción con manejo de errores",
+        "Aplicar transacciones a casos reales de la base de datos academia y tienda"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Sintaxis completa\n\n```sql\nSTART TRANSACTION;\n-- (o BEGIN TRANSACTION, o solo BEGIN — son equivalentes en MySQL)\n\n-- Operaciones...\nINSERT INTO alumnos (nombre, apellido) VALUES ('Nuevo', 'Alumno');\nUPDATE asignaturas SET plazas = plazas - 1 WHERE id = 1;\n\n-- Decisión:\nCOMMIT;    -- Confirmar todo\n-- o\nROLLBACK;  -- Deshacer todo\n```\n\n### Tres formas de iniciar una transacción\n\n```sql\nSTART TRANSACTION;   -- La más común y explícita\nBEGIN TRANSACTION;   -- Equivalente\nBEGIN;               -- Equivalente pero menos claro\n```\n\nTodas son equivalentes en MySQL. Usa `START TRANSACTION` por claridad."
+        },
+        {
+          "type": "text",
+          "content": "## COMMIT: confirmar los cambios\n\n`COMMIT` es irreversible. Una vez ejecutado, los cambios forman parte permanente de la base de datos.\n\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Laura', 'Torres', 'laura@email.com');\nCOMMIT;  -- La fila está confirmada para siempre\n\n-- Intentar deshacer después del COMMIT:\nROLLBACK;  -- NO tiene ningún efecto. Ya no hay transacción abierta.\n```\n\n### ¿Por qué es irreversible?\n\nPorque otros usuarios pueden haber leído los datos que committeaste. Si pudieras deshacer después del COMMIT, otros usuarios habrían visto datos que \"nunca existieron\". Eso rompería la consistencia.\n\n> **Analogía**: COMMIT es como dar la mano en un apretón. Una vez que la sueltas, no puedes \"des-apretar\". El acuerdo se cerró."
+        },
+        {
+          "type": "text",
+          "content": "## ROLLBACK: deshacer los cambios no confirmados\n\n`ROLLBACK` solo funciona **antes** de `COMMIT`. Deshace todas las operaciones de la transacción actual.\n\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido) VALUES ('Prueba', 'Test');\nSELECT * FROM alumnos WHERE nombre = 'Prueba';\n-- Sí aparece (dentro de esta sesión)\n\nROLLBACK;\n\nSELECT * FROM alumnos WHERE nombre = 'Prueba';\n-- Ya no aparece\n```\n\n### Limitaciones del ROLLBACK\n\n- **No puede deshacer un COMMIT previo**: después de COMMIT, ROLLBACK no hace nada.\n- **No funciona sin transacción abierta**: sin `START TRANSACTION`, no hay nada que deshacer.\n- **No deshace ciertas operaciones DDL**: CREATE TABLE, ALTER TABLE, DROP TABLE ejecutan commits implícitos en MySQL (lo veremos en la lección 5)."
+        },
+        {
+          "type": "text",
+          "content": "## El patrón de transacción con manejo de errores\n\nEn la práctica, las transacciones se usan con lógica condicional para detectar errores:\n\n```sql\nSTART TRANSACTION;\n\n-- Paso 1: Verificar stock\nSELECT stock INTO @stock_actual\nFROM productos WHERE id = 5;\n\n-- Paso 2: Validar stock suficiente\nIF @stock_actual >= 2 THEN\n  -- Paso 3: Crear pedido\n  INSERT INTO pedidos (id_cliente, fecha, estado)\n  VALUES (1, CURDATE(), 'pendiente');\n  SET @pedido_id = LAST_INSERT_ID();\n\n  -- Paso 4: Insertar líneas\n  INSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\n  VALUES (@pedido_id, 5, 2, 29.99);\n\n  -- Paso 5: Reducir stock\n  UPDATE productos SET stock = stock - 2 WHERE id = 5;\n\n  COMMIT;\n  SELECT 'Pedido creado exitosamente' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'Error: stock insuficiente' AS resultado;\nEND IF;\n```\n\n> **Nota**: En aplicaciones reales, esta lógica está en el código de la aplicación (Java, Python, PHP), no en SQL puro. Pero el patrón es el mismo: START → validar → operar → COMMIT o ROLLBACK."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo completo: transferencia entre cuentas bancarias\n\n```sql\n-- Tabla de ejemplo\nCREATE TABLE cuentas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titular VARCHAR(100) NOT NULL,\n  saldo DECIMAL(10,2) NOT NULL DEFAULT 0.00\n);\n\nINSERT INTO cuentas (titular, saldo) VALUES\n  ('Alice', 500.00),\n  ('Bob', 300.00);\n\n-- La transferencia\nSTART TRANSACTION;\n\n-- 1. Verificar saldo suficiente\nSELECT saldo INTO @saldo_alice\nFROM cuentas WHERE id = 1 FOR UPDATE;\n\nIF @saldo_alice >= 100 THEN\n  -- 2. Restar de Alice\n  UPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;\n  -- 3. Sumar a Bob\n  UPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;\n  COMMIT;\n  SELECT 'Transferencia completada' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'Error: saldo insuficiente' AS resultado;\nEND IF;\n\n-- Verificar\nSELECT titular, saldo FROM cuentas;\n-- Alice: 400.00, Bob: 400.00\n```\n\n> **Importante**: El `FOR UPDATE` en el SELECT asegura que nadie más modifique la cuenta de Alice mientras la transacción está abierta (lo veremos en detalle en la lección 10)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-4-1",
+          "title": "Transacción con ROLLBACK intencionado",
+          "difficulty": "basic",
+          "description": "Escribe una transacción que:\n1. Inserte un alumno ficticio\n2. Inserte una nota para ese alumno\n3. Verifique que ambos registros existen (SELECT)\n4. Haga ROLLBACK\n5. Verifique que ambos registros ya no existen",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Insertar alumno\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Fantasma', 'Rollback', 'fantasma@test.com');\n\nSET @id_fantasma = LAST_INSERT_ID();\n\n-- 2. Insertar nota\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (@id_fantasma, 1, 5.00, 'Test');\n\n-- 3. Verificar que existen\nSELECT a.nombre, n.nota\nFROM alumnos a JOIN notas n ON a.id = n.id_alumno\nWHERE a.id = @id_fantasma;\n-- Sí aparecen\n\n-- 4. ROLLBACK\nROLLBACK;\n\n-- 5. Verificar que ya no existen\nSELECT * FROM alumnos WHERE nombre = 'Fantasma';\n-- 0 resultados\nSELECT * FROM notas WHERE id_alumno = @id_fantasma;\n-- 0 resultados\n```"
+        },
+        {
+          "id": "ex-13-4-2",
+          "title": "Transacción de baja en academia",
+          "difficulty": "intermediate",
+          "description": "Un alumno con id=7 quiere darse de baja de todas sus asignaturas. Escribe una transacción que:\n1. Cancele todas sus matrículas activas\n2. Elimine sus notas con convocatoria 'Pendiente'\n3. Si todo sale bien, confirme con COMMIT\nSi el alumno no tiene matrículas activas, que la transacción no haga nada y confirme normalmente.",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Cancelar matrículas activas\nUPDATE matriculas\nSET estado = 'cancelada'\nWHERE id_alumno = 7 AND estado = 'activa';\n\n-- 2. Eliminar notas pendientes\nDELETE FROM notas\nWHERE id_alumno = 7 AND convocatoria = 'Pendiente';\n\n-- 3. Confirmar\nCOMMIT;\n\n-- Verificar el resultado final\nSELECT a.nombre, m.estado, asig.nombre AS asignatura\nFROM alumnos a\nJOIN matriculas m ON a.id = m.id_alumno\nJOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE a.id = 7;\n```"
+        },
+        {
+          "id": "ex-13-4-3",
+          "title": "Error después de COMMIT",
+          "difficulty": "basic",
+          "description": "Explica por qué este código NO deshace la inserción:\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Permanent', 'Change', 'perm@test.com');\nCOMMIT;\nROLLBACK;\n```\nY este código SÍ la deshace:\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Temporary', 'Change', 'temp@test.com');\nROLLBACK;\n```",
+          "solution": "**Código 1**: El `COMMIT` confirma los cambios **antes** del `ROLLBACK`. Una vez ejecutado COMMIT, la transacción terminó. El `ROLLBACK` posterior no tiene transacción que deshacer, así que no hace nada. El alumno 'Permanent Change' queda en la tabla.\n\n**Código 2**: El `ROLLBACK` se ejecuta **antes** de cualquier COMMIT. Deshace el INSERT pendiente. El alumno 'Temporary Change' nunca llegó a confirmarse.\n\n**Lección**: COMMIT es el punto de no retorno. Después de él, no hay vuelta atrás."
+        },
+        {
+          "id": "ex-13-4-4",
+          "title": "Transacción de tienda con validación",
+          "difficulty": "advanced",
+          "description": "Escribe una transacción en la base de datos `tienda` que realice un pedido con las siguientes validaciones:\n1. Verificar que el cliente existe\n2. Verificar que el producto tiene stock suficiente\n3. Si ambas validaciones pasan: crear pedido, insertar línea, reducir stock y calcular total\n4. Si alguna validación falla: ROLLBACK con mensaje de error",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Verificar que el cliente existe\nSELECT COUNT(*) INTO @cliente_existe\nFROM clientes WHERE id = 1;\n\nIF @cliente_existe = 0 THEN\n  ROLLBACK;\n  SELECT 'Error: cliente no encontrado' AS resultado;\nELSE\n  -- 2. Verificar stock del producto con bloqueo\n  SELECT stock INTO @stock\n  FROM productos WHERE id = 5 FOR UPDATE;\n\n  IF @stock < 2 THEN\n    ROLLBACK;\n    SELECT 'Error: stock insuficiente' AS resultado;\n  ELSE\n    -- 3. Crear pedido\n    INSERT INTO pedidos (id_cliente, fecha, estado)\n    VALUES (1, CURDATE(), 'pendiente');\n    SET @pedido_id = LAST_INSERT_ID();\n\n    -- 4. Insertar línea\n    INSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\n    VALUES (@pedido_id, 5, 2, (SELECT precio FROM productos WHERE id = 5));\n\n    -- 5. Reducir stock\n    UPDATE productos SET stock = stock - 2 WHERE id = 5;\n\n    COMMIT;\n    SELECT CONCAT('Pedido #', @pedido_id, ' creado exitosamente') AS resultado;\n  END IF;\nEND IF;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-5",
+      "title": "DDL y commits implícitos en MySQL",
+      "order": 5,
+      "objectives": [
+        "Reconocer que ciertas sentencias DDL provocan commits implícitos en MySQL",
+        "Identificar qué sentencias causan commits implícitos",
+        "Diseñar transacciones evitando DDL dentro del bloque transaccional",
+        "Comprender por qué esta limitación existe"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El problema: DDL dentro de una transacción\n\nEn teoría, todo lo que escribas entre `START TRANSACTION` y `ROLLBACK` debería deshacerse. En la práctica, **MySQL tiene una particularidad importante**: ciertas sentencias DDL ejecutan un **commit implícito**.\n\n```sql\nSTART TRANSACTION;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('Test', 'DDL');\n\n-- Esta línea provoca un commit implícito\nCREATE TABLE temporal (id INT);\n\nROLLBACK;\n-- El INSERT NO se deshizo. El CREATE TABLE ya ejecutó un COMMIT.\n```\n\nAl ejecutar `CREATE TABLE`, MySQL confirma automáticamente lo que había en la transacción. El `ROLLBACK` posterior no puede deshacer el INSERT porque ya fue commiteado."
+        },
+        {
+          "type": "text",
+          "content": "## Sentencias que causan commits implícitos\n\nEstas sentencias ejecutan un COMMIT automático antes de ejecutarse:\n\n| Categoría | Sentencias |\n|---|---|\n| **DDL** | CREATE TABLE, ALTER TABLE, DROP TABLE, CREATE INDEX, DROP INDEX, CREATE DATABASE, DROP DATABASE, CREATE VIEW, DROP TRIGGER |\n| **Administración** | GRANT, REVOKE, LOCK TABLES, UNLOCK TABLES |\n| **Transacción** | START TRANSACTION (cierra transacción anterior si la hay) |\n\n### Regla práctica\n\n**No mezcles DDL y DML en la misma transacción.** Si necesitas crear una tabla y luego insertar datos, hazlo en transacciones separadas:\n\n```sql\n-- Primero: DDL (se ejecuta sola)\nCREATE TABLE logs_operaciones (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  operacion VARCHAR(50),\n  fecha DATETIME DEFAULT NOW()\n);\n\n-- Después: DML en transacción\nSTART TRANSACTION;\nINSERT INTO logs_operaciones (operacion) VALUES ('INICIO');\n-- ... más operaciones ...\nCOMMIT;\n```\n\n> **Nota**: No todas las sentencias DDL causan commits implícitos. Por ejemplo, `ANALYZE TABLE` no lo hace. Pero es más seguro asumir que cualquier DDL lo hace."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Por qué MySQL hace esto?\n\nMySQL confirma automáticamente antes de DDL por una razón práctica: **no puede deshacer DDL de forma segura**.\n\nSi ejecutas `DROP TABLE` dentro de una transacción y luego haces `ROLLBACK`, MySQL tendría que \"recrear\" la tabla con todos sus datos, estructura, índices y constraints. Esto es extremadamente complejo y frágil.\n\nLa solución de MySQL es simple: ejecuta un COMMIT antes del DDL, de modo que:\n1. Los datos DML anteriores están seguros.\n2. El DDL se ejecuta en su propia \"transacción\".\n3. No hay ambigüedad sobre qué está commiteado y qué no.\n\n> **Nota**: Esto es una limitación de MySQL. Otros motores como PostgreSQL manejan DDL dentro de transacciones de forma diferente. Si vienes de otro SGBD, no asumas el mismo comportamiento."
+        },
+        {
+          "type": "text",
+          "content": "## Cómo evitar el problema\n\n### Patrón 1: DDL antes de la transacción\n\n```sql\n-- Si necesitas una tabla temporal, créala ANTES\nCREATE TEMPORARY TABLE tmp_estudiantes (\n  id INT, nombre VARCHAR(50)\n);\n\n-- Ahora sí la transacción\nSTART TRANSACTION;\nINSERT INTO tmp_estudiantes\nSELECT id, nombre FROM alumnos WHERE activo = TRUE;\nCOMMIT;\n```\n\n### Patrón 2: DDL después de la transacción\n\n```sql\nSTART TRANSACTION;\n-- Operaciones DML...\nCOMMIT;\n\n-- Después del COMMIT, hacer DDL si es necesario\nALTER TABLE alumnos ADD COLUMN foto VARCHAR(255);\n```\n\n### Patrón 3: Usa CREATE TEMPORARY TABLE\n\nLas tablas temporales se crean y eliminan sin afectar la transacción principal:\n\n```sql\nSTART TRANSACTION;\n\nCREATE TEMPORARY TABLE tmp_resultado AS\nSELECT * FROM alumnos WHERE activo = TRUE;\n\n-- Trabaja con la tabla temporal\nSELECT * FROM tmp_resultado;\n\nROLLBACK;  -- La tabla temporal sigue existiendo (no fue commiteada)\n-- Pero los cambios en las tablas reales SÍ se deshicieron\n```\n\n> **Consejo**: Si estás escribiendo migraciones de datos dentro de una transacción, verifica cada sentencia DDL. Si necesitas CREATE TABLE o ALTER TABLE, separa esa operación."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-5-1",
+          "title": "Detectar commits implícitos",
+          "difficulty": "basic",
+          "description": "¿Cuáles de estas sentencias provocan un commit implícito en MySQL?\n1. CREATE TABLE\n2. INSERT INTO\n3. ALTER TABLE\n4. UPDATE\n5. DROP TABLE\n6. GRANT\n7. SELECT\n8. DELETE",
+          "solution": "**Provocan commit implícito:**\n1. CREATE TABLE ✅\n3. ALTER TABLE ✅\n5. DROP TABLE ✅\n6. GRANT ✅\n\n**No provocan commit implícito:**\n2. INSERT INTO ❌\n4. UPDATE ❌\n7. SELECT ❌\n8. DELETE ❌\n\nLos DML no provocan commits implícitos. Los DDL sí."
+        },
+        {
+          "id": "ex-13-5-2",
+          "title": "Corregir código con commit implícito",
+          "difficulty": "intermediate",
+          "description": "Este código tiene un problema. Encuéntralo y corrígelo:\n```sql\nSTART TRANSACTION;\n\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Prueba', 'Commit', 'prueba@test.com');\n\nALTER TABLE alumnos ADD COLUMN observaciones TEXT;\n\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (LAST_INSERT_ID(), 1, 7.5, 'Ordinaria');\n\nROLLBACK;\n```",
+          "solution": "**Problema**: El `ALTER TABLE` ejecuta un commit implícito. Después de esa línea, el primer INSERT ya está confirmado. El ROLLBACK posterior solo deshace el segundo INSERT, pero el alumno queda en la tabla.\n\n**Corrección**: Separar el DDL del DML.\n\n```sql\n-- Paso 1: DDL por separado\nALTER TABLE alumnos ADD COLUMN observaciones TEXT;\n\n-- Paso 2: DML en transacción\nSTART TRANSACTION;\n\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Prueba', 'Commit', 'prueba@test.com');\n\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (LAST_INSERT_ID(), 1, 7.5, 'Ordinaria');\n\nROLLBACK;  -- Ahora SÍ deshace ambos INSERTs\n```"
+        },
+        {
+          "id": "ex-13-5-3",
+          "title": "Estrategia con tablas temporales",
+          "difficulty": "advanced",
+          "description": "Necesitas crear una tabla temporal para calcular estadísticas de alumnos, y luego usar esos datos dentro de una transacción. Diseña una estrategia que evite el commit implícito.",
+          "solution": "```sql\n-- Paso 1: Crear tabla temporal (fuera de la transacción)\nCREATE TEMPORARY TABLE tmp_estadisticas AS\nSELECT a.id, a.nombre, COUNT(n.id) AS total_notas, AVG(n.nota) AS media\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre;\n\n-- Paso 2: Usar en transacción (sin DDL)\nSTART TRANSACTION;\n\nUPDATE alumnos a\nJOIN tmp_estadisticas t ON a.id = t.id\nSET a.observaciones = CASE\n  WHEN t.media >= 9 THEN 'Excelente'\n  WHEN t.media >= 7 THEN 'Bueno'\n  WHEN t.media >= 5 THEN 'Regular'\n  ELSE 'Deficiente'\nEND\nWHERE t.total_notas > 0;\n\nCOMMIT;\n\n-- Paso 3: Limpiar\nDROP TEMPORARY TABLE IF EXISTS tmp_estadisticas;\n```\n\nLa clave es: **CREATE TEMPORARY TABLE antes de START TRANSACTION**."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-6",
+      "title": "SAVEPOINT y reversión parcial",
+      "order": 6,
+      "objectives": [
+        "Crear puntos de guardado con SAVEPOINT",
+        "Revertir parcialmente una transacción con ROLLBACK TO SAVEPOINT",
+        "Liberar savepoints con RELEASE SAVEPOINT",
+        "Aplicar SAVEPOINT en escenarios con múltiples pasos donde algunos son opcionales"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El problema: ROLLBACK es demasiado drástico\n\nA veces necesitas deshacer **algunas** operaciones sin deshacer **todas**. Con ROLLBACK normal, o conservas todo o borras todo. No hay punto medio.\n\n```sql\nSTART TRANSACTION;\n\n-- Paso 1: Crear alumno (IMPORTANTE, no quiero perder esto)\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Carlos', 'Nuevo', 'carlos@email.com');\n\n-- Paso 2: Matricularlo (IMPORTANTE)\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (LAST_INSERT_ID(), 1, CURDATE());\n\n-- Paso 3: Enviar email de bienvenida (opcional, puede fallar)\n-- Si el servicio de email está caído, no quiero perder los pasos 1 y 2\n\nROLLBACK;  -- ❌ Esto deshace TODO: alumno, matrícula y email\n```\n\n¿Cómo conservar los pasos 1 y 2 pero deshacer el paso 3? Con `SAVEPOINT`."
+        },
+        {
+          "type": "text",
+          "content": "## SAVEPOINT: crear puntos de guardado\n\nUn `SAVEPOINT` crea un marcador dentro de la transacción. Puedes volver a ese punto sin perder todo.\n\n```sql\nSTART TRANSACTION;\n\n-- Paso 1: Crear alumno\nINSERT INTO alumnos (nombre, apellido, email)\nVALUES ('Carlos', 'Nuevo', 'carlos@email.com');\nSET @id_carlos = LAST_INSERT_ID();\n\n-- Paso 2: Matricular\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula)\nVALUES (@id_carlos, 1, CURDATE());\n\nSAVEPOINT sp_antes_opcional;  -- Guardar punto aquí\n\n-- Paso 3: Operación opcional\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (@id_carlos, 1, 0, 'Pendiente');\n\n-- Si el paso 3 falla, podemos volver al savepoint:\nROLLBACK TO SAVEPOINT sp_antes_opcional;\n-- Los pasos 1 y 2 se conservan, el paso 3 se deshace\n\n-- Continuar con la transacción...\nCOMMIT;  -- Confirma los pasos 1 y 2\n```\n\n> **Analogía**: Un SAVEPOINT es como un punto de guardado en un videojuego. Si mueres, vuelves al punto de guardado, no al inicio del juego."
+        },
+        {
+          "type": "text",
+          "content": "## ROLLBACK TO SAVEPOINT: reversión parcial\n\n`ROLLBACK TO SAVEPOINT nombre` deshace **solo** las operaciones posteriores al savepoint. Las operaciones anteriores se conservan.\n\n```sql\nSTART TRANSACTION;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('A', '1');  -- Se conserva\nSAVEPOINT sp1;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('B', '2');  -- Se deshace\nINSERT INTO alumnos (nombre, apellido) VALUES ('C', '3');  -- Se deshace\n\nROLLBACK TO SAVEPOINT sp1;\n-- Solo B y C se deshicieron. A sigue ahí.\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('D', '4');  -- Nueva operación\nCOMMIT;\n-- Resultado: A y D están en la tabla\n```\n\n### Orden de los savepoints\n\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido) VALUES ('A', '1');\nSAVEPOINT sp1;\nINSERT INTO alumnos (nombre, apellido) VALUES ('B', '2');\nSAVEPOINT sp2;\nINSERT INTO alumnos (nombre, apellido) VALUES ('C', '3');\n\nROLLBACK TO SAVEPOINT sp1;\n-- B y C se deshicieron. A sigue.\n-- sp2 ya no existe (fue creado después de sp1)\n\nCOMMIT;  -- Solo A queda\n```\n\n> **Nota**: Si haces `ROLLBACK TO SAVEPOINT sp1`, el savepoint `sp2` (que estaba después) se elimina automáticamente."
+        },
+        {
+          "type": "text",
+          "content": "## RELEASE SAVEPOINT: liberar un savepoint\n\n`RELEASE SAVEPOINT` elimina un savepoint sin deshacer nada. Es útil para \"olvidar\" un punto de guardado que ya no necesitas.\n\n```sql\nSTART TRANSACTION;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('A', '1');\nSAVEPOINT sp1;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('B', '2');\nRELEASE SAVEPOINT sp1;  -- sp1 ya no existe\n\n-- Si intentas volver a sp1:\nROLLBACK TO SAVEPOINT sp1;\n-- ERROR: SAVEPOINT sp1 does not exist\n\nCOMMIT;\n```\n\n### Resumen de SAVEPOINT\n\n| Comando | Qué hace |\n|---|---|\n| `SAVEPOINT nombre` | Crea un punto de guardado |\n| `ROLLBACK TO SAVEPOINT nombre` | Deshace hasta el punto, mantiene el savepoint |\n| `RELEASE SAVEPOINT nombre` | Elimina el savepoint sin deshacer nada |\n| `ROLLBACK` (sin TO) | Deshace TODO (cierra la transacción) |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: academia con operaciones opcionales\n\n```sql\nSTART TRANSACTION;\n\n-- 1. Registrar matrícula (obligatorio)\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\nVALUES (15, 3, CURDATE(), 'activa');\n\n-- 2. Reducir plazas (obligatorio)\nUPDATE asignaturas SET plazas_disponibles = plazas_disponibles - 1\nWHERE id = 3;\n\nSAVEPOINT sp_post_matricula;  -- Punto después de lo obligatorio\n\n-- 3. Registrar pago (puede fallar si el servicio de pago no responde)\nINSERT INTO pagos (id_alumno, id_asignatura, cantidad, fecha, metodo)\nVALUES (15, 3, 120.00, CURDATE(), 'tarjeta');\n\n-- 4. Enviar confirmación por email (puede fallar)\nINSERT INTO notificaciones (id_alumno, tipo, mensaje)\nVALUES (15, 'matricula', 'Te has matriculado en Bases de datos');\n\n-- Si los pasos 3 o 4 fallan:\n-- ROLLBACK TO SAVEPOINT sp_post_matricula;\n-- La matrícula y la reducción de plazas se conservan.\n\n-- Si todo va bien:\nCOMMIT;  -- Todo confirmado\n```\n\n> **Clave**: SAVEPOINT es perfecto para separar lo **obligatorio** de lo **opcional** dentro de una misma transacción."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-6-1",
+          "title": "Uso básico de SAVEPOINT",
+          "difficulty": "basic",
+          "description": "Ejecuta este código y describe el estado final de la tabla alumnos:\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido) VALUES ('Primero', 'A');\nSAVEPOINT sp1;\nINSERT INTO alumnos (nombre, apellido) VALUES ('Segundo', 'B');\nSAVEPOINT sp2;\nINSERT INTO alumnos (nombre, apellido) VALUES ('Tercero', 'C');\nROLLBACK TO SAVEPOINT sp1;\nINSERT INTO alumnos (nombre, apellido) VALUES ('Cuarto', 'D');\nCOMMIT;\n```",
+          "solution": "**Estado final**: Solo existen 'Primero A' y 'Cuarto D'.\n\n**Razonamiento**:\n1. 'Primero A' se inserta antes de sp1 → se conserva.\n2. 'Segundo B' se inserta después de sp1 → se deshace con ROLLBACK TO sp1.\n3. 'Tercero C' se inserta después de sp2 → también se deshace con ROLLBACK TO sp1.\n4. sp2 se elimina automáticamente al hacer ROLLBACK TO sp1.\n5. 'Cuarto D' se inserta después del ROLLBACK → se conserva.\n6. COMMIT confirma: Primero A y Cuarto D."
+        },
+        {
+          "id": "ex-13-6-2",
+          "title": "SAVEPOINT con operaciones opcionales",
+          "difficulty": "intermediate",
+          "description": "Diseña una transacción en `tienda` que:\n1. Cree un pedido (obligatorio)\n2. Inserte las líneas del pedido (obligatorio)\n3. Use un SAVEPOINT\n4. Inserte un cupón de descuento asociado al pedido (opcional, puede fallar)\n5. Inserte una nota interna (opcional, puede fallar)\nSi las operaciones opcionales fallan, que se pueda revertir solo esas sin perder el pedido.",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Crear pedido (obligatorio)\nINSERT INTO pedidos (id_cliente, fecha, estado)\nVALUES (1, CURDATE(), 'pendiente');\nSET @pedido_id = LAST_INSERT_ID();\n\n-- 2. Insertar líneas (obligatorio)\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES\n  (@pedido_id, 5, 2, 29.99),\n  (@pedido_id, 8, 1, 49.99);\n\n-- SAVEPOINT antes de operaciones opcionales\nSAVEPOINT sp_post_pedido;\n\n-- 3. Cupón de descuento (opcional)\nINSERT INTO cupones_pedido (id_pedido, codigo, descuento)\nVALUES (@pedido_id, 'BIENVENIDA10', 10.00);\n\n-- 4. Nota interna (opcional)\nINSERT INTO notas_pedido (id_pedido, nota, autor)\nVALUES (@pedido_id, 'Cliente nuevo, dar seguimiento', 'sistema');\n\n-- Si alguna de las opcionales falla:\n-- ROLLBACK TO SAVEPOINT sp_post_pedido;\n\n-- Si todo está bien:\nCOMMIT;\n```"
+        },
+        {
+          "id": "ex-13-6-3",
+          "title": "Múltiples savepoints",
+          "difficulty": "advanced",
+          "description": "Escribe una transacción que inserte 5 alumnos usando savepoints intermedios. Después, ejecuta un ROLLBACK TO el segundo savepoint. ¿Qué alumnos quedan en la tabla?",
+          "solution": "```sql\nSTART TRANSACTION;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('Alumno', '1');\nSAVEPOINT sp_a;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('Alumno', '2');\nSAVEPOINT sp_b;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('Alumno', '3');\nSAVEPOINT sp_c;\n\nINSERT INTO alumnos (nombre, apellido) VALUES ('Alumno', '4');\nINSERT INTO alumnos (nombre, apellido) VALUES ('Alumno', '5');\n\nROLLBACK TO SAVEPOINT sp_b;\n\nCOMMIT;\n```\n\n**Resultado**: Solo quedan **Alumno 1** y **Alumno 2**.\n\n- Alumno 1: antes de sp_a → se conserva ✓\n- Alumno 2: antes de sp_b → se conserva ✓\n- Alumno 3, 4, 5: después de sp_b → se deshicieron ✗\n- sp_c: creado después de sp_b → se eliminó automáticamente"
+        },
+        {
+          "id": "ex-13-6-4",
+          "title": "RELEASE SAVEPOINT y sus efectos",
+          "difficulty": "intermediate",
+          "description": "¿Qué resultado da este código? Explica paso a paso:\n```sql\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido) VALUES ('A', '1');\nSAVEPOINT sp1;\nINSERT INTO alumnos (nombre, apellido) VALUES ('B', '2');\nRELEASE SAVEPOINT sp1;\nROLLBACK TO SAVEPOINT sp1;\n```",
+          "solution": "**Resultado**: Error al intentar hacer ROLLBACK TO SAVEPOINT sp1.\n\n**Explicación**:\n1. Se inserta 'A 1'.\n2. Se crea sp1.\n3. Se inserta 'B 2'.\n4. `RELEASE SAVEPOINT sp1` elimina el savepoint.\n5. `ROLLBACK TO SAVEPOINT sp1` falla: **ERROR: SAVEPOINT sp1 does not exist**.\n\n**Lección**: RELEASE SAVEPOINT elimina el punto de guardado permanentemente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-7",
+      "title": "Qué ocurre cuando varios usuarios trabajan a la vez",
+      "order": 7,
+      "objectives": [
+        "Comprender el problema de concurrencia en bases de datos",
+        "Visualizar cómo dos sesiones interactúan con los mismos datos",
+        "Usar dos conexiones simultáneas en MySQL Workbench",
+        "Reconocer que la concurrencia es un problema real que afecta a todas las aplicaciones multiusuario"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El mundo real es concurrente\n\nEn una base de datos real, **múltiples usuarios acceden al mismo tiempo**. Un banco tiene miles de clientes moviendo dinero simultáneamente. Una tienda online tiene cientos de compradores en hora punta. Una academia tiene profesores y alumnos conectados a la vez.\n\nSi no gestionamos esta concurrencia, los datos pueden corromperse.\n\n### Ejemplo: dos clientes compran el último producto\n\n```\nSesión A (Cliente 1)             Sesión B (Cliente 2)\n──────────────────               ──────────────────\n                                 START TRANSACTION;\nSTART TRANSACTION;\nSELECT stock FROM productos\nWHERE id = 5;\n-- Resultado: 1\n                                 SELECT stock FROM productos\n                                 WHERE id = 5;\n                                 -- Resultado: 1 (¡mismo valor!)\n\nUPDATE productos\nSET stock = 0\nWHERE id = 5;\n                                 UPDATE productos\n                                 SET stock = 0\n                                 WHERE id = 5;\n\nCOMMIT;                          COMMIT;\n\n-- stock = 0 en ambos casos\n-- Pero el producto se \"vendió\" DOS VECES\n-- con solo 1 unidad de stock\n```\n\nSin mecanismos de concurrencia, ambos clientes ven stock=1, ambos reducen a 0, y el producto se vende dos veces con una sola unidad."
+        },
+        {
+          "type": "text",
+          "content": "## Sesiones: el concepto clave\n\nEn MySQL, cada conexión al servidor es una **sesión**. Cada sesión tiene su propia transacción, sus variables de sesión y su contexto.\n\n```\nServidor MySQL\n├── Sesión 1 (cliente 1, mysql workbench pestaña 1)\n│   └── Transacción propia, puede hacer START TRANSACTION\n├── Sesión 2 (cliente 2, mysql workbench pestaña 2)\n│   └── Transacción propia, independiente de Sesión 1\n└── Sesión 3 (administrador, terminal)\n    └── Puede ver el estado de todas las sesiones\n```\n\n### Cómo ver las sesiones activas\n\n```sql\n-- Ver todas las sesiones activas\nSHOW PROCESSLIST;\n\n-- Ver solo las sesiones de usuario (no las del sistema)\nSHOW FULL PROCESSLIST;\n```\n\n| Id | User | Host | db | Command | Time | State | Info |\n|---|---|---|---|---|---|---|---|\n| 5 | root | localhost | academia | Sleep | 0 | | |\n| 8 | root | localhost | academia | Query | 0 | executing | SELECT * FROM alumnos |\n\nLa sesión en estado 'Sleep' tiene una transacción abierta que está esperando."
+        },
+        {
+          "type": "text",
+          "content": "## Demostración con dos sesiones en Workbench\n\n### Preparación\n\nAbre MySQL Workbench y crea **dos pestañas** de conexión (o dos ventanas). Cada pestaña es una sesión independiente.\n\n### Ejercicio guiado\n\n**SESIÓN A** (pestaña 1):\n```sql\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5;\n-- Resultado: 10\n-- NO hagas COMMIT todavía\n```\n\n**SESIÓN B** (pestaña 2):\n```sql\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5;\n-- ¿Qué resultado da?\n-- Depende del nivel de aislamiento (lo veremos en la lección 9)\n-- Con REPEATABLE READ (default): también ve 10\n```\n\n**SESIÓN A**:\n```sql\nUPDATE productos SET stock = stock - 5 WHERE id = 5;\nCOMMIT;\n```\n\n**SESIÓN B**:\n```sql\n-- ¿Qué stock ve ahora?\nSELECT stock FROM productos WHERE id = 5;\n-- Con REPEATABLE READ: sigue viendo 10\n-- ¡Pero si intenta UPDATE, el resultado final será 2!\n```\n\n> **Nota**: Este comportamiento depende del nivel de aislamiento. Lo aclararemos en la lección 9."
+        },
+        {
+          "type": "text",
+          "content": "## Por qué la concurrencia importa\n\nLa concurrencia no es un caso edge. Es el **caso normal** en cualquier aplicación multiusuario:\n\n- **Redes sociales**: miles de usuarios publicando, comentando y reaccionando al mismo tiempo.\n- **Tiendas online**: cientos de compradores compitiendo por los últimos productos en stock.\n- **Academias**: profesores dando notas mientras alumnos se matriculan.\n- **Bancos**: clientes transfiriendo dinero desde múltiples dispositivos.\n\nSin gestión de concurrencia, la base de datos produciría datos incorrectos.\n\n> **Mentalidad**: No pienses \"mi aplicación tiene pocos usuarios, no necesito preocuparme por concurrencia\". Piensa \"¿qué pasa si dos usuarios hacen exactamente lo mismo al mismo tiempo?\". Si la respuesta es \"los datos se corrompen\", necesitas transacciones bien diseñadas."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-7-1",
+          "title": "Visualización de concurrencia",
+          "difficulty": "basic",
+          "description": "Describe qué ocurriría en estos escenarios concurrentes:\n1. Dos profesores intentan dar la misma nota a un alumno en la misma materia al mismo tiempo.\n2. Un alumno se matricula en una asignatura mientras un profesor elimina esa asignatura.\n3. Un administrador actualiza el email de un alumno mientras el alumno cambia su contraseña.",
+          "solution": "1. **Lost Update**: Ambos profesores leen la nota actual, modifican, y escriben. El segundo sobreescribe al primero.\n\n2. **Conflicto de integridad**: Si la FOREIGN KEY está activa, el DELETE fallará porque hay matrículas que referencian esa asignatura.\n\n3. **Operaciones independientes**: Estas operaciones tocan columnas diferentes. No hay conflicto real."
+        },
+        {
+          "id": "ex-13-7-2",
+          "title": "Simular dos sesiones",
+          "difficulty": "intermediate",
+          "description": "En MySQL Workbench, abre dos pestañas con conexión a la base de datos academia. Ejecuta este experimento:\n\nSESIÓN A:\n```sql\nSTART TRANSACTION;\nUPDATE alumnos SET ciudad = 'Madrid' WHERE id = 1;\n-- NO hagas COMMIT\n```\n\nSESIÓN B:\n```sql\nSELECT ciudad FROM alumnos WHERE id = 1;\n-- ¿Qué resultado da?\n\nSTART TRANSACTION;\nUPDATE alumnos SET ciudad = 'Barcelona' WHERE id = 1;\n-- ¿Qué ocurre?\n```\n\nExplica qué observas en cada paso.",
+          "solution": "**SESIÓN B - SELECT después del UPDATE de A:**\nDepende del nivel de aislamiento. Con REPEATABLE READ, B verá el valor anterior al UPDATE de A.\n\n**SESIÓN B - UPDATE después del UPDATE de A:**\nLa sesión B se **bloquea**. MySQL hace esperar al UPDATE de B hasta que A haga COMMIT o ROLLBACK.\n\nSi A hace COMMIT: B desbloquea y ejecuta su UPDATE.\nSi A hace ROLLBACK: B desbloquea y ejecuta su UPDATE con el valor original."
+        },
+        {
+          "id": "ex-13-7-3",
+          "title": "SHOW PROCESSLIST",
+          "difficulty": "basic",
+          "description": "Ejecuta SHOW FULL PROCESSLIST y describe:\n1. Cuántas sesiones hay activas\n2. Cuál está ejecutando una consulta activa\n3. Cuál está en estado Sleep (esperando)\n¿Qué significa el estado Sleep para una sesión?",
+          "solution": "**SHOW FULL PROCESSLIST** muestra todas las sesiones conectadas al servidor.\n\n- **Sesión con Command = Query**: Está ejecutando una consulta activa.\n- **Sesión con Command = Sleep**: Está conectada pero no está ejecutando nada.\n\n**Significado de Sleep**: La sesión está esperando a que el cliente envíe la siguiente consulta. Si tiene una transacción abierta (START TRANSACTION sin COMMIT), esa transacción sigue activa mientras esté en Sleep. Esto es un problema: mantener una transacción abierta mientras la sesión está inactiva bloquea recursos."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-8",
+      "title": "Problemas de concurrencia",
+      "order": 8,
+      "objectives": [
+        "Identificar los 4 problemas clásicos de concurrencia",
+        "Distinguir entre dirty read, non-repeatable read, phantom read y lost update",
+        "Comprender las líneas de tiempo de cada problema",
+        "Reconocer qué nivel de aislamiento previene cada problema"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Los 4 problemas de concurrencia\n\nCuando múltiples transacciones ejecutan simultáneamente, pueden ocurrir 4 problemas clásicos:\n\n```\nProblema 1: Dirty Read (Lectura sucia)\nProblema 2: Non-Repeatable Read (Lectura no repetible)\nProblema 3: Phantom Read (Lectura fantasma)\nProblema 4: Lost Update (Actualización perdida)\n```\n\nNo son errores de la base de datos — son **consecuencias naturales** de la concurrencia si no se configuran los mecanismos de protección adecuados."
+        },
+        {
+          "type": "text",
+          "content": "## Dirty Read: leer datos no confirmados\n\nUn dirty read ocurre cuando una transacción **lee datos que otra transacción modificó pero aún no confirmó (COMMIT)**. Si la otra transacción hace ROLLBACK, los datos leídos **nunca existieron oficialmente**.\n\n### Línea de tiempo\n\n```\nSesión A                              Sesión B\n────────                              ────────\nSTART TRANSACTION;\nUPDATE alumnos SET activo = FALSE\nWHERE id = 5;\n-- activo de id=5 ahora es FALSE\n                                      START TRANSACTION;\n                                      SELECT activo FROM alumnos\n                                      WHERE id = 5;\n                                      -- Resultado: FALSE\n                                      -- ¡Pero A aún no ha hecho COMMIT!\nROLLBACK;\n-- activo de id=5 vuelve a TRUE\n\n                                      -- B trabajó con un dato que\n                                      -- nunca existió oficialmente.\n```\n\n### Ejemplo real\n\nUn administrador ve que un alumno está inactivo (aún no confirmado por otro proceso). Lo \"reactiva\". Pero el otro proceso canceló la operación. Resultado: un alumno activo que debería estar inactivo.\n\n> **Prevención**: Niveles `READ COMMITTED`, `REPEATABLE READ` y `SERIALIZABLE` previenen dirty reads."
+        },
+        {
+          "type": "text",
+          "content": "## Non-Repeatable Read: leer dos veces y obtener distintos valores\n\nUn non-repeatable read ocurre cuando una transacción **lee la misma fila dos veces** y obtiene **valores diferentes** porque otra transacción modificó y confirmó la fila entre ambas lecturas.\n\n### Línea de tiempo\n\n```\nSesión A                              Sesión B\n────────                              ────────\nSTART TRANSACTION;\nSELECT nota FROM notas\nWHERE id = 1;\n-- Resultado: 7.5\n                                      START TRANSACTION;\n                                      UPDATE notas SET nota = 9.0\n                                      WHERE id = 1;\n                                      COMMIT;\n\nSELECT nota FROM notas\nWHERE id = 1;\n-- Resultado: 9.0\n-- ¡Cambió!\n```\n\n### Ejemplo real\n\nUn profesor consulta la nota de un alumno (ve 7.5). Mientras tanto, otro profesor corrige y sube la nota a 9.0. Si estaba imprimiendo un informe con la nota 7.5, el informe tiene un dato obsoleto.\n\n> **Prevención**: `REPEATABLE READ` y `SERIALIZABLE` previenen non-repeatable reads."
+        },
+        {
+          "type": "text",
+          "content": "## Phantom Read: filas que aparecen o desaparecen\n\nUn phantom read ocurre cuando una transacción ejecuta **dos veces la misma consulta de rango** y obtiene un **número diferente de filas** porque otra transacción insertó o eliminó filas.\n\n### Línea de tiempo\n\n```\nSesión A                              Sesión B\n────────                              ────────\nSTART TRANSACTION;\nSELECT COUNT(*) FROM alumnos\nWHERE ciudad = 'Madrid';\n-- Resultado: 5\n                                      START TRANSACTION;\n                                      INSERT INTO alumnos\n                                      (nombre, apellido, ciudad)\n                                      VALUES ('Nuevo', 'Madrid', 'Madrid');\n                                      COMMIT;\n\nSELECT COUNT(*) FROM alumnos\nWHERE ciudad = 'Madrid';\n-- Resultado: 6\n-- ¡Apareció un \"fantasma\"!\n```\n\n> **Nota**: Non-repeatable read afecta **una fila**. Phantom read afecta **el conjunto de resultados**.\n> **Prevención**: Solo `SERIALIZABLE` previene phantom reads completamente."
+        },
+        {
+          "type": "text",
+          "content": "## Lost Update: una escritura sobreescribe otra\n\nUn lost update ocurre cuando dos transacciones **leen el mismo valor**, lo **modifican** independientemente, y la **última escritura sobreescribe** la primera.\n\n### Línea de tiempo\n\n```\nSesión A                              Sesión B\n────────                              ────────\nSTART TRANSACTION;\nSELECT stock FROM productos\nWHERE id = 5;\n-- stock = 10\n                                      START TRANSACTION;\n                                      SELECT stock FROM productos\n                                      WHERE id = 5;\n                                      -- stock = 10\n\nUPDATE productos\nSET stock = 10 - 3  -- = 7\nWHERE id = 5;\nCOMMIT;\n                                      UPDATE productos\n                                      SET stock = 10 - 4  -- = 6\n                                      WHERE id = 5;\n                                      COMMIT;\n\n-- stock = 6  (¡debería ser 3!)\n-- La resta de A se perdió\n```\n\n### Ejemplo real\n\nDos clientes compran el último producto en stock. Ambos ven stock=1. Ambos reducen a 0. El producto se vende dos veces.\n\n> **Prevención**: `SELECT ... FOR UPDATE` o `SERIALIZABLE`."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen de problemas y prevención\n\n| Problema | Qué ocurre | Niveles que lo previenen |\n|---|---|---|\n| **Dirty Read** | Leer datos no confirmados | READ COMMITTED, REPEATABLE READ, SERIALIZABLE |\n| **Non-Repeatable Read** | Leer la misma filados veces y obtener valores distintos | REPEATABLE READ, SERIALIZABLE |\n| **Phantom Read** | Filas que aparecen o desaparecen | SERIALIZABLE |\n| **Lost Update** | Una escritura sobreescribe otra | SELECT FOR UPDATE, SERIALIZABLE |\n\n### ¿Cuál necesito?\n\n- **READ UNCOMMITTED**: Casi nunca. Solo si los datos son poco importantes.\n- **READ COMMITTED**: Buen equilibrio para la mayoría de aplicaciones.\n- **REPEATABLE READ** (default MySQL): Bueno para reportes consistentes.\n- **SERIALIZABLE**: Máxima seguridad, menor concurrencia. Para datos críticos.\n\n> **No existe el nivel perfecto**. Cada nivel sacrificas algo: o rendimiento o consistencia."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-8-1",
+          "title": "Identificar problemas de concurrencia",
+          "difficulty": "basic",
+          "description": "Para cada escenario, indica qué problema de concurrencia se describe:\n1. Transacción A lee el saldo (500€). Transacción B retira 100€ y confirma. A lee el saldo otra vez (400€).\n2. Transacción A lista alumnos de Madrid (5). Transacción B inserta un alumno de Madrid y confirma. A vuelve a listar (6).\n3. Transacción A lee stock=10. B lee stock=10. A reduce a 7 y confirma. B reduce a 6 y confirma. Stock final: 6.\n4. Transacción A lee precio=25€ (no confirmado). B lee precio=25€. A cambia a 30€ y confirma. B cambia a 28€ y confirma.",
+          "solution": "1. **Non-Repeatable Read** — A leyó el mismo dato dos veces y obtuvo valores distintos.\n2. **Phantom Read** — La consulta devolvió 6 filas la segunda vez, cuando la primera devolvió 5.\n3. **Lost Update** — Ambos leyeron 10. A escribió 7, B sobreescribió con 6.\n4. **Dirty Read** — A leyó un dato que B modificó pero aún no había confirmado."
+        },
+        {
+          "id": "ex-13-8-2",
+          "title": "Línea de tiempo de dirty read",
+          "difficulty": "intermediate",
+          "description": "Dibuja una línea de tiempo donde una dirty read causa un error de negocio en la academia: un profesor inserta una nota para un alumno que no existe oficialmente.",
+          "solution": "```\nSesión A (Administrador)              Sesión B (Profesor)\n─────────────────────                 ──────────────────\nSTART TRANSACTION;\nINSERT INTO alumnos (id, nombre,\napellido, activo)\nVALUES (100, 'Fantasma', 'Test', TRUE);\n                                      START TRANSACTION;\n                                      SELECT id FROM alumnos\n                                      WHERE activo = TRUE;\n                                      -- ¡Incluye al id=100!\n\n                                      INSERT INTO notas\n                                      (id_alumno, id_asignatura,\n                                      nota, convocatoria)\n                                      VALUES (100, 1, 8.5, 'Ordinaria');\n\nROLLBACK;\n-- El alumno desaparece\n-- Pero la nota del id=100 sigue ahí\n-- ¡Error de integridad!\n```"
+        },
+        {
+          "id": "ex-13-8-3",
+          "title": "Non-repeatable read en academia",
+          "difficulty": "intermediate",
+          "description": "Describe una línea de tiempo donde un non-repeatable read causa un problema: un alumno consulta su nota para inscribirse a una convocatoria, pero la nota cambia.",
+          "solution": "```\nSesión A (Alumno)                    Sesión B (Profesor)\n───────────────                      ──────────────────\nSTART TRANSACTION;\nSELECT nota FROM notas\nWHERE id_alumno = 15 AND id_asignatura = 3;\n-- Resultado: 4.8 (suspenso)\n                                     START TRANSACTION;\n                                     UPDATE notas SET nota = 5.2\n                                     WHERE id_alumno = 15\n                                     AND id_asignatura = 3;\n                                     COMMIT;\n-- La nota subió a 5.2 (aprobado)\n\n-- El alumno piensa que suspendió\n-- y se inscribe a extraordinaria\nINSERT INTO convocatorias\nVALUES (15, 3, 'extraordinaria');\nCOMMIT;\n```"
+        },
+        {
+          "id": "ex-13-8-4",
+          "title": "Lost Update en tienda",
+          "difficulty": "intermediate",
+          "description": "Dibuja una línea de tiempo donde dos clientes compran el último producto en stock. Explica por qué el stock final es incorrecto.",
+          "solution": "```\nSesión A (Cliente 1)                  Sesión B (Cliente 2)\n──────────────────                   ──────────────────\nSTART TRANSACTION;                   START TRANSACTION;\n\nSELECT stock FROM productos          SELECT stock FROM productos\nWHERE id = 5;                        WHERE id = 5;\n-- stock = 1                         -- stock = 1\n\nUPDATE productos SET stock = 0       UPDATE productos SET stock = 0\nWHERE id = 5;                        WHERE id = 5;\n\nCOMMIT;                              COMMIT;\n\n-- Stock final: 0\n-- ¡El producto se vendió DOS VECES con 1 unidad!\n```\n\n**Con SELECT FOR UPDATE**: La sesión A bloquea la fila. B se bloquea esperando. Cuando A hace COMMIT, B ve stock=0 y aborta la venta."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-9",
+      "title": "Niveles de aislamiento",
+      "order": 9,
+      "objectives": [
+        "Explicar los 4 niveles de aislamiento en MySQL",
+        "Consultar y cambiar el nivel de aislamiento de sesión",
+        "Comparar qué problemas previene cada nivel",
+        "Elegir el nivel adecuado según el caso de uso"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es el nivel de aislamiento?\n\nEl nivel de aislamiento controla **cuánto se protegen las transacciones entre sí**. Es un compromiso entre **consistencia** y **rendimiento**.\n\n```\nMás aislamiento → Más consistencia → Menos concurrencia\nMenos aislamiento → Menos consistencia → Más concurrencia\n```\n\nNo hay nivel perfecto. Cada nivel sacrificas algo."
+        },
+        {
+          "type": "text",
+          "content": "## READ UNCOMMITTED: máximo permiso\n\nEs el nivel más permisivo. Permite **dirty reads**.\n\n```sql\nSET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;\n\n-- Sesión A\nSTART TRANSACTION;\nUPDATE alumnos SET activo = FALSE WHERE id = 5;\n-- NO COMMIT\n\n-- Sesión B (con READ UNCOMMITTED)\nSTART TRANSACTION;\nSELECT activo FROM alumnos WHERE id = 5;\n-- Resultado: FALSE (dirty read)\n```\n\n**¿Cuándo usarlo?** Casi nunca. Solo si los datos son poco importantes y necesitas máximo rendimiento.\n\n> **Recomendación**: Si no sabes cuál necesitar, **no uses READ UNCOMMITTED**."
+        },
+        {
+          "type": "text",
+          "content": "## READ COMMITTED: solo datos confirmados\n\nEvita dirty reads. Cada consulta solo ve datos **confirmados (COMMIT)**. Permite non-repeatable reads.\n\n```sql\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\n\n-- Sesión A\nSTART TRANSACTION;\nSELECT activo FROM alumnos WHERE id = 5;\n-- Resultado: TRUE\n\n-- Sesión B\nUPDATE alumnos SET activo = FALSE WHERE id = 5;\nCOMMIT;\n\n-- Sesión A\nSELECT activo FROM alumnos WHERE id = 5;\n-- Resultado: FALSE (non-repeatable read)\n```\n\n**¿Cuándo usarlo?** Buen equilibrio para la mayoría de aplicaciones. Es el nivel por defecto en PostgreSQL y Oracle."
+        },
+        {
+          "type": "text",
+          "content": "## REPEATABLE READ: lectura repetible (default MySQL)\n\nEvita dirty reads Y non-repeatable reads. Permite phantom reads.\n\n```sql\n-- Ver el nivel actual (default en MySQL)\nSELECT @@transaction_isolation;\n-- REPEATABLE-READ\n\n-- Sesión A\nSTART TRANSACTION;\nSELECT COUNT(*) FROM alumnos WHERE ciudad = 'Madrid';\n-- Resultado: 5\n\n-- Sesión B\nINSERT INTO alumnos (nombre, apellido, ciudad)\nVALUES ('Nuevo', 'Madrid', 'Madrid');\nCOMMIT;\n\n-- Sesión A\nSELECT COUNT(*) FROM alumnos WHERE ciudad = 'Madrid';\n-- Resultado: 5 (phantom read: sigue viendo 5)\n-- ¡Pero si hace un UPDATE, afectará al nuevo alumno!\n```\n\n**Característica de InnoDB**: Los UPDATEs y DELETEs **sí ven** los datos reales, aunque SELECTs no.\n\n**¿Cuándo usarlo?** Para reportes consistentes y consultas que necesitan ver el mismo conjunto de datos."
+        },
+        {
+          "type": "text",
+          "content": "## SERIALIZABLE: máxima seguridad\n\nEvita dirty reads, non-repeatable reads Y phantom reads.\n\n```sql\nSET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;\n\n-- Sesión A\nSTART TRANSACTION;\nSELECT COUNT(*) FROM alumnos WHERE ciudad = 'Madrid';\n-- Resultado: 5\n\n-- Sesión B (intentar insertar)\nSTART TRANSACTION;\nINSERT INTO alumnos (nombre, apellido, ciudad)\nVALUES ('Nuevo', 'Madrid', 'Madrid');\n-- ¡SE BLOQUEA! Espera a que A termine\n\n-- Sesión A\nCOMMIT;\n\n-- Sesión B desbloquea\nCOMMIT;\n```\n\n**¿Cuándo usarlo?** Para datos críticos: sistemas financieros, inventarios con stock crítico.\n\n> **Advertencia**: SERIALIZABLE genera **mucho más bloqueos**. Puede causar deadlocks y cuellos de botella."
+        },
+        {
+          "type": "text",
+          "content": "## Tabla comparativa completa\n\n| Nivel | Dirty Read | Non-Repeatable Read | Phantom Read | Rendimiento |\n|---|---|---|---|---|\n| READ UNCOMMITTED | ✅ Puede ocurrir | ✅ Puede ocurrir | ✅ Puede ocurrir | Máximo |\n| READ COMMITTED | ❌ Prevenido | ✅ Puede ocurrir | ✅ Puede ocurrir | Alto |\n| REPEATABLE READ | ❌ Prevenido | ❌ Prevenido | ✅ Puede ocurrir | Medio |\n| SERIALIZABLE | ❌ Prevenido | ❌ Prevenido | ❌ Prevenido | Bajo |\n\n### Cómo consultar y cambiar el nivel\n\n```sql\nSELECT @@transaction_isolation;\nSHOW SESSION VARIABLES LIKE 'transaction_isolation';\n\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\nSET GLOBAL TRANSACTION ISOLATION LEVEL SERIALIZABLE;\n```\n\n### Recomendación por caso de uso\n\n| Caso de uso | Nivel recomendado |\n|---|---|\n| Tienda online con poco tráfico | REPEATABLE READ (default) |\n| Red social con mucho tráfico | READ COMMITTED |\n| Sistema bancario | SERIALIZABLE |\n| Reporte de estadísticas | READ COMMITTED o REPEATABLE READ |\n| Inventario con stock crítico | SERIALIZABLE |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-9-1",
+          "title": "Elegir nivel de aislamiento",
+          "difficulty": "basic",
+          "description": "Para cada aplicación, indica qué nivel de aislamiento recomendarías y por qué:\n1. Un foro donde los usuarios publican mensajes\n2. Un sistema de trading de valores\n3. Un panel de estadísticas en tiempo real\n4. Una academia donde profesores dan notas y alumnos se matriculan",
+          "solution": "1. **READ COMMITTED** — Los mensajes son poco críticos. No necesitas bloqueos pesados.\n2. **SERIALIZABLE** — El dinero está en juego. Un lost update podría causar pérdidas financieras.\n3. **READ UNCOMMITTED** o **READ COMMITTED** — Las estadísticas son aproximadas por naturaleza.\n4. **REPEATABLE READ** (default) — Equilibrio adecuado. Las notas deben ser consistentes."
+        },
+        {
+          "id": "ex-13-9-2",
+          "title": "Consultar y cambiar nivel de aislamiento",
+          "difficulty": "basic",
+          "description": "Escribe las consultas necesarias para:\n1. Ver el nivel de aislamiento actual\n2. Cambiarlo a READ COMMITTED para la sesión actual\n3. Verificar que cambió\n4. Volver al nivel por defecto (REPEATABLE READ)",
+          "solution": "```sql\n-- 1. Ver nivel actual\nSELECT @@transaction_isolation;\n\n-- 2. Cambiar a READ COMMITTED\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\n\n-- 3. Verificar\nSELECT @@transaction_isolation;\n-- Resultado: READ-COMMITTED\n\n-- 4. Volver al default\nSET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;\n\nSELECT @@transaction_isolation;\n-- Resultado: REPEATABLE-READ\n```"
+        },
+        {
+          "id": "ex-13-9-3",
+          "title": "Comparar comportamientos entre niveles",
+          "difficulty": "intermediate",
+          "description": "Con esta secuencia, ¿qué resultado obtiene la sesión B en cada nivel?\n\nSESIÓN A:\n```sql\nSTART TRANSACTION;\nUPDATE alumnos SET ciudad = 'Sevilla' WHERE id = 1;\n-- AÚN NO COMMIT\n```\n\nSESIÓN B:\n```sql\nSTART TRANSACTION;\nSELECT ciudad FROM alumnos WHERE id = 1;\n```\n\n¿Qué ve B con READ UNCOMMITTED, READ COMMITTED y REPEATABLE READ?",
+          "solution": "**READ UNCOMMITTED**: B ve **'Sevilla'** — El dirty read permite leer el cambio no confirmado.\n\n**READ COMMITTED**: B ve **el valor original** — Solo ve datos confirmados.\n\n**REPEATABLE READ**: B ve **el valor original** — Igual que READ COMMITTED, pero garantiza que si B vuelve a hacer la misma consulta, seguirá viendo el valor original aunque A haga COMMIT."
+        },
+        {
+          "id": "ex-13-9-4",
+          "title": "SERIALIZABLE y su impacto",
+          "difficulty": "advanced",
+          "description": "Explica qué ocurriría si configuras SERIALIZABLE en una tienda online con 1000 compras por minuto. ¿Por qué no siempre es la mejor opción?",
+          "solution": "**Qué ocurriría**:\n1. **Más bloqueos**: Cada transacción bloquea más filas y tablas.\n2. **Deadlocks frecuentes**: Con más bloqueos, aumenta la probabilidad de deadlocks.\n3. **Lentitud**: Las consultas SELECT esperan a que otras transacciones terminen.\n4. **Escalabilidad rota**: El servidor de BD ya al 80% de carga iría al 200%.\n\n**¿Por qué no siempre es mejor?**\n- En una tienda online, un lost update es **corregible** (el sistema puede reintentar).\n- En un sistema bancario, un lost update puede causar **pérdida de dinero real**.\n\n**Principio**: El nivel de aislamiento debe ser **proporcional al daño** que causaría un error de concurrencia."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-10",
+      "title": "Bloqueos y SELECT ... FOR UPDATE",
+      "order": 10,
+      "objectives": [
+        "Comprender qué es un bloqueo y por qué es necesario",
+        "Distinguir entre bloqueos de lectura y de escritura",
+        "Usar SELECT ... FOR UPDATE para bloquear filas antes de modificarlas",
+        "Reconocer los problemas causados por transacciones largas con bloqueos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un bloqueo?\n\nUn **bloqueo** (lock) es un mecanismo que impide que otra transacción modifique o lea una fila mientras una transacción está trabajando con ella. Es como poner un candado en un archivo.\n\n### Tipos de bloqueos (simplificado)\n\n| Tipo | Permiso | Ejemplo |\n|---|---|---|\n| **Compartido (Shared)** | Otros pueden LEER, pero no escribir | `LOCK TABLES alumnos READ` |\n| **Exclusivo (Exclusive)** | Nadie más puede LEER ni ESCRIBIR | `UPDATE`, `DELETE`, `FOR UPDATE` |\n\nCuando ejecutas un `UPDATE` o `DELETE`, InnoDB pone un bloqueo **exclusivo** automáticamente en las filas afectadas."
+        },
+        {
+          "type": "text",
+          "content": "## SELECT ... FOR UPDATE: bloqueo explícito\n\n`SELECT ... FOR UPDATE` ejecuta un SELECT y pone un bloqueo exclusivo en las filas resultantes.\n\n```sql\n-- Transacción A: quiero modificar este producto, primero lo bloqueo\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n-- InnoDB bloquea la fila id=5 exclusivamente\n\n-- Ahora puedo modificar con seguridad\nUPDATE productos SET stock = stock - 2 WHERE id = 5;\nCOMMIT;  -- Se libera el bloqueo\n```\n\n### ¿Qué pasa con otra transacción?\n\n```sql\n-- Transacción B (mientras A tiene el bloqueo)\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5;\n-- Funciona: SELECT normal no necesita bloqueo\n\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\n-- ¡SE BLOQUEA! Espera a que A haga COMMIT o ROLLBACK\n```\n\n> **Clave**: `FOR UPDATE` es la forma de decirle a MySQL: \"voy a modificar estas filas, que nadie más las toque mientras tanto\"."
+        },
+        {
+          "type": "text",
+          "content": "## Bloqueo a nivel de fila en InnoDB\n\nInnoDB usa **bloqueos a nivel de fila**, no a nivel de tabla.\n\n### El problema de los índices\n\nInnoDB solo puede usar bloqueos a nivel de fila **si tiene un índice** para encontrar las filas.\n\n```sql\n-- Si 'ciudad' NO tiene índice:\nSELECT * FROM alumnos WHERE ciudad = 'Madrid' FOR UPDATE;\n-- InnoDB bloquea TODAS las filas de la tabla\n\n-- Si 'id' SÍ tiene índice:\nSELECT * FROM alumnos WHERE id = 5 FOR UPDATE;\n-- InnoDB bloquea SOLO la fila id=5\n```\n\n> **Importante**: Siempre asegúrate de que las columnas en WHERE de `FOR UPDATE` estén indexadas."
+        },
+        {
+          "type": "text",
+          "content": "## El problema de las transacciones largas\n\nCuando una transacción mantiene un bloqueo durante mucho tiempo, otras transacciones se bloquean esperando.\n\n### Ejemplo de transacción problemática\n\n```sql\n-- ❌ MAL: transacción que espera input del usuario\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n-- Bloqueo activo...\n\n-- El usuario se fue a almorzar 10 minutos\n-- ¡El bloqueo sigue activo!\n\n-- 10 minutos después:\nUPDATE productos SET stock = stock - 2 WHERE id = 5;\nCOMMIT;\n```\n\n### Buena práctica\n\n```sql\n-- ✅ BIEN: transacción corta\nSTART TRANSACTION;\n-- El usuario ya decidió QUÉ comprar\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\nUPDATE productos SET stock = stock - 2 WHERE id = 5;\nCOMMIT;  -- Libera rápidamente\n```\n\n> **Regla de oro**: Las transacciones deben ser **lo más cortas posible**. Nunca incluyas interacción con el usuario dentro de una transacción con bloqueos activos."
+        },
+        {
+          "type": "text",
+          "content": "## FOR UPDATE vs FOR SHARE\n\n```sql\n-- Bloqueo exclusivo (solo yo puedo modificar)\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n\n-- Bloqueo compartido (otros pueden leer, pero no modificar)\nSELECT stock FROM productos WHERE id = 5 FOR SHARE;\n```\n\n| Modo | Yo puedo | Otros pueden |\n|---|---|---|\n| `FOR UPDATE` | Leer y modificar | Solo leer |\n| `FOR SHARE` | Leer y modificar | Leer |\n\n`FOR UPDATE` se usa cuando **voy a modificar** la fila. `FOR SHARE` se usa cuando solo necesito **leer con certeza**."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-10-1",
+          "title": "SELECT FOR UPDATE básico",
+          "difficulty": "basic",
+          "description": "Escribe una transacción que use SELECT FOR UPDATE para comprar un producto de la tienda de forma segura:\n1. Bloquear la fila del producto\n2. Verificar que hay stock suficiente\n3. Si hay stock: crear pedido y reducir stock\n4. Si no hay stock: ROLLBACK con mensaje",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Bloquear la fila del producto\nSELECT stock, precio INTO @stock, @precio\nFROM productos WHERE id = 5 FOR UPDATE;\n\n-- 2. Verificar stock\nIF @stock >= 2 THEN\n  INSERT INTO pedidos (id_cliente, fecha, estado)\n  VALUES (1, CURDATE(), 'pendiente');\n  SET @pedido_id = LAST_INSERT_ID();\n\n  INSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\n  VALUES (@pedido_id, 5, 2, @precio);\n\n  UPDATE productos SET stock = stock - 2 WHERE id = 5;\n\n  COMMIT;\n  SELECT 'Pedido creado' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'Error: stock insuficiente' AS resultado;\nEND IF;\n```"
+        },
+        {
+          "id": "ex-13-10-2",
+          "title": "Bloqueo de fila específica",
+          "difficulty": "intermediate",
+          "description": "Demuestra con dos sesiones que SELECT FOR UPDATE bloquea una fila. En SESIÓN A haz FOR UPDATE y NO hagas COMMIT. En SESIÓN B intenta modificar la misma fila.",
+          "solution": "**SESIÓN A:**\n```sql\nSTART TRANSACTION;\nSELECT * FROM productos WHERE id = 5 FOR UPDATE;\n-- Bloqueo activo, NO hacer COMMIT\n```\n\n**SESIÓN B:**\n```sql\nSTART TRANSACTION;\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\n-- ¡SE BLOQUEA! Espera a que A haga COMMIT o ROLLBACK.\n```\n\n**SESIÓN A:**\n```sql\nCOMMIT;  -- Libera el bloqueo\n```\n\n**SESIÓN B:**\n```sql\n-- El UPDATE se ejecuta ahora\nCOMMIT;\n```"
+        },
+        {
+          "id": "ex-13-10-3",
+          "title": "FOR UPDATE con índice vs sin índice",
+          "difficulty": "advanced",
+          "description": "Explica qué diferencias de bloqueo hay entre estas dos consultas:\n```sql\nSELECT * FROM alumnos WHERE id = 5 FOR UPDATE;\nSELECT * FROM alumnos WHERE ciudad = 'Madrid' FOR UPDATE;\n```",
+          "solution": "**Consulta A** (`WHERE id = 5`):\n- Usa PRIMARY KEY (indexado). Bloquea **SOLO la fila id=5**.\n- Otros usuarios pueden modificar cualquier otra fila sin problemas.\n\n**Consulta B** (`WHERE ciudad = 'Madrid'`):\n- Sin índice, InnoDB hace **full table scan**. Bloquea **TODAS las filas**.\n- Otros usuarios no pueden modificar NINGUNA fila.\n\n**Solución**: Crear un índice:\n```sql\nCREATE INDEX idx_alumnos_ciudad ON alumnos (ciudad);\n```"
+        },
+        {
+          "id": "ex-13-10-4",
+          "title": "Transacción larga: diagnóstico",
+          "difficulty": "intermediate",
+          "description": "Un desarrollador escribe este código. Identifica el problema y propón una corrección:\n```sql\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n-- Aquí el programa muestra el formulario al usuario\n-- El usuario tarda 2 minutos en decidir\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\nCOMMIT;\n```",
+          "solution": "**Problema**: La transacción mantiene un bloqueo exclusivo durante **2 minutos** mientras el usuario piensa. Ningún otro usuario puede modificar este producto.\n\n**Corrección**: Bloquear solo cuando el usuario ya decidió.\n\n```sql\n-- PASO 1: Mostrar stock SIN bloqueo\nSELECT stock FROM productos WHERE id = 5;\n-- El usuario decide cuánto comprar\n\n-- PASO 2: Cuando el usuario ya decidió:\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n\nIF stock >= 1 THEN\n  UPDATE productos SET stock = stock - 1 WHERE id = 5;\n  COMMIT;\nELSE\n  ROLLBACK;\nEND IF;\n```\n\n**Principio**: El bloqueo activo debe ser **lo más corto posible**."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-11",
+      "title": "Deadlocks",
+      "order": 11,
+      "objectives": [
+        "Reconocer qué es un deadlock y cómo se produce",
+        "Visualizar el ciclo de dependencia que causa un deadlock",
+        "Comprender cómo MySQL detecta y resuelve deadlocks",
+        "Aplicar estrategias de prevención de deadlocks"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un deadlock?\n\nUn **deadlock** (punto muerto) ocurre cuando **dos transacciones se bloquean mutuamente**: cada una tiene un recurso que la otra necesita, y ninguna puede avanzar.\n\n### Diagrama del ciclo\n\n```\nTransacción A                          Transacción B\n────────────                          ─────────────\nBLOQUEA producto id=5\n                                      BLOQUEA producto id=8\nINTENTA bloquear id=8\n→ ¡BLOQUEADA! (B lo tiene)\n                                      INTENTA bloquear id=5\n                                      → ¡BLOQUEADA! (A lo tiene)\n\nNinguna puede avanzar.\n→ DEADLOCK\n```\n\nEs como dos personas en un pasillo estrecho: cada una se niega a retroceder y ninguno puede pasar."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo concreto en la tienda\n\nDos clientes compran productos diferentes al mismo tiempo, pero en orden inverso:\n\n**SESIÓN A: comprar producto 5 y producto 8**\n```sql\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n-- Bloquea id=5, OK\n\nSELECT stock FROM productos WHERE id = 8 FOR UPDATE;\n-- ¡BLOQUEADA! Esperando a que B libere id=8\n```\n\n**SESIÓN B: comprar producto 8 y producto 5**\n```sql\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 8 FOR UPDATE;\n-- Bloquea id=8, OK\n\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n-- ¡BLOQUEADA! Esperando a que A libere id=5\n```\n\n```\nA tiene id=5, espera id=8\nB tiene id=8, espera id=5\n→ DEADLOCK\n```\n\nMySQL detecta este ciclo y **mata una de las dos transacciones** para resolverlo."
+        },
+        {
+          "type": "text",
+          "content": "## Cómo MySQL maneja los deadlocks\n\nInnoDB tiene un **deadlock detector** que revisa periódicamente si hay ciclos de dependencia:\n\n1. **Elige una víctima**: la transacción que menos trabajo hizo.\n2. **Ejecuta ROLLBACK** automáticamente en la víctima.\n3. **Devuelve error** al cliente de la víctima:\n\n```\nERROR 1213 (40001): Deadlock found when trying to get lock;\ntry restarting transaction\n```\n\n4. **La otra transacción continúa** normalmente.\n\n### Deadlock ≠ base de datos corrupta\n\nUn deadlock **no corrompe** la base de datos. Es un problema de **rendimiento**, no de integridad. MySQL lo resuelve automáticamente.\n\n> **Importante**: El error de deadlock es **normal** en aplicaciones concurrentes. No es un error del programador."
+        },
+        {
+          "type": "text",
+          "content": "## Cómo manejar deadlocks en la aplicación\n\nLa aplicación debe detectar el error y **reintentar**:\n\n```python\n# Pseudocódigo\nmax_intentos = 3\nfor intento in range(max_intentos):\n    try:\n        execute(\"START TRANSACTION\")\n        # Operaciones...\n        execute(\"COMMIT\")\n        break  # Éxito\n    except DeadlockError:\n        execute(\"ROLLBACK\")\n        if intento == max_intentos - 1:\n            raise\n```\n\n### La idempotencia es clave\n\nPara que un reintento sea seguro, las operaciones deben ser **idempotentes**: ejecutarlas dos veces debe dar el mismo resultado.\n\n```sql\n-- ❌ NO idempotente: duplica datos\nINSERT INTO pedidos (id_cliente, fecha)\nVALUES (1, CURDATE());\n\n-- ✅ Idempotente: verificar antes de insertar\nSTART TRANSACTION;\nSELECT COUNT(*) INTO @existe\nFROM pedidos WHERE id_cliente = 1 AND fecha = CURDATE();\nIF @existe = 0 THEN\n  INSERT INTO pedidos (id_cliente, fecha)\n  VALUES (1, CURDATE());\nEND IF;\nCOMMIT;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Estrategias de prevención\n\nNo puedes eliminar los deadlocks al 100%, pero puedes reducirlos:\n\n### 1. Acceder a los recursos en orden consistente\n\n```sql\n-- ❌ Mal: orden aleatorio → DEADLOCK\n-- Sesión A bloquea id=5, luego id=8\n-- Sesión B bloquea id=8, luego id=5\n\n-- ✅ Bien: SIEMPRE ordenar por id ascendente\n-- Sesión A bloquea id=5, luego id=8\n-- Sesión B bloquea id=5, luego id=8 → B espera a A (sin deadlock)\n```\n\n### 2. Mantener las transacciones cortas\n\n```sql\n-- ❌ Transacción larga\nSTART TRANSACTION;\nSELECT * FROM productos WHERE id = 5 FOR UPDATE;\n-- ... 10 segundos de lógica ...\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\nCOMMIT;\n\n-- ✅ Transacción corta\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\nCOMMIT;\n```\n\n### 3. Usar índices adecuados\n\nSi el WHERE de FOR UPDATE no usa índice, InnoDB bloquea más filas de las necesarias.\n\n### 4. Reducir el alcance del bloqueo\n\n```sql\n-- ❌ Bloquea toda la tabla\nSELECT * FROM alumnos FOR UPDATE;\n\n-- ✅ Bloquea solo la fila necesaria\nSELECT * FROM alumnos WHERE id = 5 FOR UPDATE;\n```\n\n> **Realidad**: Los deadlocks son como los accidentes de tráfico. Puedes reducirlos con buenas prácticas, pero no puedes prometer que nunca ocurrirán."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-11-1",
+          "title": "Reconocer un deadlock",
+          "difficulty": "basic",
+          "description": "Describe un escenario de deadlock en la academia: dos profesores intentan modificar notas de la misma materia pero en orden diferente.",
+          "solution": "```\nSESIÓN A                              SESIÓN B\n────────                              ────────\nSTART TRANSACTION;                   START TRANSACTION;\nUPDATE notas SET nota = 8            UPDATE notas SET nota = 7\nWHERE id_alumno = 10;                WHERE id_alumno = 15;\n-- Bloquea alumno 10                  -- Bloquea alumno 15\n\nUPDATE notas SET nota = 9            UPDATE notas SET nota = 6\nWHERE id_alumno = 15;                WHERE id_alumno = 10;\n-- ¡BLOQUEADA! Espera B              -- ¡BLOQUEADA! Espera A\n\n→ DEADLOCK\n```\n\n**Prevención**: Siempre actualizar las notas en orden ascendente de id_alumno."
+        },
+        {
+          "id": "ex-13-11-2",
+          "title": "Prevenir deadlock con orden consistente",
+          "difficulty": "intermediate",
+          "description": "Escribe una transacción que compre 3 productos (ids 1, 3 y 5) de la tienda. Asegúrate de que la transacción esté diseñada para minimizar la probabilidad de deadlock.",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- SIEMPRE bloquear en orden ascendente de id\nSELECT stock FROM productos WHERE id = 1 FOR UPDATE;\nSELECT stock FROM productos WHERE id = 3 FOR UPDATE;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n\n-- Verificar stock de todos\nSELECT\n  (SELECT stock FROM productos WHERE id = 1) AS stock_1,\n  (SELECT stock FROM productos WHERE id = 3) AS stock_3,\n  (SELECT stock FROM productos WHERE id = 5) AS stock_5;\n\n-- Si hay stock suficiente:\nUPDATE productos SET stock = stock - 1 WHERE id = 1;\nUPDATE productos SET stock = stock - 1 WHERE id = 3;\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\n\n-- Crear pedido\nINSERT INTO pedidos (id_cliente, fecha, estado)\nVALUES (1, CURDATE(), 'pendiente');\nSET @pedido_id = LAST_INSERT_ID();\n\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES\n  (@pedido_id, 1, 1, (SELECT precio FROM productos WHERE id = 1)),\n  (@pedido_id, 3, 1, (SELECT precio FROM productos WHERE id = 3)),\n  (@pedido_id, 5, 1, (SELECT precio FROM productos WHERE id = 5));\n\nCOMMIT;\n```\n\n**Clave**: Bloquear en orden ascendente de id garantiza que si dos transacciones comparten productos, siempre esperan en el mismo orden."
+        },
+        {
+          "id": "ex-13-11-3",
+          "title": "Identificar causas de deadlock",
+          "difficulty": "intermediate",
+          "description": "Para cada escenario, indica si es probable un deadlock y por qué:\n1. Dos transacciones bloquean la misma fila\n2. Tres transacciones: A bloquea id=1, B bloquea id=2, C bloquea id=3. A espera id=2, B espera id=3, C espera id=1\n3. Una transacción bloquea una fila y espera 10 segundos antes de continuar",
+          "solution": "1. **No deadlock** — Si dos transacciones quieren la misma fila, una espera a que la otra termine. No hay ciclo.\n\n2. **SÍ deadlock** — Hay un ciclo: A→B→C→A. Cada una espera un recurso que la siguiente tiene.\n\n3. **No deadlock por sí solo** — Mantener un bloqueo largo no causa deadlock. Pero SÍ aumenta la probabilidad de que otra transacción entre en conflicto. Es una mala práctica que facilita deadlocks."
+        },
+        {
+          "id": "ex-13-11-4",
+          "title": "Manejo de deadlock en aplicación",
+          "difficulty": "advanced",
+          "description": "Un sistema de academia maneja matrículas concurrentes. Diseña una estrategia completa para manejar deadlocks:\n1. Cómo detectar el error en la aplicación\n2. Cuántas veces reintentar\n3. Qué hacer si el reintento falla\n4. Cómo asegurar que las operaciones sean idempotentes",
+          "solution": "1. **Detección**: Capturar el error MySQL 1213 (Deadlock found when trying to get lock).\n\n2. **Reintentos**: Máximo 3 intentos con espera exponencial (100ms, 200ms, 400ms).\n\n3. **Si falla**: Registrar el error, notificar al usuario que intente de nuevo, y NO ejecutar la operación a medias.\n\n4. **Idempotencia**:\n```sql\nSTART TRANSACTION;\n-- Verificar si la matrícula ya existe\nSELECT COUNT(*) INTO @existe\nFROM matriculas\nWHERE id_alumno = @alumno AND id_asignatura = @asignatura\nAND estado = 'activa';\n\nIF @existe = 0 THEN\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (@alumno, @asignatura, CURDATE(), 'activa');\n  UPDATE asignaturas SET plazas_disponibles = plazas_disponibles - 1\n  WHERE id = @asignatura AND plazas_disponibles > 0;\nEND IF;\nCOMMIT;\n```\n\nSi el reintento ejecuta la misma transacción, el SELECT verifica que la matrícula ya existe y no la duplica."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-12",
+      "title": "Diseño de transacciones seguras y caso práctico",
+      "order": 12,
+      "objectives": [
+        "Aplicar las mejores prácticas para diseñar transacciones seguras",
+        "Manejar errores correctamente en transacciones con la aplicación",
+        "Integrar SAVEPOINT con operaciones obligatorias y opcionales",
+        "Resolver un caso práctico completo de matrícula con plazas limitadas usando dos sesiones simultáneas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Las 5 reglas de oro para transacciones seguras\n\n### Regla 1: Transacciones cortas\n\n```sql\n-- ❌ MAL\nSTART TRANSACTION;\nSELECT * FROM productos WHERE id = 5 FOR UPDATE;\n-- ... el usuario piensa durante 5 minutos ...\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\nCOMMIT;\n\n-- ✅ BIEN\n-- El usuario decide FUERA de la transacción\nSELECT stock FROM productos WHERE id = 5;  -- Sin bloqueo\n-- El usuario decide\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;  -- Bloqueo mínimo\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\nCOMMIT;\n```\n\n### Regla 2: Sin interacción humana dentro de la transacción\n\nLa transacción debe ejecutarse en milisegundos. Nunca incluyas:\n- Formularios que el usuario llena\n- Esperas de confirmación\n- Llamadas a APIs externas\n\n### Regla 3: Patrón START → operar → COMMIT/ROLLBACK\n\n```sql\nSTART TRANSACTION;\n-- Operaciones rápidas...\n-- Decisión: COMMIT o ROLLBACK\n```\n\n### Regla 4: La aplicación controla el flujo de errores\n\nMySQL no siempre hace ROLLBACK automáticamente. La aplicación debe:\n1. Detectar errores.\n2. Ejecutar ROLLBACK explícitamente.\n3. Manejar el reintento si es necesario.\n\n### Regla 5: Idempotencia\n\nLas operaciones deben ser seguras para reintentar. Verifica antes de insertar."
+        },
+        {
+          "type": "text",
+          "content": "## Integración con aplicaciones (mención breve)\n\nEn aplicaciones reales (Java/JDBC, Python, PHP), el patrón típico es:\n\n```java\n// Pseudocódigo Java/JDBC\nConnection conn = DriverManager.getConnection(url);\ntry {\n    conn.setAutoCommit(false);\n    \n    PreparedStatement ps1 = conn.prepareStatement(\"INSERT INTO ...\");\n    ps1.executeUpdate();\n    \n    PreparedStatement ps2 = conn.prepareStatement(\"UPDATE ...\");\n    ps2.executeUpdate();\n    \n    conn.commit();  // Todo OK\n} catch (SQLException e) {\n    conn.rollback();  -- Deshacer todo\n    // Manejar error: reintentar, notificar, etc.\n} finally {\n    conn.setAutoCommit(true);  -- Reactivar autocommit\n}\n```\n\n> **Nota**: No profundizaremos en la integración con lenguajes de programación. El foco de este módulo es MySQL puro. Pero es importante saber que el patrón es el mismo: START TRANSACTION → operaciones → COMMIT o ROLLBACK."
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: matrícula con plazas limitadas\n\n### El escenario\n\nLa asignatura \"Bases de datos\" tiene **1 plaza disponible**. Dos alumnos intentan matricularse **simultáneamente**. Solo uno debe conseguir la plaza.\n\n### Datos iniciales\n\n```sql\n-- Verificar plazas\nSELECT id, nombre, plazas_disponibles\nFROM asignaturas WHERE nombre = 'Bases de datos';\n-- Resultado: id=1, plazas_disponibles=1\n```\n\n### El problema\n\nSi ambos alumnos ejecutan esto al mismo tiempo sin protección:\n\n```sql\n-- Ambos leen plazas_disponibles = 1\n-- Ambos insertan matrícula\n-- Ambos reducen plazas a -1\n-- ¡Resultado: 2 alumnos matriculados con 1 plaza!\n```\n\n### La solución paso a paso\n\n**SESIÓN A** (Alumno 1):\n```sql\nSTART TRANSACTION;\n\n-- 1. Verificar plazas con bloqueo\nSELECT plazas_disponibles INTO @plazas\nFROM asignaturas WHERE id = 1 FOR UPDATE;\n\n-- 2. Validar\nIF @plazas > 0 THEN\n  -- 3. Insertar matrícula\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (10, 1, CURDATE(), 'activa');\n  \n  -- 4. Reducir plazas\n  UPDATE asignaturas\n  SET plazas_disponibles = plazas_disponibles - 1\n  WHERE id = 1;\n  \n  COMMIT;\n  SELECT 'Alumno 1 matriculado exitosamente' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'Alumno 1: no hay plazas disponibles' AS resultado;\nEND IF;\n```\n\n**SESIÓN B** (Alumno 2) — ejecuta al mismo tiempo:\n```sql\nSTART TRANSACTION;\n\n-- 1. Verificar plazas con bloqueo\n-- ¡SE BLOQUEA! Espera a que A termine (FOR UPDATE bloquea la fila)\n\n-- Cuando A hace COMMIT:\nSELECT plazas_disponibles INTO @plazas\nFROM asignaturas WHERE id = 1;\n-- @plazas = 0 (ya no hay plazas)\n\n-- 2. Validar\nIF @plazas > 0 THEN\n  -- No entra aquí\nELSE\n  ROLLBACK;\n  SELECT 'Alumno 2: no hay plazas disponibles' AS resultado;\nEND IF;\n```\n\n### Resultado final\n\n```sql\n-- Verificar\nSELECT a.nombre, m.estado, asig.plazas_disponibles\nFROM alumnos a\nJOIN matriculas m ON a.id = m.id_alumno\nJOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.nombre = 'Bases de datos';\n\n-- Alumno 1: activa, plazas_disponibles = 0\n-- Solo 1 alumno matriculado, plazas = 0 ✓\n```\n\n> **Clave**: El `FOR UPDATE` en el SELECT de verificación es lo que garantiza la atomicidad. Sin él, ambos leerían plazas=1 y ambos insertarían."
+        },
+        {
+          "type": "text",
+          "content": "## Extensión del caso: con operación opcional\n\nAhora añadimos: después de la matrícula, registrar un pago (puede fallar) y enviar notificación (puede fallar). Usamos SAVEPOINT.\n\n```sql\nSTART TRANSACTION;\n\n-- 1. Verificar plazas con bloqueo\nSELECT plazas_disponibles INTO @plazas\nFROM asignaturas WHERE id = 1 FOR UPDATE;\n\nIF @plazas > 0 THEN\n  -- 2. Insertar matrícula (obligatorio)\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (10, 1, CURDATE(), 'activa');\n  \n  -- 3. Reducir plazas (obligatorio)\n  UPDATE asignaturas\n  SET plazas_disponibles = plazas_disponibles - 1\n  WHERE id = 1;\n  \n  SAVEPOINT sp_post_matricula;  -- Punto de no retorno\n  \n  -- 4. Registrar pago (opcional, puede fallar)\n  INSERT INTO pagos (id_alumno, id_asignatura, cantidad, fecha)\n  VALUES (10, 1, 120.00, CURDATE());\n  \n  -- 5. Enviar notificación (opcional, puede fallar)\n  INSERT INTO notificaciones (id_alumno, tipo, mensaje)\n  VALUES (10, 'matricula', 'Bienvenido a Bases de datos');\n  \n  COMMIT;\n  SELECT 'Matrícula completada' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'No hay plazas disponibles' AS resultado;\nEND IF;\n```\n\nSi el pago o la notificación fallan:\n```sql\nROLLBACK TO SAVEPOINT sp_post_matricula;\n-- La matrícula y la reducción de plazas se conservan.\n-- Solo el pago y la notificación se deshacen.\n```\n\n> **Resultado**: La matrícula siempre es exitosa si hay plazas. Las operaciones opcionales pueden fallar sin afectar lo esencial."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-12-1",
+          "title": "Caso práctico completo: matrícula con plazas limitadas",
+          "difficulty": "advanced",
+          "description": "Resuelve el caso práctico completo con las siguientes especificaciones:\n\nLa asignatura 'Redes' (id=2) tiene 2 plazas disponibles. Dos alumnos (ids 20 y 21) intentan matricularse simultáneamente.\n\n1. Escribe la transacción para SESIÓN A (alumno 20)\n2. Escribe la transacción para SESIÓN B (alumno 21)\n3. Explica qué resultado obtiene cada sesión\n4. Verifica el estado final de la tabla\n\nUsa el patrón: START TRANSACTION → SELECT FOR UPDATE → verificar → INSERT → UPDATE plazas → COMMIT/ROLLBACK",
+          "solution": "```sql\n-- SESIÓN A (Alumno 20)\nSTART TRANSACTION;\n\nSELECT plazas_disponibles INTO @plazas\nFROM asignaturas WHERE id = 2 FOR UPDATE;\n\nIF @plazas > 0 THEN\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (20, 2, CURDATE(), 'activa');\n  UPDATE asignaturas SET plazas_disponibles = plazas_disponibles - 1 WHERE id = 2;\n  COMMIT;\n  SELECT 'Alumno 20 matriculado' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'Alumno 20: sin plazas' AS resultado;\nEND IF;\n```\n\n```sql\n-- SESIÓN B (Alumno 21) — ejecuta al mismo tiempo\nSTART TRANSACTION;\n\n-- ¡SE BLOQUEA en el SELECT FOR UPDATE!\n-- Espera a que A termine\n\n-- Cuando A hace COMMIT:\nSELECT plazas_disponibles INTO @plazas\nFROM asignaturas WHERE id = 2;\n-- @plazas = 1 (quedaba 2, A redujo 1)\n\nIF @plazas > 0 THEN\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (21, 2, CURDATE(), 'activa');\n  UPDATE asignaturas SET plazas_disponibles = plazas_disponibles - 1 WHERE id = 2;\n  COMMIT;\n  SELECT 'Alumno 21 matriculado' AS resultado;\nELSE\n  ROLLBACK;\n  SELECT 'Alumno 21: sin plazas' AS resultado;\nEND IF;\n```\n\n**Resultado**: Ambos alumnos se matriculan (había 2 plazas). plazas_disponibles = 0.\n\n**Verificación**:\n```sql\nSELECT a.nombre, m.estado, asig.plazas_disponibles\nFROM alumnos a\nJOIN matriculas m ON a.id = m.id_alumno\nJOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.id = 2;\n-- Alumno 20: activa, plazas = 0\n-- Alumno 21: activa, plazas = 0\n```"
+        }
+      ]
+    }
+  ]
+}

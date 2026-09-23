@@ -26,7 +26,7 @@ function getAuth(): any {
       },
       emailAndPassword: {
         enabled: true,
-        requireEmailVerification: process.env.ENVIRONMENT === "production",
+        requireEmailVerification: false,
         minPasswordLength: 5, // Allow 5-digit temporary passwords for admin-provisioned accounts
         maxPasswordLength: 128,
       },

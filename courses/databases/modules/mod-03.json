@@ -1,0 +1,613 @@
+{
+  "id": "mod-03",
+  "courseId": "databases-0484",
+  "title": "Modelo entidad/relación",
+  "slug": "modelo-er",
+  "order": 3,
+  "description": "Diseño conceptual de bases de datos con el modelo E/R: entidades, atributos, identificadores, relaciones, cardinalidades, participaciones, entidades débiles, relaciones recursivas y ternarias, y modelo E/R extendido. Todo sin SQL, puro diseño.",
+  "objectives": [
+    "Comprender el proceso de pasaje de un problema real a un diseño de base de datos",
+    "Identificar entidades y clasificar sus atributos",
+    "Definir identificadores y claves candidatas",
+    "Diseñar relaciones entre entidades y determinar su tipo",
+    "Calcular cardinalidades y participaciones",
+    "Modelar entidades débiles y relaciones especiales",
+    "Utilizar elementos del modelo E/R extendido (generalización/especialización)",
+    "Construir diagramas E/R completos a partir de requisitos"
+  ],
+  "estimatedMinutes": 600,
+  "lessons": [
+    {
+      "id": "lesson-03-1",
+      "title": "Del problema real al diseño de una base de datos",
+      "order": 1,
+      "objectives": [
+        "Comprender qué es el diseño conceptual y por qué es necesario",
+        "Identificar el proceso de pasaje de un problema real a un modelo E/R",
+        "Reconocer los elementos del modelo E/R"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Por qué necesitamos diseñar antes de crear?\n\nAntes de crear una base de datos (tablas, columnas, restricciones), debemos **diseñar** qué datos necesitamos almacenar y cómo se relacionan entre sí. Este diseño se llama **diseño conceptual** y se realiza usando el **modelo Entidad/Relación (E/R)**.\n\n> **Analogía**: Antes de construir un edificio, el arquitecto dibuja planos. El diseño E/R es el plano de nuestra base de datos. Sin él, construimos a ciegas y luego pagamos caro los errores.\n\nEl diseño conceptual es **independiente del SGBD**. No importa si usaremos MySQL, PostgreSQL o cualquier otro. El modelo E/R describe la realidad del negocio, no cómo se implementará técnicamente."
+        },
+        {
+          "type": "text",
+          "content": "## El proceso de diseño conceptual\n\nEl proceso sigue estos pasos:\n\n```\n1. Identificar el PROBLEMA\n   ¿Qué necesitamos almacenar?\n           │\n           ▼\n2. Identificar ENTIDADES\n   ¿Qué objetos del mundo real nos interesan?\n           │\n           ▼\n3. Identificar ATRIBUTOS\n   ¿Qué propiedades tiene cada entidad?\n           │\n           ▼\n4. Identificar IDENTIFICADORES\n   ¿Cómo distinguimos una instancia de otra?\n           │\n           ▼\n5. Identificar RELACIONES\n   ¿Cómo se asocian las entidades entre sí?\n           │\n           ▼\n6. Determinar CARDINALIDADES\n   ¿Cuántas instancias se asocian?\n           │\n           ▼\n7. Determinar PARTICIPACIONES\n   ¿Es obligatorio u opcional participar?\n           │\n           ▼\n8. Dibujar el diagrama E/R\n   Representación gráfica del diseño\n```\n\nEste proceso es **iterativo**: al avanzar, puede que descubramos entidades que no habíamos visto o que una relación deba modificarse."
+        },
+        {
+          "type": "text",
+          "content": "## Elementos del modelo E/R\n\nEl modelo E/R se compone de estos elementos básicos:\n\n| Elemento | Símbolo | Descripción |\n|---|---|---|\n| **Entidad** | Rectángulo | Objeto del mundo real que queremos representar |\n| **Atributo** | Óvalo | Propiedad o característica de una entidad |\n| **Identificador** | Óvalo subrayado | Atributo que identifica de forma única cada instancia |\n| **Relación** | Rombo | Asociación entre dos o más entidades |\n| **Cardinalidad** | Números | Cuántas instancias participan en la relación |\n| **Participación** | Línea continua/discontinua | Si la participación es obligatoria u opcional |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo introductorio: academia de idiomas\n\nUna academia de idiomas necesita almacenar información sobre:\n- Los **alumnos** que estudian en la academia.\n- Los **profesores** que imparten clases.\n- Las **asignaturas** (idiomas, niveles).\n- Las **matrículas** de los alumnos en las asignaturas.\n\nDesde este enunciado, ya podemos identificar las primeras entidades: **Alumno**, **Profesor**, **Asignatura** y **Matrícula**.\n\nEn los siguientes temas iremos detallando cada paso del proceso. Por ahora, lo importante es entender que el diseño conceptual parte de un **problema real** y lo traduce en un **modelo estructurado** que luego podremos implementar."
+        },
+        {
+          "type": "text",
+          "content": "## Conceptos clave para recordar\n\n- El diseño conceptual es **anterior** a la implementación.\n- El modelo E/R es **independiente del SGBD**.\n- El proceso es **iterativo**: se refine a medida que se avanza.\n- Un buen diseño conceptual ahorra horas de retrabajo en la implementación.\n- Los errores de diseño detectados conceptualmente son baratos de corregir. Los detectados en implementación son carísimos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-1-1",
+          "title": "Identificar entidades iniciales",
+          "difficulty": "basic",
+          "description": "Una tienda online vende productos a clientes. Los clientes hacen pedidos que contienen varios productos. Cada pedido se envía a una dirección. Identifica las entidades principales del sistema. Para cada una, escribe una frase que la describa.",
+          "solution": "**Entidades identificadas:**\n\n1. **Cliente**: Persona que compra en la tienda online.\n2. **Producto**: Artículo que se vende en la tienda.\n3. **Pedido**: Solicitud de compra realizada por un cliente.\n4. **Dirección de envío**: Lugar donde se recibe el pedido.\n\nEstas cuatro entidades son el punto de partida del diseño. En los siguientes temas identificaremos sus atributos, identificadores y relaciones."
+        },
+        {
+          "id": "ex-03-1-2",
+          "title": "Proceso de diseño paso a paso",
+          "difficulty": "basic",
+          "description": "Describe con tus palabras el proceso de diseño conceptual. ¿Por qué es importante hacerlo antes de crear las tablas en el SGBD? Pon un ejemplo de algo que podría salir mal si saltamos el diseño.",
+          "solution": "**Proceso:** El diseño conceptual consiste en analizar el problema real del negocio, identificar los objetos importantes (entidades), sus propiedades (atributos), cómo se identifican (identificadores) y cómo se relacionan entre sí (relaciones y cardinalidades). Todo esto se representa en un diagrama E/R.\n\n**Importancia:** Si saltamos el diseño y vamos directamente a crear tablas, corremos el riesgo de crear una estructura incompleta, con datos duplicados o con relaciones mal definidas. Por ejemplo, podríamos crear una tabla de alumnos y otra de notas sin considerar que un alumno puede tener varias notas en la misma asignatura en distintas convocatorias, lo que nos obligaría a reestructurar todo más adelante, perdiendo tiempo y posiblemente datos."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-2",
+      "title": "Entidades",
+      "order": 2,
+      "objectives": [
+        "Definir qué es una entidad en el modelo E/R",
+        "Diferenciar entre tipo de entidad e instancia de entidad",
+        "Clasificar entidades según su naturaleza"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una entidad?\n\nUna **entidad** es un objeto del mundo real que tiene existencia independiente y del que queremos almacenar información en nuestra base de datos.\n\nUna entidad puede ser:\n- **Tangible**: Algo que puedes tocar (un alumno, un producto, un edificio).\n- **Intangible**: Algo que no puedes tocar pero tiene existencia (un pedido, una matrícula, una factura).\n\n> **Regla práctica**: Si necesitas guardar información sobre algo y ese algo puede existir por sí mismo, es una entidad."
+        },
+        {
+          "type": "text",
+          "content": "## Tipo de entidad vs Instancia\n\nEs fundamental distinguir entre:\n\n| Concepto | Significado | Ejemplo |\n|---|---|---|\n| **Tipo de entidad** | La definición general (la \"clase\") | ALUMNO (el concepto) |\n| **Instancia de entidad** | Un caso concreto (un \"objeto\") | Juan García (un alumno real) |\n\n**Ejemplo:**\n- Tipo de entidad: `ALUMNO`\n- Instancias: Juan García (id=1), María López (id=2), Carlos Ruiz (id=3)\n\nEn el diagrama E/R, dibujamos el **tipo de entidad** (rectángulo con el nombre). Las instancias son los datos que se almacenarán en la tabla correspondiente."
+        },
+        {
+          "type": "text",
+          "content": "## Clasificación de entidades\n\n### Por su naturaleza\n\n| Tipo | Descripción | Ejemplo |\n|---|---|---|\n| **Fuerte** | Tiene clave propia, existe independientemente | Alumno, Producto, Profesor |\n| **Débil** | No tiene clave propia, depende de otra entidad | Línea de pedido, Examen de una asignatura |\n\n### Por su temporalidad\n\n| Tipo | Descripción | Ejemplo |\n|---|---|---|\n| **Permanente** | Existe durante largo tiempo | Alumno, Asignatura |\n| **Temporal** | Es transitoria | Matrícula, Reserva |\n\n### Por su papel en el negocio\n\n| Tipo | Descripción | Ejemplo |\n|---|---|---|\n| **Principal** | Es el foco del sistema | Alumno, Producto |\n| **Secundaria** | Ayuda a las principales | Dirección, Teléfono |\n| **Asociativa** | Representa una relación entre entidades | Matrícula, Pedido |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: academia de idiomas\n\nEn la academia de idiomas, las entidades principales son:\n\n```\n┌────────────┐   ┌────────────┐   ┌────────────┐\n│  ALUMNO    │   │ PROFESOR   │   │ ASIGNATURA │\n└────────────┘   └────────────┘   └────────────┘\n\n┌────────────┐\n│ MATRICULA  │\n└────────────┘\n```\n\n- **ALUMNO**: Entidad fuerte, tangible, principal.\n- **PROFESOR**: Entidad fuerte, tangible, principal.\n- **ASIGNATURA**: Entidad fuerte, intangible (una materia), principal.\n- **MATRÍCULA**: Entidad asociativa, intangible, temporal. Representa la inscripción de un alumno en una asignatura."
+        },
+        {
+          "type": "text",
+          "content": "## Consejos para identificar entidades\n\n1. **Lee el enunciado del problema** y busca los sustantivos. Cada sustantivo importante suele ser una entidad.\n2. **Pregúntate**: ¿Necesito guardar información de esto? Si la respuesta es sí, es una entidad candidata.\n3. **Pregúntate**: ¿Puede existir por sí mismo? Si necesita obligatoriamente de otra cosa para existir, podría ser una entidad débil.\n4. **Evita duplicar**: No crees dos entidades para el mismo concepto. \"Cliente\" y \"Comprador\" suelen ser lo mismo.\n5. **No te olvides de las relaciones**: A veces una \"relación\" en el enunciado (\"se matricula\") se convierte en una entidad asociativa."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-2-1",
+          "title": "Identificar entidades en un hospital",
+          "difficulty": "basic",
+          "description": "En un hospital se gestiona: pacientes, médicos, citas médicas, diagnósticos, habitaciones y facturas. Identifica las entidades del sistema. Para cada una, indica si es fuerte o débil, tangible o intangible, y principal o secundaria.",
+          "solution": "**Entidades identificadas:**\n\n1. **Paciente** → Fuerte, tangible, principal. Tiene clave propia (DNI o id). Existe independientemente.\n2. **Médico** → Fuerte, tangible, principal. Tiene clave propia. Existe independientemente.\n3. **Cita** → Fuerte, intangible, principal. Representa un evento (una consulta médica).\n4. **Diagnóstico** → Podría ser débil (depende de una cita) o fuerte. Es intangible, secundaria.\n5. **Habitación** → Fuerte, tangible, secundaria. Es un recurso del hospital.\n6. **Factura** → Débil (depende de las citas realizadas). Intangible, secundaria."
+        },
+        {
+          "id": "ex-03-2-2",
+          "title": "Tipo vs instancia",
+          "difficulty": "basic",
+          "description": "Dada la entidad PROFESOR con estas instancias:\n- id=1, nombre='Ana Martín', especialidad='Inglés'\n- id=2, nombre='Pedro Sánchez', especialidad='Francés'\n- id=3, nombre='Laura Gómez', especialidad='Alemán'\n\nExplica la diferencia entre el tipo de entidad y las instancias. ¿Cuántas instancias hay? ¿Qué atributos tiene el tipo de entidad?",
+          "solution": "**Tipo de entidad:** PROFESOR. Es la definición general, el \"molde\". Tiene los atributos: id, nombre, especialidad.\n\n**Instancias:** Son los casos concretos. Hay 3 instancias:\n- Instancia 1: Ana Martín, Inglés\n- Instancia 2: Pedro Sánchez, Francés\n- Instancia 3: Laura Gómez, Alemán\n\nCada instancia es un registro concreto que se almacenará en la tabla PROFESOR. El tipo de entidad es lo que dibujamos en el diagrama E/R."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-3",
+      "title": "Atributos",
+      "order": 3,
+      "objectives": [
+        "Definir qué es un atributo en el modelo E/R",
+        "Clasificar los tipos de atributos",
+        "Distinguir entre atributos simples, compuestos, multivaluados y derivados"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un atributo?\n\nUn **atributo** es una propiedad o característica de una entidad que nos permite describirla. Cada instancia de una entidad tiene valores concretos para sus atributos.\n\n**Ejemplo:** Para la entidad ALUMNO:\n- nombre = \"Juan García\"\n- email = \"juan@email.com\"\n- fecha_nacimiento = \"2005-03-15\"\n\nCada uno de estos valores corresponde a un atributo distinto."
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de atributos\n\n| Tipo | Descripción | Ejemplo | Notación E/R |\n|---|---|---|---|\n| **Simple** | No se puede dividir en partes | Nombre, precio, email | Óvalo normal |\n| **Compuesto** | Se puede dividir en subpartes | Dirección (calle, ciudad, CP) | Óvalo con ramas |\n| **Multivalorado** | Puede tener varios valores simultáneos | Teléfonos, idiomas | Óvalo doble borde |\n| **Derivado** | Se calcula a partir de otros atributos | Edad (de fecha_nacimiento) | Óvalo con línea punteada |\n\n> **Regla**: Los atributos compuestos se evitan en el diseño relacional (se \"aplanan\"). Pero en el modelo E/R es útil representarlos para documentar la estructura real del dato."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplos detallados de cada tipo\n\n### Atributo simple\n```\n  ○ nombre\n  ○ email\n  ○ precio\n```\nUn valor único que no se subdivide.\n\n### Atributo compuesto\n```\n        ○ direccion\n       / | \\\n  ○ calle ○ ciudad ○ cp\n```\nLa dirección se descompone en calle, ciudad y código postal.\n\n### Atributo multivalorado\n```\n  ○○ telefonos\n```\nUn alumno puede tener varios teléfonos: móvil, casa, trabajo.\n\n### Atributo derivado\n```\n  {edad}\n```\nLa edad se calcula a partir de la fecha de nacimiento y el día actual. No se almacena, se calcula bajo demanda."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo completo: entidad ALUMNO\n\n```\n┌──────────────────────────────────────────┐\n│  ALUMNO                                  │\n│                                          │\n│  ═══════════════                         │\n│  ○ id_alumno        (identificador)      │\n│  ○ nombre            (simple)            │\n│  ○ apellido          (simple)            │\n│  ○ email             (simple)            │\n│  ○ fecha_nacimiento  (simple)            │\n│  {edad}              (derivado)          │\n│  ○○ telefono         (multivalorado)     │\n│         │                                │\n│    ○ calle                                │\n│    ○ ciudad                               │\n│    ○ cp                                   │\n│  (direccion)         (compuesto)         │\n└──────────────────────────────────────────┘\n```\n\nEn este ejemplo vemos todos los tipos de atributos aplicados a una sola entidad."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cómo decidir el tipo de atributo?\n\nHazte estas preguntas:\n\n1. **¿Se puede dividir?** → Si sí, es compuesto (ej: dirección).\n2. **¿Puede tener varios valores?** → Si sí, es multivalorado (ej: teléfonos).\n3. **¿Se calcula de otros?** → Si sí, es derivado (ej: edad).\n4. **Si no aplica ninguna de las anteriores** → Es simple.\n\n> **Consejo**: En el diseño conceptual, documenta los atributos como aparecen en la realidad. Más adelante, en la transformación relacional, simplificaremos: los compuestos se \"aplanan\", los multivaluados se separan en tablas y los derivados generalmente no se almacenan."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-3-1",
+          "title": "Clasificar atributos",
+          "difficulty": "basic",
+          "description": "Para la entidad PRODUCTO de una tienda online, clasifica estos atributos: nombre, precio, descripcion, peso, color, fecha_fabricacion, stock, imagen, marca, categoria, codigo_barras. Indica si son simples, compuestos, multivaluados o derivados.",
+          "solution": "**Clasificación:**\n\n| Atributo | Tipo | Justificación |\n|---|---|---|\n| nombre | Simple | Valor único, no se subdivide |\n| precio | Simple | Valor único |\n| descripcion | Simple | Texto único |\n| peso | Simple | Valor numérico único |\n| color | Simple (o multivalorado si admite varios) | Un color por defecto, pero podría ser multivalorado |\n| fecha_fabricacion | Simple | Fecha concreta |\n| stock | Simple | Número entero |\n| imagen | Simple (o multivalorado si hay varias) | Por defecto una imagen, pero podría tener galería |\n| marca | Simple | Nombre de la marca |\n| categoria | Simple (o compuesto si tiene subcategorías) | Podría dividirse en categoría y subcategoría |\n| codigo_barras | Simple | Código único |\n\n**Nota**: La clasificación depende del contexto. Si un producto puede tener varios colores, `color` sería multivalorado. Si una categoría se divide en categoría y subcategoría, `categoria` sería compuesto."
+        },
+        {
+          "id": "ex-03-3-2",
+          "title": "Diseñar atributos de una entidad",
+          "difficulty": "intermediate",
+          "description": "Diseña los atributos de la entidad MEDICO de un hospital. Incluye al menos: 1 identificador, 3 atributos simples, 1 compuesto, 1 multivalorado y 1 derivado. Justifica cada elección.",
+          "solution": "**Entidad MEDICO con sus atributos:**\n\n| Atributo | Tipo | Descripción |\n|---|---|---|\n| id_medico | Simple (identificador) | Código único del médico |\n| nombre | Simple | Nombre del médico |\n| apellido | Simple | Apellido del médico |\n| email | Simple | Correo electrónico |\n| fecha_nacimiento | Simple | Para calcular la edad |\n| {edad} | Derivado | Se calcula de fecha_nacimiento y la fecha actual |\n| direccion | Compuesto | Compuesto por: calle, ciudad, codigo_postal, pais |\n| telefonos | Multivalorado | Un médico puede tener varios: móvil, consulta, urgencias |\n\n**Justificación:**\n- **id_medico** como identificador: cada médico tiene un código único en el hospital.\n- **direccion** como compuesto: la dirección se descompone naturalmente en calle, ciudad, CP y país.\n- **telefonos** como multivalorado: es habitual que un médico tenga teléfono de consulta, móvil personal y teléfono de urgencias.\n- **edad** como derivado: no se almacena porque cambia cada año; se calcula de la fecha de nacimiento."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-4",
+      "title": "Identificadores y claves candidatas",
+      "order": 4,
+      "objectives": [
+        "Definir qué es un identificador en el modelo E/R",
+        "Comprender el concepto de clave candidata",
+        "Diferenciar entre clave primaria y claves alternativas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un identificador?\n\nUn **identificador** es un atributo (o conjunto de atributos) que permite distinguir de forma **única** cada instancia de una entidad. Es la \"etiqueta\" que diferencia a un alumno de otro, a un producto de otro.\n\n> **Regla de oro**: Cada instancia debe tener un valor de identificador diferente. No puede haber dos alumnos con el mismo id, ni dos productos con el mismo código de barras.\n\nEn el diagrama E/R, el identificador se dibuja con el nombre **subrayado**."
+        },
+        {
+          "type": "text",
+          "content": "## Clave candidata\n\nUna **clave candidata** es cualquier atributo o conjunto de atributos que cumple la condición de identificador único. Puede haber varias claves candidatas para una misma entidad.\n\n**Ejemplo: Entidad PERSONA**\n\n| Clave candidata | Atributos | ¿Es válida? |\n|---|---|---|\n| DNI | dni | ✅ Sí, cada persona tiene un DNI único |\n| Email institucional | email | ✅ Sí, cada persona tiene un email único |\n| (nombre, fecha_nacimiento) | nombre + fecha_nac | ⚠️ Posible, pero no garantiza unicidad |\n\nDe todas las claves candidatas, **elegimos una como clave primaria** (la que usemos como identificador principal). Las demás son **claves alternativas**."
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de claves\n\n| Tipo | Definición | Ejemplo |\n|---|---|---|\n| **Clave candidata** | Atributo(s) que identifican de forma única | DNI, email |\n| **Clave primaria** | La clave candidata elegida como identificador principal | DNI |\n| **Clave alternativa** | Clave candidata no elegida como primaria | email |\n| **Clave compuesta** | Formada por 2 o más atributos | (id_alumno, id_asignatura) en MATRICULA |\n| **Clave superclave** | Conjunto de atributos que garantiza unicidad (puede tener atributos de más) | (DNI, nombre, apellido) |\n\n> **Importante**: En el modelo E/R dibujamos la clave primaria subrayada. No es necesario dibujar las claves alternativas, pero es bueno documentarlas."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: entidad ALUMNO\n\n```\n┌──────────────────────────────────┐\n│  ALUMNO                          │\n│                                  │\n│  ═══════════════                 │\n│  ○ id_alumno     (clave primaria)│\n│  ○ nombre                       │\n│  ○ apellido                     │\n│  ○ email        (clave alterna) │\n│  ○ dni          (clave alterna) │\n│  ○ fecha_nacimiento             │\n└──────────────────────────────────┘\n```\n\n- **Clave primaria**: `id_alumno` (entero autoincremental, sencillo y eficiente).\n- **Claves alternativas**: `email` y `dni`. Ambos son únicos, pero elegimos `id_alumno` como primaria porque es más ligero y nunca cambia.\n\n> **Consejo**: Las claves primarias deben ser:\n> - **Inmutables**: No deberían cambiar nunca (evita usar DNI como PK si puede cambiarse).\n> - **Sencillas**: Mejor un entero autoincremental que una cadena larga.\n> - **Nunca nulas**: Todo registro debe tener valor de clave primaria."
+        },
+        {
+          "type": "text",
+          "content": "## Clave compuesta\n\nA veces un solo atributo no basta para identificar una instancia. En esos casos se usa una **clave compuesta** formada por dos o más atributos.\n\n**Ejemplo: Entidad MATRICULA**\n\n```\n┌──────────────────────────────────┐\n│  MATRICULA                       │\n│                                  │\n│  ═══════════════════════         │\n│  ○ id_alumno    ┐                │\n│  ○ id_asignatura├(clave comp.)  │\n│  ○ fecha_matricula               │\n│  ○ estado                       │\n└──────────────────────────────────┘\n```\n\nLa clave compuesta es `(id_alumno, id_asignatura)` porque un alumno solo puede estar matriculado una vez en cada asignatura. Con estos dos campos juntos se identifica cada matrícula de forma única."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-4-1",
+          "title": "Identificar claves candidatas",
+          "difficulty": "basic",
+          "description": "Para la entidad PRODUCTO de una tienda, analiza estos atributos y determina cuáles podrían ser claves candidatas: id_producto, nombre, codigo_barras, precio, marca, descripcion. Justifica tu respuesta.",
+          "solution": "**Claves candidatas identificadas:**\n\n1. **id_producto** → ✅ Clave candidata (y candidata a primaria). Es un identificador único y numérico, ideal como clave primaria.\n\n2. **codigo_barras** → ✅ Clave candidata. Cada producto tiene un código de barras único. Podría ser clave alternativa.\n\n3. **nombre** → ⚠️ No es clave candidata. Dos productos distintos podrían llamarse \"Camiseta\" o \"Auriculares\". No garantiza unicidad.\n\n4. **precio** → ❌ No es clave candidata. Varios productos pueden tener el mismo precio.\n\n5. **marca** → ❌ No es clave candidata. Muchos productos comparten marca.\n\n6. **descripcion** → ❌ No es clave candidata. No garantiza unicidad.\n\n**Clave primaria recomendada:** `id_producto` (entero autoincremental).\n**Clave alternativa:** `codigo_barras` (único por producto)."
+        },
+        {
+          "id": "ex-03-4-2",
+          "title": "Diseñar claves para un sistema de biblioteca",
+          "difficulty": "intermediate",
+          "description": "En una biblioteca se gestiona: Libro (con título, autor, editorial, isbn, año), Socio (con nombre, email, telefono) y Prestamo (con fecha_prestamo, fecha_devolucion). Diseña las claves para cada entidad. Indica si son simples o compuestas. Justifica.",
+          "solution": "**Entidad LIBRO:**\n- Clave primaria: `id_libro` (entero autoincremental, simple)\n- Clave alternativa: `isbn` (código único por edición del libro, simple)\n- Justificación: Aunque el ISBN es único, es mejor usar un id numérico como primaria por eficiencia. El ISBN queda como alternativa para búsquedas.\n\n**Entidad SOCIO:**\n- Clave primaria: `id_socio` (entero autoincremental, simple)\n- Clave alternativa: `email` (único por socio, simple)\n- Justificación: El email identifica a cada socio de forma única. Usamos id numérico como primaria.\n\n**Entidad PRESTAMO:**\n- Clave primaria: `id_prestamo` (entero autoincremental, simple)\n- Alternativa: `(id_socio, id_libro, fecha_prestamo)` como clave compuesta, ya que un socio podría pedir prestado el mismo libro más de una vez (en distintas fechas).\n- Justificación: Un id numérico es más sencillo. La clave compuesta documenta la lógica de negocio."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-5",
+      "title": "Relaciones entre entidades",
+      "order": 5,
+      "objectives": [
+        "Definir qué es una relación en el modelo E/R",
+        "Identificar el grado de una relación",
+        "Diferenciar entre relaciones binarias, ternarias y unarias"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una relación?\n\nUna **relación** es una asociación entre dos o más entidades. Representa un hecho del mundo real donde las entidades participan de forma conjunta.\n\nLas relaciones se representan con un **rombo** en el diagrama E/R.\n\n> **Ejemplo**: \"Juan (Alumno) se matricula en Bases de Datos (Asignatura)\". La relación es **se matricula**, y asocia a Alumno con Asignatura."
+        },
+        {
+          "type": "text",
+          "content": "## Grado de una relación\n\nEl **grado** es el número de entidades que participan en la relación.\n\n| Grado | Nombre | Entidades | Ejemplo |\n|---|---|---|---|\n| **1** | Unaria | 1 | Profesor supervisa a Profesor |\n| **2** | Binaria | 2 | Alumno se matricula en Asignatura |\n| **3** | Ternaria | 3 | Alumno cursa Asignatura con Profesor |\n| **n** | n-aria | n | Relación entre n entidades |\n\n> En la práctica, la mayoría de relaciones son **binarias** (grado 2). Las ternarias y de mayor grado son menos frecuentes pero aparecen en situaciones específicas."
+        },
+        {
+          "type": "text",
+          "content": "## Relaciones binarias\n\nSon las más comunes. Asocian exactamente **dos entidades**.\n\n```\n┌──────────┐   se matricula   ┌────────────┐\n│  ALUMNO  ├─────────────────┤ ASIGNATURA │\n└──────────┘                 └────────────┘\n```\n\n**Otros ejemplos de relaciones binarias:**\n\n| Relación | Entidad A | Entidad B |\n|---|---|---|\n| imparte | PROFESOR | ASIGNATURA |\n| realiza | CLIENTE | PEDIDO |\n| pertenece | DEPARTAMENTO | EMPRESA |\n| contiene | PEDIDO | PRODUCTO |\n| dirige | PROFESOR | PROYECTO |"
+        },
+        {
+          "type": "text",
+          "content": "## Relaciones unarias (recursivas)\n\nUna relación de **grado 1** asocia una entidad consigo misma.\n\n```\n              supervisa\n         ┌───────────────┐\n         │               │\n         ▼               │\n    ┌──────────┐         │\n    │ PROFESOR ├─────────┘\n    └──────────┘\n```\n\n**Ejemplo**: Un profesor supervisa a otro profesor. Ambos participantes son de la misma entidad PROFESOR.\n\n**Más ejemplos de relaciones unarias:**\n- Persona casada con → Persona\n- Empleado dirige a → Empleado\n- Categoría padre de → Categoría"
+        },
+        {
+          "type": "text",
+          "content": "## Atributos de las relaciones\n\nLas relaciones también pueden tener atributos propios. Estos atributos describen la relación, no a las entidades participantes.\n\n**Ejemplo**: La relación MATRICULA entre Alumno y Asignatura puede tener:\n- `fecha_matricula`: Cuándo se matriculó.\n- `nota_final`: La nota obtenida al final del curso.\n\n```\n┌──────────┐    matricula     ┌────────────┐\n│  ALUMNO  ├─────────────────┤ ASIGNATURA │\n└──────────┘                 └────────────┘\n              ○ fecha_matricula\n              ○ nota_final\n```\n\n> **Regla**: Si una relación N:M tiene atributos propios, estos van \"pegados\" al rombo de la relación."
+        },
+        {
+          "type": "text",
+          "content": "## Nombre de las relaciones\n\nEl nombre de la relación debe expresar la asociación entre las entidades. Se suele escribir en **tercera persona del singular** o como un **verbo en infinitivo**.\n\n**Buenos nombres:**\n- `imparte` (Profesor imparte Asignatura)\n- `se matricula` (Alumno se matricula en Asignatura)\n- `realiza` (Cliente realiza Pedido)\n- `contiene` (Pedido contiene Producto)\n\n**Malos nombres:**\n- `relacion1` (no dice nada)\n- `tabla_intermedia` (es un término técnico, no de negocio)\n- `datos` (demasiado vago)"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-5-1",
+          "title": "Identificar relaciones en una tienda",
+          "difficulty": "basic",
+          "description": "En una tienda online con entidades: Cliente, Producto, Pedido y Categoria, identifica todas las relaciones binarias posibles. Para cada una, ponle un nombre adecuado y describe qué significa.",
+          "solution": "**Relaciones identificadas:**\n\n1. **Cliente realiza Pedido** → Un cliente puede hacer varios pedidos, un pedido lo realiza un solo cliente.\n\n2. **Pedido contiene Producto** → Un pedido puede incluir varios productos, un producto puede estar en varios pedidos.\n\n3. **Producto pertenece a Categoria** → Un producto pertenece a una categoría, una categoría agrupa varios productos.\n\n4. **Cliente tiene Direccion** → Un cliente puede tener varias direcciones de envío (esta dirección podría modelarse como entidad débil).\n\n**Relaciones NO identificadas (no existen):**\n- Cliente - Categoria: No hay relación directa. Un cliente compra productos que pertenecen a categorías, pero no se \"relaciona\" con la categoría directamente."
+        },
+        {
+          "id": "ex-03-5-2",
+          "title": "Relaciones unarias y atributos de relación",
+          "difficulty": "intermediate",
+          "description": "En una empresa, los empleados pueden supervisar a otros empleados. Cada empleado tiene un supervisor. Diseña la entidad EMPLEADO con sus atributos e identifica la relación unaria. ¿Qué atributo podría tener la relación?",
+          "solution": "**Entidad EMPLEADO:**\n- id_empleado (identificador)\n- nombre\n- apellido\n- email\n- cargo\n- fecha_contratacion\n\n**Relación unaria: supervisa**\n```\n              supervisa\n         ┌───────────────┐\n         │               │\n         ▼               │\n    ┌──────────┐         │\n    │ EMPLEADO ├─────────┘\n    └──────────┘\n```\n\nUn empleado supervisa a otros empleados. Un empleado puede ser supervisado por uno solo (o ninguno, si es el director).\n\n**Atributo de la relación:**\n- `fecha_inicio_supervision`: Fecha en que empezó la supervisión.\n- Justificación: Es un dato de la relación (cuándo empezó a supervisar), no del empleado ni del supervisor."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-6",
+      "title": "Cardinalidades",
+      "order": 6,
+      "objectives": [
+        "Definir qué es la cardinalidad de una relación",
+        "Determinar las cardinalidades 1:1, 1:N y N:M",
+        "Aplicar el método de las dos preguntas para calcular cardinalidades"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es la cardinalidad?\n\nLa **cardinalidad** indica cuántas instancias de una entidad pueden asociarse con cuántas instancias de otra entidad en una relación.\n\n> **Pregunta clave**: \"Desde la entidad A, ¿cuántas instancias de B pueden participar?\" Y al revés: \"Desde la entidad B, ¿cuántas instancias de A pueden participar?\"\n\nLas respuestas a estas dos preguntas nos dan la cardinalidad de la relación."
+        },
+        {
+          "type": "text",
+          "content": "## Los tres tipos de cardinalidad\n\n### 1:1 (Uno a Uno)\n```\n┌──────────┐  1  casado_con  1  ┌──────────┐\n│ PERSONA_A ├──────────────────┤ PERSONA_B │\n└──────────┘                   └──────────┘\n```\nCada persona_A se asocia con como máximo 1 persona_B, y viceversa.\n\n**Ejemplo**: Un empleado dirige un departamento, y cada departamento tiene un solo director.\n\n### 1:N (Uno a Muchos)\n```\n┌──────────┐  1   tiene    N  ┌──────────┐\n│DEPARTAMENT├────────────────┤EMPLEADO  │\n└──────────┘                 └──────────┘\n```\nUn departamento tiene varios empleados, pero cada empleado pertenece a un solo departamento.\n\n### N:M (Muchos a Muchos)\n```\n┌──────────┐  N  matricula  M  ┌──────────┐\n│  ALUMNO  ├──────────────────┤ASIGNATURA│\n└──────────┘                  └──────────┘\n```\nUn alumno se matricula en varias asignaturas, y cada asignatura tiene varios alumnos."
+        },
+        {
+          "type": "text",
+          "content": "## El método de las dos preguntas\n\nPara cada relación entre entidad A y entidad B, hazte:\n\n**Pregunta 1** (desde A hacia B):\n\"Una instancia concreta de A, ¿con cuántas instancias de B puede asociarse?\"\n- Si la respuesta es **\"una sola\"** → La cardinalidad en el lado de B es **1**.\n- Si la respuesta son **\"varias\"** → La cardinalidad en el lado de B es **N**.\n\n**Pregunta 2** (desde B hacia A):\n\"Una instancia concreta de B, ¿con cuántas instancias de A puede asociarse?\"\n- Si la respuesta es **\"una sola\"** → La cardinalidad en el lado de A es **1**.\n- Si la respuesta son **\"varias\"** → La cardinalidad en el lado de A es **M**.\n\n> **Ejemplo**: Alumno se matricula en Asignatura.\n> - Desde Alumno: ¿cuántas Asignaturas? → Varias (N)\n> - Desde Asignatura: ¿cuántos Alumnos? → Varias (M)\n> - **Resultado**: N:M"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico completo\n\n### Relación: Profesor imparte Asignatura\n\n**Preguntas:**\n- Desde Profesor: ¿cuántas Asignaturas puede impartir? → Varias (N)\n- Desde Asignatura: ¿cuántos Profesores la imparten? → Una sola (1)\n\n**Resultado: 1:N** (un profesor, varias asignaturas)\n\n```\n┌──────────┐  1   imparte   N  ┌────────────┐\n│ PROFESOR ├──────────────────┤ ASIGNATURA │\n└──────────┘                  └────────────┘\n```\n\n### Relación: Cliente realiza Pedido\n\n**Preguntas:**\n- Desde Cliente: ¿cuántos Pedidos puede hacer? → Varios (N)\n- Desde Pedido: ¿cuántos Clientes lo realizan? → Uno solo (1)\n\n**Resultado: 1:N**\n\n### Relación: Pedido contiene Producto\n\n**Preguntas:**\n- Desde Pedido: ¿cuántos Productos puede contener? → Varios (N)\n- Desde Producto: ¿en cuántos Pedidos puede estar? → Varios (M)\n\n**Resultado: N:M**"
+        },
+        {
+          "type": "text",
+          "content": "## Notación en el diagrama E/R\n\nLa cardinalidad se escribe junto a las líneas que conectan la entidad con el rombo de la relación:\n\n```\n┌──────────┐ 1            N ┌────────────┐\n│ PROFESOR ├══════════════┤ ASIGNATURA │\n└──────────┘  imparte      └────────────┘\n```\n\n- El **1** indica que desde Profesor hacia Asignatura la cardinalidad es 1.\n- La **N** indica que desde Asignatura hacia Profesor la cardinalidad es N.\n\n> **Nota**: En la notación Clásica (Chen), los números van junto a la entidad. En la notación Min-Max, van en la entidad como restricciones. Usaremos la notación Clásica por ser más visual."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-6-1",
+          "title": "Determinar cardinalidades",
+          "difficulty": "basic",
+          "description": "Determina la cardinalidad (1:1, 1:N o N:M) de estas relaciones. Justifica con las dos preguntas:\n1. Persona - Pasaporte\n2. Departamento - Empleado\n3. Alumno - Asignatura\n4. País - Ciudad\n5. Libro - Autor",
+          "solution": "**1. Persona - Pasaporte → 1:1**\n- Desde Persona: ¿cuántos Pasaportes puede tener? → 1 (en España, una persona tiene un solo pasaporte)\n- Desde Pasaporte: ¿a cuántas Personas pertenece? → 1 (un pasaporte es de una sola persona)\n\n**2. Departamento - Empleado → 1:N**\n- Desde Departamento: ¿cuántos Empleados tiene? → Varios (N)\n- Desde Empleado: ¿en cuántos Departamentos está? → 1 (un empleado pertenece a un solo departamento)\n\n**3. Alumno - Asignatura → N:M**\n- Desde Alumno: ¿en cuántas Asignaturas está? → Varias (N)\n- Desde Asignatura: ¿cuántos Alumnos tiene? → Varios (M)\n\n**4. País - Ciudad → 1:N**\n- Desde País: ¿cuántas Ciudades tiene? → Varias (N)\n- Desde Ciudad: ¿en cuántos Países está? → 1 (una ciudad pertenece a un solo país)\n\n**5. Libro - Autor → N:M**\n- Desde Libro: ¿cuántos Autores tiene? → Puede tener varios (N)\n- Desde Autor: ¿cuántos Libros ha escrito? → Varios (M)"
+        },
+        {
+          "id": "ex-03-6-2",
+          "title": "Cardinalidades en un hospital",
+          "difficulty": "intermediate",
+          "description": "En un hospital con entidades Médico, Paciente, Cita y Diagnóstico, determina la cardinalidad de todas las relaciones posibles. Dibuja el diagrama E/R con las cardinalidades.",
+          "solution": "**Relaciones y cardinalidades:**\n\n1. **Médico atiende Paciente → N:M**\n   - Un médico atiende a varios pacientes\n   - Un paciente puede ser atendido por varios médicos (distintas especialidades)\n\n2. **Médico tiene Cita → 1:N**\n   - Un médico puede tener varias citas\n   - Una cita tiene un solo médico asignado\n\n3. **Paciente tiene Cita → 1:N**\n   - Un paciente puede tener varias citas\n   - Una cita es de un solo paciente\n\n4. **Cita genera Diagnóstico → 1:1**\n   - Una cita genera un diagnóstico\n   - Un diagnóstico corresponde a una sola cita\n\n```\n┌─────────┐ N  atiende  N ┌─────────┐\n│ MEDICO  ├──────────────┤PACIENTE │\n└────┬────┘              └────┬────┘\n     │ 1                      │ 1\n  tiene                    tiene\n     │ N                      │ N\n     └──────┐    ┌────────────┘\n            │    │\n        ┌───┴────┴───┐\n        │   CITA     │\n        └─────┬──────┘\n              │ 1\n           genera\n              │ 1\n        ┌─────┴──────┐\n        │ DIAGNOSTICO│\n        └────────────┘\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-7",
+      "title": "Participación obligatoria y opcional",
+      "order": 7,
+      "objectives": [
+        "Diferenciar entre participación total y parcial",
+        "Representar las participaciones en el diagrama E/R",
+        "Aplicar las restricciones de participación a un diseño"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es la participación?\n\nLa **participación** indica si una entidad **debe** participar obligatoriamente en la relación o si puede no hacerlo.\n\n| Tipo | Significado | Representación |\n|---|---|---|\n| **Participación total (obligatoria)** | Toda instancia DEBE participar al menos una vez | Línea continua (o doble línea) |\n| **Participación parcial (opcional)** | Alguna instancia puede NO participar | Línea discontinua (o simple) |\n\n> **Pregunta clave**: \"¿Puede existir una instancia de esta entidad sin participar en esta relación?\"\n> - Si la respuesta es **\"no\"** → Participación total.\n> - Si la respuesta es **\"sí\"** → Participación parcial."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: Participación total vs parcial\n\n### Participación total\n```\n══════════╗  imparte  ╔════════════════\n║ PROFESOR ║──────────║  ASIGNATURA   ║\n══════════╝          ╚════════════════\n```\n- Todo profesor **debe** impartir al menos una asignatura (participación total del profesor).\n- Toda asignatura **debe** ser impartida por al menos un profesor (participación total de la asignatura).\n\n### Participación parcial\n```\n──────────┐  tiene   ┌──────────┐\n│  ALUMNO  ├──────────┤   NOTA   │\n──────────┘          └──────────┘\n```\n- Un alumno **puede** no tener notas (es nuevo, aún no ha examinado) → Participación parcial.\n- Una nota **siempre** pertenece a un alumno → Participación total (desde Nota hacia Alumno)."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen de restricciones\n\nUna relación E/R se define por **tres cosas**:\n\n1. **Cardinalidad**: ¿Cuántas instancias se asocian? (1:1, 1:N, N:M)\n2. **Participación**: ¿Es obligatorio u opcional? (total/parcial)\n3. **Identificador**: ¿Cómo se distinguen las instancias?\n\n### Ejemplo completo: Academia\n\n```\n┌──────────┐ 1   imparte  N  ┌────────────┐\n│ PROFESOR ├════════════════┤ ASIGNATURA │\n└──────────┘                └─────┬──────┘\n                                  │\n                              N     M\n                          se matricula\n                                  │\n                          ┌───────┘\n                          │\n                   ┌──────┴──────┐\n                   │   ALUMNO    │\n                   └─────────────┘\n```\n\n- **Profesor imparte Asignatura**: 1:N, participación total en ambos lados.\n- **Alumno se matricula en Asignatura**: N:M, participación parcial en ambos lados."
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes al determinar la participación\n\n### Error 1: Confundir obligatoriedad con existencia\n\n\"Todo alumno debe tener notas\" → Esto NO significa participación total. Un alumno puede existir sin notas (acaba de llegar). La participación total sería: \"Un alumno no puede existir en el sistema si no tiene al menos una nota\", lo cual es falso.\n\n### Error 2: Confundir dirección\n\n\"Una asignatura debe tener alumnos\" → ¿Es esto realista? ¿Puede existir una asignatura sin alumnos matriculados? Depende de las reglas de negocio. En una academia, una asignatura podría anunciarse y aún no tener alumnos inscritos. En ese caso, la participación de Asignatura en \"se matricula\" sería **parcial**.\n\n### Error 3: Asumir sin preguntar\n\nLa participación depende de las **reglas de negocio**, no de la lógica técnica. Siempre hay que preguntar al cliente o al experto del dominio: \"¿Es obligatorio que esto exista?\"."
+        },
+        {
+          "type": "text",
+          "content": "## Cómo representar la participación en el diagrama\n\n| Participación | Línea | Ejemplo |\n|---|---|---|\n| **Total** | Continua (o doble) | Todo pedido tiene un cliente |\n| **Parcial** | Discontinua (o simple) | Un alumno puede no tener beca |\n\n**Nota sobre la notación:**\n- En la **notación Chen clásica**, se usa línea continua (participación total) y discontinua (parcial).\n- En la **notación Min-Max**, se escriben los valores `(min, max)` en cada extremo. Por ejemplo, `(0,N)` significa participación parcial (mínimo 0) y cardinalidad N.\n- Nosotros usaremos la notación con líneas continua/discontinua por ser más visual y habitual en los temarios de DAM."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-7-1",
+          "title": "Determinar participaciones",
+          "difficulty": "intermediate",
+          "description": "Para la academia de idiomas con entidades Alumno, Asignatura y Matrícula, determina la participación (total o parcial) de cada entidad en cada relación. Justifica cada decisión con una pregunta de negocio.",
+          "solution": "**Relación: Alumno se matricula en Asignatura**\n\n- **Alumno → Participación parcial**\n  - Pregunta: ¿Un alumno puede existir sin estar matriculado en ninguna asignatura? → Sí, puede estar dado de alta pero aún no haber elegido asignatura.\n\n- **Asignatura → Participación parcial**\n  - Pregunta: ¿Una asignatura puede existir sin alumnos matriculados? → Sí, puede ofrecerse y que nadie se inscriba.\n\n**Resumen:**\n- Alumno: 0,N (participación parcial)\n- Asignatura: 0,N (participación parcial)\n\n**Relación: Matrícula**\n- Toda matrícula **debe** pertenecer a un alumno → Participación total del alumno en la matrícula.\n- Toda matrícula **debe** corresponder a una asignatura → Participación total de la asignatura.\n\n**Justificación:** Una matrícula que no tiene alumno ni asignatura no tiene sentido. Es un registro que conecta ambas cosas."
+        },
+        {
+          "id": "ex-03-7-2",
+          "title": "Participaciones en una tienda",
+          "difficulty": "intermediate",
+          "description": "En una tienda online con entidades Cliente, Pedido y Producto, determina la participación de cada entidad en las relaciones: Cliente realiza Pedido y Pedido contiene Producto. Justifica con reglas de negocio realistas.",
+          "solution": "**Relación: Cliente realiza Pedido**\n\n- **Cliente → Participación parcial**\n  - Un cliente registrado puede no haber hecho ningún pedido todavía (se registró pero no ha comprado).\n  - Participación parcial: (0,N)\n\n- **Pedido → Participación total**\n  - Un pedido siempre debe tener un cliente que lo realizó. No puede existir un pedido \"huérfano\".\n  - Participación total: (1,1)\n\n**Relación: Pedido contiene Producto**\n\n- **Pedido → Participación total**\n  - Un pedido sin productos no tiene sentido. Todo pedido debe contener al menos un producto.\n  - Participación total: (1,N)\n\n- **Producto → Participación parcial**\n  - Un producto puede no estar en ningún pedido (es nuevo, nadie lo ha comprado aún).\n  - Participación parcial: (0,N)"
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-8",
+      "title": "Entidades débiles",
+      "order": 8,
+      "objectives": [
+        "Identificar entidades débiles en un diagrama E/R",
+        "Comprender por qué existen entidades débiles",
+        "Representar entidades débiles con su relación de identificación"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una entidad débil?\n\nUna **entidad débil** es una entidad que **no puede existir sin otra entidad** (llamada entidad fuerte o propietaria). No tiene clave propia suficiente para identificarse: su identificador se forma combinando la clave de la entidad fuerte con un **discriminador parcial**.\n\n> **Analogía**: Una factura no puede existir sin un cliente. La factura se identifica por el número de factura **Y** el cliente al que pertenece.\n\n### Características\n- **No tiene clave propia** completa.\n- **Depende existencialmente** de otra entidad.\n- Su clave se forma con la clave de la entidad fuerte + un discriminador parcial.\n- Se representa con un **rectángulo de doble borde**."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: Línea de pedido\n\n```\n┌──────────┐             ╔═══════════════════╗\n│  PEDIDO  ├═══tiene═══▶║  LINEA_PEDIDO     ║\n└──────────┘  1      N  ║                   ║\n                        ║  ○ n_linea  (DP)  ║\n                        ║  ○ cantidad       ║\n                        ║  ○ precio_unit    ║\n                        ║  ○ producto       ║\n                        ╚═══════════════════╝\n                        (rectángulo doble borde)\n```\n\n**Clave de LINEA_PEDIDO**: `(id_pedido, n_linea)`\n- `id_pedido` viene de la entidad fuerte (Pedido).\n- `n_linea` es el discriminador parcial (1, 2, 3...).\n\n**Relación de identificación**: `tiene` (un pedido tiene varias líneas)\n- Cardinalidad: 1:N\n- Participación total en ambos lados."
+        },
+        {
+          "type": "text",
+          "content": "## Reglas para detectar entidades débiles\n\nHazte estas preguntas:\n\n1. **¿Puede existir esta entidad sin la otra?** → Si no puede, es débil.\n2. **¿Tiene clave propia?** → Si no tiene un identificador único propio, es débil.\n3. **¿Se identifica por una combinación con otra entidad?** → Si sí, es débil.\n\n### Más ejemplos de entidades débiles\n\n| Entidad débil | Entidad fuerte | Relación | Justificación |\n|---|---|---|---|\n| Línea de pedido | Pedido | tiene | No existe un producto sin el pedido |\n| Departamento | Empresa | tiene | Un departamento no existe sin la empresa |\n| Examen | Asignatura | convoca | Un examen pertenece a una asignatura |\n| Capítulo | Libro | contiene | Un capítulo no existe sin el libro |\n| Habitación | Hotel | tiene | Una habitación no existe sin el hotel |"
+        },
+        {
+          "type": "text",
+          "content": "## Clave de una entidad débil\n\nLa clave de una entidad débil es **compuesta** formada por:\n\n- La **clave de la entidad fuerte** (que se \"arrastra\" a través de la relación).\n- Un **discriminador parcial** (atributo propio de la entidad débil que, junto con la clave de la fuerte, garantiza unicidad).\n\n**Fórmula:**\n```\nClave débil = Clave fuerte + Discriminador parcial\n```\n\n**Ejemplo: Examen de una Asignatura**\n- Clave fuerte: `id_asignatura`\n- Discriminador parcial: `num_convocatoria`\n- **Clave de Examen**: `(id_asignatura, num_convocatoria)`\n\n```\n┌────────────┐           ╔═══════════════════╗\n│ ASIGNATURA ├══convoca▶║     EXAMEN        ║\n└────────────┘  1    N  ║                   ║\n                         ║  ○ num_convocatoria║\n                         ║  ○ fecha          ║\n                         ║  ○ tipo           ║\n                         ╚═══════════════════╝\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Entidad débil vs Entidad asociativa\n\nNo confundas una entidad débil con una **entidad asociativa**:\n\n| Característica | Entidad débil | Entidad asociativa |\n|---|---|---|\n| **Dependencia** | Depende de UNA sola entidad fuerte | Representa la relación entre DOS entidades |\n| **Clave** | Clave fuerte + discriminador | Clave compuesta de las dos entidades |\n| **Ejemplo** | Línea de pedido (depende de Pedido) | Matrícula (conecta Alumno y Asignatura) |\n| **Borde** | Doble borde | Borde simple |\n\n> **Regla**: Si la entidad débil solo depende de una entidad fuerte, es débil. Si conecta dos entidades fuertes, es asociativa (aunque técnicamente también es \"débil\" en el sentido de que su clave depende de otras)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-8-1",
+          "title": "Identificar entidades débiles",
+          "difficulty": "intermediate",
+          "description": "En una base de datos de una universidad, analiza si estas entidades son fuertes o débiles. Para las débiles, indica cómo se forma su clave:\n1. Examen de una asignatura (con número de convocatoria)\n2. Alumno (con id propio)\n3. Línea de factura (con número de línea)\n4. Asignatura (con id propio)\n5. Departamento de una empresa",
+          "solution": "**1. Examen → Débil**\n- No puede existir sin una Asignatura.\n- Clave: (id_asignatura, num_convocatoria)\n\n**2. Alumno → Fuerte**\n- Tiene clave propia (id_alumno). Existe independientemente.\n\n**3. Línea de factura → Débil**\n- No puede existir sin una Factura.\n- Clave: (id_factura, num_linea)\n\n**4. Asignatura → Fuerte**\n- Tiene clave propia (id_asignatura). Existe independientemente.\n\n**5. Departamento → Débil**\n- No puede existir sin una Empresa.\n- Clave: (id_empresa, id_departamento) o (id_empresa, nombre_departamento)"
+        },
+        {
+          "id": "ex-03-8-2",
+          "title": "Diseñar entidades débiles",
+          "difficulty": "intermediate",
+          "description": "Diseña la entidad débil HABITACION de un hotel. Indica su entidad fuerte, los atributos, el discriminador parcial, la clave compuesta y la relación de identificación. Dibuja el diagrama E/R.",
+          "solution": "**Entidad fuerte: HOTEL**\n- id_hotel (identificador)\n- nombre\n- direccion\n- estrellas\n\n**Entidad débil: HABITACION**\n- num_habitacion (discriminador parcial)\n- tipo (individual, doble, suite)\n- precio_noche\n- planta\n- orientacion\n\n**Relación de identificación: tiene**\n- Un hotel tiene varias habitaciones.\n- Una habitación pertenece a un solo hotel.\n\n**Clave de HABITACION:** (id_hotel, num_habitacion)\n- La combinación de hotel y número de habitación identifica de forma única cada habitación.\n\n```\n┌──────────┐            ╔══════════════════╗\n│  HOTEL   ├═══tiene══▶║   HABITACION     ║\n└──────────┘  1     N  ║                  ║\n                        ║  ○ num_habitacion║\n                        ║  ○ tipo         ║\n                        ║  ○ precio_noche ║\n                        ║  ○ planta       ║\n                        ╚══════════════════╝\n                        (rectángulo doble borde)\n```\n\n**Justificación:** La habitación 301 del \"Hotel Madrid\" y la habitación 301 del \"Hotel Barcelona\" son habitaciones distintas. El num_habitacion solo identifica dentro de un hotel concreto."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-9",
+      "title": "Relaciones recursivas",
+      "order": 9,
+      "objectives": [
+        "Comprender qué es una relación recursiva",
+        "Identificar los roles en relaciones recursivas",
+        "Modelar jerarquías con relaciones unarias"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una relación recursiva?\n\nUna **relación recursiva** (o unaria) es una relación donde **una entidad se asocia consigo misma**. Esto ocurre cuando una instancia de una entidad tiene una relación con otra instancia de la **misma** entidad.\n\n```\n              supervisa\n         ┌───────────────┐\n         │               │\n         ▼               │\n    ┌──────────┐         │\n    │ EMPLEADO ├─────────┘\n    └──────────┘\n```\n\nUn empleado supervisa a otro empleado. Ambos son de la entidad EMPLEADO, pero tienen **roles** distintos: \"supervisor\" y \"supervisado\"."
+        },
+        {
+          "type": "text",
+          "content": "## Los roles en relaciones recursivas\n\nCuando una entidad se relaciona consigo misma, cada participante tiene un **rol** diferente. El nombre del rol se escribe junto a la línea que conecta la entidad con el rombo.\n\n**Ejemplo: Jerarquía de una empresa**\n\n```\n                supervisa\n         ┌────────────────┐\n         │                │\n    supervisor            supervisado\n         │                │\n         ▼                │\n    ┌──────────┐         │\n    │ EMPLEADO ├─────────┘\n    └──────────┘\n```\n\n- Rol **supervisor**: El empleado que dirige.\n- Rol **supervisado**: El empleado que es dirigido.\n- Cardinalidad: 1:N (un empleado supervisa a varios, pero cada empleado tiene un solo supervisor)."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplos de relaciones recursivas\n\n| Entidad | Relación | Rol 1 | Rol 2 | Cardinalidad |\n|---|---|---|---|---|\n| Empleado | supervisa | supervisor | supervisado | 1:N |\n| Persona | casado_con | esposo | esposa | 1:1 |\n| Categoría | padre_de | padre | hijo | 1:N |\n| Producto | compuesto_por | componente | conjunto | N:M |\n\n### Ejemplo: Categorías de productos\n\n```\n               padre_de\n         ┌────────────────┐\n         │                │\n    categoría           subcategoría\n         │                │\n         ▼                │\n    ┌──────────┐         │\n    │CATEGORIA ├─────────┘\n    └──────────┘\n```\n\nUna categoría puede tener subcategorías. \"Electrónica\" es padre de \"Móviles\" y \"Portátiles\". \"Móviles\" es padre de \"Smartphones\" y \"Botones\"."
+        },
+        {
+          "type": "text",
+          "content": "## Relaciones recursivas N:M\n\nUna relación recursiva también puede ser N:M.\n\n**Ejemplo: Productos compuestos**\n\n```\n               compuesto_por\n         ┌────────────────────┐\n componente                  conjunto\n         │                    │\n         ▼                    │\n    ┌──────────┐             │\n    │ PRODUCTO ├─────────────┘\n    └──────────┘\n```\n\nUn producto puede estar compuesto por varios productos (componentes). Y un producto puede ser componente de varios productos (conjuntos).\n\n**Ejemplo práctico:**\n- Un \"ordenador\" (conjunto) está compuesto por: \"procesador\", \"RAM\", \"disco duro\" (componentes).\n- El \"procesador\" puede ser componente de: \"ordenador de escritorio\" y \"portátil\"."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cuándo usar relaciones recursivas?\n\nUsa una relación recursiva cuando:\n\n1. **Hay jerarquías**: Empleado-supervisor, categoría-subcategoría, capítulo-sección.\n2. **Hay referencias cruzadas**: Un producto contiene otros productos.\n3. **Hay relaciones simétricas**: Persona-casada_con, amigo-de.\n\n**Consejo**: Si en el enunciado ves palabras como \"superior\", \"subordinado\", \"padre\", \"hijo\", \"compuesto por\", \"contiene\" (y ambas entidades son la misma), probablemente necesitas una relación recursiva."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-9-1",
+          "title": "Modelar relaciones recursivas",
+          "difficulty": "intermediate",
+          "description": "En una base de datos de una organización con empleados:\n1. Cada empleado tiene un supervisor (excepto el director general, que no tiene supervisor).\n2. Un empleado puede supervisar a varios empleados.\n3. Cada empleado tiene un departamento.\n4. Cada departamento tiene un jefe de departamento (que es un empleado).\n\nDibuja las relaciones recursivas necesarias. Indica roles y cardinalidades.",
+          "solution": "**Relación recursiva 1: supervisa**\n```\n              supervisa\n         ┌────────────────┐\n         │                │\n    supervisor            supervisado\n         │                │\n         ▼                │\n    ┌──────────┐         │\n    │ EMPLEADO ├─────────┘\n    └──────────┘\n```\n- Cardinalidad: 1:N\n- Un empleado supervisa a varios (1:N desde supervisor hacia supervisado)\n- Cada empleado tiene un solo supervisor (1 desde supervisado hacia supervisor)\n- **Excepción**: El director general no tiene supervisor (participación parcial del lado supervisado)\n\n**Relación recursiva 2: dirige** (Empleado - Departamento)\n```\n    ┌──────────┐    dirige     ┌──────────────┐\n    │ EMPLEADO ├══════════════┤ DEPARTAMENTO │\n    └──────────┘  1       1  └──────────────┘\n```\n- Un empleado dirige un departamento.\n- Un departamento tiene un solo jefe.\n- Cardinalidad 1:1\n- Participación total de Departamento (todo departamento tiene jefe)\n- Participación parcial de Empleado (no todo empleado es jefe)"
+        },
+        {
+          "id": "ex-03-9-2",
+          "title": "Jerarquía de categorías",
+          "difficulty": "intermediate",
+          "description": "Una tienda online organiza sus productos en categorías con subcategorías. Por ejemplo: Electrónica > Móviles > Smartphones. Diseña la entidad CATEGORIA con una relación recursiva. Indica roles, cardinalidad y participaciones.",
+          "solution": "**Entidad CATEGORIA:**\n- id_categoria (identificador)\n- nombre\n- descripcion\n\n**Relación recursiva: padre_de**\n```\n               padre_de\n         ┌────────────────┐\n         │                │\n    categoría           subcategoría\n         │                │\n         ▼                │\n    ┌──────────┐         │\n    │CATEGORIA ├─────────┘\n    └──────────┘\n```\n\n- **Cardinalidad**: 1:N\n  - Una categoría padre puede tener varias subcategorías (1:N desde categoría hacia subcategoría)\n  - Una subcategoría tiene una sola categoría padre (1 desde subcategoría hacia categoría)\n\n- **Participaciones**:\n  - Categoría (como padre): Participación parcial. No toda categoría es padre de otra (las categorías hoja no tienen hijos).\n  - Subcategoría: Participación parcial. Una categoría puede no tener padre (es una categoría raíz, como \"Electrónica\").\n\n**Ejemplo de datos:**\n- Electrónica (raíz, sin padre)\n  - Móviles (padre: Electrónica)\n    - Smartphones (padre: Móviles)\n    - Botones (padre: Móviles)\n  - Portátiles (padre: Electrónica)"
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-10",
+      "title": "Relaciones ternarias y de mayor grado",
+      "order": 10,
+      "objectives": [
+        "Reconocer cuándo se necesita una relación de grado mayor que 2",
+        "Diferenciar entre una relación ternaria y varias binarias",
+        "Modelar relaciones ternarias correctamente"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una relación ternaria?\n\nUna **relación ternaria** asocia **tres entidades** simultáneamente. Se representa con un rombo conectado a tres entidades.\n\n```\n┌──────────┐\n│ ALUMNO   │\n└─────┬────┘\n      │\n      │\n  ┌───┴───┐\n  │CURSA  │\n  └───┬───┘\n      │\n┌─────┴────┐    ┌──────────┐\n│ASIGNATURA├────┤ PROFESOR │\n└──────────┘    └──────────┘\n```\n\nLa relación **CURSA** asocia simultáneamente a un Alumno, una Asignatura y un Profesor: \"El alumno X cursa la Asignatura Y con el Profesor Z\"."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cuándo usar una ternaria en vez de binarias?\n\n**Regla**: Usa una relación ternaria **solo cuando** la relación entre las tres entidades no puede descomponerse en relaciones binarias sin perder información.\n\n**Ejemplo 1: Ternaria justificada**\n\n\"Un investigador trabaja en un proyecto usando un recurso\"\n\n```\n┌──────────────┐\n│ INVESTIGADOR │\n└──────┬───────┘\n       │\n   ┌───┴───┐\n   │TRABAJA│\n   └───┬───┘\n       │\n┌──────┴────┐    ┌──────────┐\n│ PROYECTO  ├────┤ RECURSO  │\n└───────────┘    └──────────┘\n```\n\nSi la creamos como tres binarias:\n- Investigador trabaja en Proyecto\n- Investigador usa Recurso\n- Proyecto tiene Recurso\n\n**Problema**: No sabemos qué investigador usa qué recurso en qué proyecto. La información se pierde.\n\n**Ejemplo 2: Ternaria NO justificada**\n\n\"El alumno se matricula en la asignatura que imparte el profesor\"\n\nSi la relación real es \"Alumno se matricula en Asignatura\" y \"Profesor imparte Asignatura\", son dos binarias independientes. La ternaria no aporta nada."
+        },
+        {
+          "type": "text",
+          "content": "## Cardinalidades en relaciones ternarias\n\nEn una relación ternaria, cada entidad puede tener una cardinalidad distinta.\n\n**Ejemplo: Alumno cursa Asignatura con Profesor**\n\n| Pregunta | Cardinalidad |\n|---|---|\n| Desde Alumno: ¿cuántas (Asignatura, Profesor) puede tener? | Varias (N) |\n| Desde Asignatura: ¿cuántos (Alumno, Profesor) puede tener? | Varias (M) |\n| Desde Profesor: ¿cuántos (Alumno, Asignatura) puede tener? | Varias (P) |\n\n**Resultado: N:M:P** (cardinalidad ternaria)\n\n> En la práctica, las cardinalidades en ternarias se determinan igual que en binarias: preguntando cuántas combinaciones de las otras entidades puede tener una instancia de una entidad concreta."
+        },
+        {
+          "type": "text",
+          "content": "## Relaciones de grado 4 o superior\n\nSon **extremadamente raras** en la práctica. Solo aparecen cuando 4 o más entidades se asocian de forma atómica.\n\n**Ejemplo (académico):**\n- \"Un investigador trabaja en un proyecto en un laboratorio usando un recurso\" → Grado 4.\n\n> **Consejo práctico**: Si te encuentras con una relación de grado > 3, reformúrala. Casi siempre se puede descomponer en relaciones de menor grado sin perder información. Las relaciones ternarias ya son infrecuentes; las de grado superior, casi inexistentes."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen de tipos de relaciones\n\n| Tipo | Grado | Ejemplo | Frecuencia |\n|---|---|---|---|\n| **Unaria (recursiva)** | 1 | Empleado supervisa a Empleado | Frecuente |\n| **Binaria** | 2 | Alumno se matricula en Asignatura | Muy frecuente |\n| **Ternaria** | 3 | Investigador trabaja en Proyecto con Recurso | Poco frecuente |\n| **n-aria** | >3 | Casi siempre descomponible | Muy rara |\n\n> **Regla de oro**: Si puedes representar la misma información con relaciones binarias sin perder nada, usa binarias. Son más simples de entender y de implementar."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-10-1",
+          "title": "Ternaria vs binarias",
+          "difficulty": "intermediate",
+          "description": "Analiza estas situaciones y decide si se modela mejor con una relación ternaria o con varias binarias. Justifica:\n1. \"Un empleado trabaja en un proyecto asignado por un gerente\"\n2. \"Un alumno se matricula en una asignatura\"\n3. \"Un médico receta un medicamento a un paciente\"\n4. \"Un cliente compra un producto\"",
+          "solution": "**1. Empleado trabaja en Proyecto asignado por Gerente → Ternaria justificada**\n\nLa relación conecta tres entidades de forma atómica: \"el empleado X trabaja en el proyecto Y y fue asignado por el gerente Z\". Si la descomponemos en binarias (Empleado-Proyecto, Gerente-Proyecto, Gerente-Empleado), perdemos la información de qué gerente asignó a qué empleado en qué proyecto.\n\n**2. Alumno se matricula en Asignatura → Binaria**\n\nSolo dos entidades participan. No hay una tercera entidad que sea esencial para la relación.\n\n**3. Médico receta Medicamento a Paciente → Ternaria justificada**\n\nLa receta conecta las tres entidades de forma atómica: \"el médico X receta el medicamento Y al paciente Z\". Si la descomponemos, perdemos qué médico recetó qué medicamento a qué paciente.\n\n**4. Cliente compra Producto → Binaria**\n\nSolo dos entidades participan directamente. El pedido es la relación misma."
+        },
+        {
+          "id": "ex-03-10-2",
+          "title": "Modelar una relación ternaria",
+          "difficulty": "advanced",
+          "description": "En un laboratorio de investigación:\n- Cada investigador puede trabajar en varios proyectos.\n- Cada proyecto puede tener varios investigadores.\n- Cada investigador puede usar varios recursos.\n- Cada recurso puede ser usado por varios investigadores.\n- Un recurso se usa en un proyecto concreto.\n\nDiseña el diagrama E/R con una relación ternaria. Indica cardinalidades y participaciones.",
+          "solution": "**Entidades:**\n- INVESTIGADOR: id_inv, nombre, especialidad\n- PROYECTO: id_proyecto, nombre, fecha_inicio\n- RECURSO: id_recurso, nombre, tipo\n\n**Relación ternaria: TRABAJA**\n\n```\n┌──────────────┐\n│ INVESTIGADOR │\n└──────┬───────┘\n       │\n   ┌───┴───┐\n   │TRABAJA│\n   └───┬───┘\n       │\n┌──────┴────┐    ┌──────────┐\n│ PROYECTO  ├────┤ RECURSO  │\n└───────────┘    └──────────┘\n```\n\n**Cardinalidades:**\n- Investigador → Varias (Proyecto, Recurso): Un investigador puede trabajar en varios proyectos usando varios recursos. (N)\n- Proyecto → Varias (Investigador, Recurso): Un proyecto puede tener varios investigadores usando varios recursos. (M)\n- Recurso → Varios (Investigador, Proyecto): Un recurso puede ser usado por varios investigadores en distintos proyectos. (P)\n\n**Participaciones:**\n- Investigador: Parcial (puede no estar asignado a ningún proyecto)\n- Proyecto: Total (todo proyecto debe tener al menos un investigador y un recurso)\n- Recurso: Parcial (puede no estar asignado a ningún proyecto)"
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-11",
+      "title": "Modelo entidad/relación ampliado",
+      "order": 11,
+      "objectives": [
+        "Comprender los elementos del modelo E/R extendido (EER)",
+        "Utilizar jerarquías de herencia (generalización/especialización)",
+        "Aplicar restricciones de herencia (completa/incompleta, disjunta/solapada)"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es el modelo E/R extendido?\n\nEl **modelo E/R extendido (EER)** añade elementos al modelo E/R básico para representar situaciones más complejas. Los elementos principales son:\n\n1. **Herencia** (generalización/especialización)\n2. **Categorías** (unión de tipos)\n3. **Restricciones avanzadas**\n\n> Solo usaremos la **herencia** en este curso, ya que es el elemento más relevante para el temario oficial de DAM."
+        },
+        {
+          "type": "text",
+          "content": "## Herencia (Generalización/Especialización)\n\nLa herencia permite que una entidad hija **herede** los atributos y relaciones de una entidad padre. Las hijas pueden tener atributos adicionales propios.\n\n### Ejemplo: Personas en la academia\n\n```\n              PERSONA\n         ┌───────┴────────┐\n         │                │\n    ┌────┴────┐     ┌─────┴─────┐\n    │ ALUMNO  │     │ PROFESOR  │\n    │         │     │           │\n    │ ○ nota  │     │ ○ especial│\n    │   media │     │   idad    │\n    └─────────┘     └───────────┘\n```\n\n- **PERSONA** (padre): tiene atributos comunes (id, nombre, apellido, email, fecha_nacimiento).\n- **ALUMNO** (hija): hereda todo de PERSONA + tiene atributo propio (nota_media).\n- **PROFESOR** (hija): hereda todo de PERSONA + tiene atributo propio (especialidad).\n\n> **Ventaja**: Evita duplicar los atributos comunes. Nombre, apellido, email se definen una sola vez en PERSONA."
+        },
+        {
+          "type": "text",
+          "content": "## Restricciones de herencia\n\n### Restricciones de completitud\n\n| Restricción | Significado | Ejemplo |\n|---|---|---|\n| **Completa** | Toda instancia del padre DEBE ser hija de algún tipo | Toda Persona debe ser Alumno o Profesor |\n| **Incompleta** | Una instancia del padre Puede NO ser de ningún subtipo | Una Persona puede ser solo persona (no alumno ni profesor) |\n\n### Restricciones de disyunción\n\n| Restricción | Significado | Ejemplo |\n|---|---|---|\n| **Disjunta** | Una instancia NO puede ser de varios subtipos a la vez | Una Persona no puede ser Alumno Y Profesor |\n| **Solapada** | Una instancia PUEDE ser de varios subtipos a la vez | Una Persona puede ser Alumno Y Profesor |\n\n### Representación gráfica\n\n```\n         ┌──────────┐\n         │  PADRE   │\n         └────┬─────┘\n              │\n         ○────┼────○   ← Circulo con 'd' (disjunta) o 'o' (solapada)\n         │    │    │\n    ┌────┴─┐ ┌┴────┐ ┌┴─────┐\n    │HIJO1 │ │HIJO2│ │HIJO3 │\n    └──────┘ └─────┘ └──────┘\n\n    Línea continua: completa\n    Línea punteada: incompleta\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: Tienda online\n\n```\n              USUARIO\n         ┌───────┴────────┐\n         │                │\n    ┌────┴────┐     ┌─────┴─────┐\n    │ CLIENTE │     │ ADMIN     │\n    │         │     │           │\n    │ ○ direc-│     │ ○ nivel   │\n    │   cion  │     │   acceso  │\n    └─────────┘     └───────────┘\n```\n\n- **Completa**: Todo usuario debe ser cliente o admin.\n- **Disjunta**: Un usuario no puede ser cliente y admin a la vez.\n\n### Ejemplo con solapamiento\n\n```\n              PERSONA\n         ┌───────┴────────┐\n         │                │\n    ┌────┴────┐     ┌─────┴─────┐\n    │ ALUMNO  │     │ PROFESOR  │\n    └─────────┘     └───────────┘\n\n    (o) Solapada: un profesor puede también ser alumno\n    (....) Incompleta: puede haber personas que no son ni alumnos ni profesores\n```\n\n- **Incompleta**: Puede haber personas que no sean ni alumnos ni profesores (ej: personal administrativo).\n- **Solapada**: Un profesor puede también ser alumno (ej: un profesor que se matricula en un curso de formación)."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cuándo usar herencia?\n\nUsa generalización/especialización cuando:\n\n1. **Hay entidades con atributos comunes**: Varios tipos comparten propiedades (Persona → Alumno, Profesor).\n2. **Hay subtipos con comportamiento distinto**: Alumno tiene nota_media, Profesor tiene especialidad.\n3. **Las restricciones son claras**: Puedes definir si es completa/incompleta y disjunta/solapada.\n\n**No uses herencia** cuando:\n- Los \"subtipos\" no comparten atributos comunes significativos.\n- La jerarquía crea más complejidad de la que resuelve.\n- Solo hay un subtipo (no hay nada que especializar)."
+        },
+        {
+          "type": "text",
+          "content": "## Transformación a tablas (adelanto)\n\nLa herencia EER se puede implementar de varias formas en una base de datos relacional:\n\n| Estrategia | Tablas | Ventaja | Desventaja |\n|---|---|---|---|\n| **Una tabla por jerarquía** | 1 tabla con todos los campos | Simple, sin JOINs | Columnas nulas, desperdicio |\n| **Una tabla por subtipo** | 3 tablas (Padre + Hijos) | Sin columnas nulas | JOINs necesarios |\n| **Solo tablas de subtipos** | 2 tablas (sin padre) | Eficiente | Sin campo discriminador |\n\n> Veremos estas estrategias en detalle en el módulo de transformación E/R → Relacional (Módulo 4)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-11-1",
+          "title": "Modelar herencia",
+          "difficulty": "intermediate",
+          "description": "En una aplicación de streaming (como Netflix), los usuarios pueden ser: Viewer (que ve contenido), Creator (que sube contenido) o ambos. Diseña una jerarquía EER con:\n- Entidad padre: Usuario\n- Entidades hijas: Viewer, Creator\n- Indica las restricciones de herencia y justifica.",
+          "solution": "**Entidad padre: USUARIO**\n- id_usuario, nombre, email, fecha_registro\n\n**Entidad hija: VIEWER**\n- hereda de USUARIO\n- Atributos propios: historial_visualizacion, lista_favoritos\n\n**Entidad hija: CREATOR**\n- hereda de USUARIO\n- Atributos propios: canal, num_suscriptores, verificado\n\n```\n              USUARIO\n         ┌───────┴────────┐\n         │      (o)       │\n    ┌────┴────┐     ┌─────┴─────┐\n    │ VIEWER  │     │ CREATOR   │\n    └─────────┘     └───────────┘\n```\n\n**Restricciones:**\n- **Incompleta**: Un usuario puede registrarse y no ser ni Viewer ni Creator (por ejemplo, un usuario que solo gestiona su perfil o está pendiente de verificación).\n- **Solapada**: Un usuario PUEDE ser Viewer y Creator a la vez (muchos creadores también ven contenido de otros).\n\n**Justificación:**\n- Si fuera completa, todo usuario tendría que ver contenido o subir contenido, lo cual no es realista.\n- Si fuera disjunta, un creador no podría ver contenido de otros, lo cual es contrario al modelo de plataformas como YouTube o TikTok."
+        },
+        {
+          "id": "ex-03-11-2",
+          "title": "Herencia en un sistema de transporte",
+          "difficulty": "advanced",
+          "description": "En un sistema de transporte se gestionan distintos tipos de vehículos: Coche, Moto y Camión. Todos comparten atributos comunes pero cada tipo tiene características propias. Diseña la jerarquía EER con sus restricciones.",
+          "solution": "**Entidad padre: VEHICULO**\n- id_vehiculo\n- matricula\n- marca\n- modelo\n- color\n- fecha_itv\n\n**Entidad hija: COCHE**\n- hereda de VEHICULO\n- num_puertas\n- tipo_motor (gasolina, diesel, electrico, hibrido)\n\n**Entidad hija: MOTO**\n- hereda de VEHICULO\n- cilindrada\n- tipo_moto (naked, deportiva, touring)\n\n**Entidad hija: CAMION**\n- hereda de VEHICULO\n- capacidad_carga\n- num_ejes\n\n```\n              VEHICULO\n         ┌───────┴────────┐\n         │      (d)       │\n    ┌────┴────┐  ┌┴─────┐  ┌┴──────┐\n    │  COCHE  │  │ MOTO │  │CAMION │\n    └─────────┘  └──────┘  └───────┘\n```\n\n**Restricciones:**\n- **Disjunta**: Un vehículo no puede ser Coche Y Moto a la vez. Es un tipo concreto.\n- **Completa**: Todo vehículo registrado en el sistema debe ser de algún tipo (Coche, Moto o Camión). No puede haber un \"vehículo genérico\".\n\n**Justificación:**\n- Disjunta: Un vehículo con matrícula es un tipo concreto. No tiene sentido que sea dos tipos a la vez.\n- Completa: Si un vehículo no es de ningún tipo, no debería estar registrado en el sistema de transporte."
+        }
+      ]
+    },
+    {
+      "id": "lesson-03-12",
+      "title": "Caso práctico completo y ejercicios de modelado",
+      "order": 12,
+      "objectives": [
+        "Aplicar todos los conceptos del módulo en un caso práctico completo",
+        "Construir un diagrama E/R desde cero a partir de requisitos",
+        "Resolver ejercicios integrados de modelado"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\nAntes del caso práctico, repasemos lo que hemos aprendido:\n\n| Concepto | Descripción |\n|---|---|\n| **Entidad** | Objeto del mundo real que queremos representar |\n| **Atributo** | Propiedad de una entidad (simple, compuesto, multivalorado, derivado) |\n| **Identificador** | Atributo que distingue cada instancia (clave primaria) |\n| **Relación** | Asociación entre entidades (binaria, ternaria, recursiva) |\n| **Cardinalidad** | Cuántas instancias se asocian (1:1, 1:N, N:M) |\n| **Participación** | Si es obligatoria u opcional (total/parcial) |\n| **Entidad débil** | No tiene clave propia, depende de otra entidad |\n| **Relación recursiva** | Entidad asociada consigo misma |\n| **Relación ternaria** | Tres entidades asociadas simultáneamente |\n| **EER** | Herencia: generalización/especialización de entidades |"
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: Base de datos de una academia de música\n\n### Enunciado\n\nUna academia de música necesita gestionar:\n- Los **alumnos** que se matriculan en cursos.\n- Los **profesores** que imparten las clases.\n- Los **cursos** de música (piano, guitarra, canto, etc.).\n- Las **clases** que se imparten (un profesor imparte una clase de un curso en un día y hora concretos).\n- Los **instrumentos** que se alquilan a los alumnos.\n- Los **pagos** que hacen los alumnos por la matrícula.\n\n### Paso 1: Identificar entidades\n\n| Entidad | Tipo | Descripción |\n|---|---|---|\n| ALUMNO | Fuerte, tangible, principal | Persona que estudia en la academia |\n| PROFESOR | Fuerte, tangible, principal | Persona que imparte clases |\n| CURSO | Fuerte, intangible, principal | Materia que se enseña |\n| CLASE | Fuerte, intangible, principal | Sesión concreta de enseñanza |\n| INSTRUMENTO | Fuerte, tangible, secundario | Bien que se alquila |\n| PAGO | Fuerte, intangible, temporal | Transacción económica |"
+        },
+        {
+          "type": "text",
+          "content": "### Paso 2: Identificar atributos\n\n**ALUMNO**\n- id_alumno (identificador)\n- nombre\n- apellido\n- email (clave alternativa)\n- telefono (multivalorado)\n- fecha_nacimiento\n- {edad} (derivado)\n\n**PROFESOR**\n- id_profesor (identificador)\n- nombre\n- apellido\n- email (clave alternativa)\n- especialidad\n- telefono\n\n**CURSO**\n- id_curso (identificador)\n- nombre\n- nivel (basico, intermedio, avanzado)\n- duracion_horas\n- precio\n\n**CLASE**\n- id_clase (identificador)\n- dia_semana\n- hora_inicio\n- hora_fin\n- aula\n\n**INSTRUMENTO**\n- id_instrumento (identificador)\n- tipo\n- marca\n- estado (disponible, alquilado, mantenimiento)\n- precio_alquiler_diario\n\n**PAGO**\n- id_pago (identificador)\n- fecha\n- cantidad\n- metodo_pago (efectivo, tarjeta, transferencia)"
+        },
+        {
+          "type": "text",
+          "content": "### Paso 3: Identificar relaciones y cardinalidades\n\n| Relación | Entidad A | Entidad B | Cardinalidad | Participación |\n|---|---|---|---|---|\n| se matricula en | ALUMNO | CURSO | N:M | Parcial / Parcial |\n| imparte | PROFESOR | CURSO | 1:N | Parcial / Total |\n| tiene lugar | CLASE | CURSO | N:1 | Total / Parcial |\n| es impartida por | CLASE | PROFESOR | N:1 | Total / Parcial |\n| asiste a | ALUMNO | CLASE | N:M | Parcial / Parcial |\n| alquila | ALUMNO | INSTRUMENTO | 1:N | Parcial / Parcial |\n| realiza | ALUMNO | PAGO | 1:N | Parcial / Total |\n\n**Justificación de algunas cardinalidades:**\n- **se matricula en (N:M)**: Un alumno puede cursar varios cursos; un curso tiene varios alumnos.\n- **imparte (1:N)**: Un profesor imparte varios cursos; un curso lo imparte un solo profesor.\n- **alquila (1:N)**: Un alumno puede alquilar varios instrumentos (en distintos momentos); un instrumento es alquilado por un solo alumno a la vez."
+        },
+        {
+          "type": "text",
+          "content": "### Paso 4: Diagrama E/R completo\n\n```\n┌──────────┐ N  se matricula  M  ┌──────────┐\n│  ALUMNO  ├────────────────────┤  CURSO   │\n└──┬───┬───┘                    └──┬───────┘\n   │   │                           │ 1\n   │   │    1 tiene lugar   N      │\n   │   │  ┌───────────────────┐    │\n   │   │  │      CLASE        │    │\n   │   │  └───────┬───────────┘    │\n   │   │          │ N              │\n   │   │     es impartida          │\n   │   │          │ 1              │\n   │   │          │                │\n   │   │    ┌─────┴──────┐        │\n   │   │    │ PROFESOR   ├════════╝\n   │   │    └────────────┘ imparte\n   │   │\n   │   │ N asiste a M (→ CLASE)\n   │   │\n   │   │ 1 alquila N ┌────────────┐\n   │   ├─────────────┤ INSTRUMENTO│\n   │   │             └────────────┘\n   │   │\n   │   │ 1 realiza N ┌──────────┐\n   │   └─────────────┤  PAGO    │\n   │                 └──────────┘\n   │\n   └── (todos los atributos omitidos por claridad)\n```\n\n> En un diagrama real, cada entidad tendría sus atributos dibujados con óvalos. Aquí los omitimos para que el diagrama sea legible."
+        },
+        {
+          "type": "text",
+          "content": "### Paso 5: Comprobación del diseño\n\nAntes de dar por terminado el diseño, verifica:\n\n1. **¿Todas las entidades tienen clave?** ✅ Sí, todas tienen id_xxx.\n2. **¿Todas las entidades débiles están representadas?** En este caso no hay entidades débiles evidentes.\n3. **¿Las cardinalidades son correctas?** Revisa con las dos preguntas para cada relación.\n4. **¿Las participaciones son realistas?** Un curso sin profesor no puede existir (participación total). Un alumno sin pagos puede existir (aún no ha pagado).\n5. **¿Falta algo?** Revisa el enunciado: ¿hemos cubierto alumnos, profesores, cursos, clases, instrumentos y pagos? ✅ Sí.\n\n> **Consejo**: El diseño E/R es un documento vivo. A medida que se implemente y se usen las funcionalidades, puede ser necesario ajustar el diseño."
+        },
+        {
+          "type": "text",
+          "content": "## Consejos finales para el modelado E/R\n\n1. **Empieza por lo simple**: Identifica entidades y atributos antes de preocuparte por cardinalidades.\n2. **Pregúntate siempre \"¿y si...?\"**: ¿Y si un alumno no paga? ¿Y si un curso no tiene alumnos?\n3. **Usa el lenguaje del negocio**: No pongas nombres técnicos en las entidades. Usa \"Alumno\", no \"tabla_alumnos\".\n4. **Documenta tus decisiones**: Por qué elegiste 1:N en vez de N:M, por qué esa participación es total.\n5. **No busques el diseño perfecto**: Un diseño correcto es mejor que un diseño perfecto que nunca se termina.\n6. **Revisa con el cliente/experto**: Si no estás seguro de una regla de negocio, pregunta."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-03-12-1",
+          "title": "Caso práctico: veterinaria",
+          "difficulty": "intermediate",
+          "description": "Una veterinaria necesita gestionar:\n- Los **propietarios** de animales.\n- Los **animales** de cada propietario.\n- Las **visitas** veterinarias (fecha, motivo, diagnóstico).\n- Los **veterinarios** que atienden las visitas.\n- Los **tratamientos** aplicados en cada visita.\n- Los **productos** (medicinas, vacunas) que se usan en los tratamientos.\n\nDiseña el diagrama E/R completo: entidades, atributos, identificadores, relaciones, cardinalidades y participaciones.",
+          "solution": "**ENTIDADES:**\n\n1. **PROPIETARIO**\n   - id_propietario (PK)\n   - nombre\n   - telefono\n   - email\n\n2. **ANIMAL**\n   - id_animal (PK)\n   - nombre\n   - especie\n   - raza\n   - fecha_nacimiento\n\n3. **VETERINARIO**\n   - id_veterinario (PK)\n   - nombre\n   - especialidad\n   - telefono\n\n4. **VISITA**\n   - id_visita (PK)\n   - fecha\n   - motivo\n   - diagnostico\n\n5. **TRATAMIENTO**\n   - id_tratamiento (PK)\n   - descripcion\n   - dosis\n   - duracion_dias\n\n6. **PRODUCTO**\n   - id_producto (PK)\n   - nombre\n   - tipo (medicina, vacuna, otro)\n   - precio\n\n**RELACIONES:**\n\n1. **PROPIETARIO tiene ANIMAL → 1:N**\n   - Un propietario tiene varios animales.\n   - Un animal tiene un solo propietario.\n   - Participación total de Animal, parcial de Propietario.\n\n2. **ANIMAL visita (en) VISITA → 1:N**\n   - Un animal puede tener varias visitas.\n   - Una visita es de un solo animal.\n   - Participación total de Visita, parcial de Animal.\n\n3. **VETERINARIO atiende VISITA → 1:N**\n   - Un veterinario puede atender varias visitas.\n   - Una visita la atiende un solo veterinario.\n   - Participación total de Visita, parcial de Veterinario.\n\n4. **VISITA tiene TRATAMIENTO → 1:N**\n   - Una visita puede tener varios tratamientos.\n   - Un tratamiento pertenece a una sola visita.\n   - Participación total de Tratamiento, parcial de Visita.\n\n5. **TRATAMIENTO usa PRODUCTO → N:M**\n   - Un tratamiento puede usar varios productos.\n   - Un producto puede usarse en varios tratamientos.\n   - Participación total en ambos lados."
+        },
+        {
+          "id": "ex-03-12-2",
+          "title": "Autoevaluación del módulo",
+          "difficulty": "advanced",
+          "description": "Diseña desde cero el diagrama E/R para un sistema de gestión de un torneo de ajedrez:\n- Hay **jugadores** con nivel (ELO).\n- Cada jugador puede participar en varios **torneos**.\n- Un torneo tiene varias **partidas**.\n- Cada partida enfrenta a **2 jugadores** (blancas y negras).\n- Cada partida tiene un **árbitro**.\n- Los jugadores tienen **ranking** en cada torneo.\n- Un torneo puede tener **patrocinadores**.\n\nIncluye al menos 1 relación recursiva y justifica por qué no se usa una ternaria donde podrías haberla usado.",
+          "solution": "**ENTIDADES:**\n\n1. **JUGADOR**\n   - id_jugador (PK)\n   - nombre\n   - apellido\n   - elo (nivel)\n   - pais\n   - fecha_nacimiento\n\n2. **TORNEO**\n   - id_torneo (PK)\n   - nombre\n   - fecha_inicio\n   - fecha_fin\n   - lugar\n\n3. **PARTIDA**\n   - id_partida (PK)\n   - ronda\n   - resultado (victoria_blancas, victoria_negras, tablas)\n   - fecha\n\n4. **ARBITRO**\n   - id_arbitro (PK)\n   - nombre\n   - apellido\n   - certificacion\n\n5. **PATROCINADOR**\n   - id_patrocinador (PK)\n   - nombre\n   - empresa\n   - cuantia\n\n6. **RANKING** (entidad asociativa / débil)\n   - id_torneo (FK)\n   - id_jugador (FK)\n   - posicion\n   - puntos\n\n**RELACIONES:**\n\n1. **JUGADOR participa en TORNEO → N:M**\n   - Atributo de relación: ranking (posición y puntos).\n   - Se representa con la entidad asociativa RANKING.\n\n2. **TORNEO tiene PARTIDA → 1:N**\n   - Un torneo tiene varias partidas.\n   - Una partida pertenece a un solo torneo.\n   - Participación total de Partida.\n\n3. **PARTIDA enfrenta a JUGADOR (blancas) → N:1**\n   - Una partida tiene un jugador con blancas.\n   - Un jugador puede tener varias partidas con blancas.\n\n4. **PARTIDA enfrenta a JUGADOR (negras) → N:1**\n   - Igual que las blancas.\n\n5. **PARTIDA dirigida por ARBITRO → N:1**\n   - Una partida tiene un árbitro.\n   - Un árbitro puede dirigir varias partidas.\n\n6. **TORNEO tiene PATROCINADOR → N:M**\n   - Un torneo puede tener varios patrocinadores.\n   - Un patrocinador puede patrocinar varios torneos.\n\n**RELACIÓN RECURSIVA en JUGADOR:**\n- **JUGADOR derrota a JUGADOR** (o: rival_de)\n- Un jugador puede haber derrotado a varios rivales.\n- Un jugador puede ser derrotado por varios rivales.\n- Cardinalidad N:M.\n- Roles: \"vencedor\" y \"vencido\".\n\n**¿Por qué no una ternaria en PARTIDA?**\n\nPodríamos haber pensado en una ternaria (PARTIDA conecta JUGADOR_BLANCAS, JUGADOR_NEGRAS, ARBITRO). Pero:\n- La relación Jugador-Partida se divide en dos binarias claras (blancas y negras) que tienen sentido independiente.\n- La relación Árbitro-Partida también es binaria independiente.\n- No perdemos información al separarlas.\n- Las ternarias solo se usan cuando la información se pierde al descomponer."
+        }
+      ]
+    }
+  ]
+}

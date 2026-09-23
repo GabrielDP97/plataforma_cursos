@@ -1,0 +1,834 @@
+{
+  "id": "mod-16",
+  "courseId": "databases-0484",
+  "title": "Bases de datos no relacionales",
+  "slug": "no-relacionales",
+  "order": 16,
+  "description": "Conceptos y práctica de bases de datos NoSQL: los 4 modelos (documental, clave-valor, columnar, grafo), diseño de documentos, embebido vs referencias, índices, aggregation pipeline, validación, y escalabilidad. Incluye un caso práctico completo de modelado dual (SQL vs NoSQL) para una plataforma académica ficticia.",
+  "objectives": [
+    "Comprender qué son las bases de datos NoSQL y por qué existen como alternativa al modelo relacional",
+    "Diferenciar los 4 tipos principales de NoSQL: documental, clave-valor, columnar y grafo",
+    "Configurar un entorno local de MongoDB con mongosh y Compass",
+    "Crear, leer, actualizar y eliminar documentos con mongosh",
+    "Diseñar documentos usando embebido vs referencias según patrones de acceso",
+    "Crear y gestionar índices en MongoDB",
+    "Construir aggregation pipelines para análisis de datos",
+    "Definir validación de esquema en colecciones MongoDB",
+    "Comprender escalabilidad horizontal, replicación y sharding",
+    "Comparar modelado relacional vs documental para el mismo problema"
+  ],
+  "estimatedMinutes": 720,
+  "lessons": [
+    {
+      "id": "lesson-16-1",
+      "title": "Introducción a las bases de datos no relacionales",
+      "order": 1,
+      "objectives": [
+        "Definir qué es NoSQL y su significado moderno",
+        "Identificar los 4 tipos principales de bases de datos NoSQL",
+        "Comparar de forma equilibrada las bases de datos relacionales con las NoSQL",
+        "Comprender que NoSQL no es un reemplazo de SQL sino una herramienta complementaria"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es NoSQL?\n\n**NoSQL** significa \"Not Only SQL\" (no solo SQL) en su contexto moderno. Son bases de datos que no utilizan el modelo relacional tradicional de tablas con filas y columnas. NoSQL surgió para resolver problemas que las bases de datos relacionales no abordan de forma eficiente.\n\n> **Concepto clave**: NoSQL no significa \"sin SQL\" ni \"mejor que SQL\". Son herramientas diferentes para problemas diferentes.\n\n### ¿Por qué NoSQL?\n\n1. **Escalabilidad horizontal**: Escalar un RDBMS verticalmente (más RAM, más CPU) tiene un costo exponencial. NoSQL escala horizontalmente (más servidores) de forma más sencilla.\n2. **Esquema flexible**: Cuando los datos llegan con estructuras variables, el esquema rígido de SQL puede ser un obstáculo.\n3. **Rendimiento para ciertos patrones**: Lecturas masivas, escrituras rápidas, acceso por clave: NoSQL puede ser significativamente más rápido.\n4. **Volúmenes masivos**: Big Data, IoT, redes sociales y logs generan datos que un RDBMS tradicional no maneja eficientemente.\n5. **Relaciones complejas**: Grafos de conocimiento, redes sociales y sistemas de recomendación se modelan mejor como grafos."
+        },
+        {
+          "type": "text",
+          "content": "## Los 4 tipos de bases de datos NoSQL\n\n### 1. Bases de datos documentales\n\nAlmacenan datos como **documentos** (típicamente JSON o BSON). Cada documento puede tener una estructura diferente.\n\n**Ejemplos**: MongoDB, CouchDB, Couchbase\n**Casos de uso**: Catálogos de productos, blogs, CMS, perfiles de usuario.\n\n```json\n{\n  \"_id\": \"ObjectId('abc123')\",\n  \"nombre\": \"Juan García\",\n  \"email\": \"juan@email.com\",\n  \"notas\": [\n    {\"asignatura\": \"BD\", \"nota\": 8.5},\n    {\"asignatura\": \"Prog\", \"nota\": 9.0}\n  ],\n  \"direccion\": {\n    \"calle\": \"Calle Mayor 1\",\n    \"ciudad\": \"Madrid\"\n  }\n}\n```\n\n### 2. Bases de datos clave-valor\n\nAlmacenan pares de **clave → valor**. Son simples y ultrarrápidas.\n\n**Ejemplos**: Redis, DynamoDB, Memcached\n**Casos de uso**: Caché de sesiones, contadores, colas de mensajes.\n\n### 3. Bases de datos columnar\n\nAlmacenan datos por **columnas** en lugar de por filas. Eficientes para analítica.\n\n**Ejemplos**: Cassandra, HBase, ScyllaDB\n**Casos de uso**: Logs, IoT, análisis de datos.\n\n### 4. Bases de datos de grafo\n\nAlmacenan datos como **nodos** conectados por **aristas**.\n\n**Ejemplos**: Neo4j, ArangoDB\n**Casos de uso**: Redes sociales, recomendaciones, grafos de conocimiento."
+        },
+        {
+          "type": "text",
+          "content": "## Comparación equilibrada: Relacional vs NoSQL\n\n| Situación | SQL (Relacional) | NoSQL |\n|---|---|---|\n| Datos estructurados y consistentes | ✅ Mejor opción | ⚠️ Posible pero menos eficiente |\n| Esquema que cambia frecuentemente | ⚠️ Requiere migraciones | ✅ Mejor opción |\n| Transacciones ACID complejas | ✅ Mejor opción | ⚠️ Soporte variable |\n| Escalado horizontal masivo | ⚠️ Complejo | ✅ Mejor opción |\n| Grandes volúmenes de datos no estructurados | ⚠️ Limitado | ✅ Mejor opción |\n| Relaciones jerárquicas profundas | ⚠️ Múltiples JOINs | ✅ Grafo nativo |\n| Consultas analíticas sobre millones de filas | ⚠️ Lento sin particionado | ✅ Columnar optimizado |\n| Necesidad de JOINs complejos | ✅ Mejor opción | ⚠️ $lookup o diseño diferente |\n| Caché de baja latencia | ⚠️ No es su propósito | ✅ Clave-valor rápido |\n\n> **Regla práctica**: Si tus datos son estructurados y necesitas transacciones ACID, usa SQL. Si necesitas flexibilidad, escalabilidad horizontal o datos heterogéneos, considera NoSQL."
+        },
+        {
+          "type": "text",
+          "content": "## Mitos comunes sobre NoSQL\n\n### Mito 1: \"NoSQL no tiene esquema\"\n**Realidad**: NoSQL tiene esquema, pero es **flexible o diferido**. Un documento tiene campos y tipos, pero puedes tener documentos con estructuras diferentes en la misma colección.\n\n### Mito 2: \"NoSQL reemplaza a SQL\"\n**Realidad**: Muchas aplicaciones usan ambos (polyglot persistence). Un sistema puede tener MySQL para transacciones y Redis para caché.\n\n### Mito 3: \"NoSQL es siempre más rápido\"\n**Realidad**: NoSQL es más rápido para ciertos patrones de acceso. Para consultas con JOINs complejos, SQL puede ser más eficiente.\n\n### Mito 4: \"NoSQL no necesita diseño\"\n**Realidad**: Diseñar colecciones en MongoDB requiere pensar en patrones de acceso, cardinalidad, tamaño de documentos y estrategias de embebimiento."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-1-1",
+          "title": "Elegir el tipo de base de datos",
+          "difficulty": "intermediate",
+          "description": "Para cada caso, indica si usarías SQL o NoSQL, y de qué tipo. Justifica:\n1. Sistema de login de usuarios con roles y permisos\n2. Almacenar los \"me gusta\" y compartidos en una red social\n3. Tienda online con productos, pedidos y facturas\n4. Sistema de recomendación de películas\n5. Almacenamiento de logs de servidores (millones de registros/día)\n6. Catálogo de productos donde cada categoría tiene campos diferentes",
+          "solution": "1. **Relacional (SQL)**: Estructura clara, transacciones ACID.\n2. **Grafo (Neo4j)**: Las relaciones entre usuarios y posts se modelan como un grafo.\n3. **Relacional (SQL)**: Las transacciones son esenciales para integridad financiera.\n4. **Grafo (Neo4j)**: Las recomendaciones se basan en relaciones entre entidades.\n5. **Columnar (Cassandra)**: Escritura masiva y lectura analítica.\n6. **Documental (MongoDB)**: Cada categoría puede tener campos diferentes."
+        },
+        {
+          "id": "ex-16-1-2",
+          "title": "Identificar mitos sobre NoSQL",
+          "difficulty": "basic",
+          "description": "Evalúa si cada afirmación es verdadera o falsa, y explica por qué:\n1. \"MongoDB no tiene esquema\"\n2. \"NoSQL es siempre más rápido que SQL\"\n3. \"Una aplicación puede usar MySQL y Redis al mismo tiempo\"\n4. \"Los documentos en MongoDB deben tener la misma estructura\"\n5. \"NoSQL no necesita diseño de datos\"",
+          "solution": "1. **Falso**: MongoDB tiene esquema flexible, pero cada documento tiene campos y tipos definidos.\n2. **Falso**: NoSQL es más rápido para ciertos patrones. Para JOINs complejos, SQL puede ser más eficiente.\n3. **Verdadero**: Esto se llama polyglot persistence. Es un patrón muy común.\n4. **Falso**: Documentos diferentes en la misma colección pueden tener campos diferentes.\n5. **Falso**: Diseñar colecciones requiere pensar en patrones de acceso, cardinalidad, embebimiento vs referencias."
+        },
+        {
+          "id": "ex-16-1-3",
+          "title": "Comparar modelos para un caso real",
+          "difficulty": "hard",
+          "description": "Una academia tiene: alumnos (nombre, email, ciudad), asignaturas (nombre, ciclo, creditos), matrículas (alumno → asignatura, con fecha y estado), y notas (asignatura → alumno, con nota y convocatoria). Diseña brevemente el modelo en SQL Y en MongoDB documental. ¿Cuáles son las diferencias principales?",
+          "solution": "**SQL**: Tablas alumnos, asignaturas, matriculas (con FKs), notas (con FKs). Relaciones con FOREIGN KEY y JOINs.\n**MongoDB**: Colecciones alumnos, asignaturas, matriculas (referencias manuales), notas (referencias). Sin FOREIGN KEY automáticas.\n**Diferencias**: SQL fuerza integridad referencial con constraints. MongoDB la gestiona en la aplicación. SQL normaliza; MongoDB puede desnormalizar intencionalmente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-2",
+      "title": "Tipos de bases de datos NoSQL",
+      "order": 2,
+      "objectives": [
+        "Comprender el modelo de datos de cada tipo NoSQL con profundidad",
+        "Identificar cuándo elegir cada modelo según el problema",
+        "Reconocer productos representativos de cada tipo",
+        "Distinguir entre modelos y productos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Modelo documental en profundidad\n\nEn una base de datos documental, la unidad básica es el **documento**: una estructura de datos autocontenida que puede tener campos anidados, arrays y tipos variados.\n\n**Características clave**:\n- Cada documento tiene un identificador único.\n- Los documentos se agrupan en **colecciones** (equivalente laxo a tablas).\n- No hay un esquema fijo.\n- Se serializan típicamente en JSON o BSON.\n\n**MongoDB** es el ejemplo más extendido. **CouchDB** usa JSON puro.\n\n**Cuándo elegir documental**:\n- Los datos tienen estructura jerárquica natural.\n- El esquema evoluciona con frecuencia.\n- Necesitas leer documentos completos.\n- Los patrones de acceso son conocidos."
+        },
+        {
+          "type": "text",
+          "content": "## Modelo clave-valor en profundidad\n\nCada registro es un par `{clave: valor}`. La clave es una cadena única y el valor es opaco.\n\n**Características clave**:\n- Acceso por clave: extremadamente rápido (O(1)).\n- No se puede consultar por campos internos del valor.\n- Operaciones atómicas sobre claves individuales.\n\n**Redis** almacena datos en memoria para latencia microsegundos. **DynamoDB** es clave-valor distribuido.\n\n**Cuándo elegir clave-valor**:\n- Caché de datos (sesiones, tokens).\n- Contadores (visitas, likes, stock).\n- Colas de mensajes.\n- Datos temporales con TTL."
+        },
+        {
+          "type": "text",
+          "content": "## Modelo columnar en profundidad\n\nLos datos se organizan por **columnas** en lugar de por filas. Cada columna es una familia de datos que se almacena físicamente junta.\n\n**Características clave**:\n- Lecturas eficientes de columnas específicas sobre millones de filas.\n- Escritura masiva optimizada.\n- Altamente distribuido y tolerante a fallos.\n\n**Cassandra** maneja petabytes de datos. **HBase** se usa sobre Hadoop.\n\n**Cuándo elegir columnar**:\n- Logs y telemetría.\n- IoT y datos de sensores.\n- Análisis de series temporales."
+        },
+        {
+          "type": "text",
+          "content": "## Modelo de grafo en profundidad\n\nLos datos se modelan como **nodos** conectados por **aristas**. Tanto nodos como aristas pueden tener propiedades.\n\n**Características clave**:\n- Las relaciones son de primera clase.\n- Las consultas de traversión son eficientes sin importar la profundidad.\n- Se expresan patrones complejos.\n\n**Neo4j** es el más popular. **ArangoDB** es multimodelo.\n\n**Cuándo elegir grafo**:\n- Redes sociales.\n- Sistemas de recomendación.\n- Grafos de conocimiento.\n- Análisis de fraude."
+        },
+        {
+          "type": "text",
+          "content": "## Tabla resumen: elegir el modelo correcto\n\n| Modelo | Unidad básica | Mejor para | Producto estrella |\n|---|---|---|---|\n| **Documental** | Documento JSON/BSON | Datos jerárquicos, esquema flexible | MongoDB |\n| **Clave-valor** | Par clave → valor | Caché, sesiones, contadores | Redis |\n| **Columnar** | Familia de columnas | Logs, IoT, analítica masiva | Cassandra |\n| **Grafo** | Nodo + arista | Relaciones complejas, recomendaciones | Neo4j |\n\n> **Polyglot persistence**: Muchas aplicaciones modernas usan múltiples bases de datos. No es una elección excluyente."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-2-1",
+          "title": "Modelo adecuado para cada escenario",
+          "difficulty": "basic",
+          "description": "Para cada escenario, indica qué modelo NoSQL sería más apropiado:\n1. Sistema de caché para resultados de consultas frecuentes\n2. Perfil de usuario con campos variables\n3. Red de contactos donde \"amigo de amigo\" es consulta frecuente\n4. Logs de una aplicación web (500K registros/día)\n5. Tienda online con catálogo heterogéneo",
+          "solution": "1. **Clave-valor (Redis)**: Caché requiere latencia mínima.\n2. **Documental (MongoDB)**: Cada usuario puede tener campos diferentes.\n3. **Grafo (Neo4j)**: \"Amigo de amigo\" es traversión de grafo.\n4. **Columnar (Cassandra)**: Escritura masiva y lectura analítica.\n5. **Documental (MongoDB)**: Productos heterogéneos."
+        },
+        {
+          "id": "ex-16-2-2",
+          "title": "Distinguir modelos y productos",
+          "difficulty": "basic",
+          "description": "Clasifica cada producto en su modelo NoSQL:\nRedis, MongoDB, Cassandra, Neo4j, DynamoDB, CouchDB, HBase, ArangoDB, Memcached",
+          "solution": "- **Documental**: MongoDB, CouchDB\n- **Clave-valor**: Redis, DynamoDB, Memcached\n- **Columnar**: Cassandra, HBase\n- **Grafo**: Neo4j\n- **Multimodelo**: ArangoDB"
+        },
+        {
+          "id": "ex-16-2-3",
+          "title": "Cuándo NO usar NoSQL",
+          "difficulty": "intermediate",
+          "description": "Para cada caso, indica si NoSQL es apropiado o SQL:\n1. Sistema bancario con transferencias\n2. Red social con millones de usuarios\n3. Sistema contable con informes fiscales\n4. Plataforma de streaming\n5. Inventario de tienda con 500 productos estandarizados",
+          "solution": "1. **SQL**: Transacciones ACID estrictas.\n2. **NoSQL grafo (o ambos)**: Las relaciones son el núcleo.\n3. **SQL**: Informes fiscales requieren JOINs y agregaciones.\n4. **NoSQL (o ambos)**: Escritura masiva.\n5. **SQL**: 500 productos con estructura fija."
+        },
+        {
+          "id": "ex-16-2-4",
+          "title": "Diseñar polyglot persistence",
+          "difficulty": "hard",
+          "description": "Una plataforma e-learning necesita: autenticación, caché de sesiones, catálogo con búsqueda de texto, y recomendación. Diseña qué BD usarías para cada funcionalidad.",
+          "solution": "**Autenticación**: SQL (MySQL). Datos estructurados, integridad ACID.\n**Caché**: Redis. Acceso ultrarrápido, TTL automático.\n**Catálogo**: MongoDB + Elasticsearch. Estructura flexible + búsqueda full-text.\n**Recomendación**: Neo4j. Relaciones usuario→curso→categoría como grafo."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-3",
+      "title": "Bases documentales y MongoDB",
+      "order": 3,
+      "objectives": [
+        "Comprender qué es un documento y su estructura",
+        "Identificar los componentes de un documento BSON/JSON",
+        "Diferenciar entre MongoDB Server, Compass y mongosh",
+        "Comprender que MongoDB es una herramienta para el modelo documental"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Qué es un documento\n\nUn **documento** es la unidad básica de almacenamiento en MongoDB. Contiene pares de campo-valor.\n\n**Un documento puede contener**:\n- **Campos simples**: `nombre: \"Juan\"`\n- **Subdocumentos**: `direccion: {calle: \"Mayor\", ciudad: \"Madrid\"}`\n- **Arrays**: `notas: [8.5, 9.0, 7.5]`\n- **Arrays de subdocumentos**: `notas: [{asignatura: \"BD\", nota: 8.5}]`\n\n```json\n{\n  \"_id\": ObjectId(\"64a1b2c3d4e5f6a7b8c9d0e1\"),\n  \"nombre\": \"Juan García\",\n  \"email\": \"juan@email.com\",\n  \"activo\": true,\n  \"direccion\": {\n    \"calle\": \"Calle Mayor 1\",\n    \"ciudad\": \"Madrid\"\n  },\n  \"cursos\": [\n    {\"nombre\": \"Bases de Datos\", \"nota\": 8.5, \"aprobado\": true},\n    {\"nombre\": \"Programación\", \"nota\": 9.0, \"aprobado\": true}\n  ]\n}\n```\n\n> **Analogía**: Un documento es como una ficha de expediente. La dirección es una sección con subcampos. Las notas son una lista de evaluaciones."
+        },
+        {
+          "type": "text",
+          "content": "## JSON vs BSON\n\n- **JSON** (JavaScript Object Notation): formato de texto legible.\n- **BSON** (Binary JSON): formato binario que MongoDB usa internamente.\n\n**Tipos BSON que JSON no tiene**:\n- `ObjectId`: identificador único de 12 bytes.\n- `ISODate`: fecha y hora con precisión.\n- `NumberLong`: enteros de 64 bits.\n- `NumberDecimal`: decimales de alta precisión (ideal para dinero).\n\n> **Para dinero**: Usa siempre `NumberDecimal`. Los decimales binarios evitan errores de redondeo."
+        },
+        {
+          "type": "text",
+          "content": "## MongoDB: el SGBD documental\n\n### MongoDB Server\nEl servidor que almacena y gestiona los datos. Se ejecuta como servicio.\n\n### MongoDB Compass\nLa interfaz gráfica (GUI) oficial. Permite ver colecciones, documentos, crear índices.\n\n### mongosh\nEl shell oficial. Usa sintaxis JavaScript. Es la herramienta principal del curso.\n\n```bash\n# Conectar con mongosh\nmongosh\n\n# Conectar a una base específica\nmongosh \"mongodb://localhost:27017/academia\"\n```\n\n> **No confundas**: MongoDB no es MongoDB Atlas. Atlas es el servicio en la nube."
+        },
+        {
+          "type": "text",
+          "content": "## Diferencias entre las tres herramientas\n\n| Herramienta | Tipo | Uso principal |\n|---|---|---|\n| **MongoDB Server** | Servicio/SGBD | Almacenar y gestionar datos |\n| **MongoDB Compass** | GUI | Explorar y visualizar |\n| **mongosh** | Shell/terminal | Ejecutar comandos JavaScript |\n\n> **Para este curso**: Usaremos **mongosh** como herramienta principal."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-3-1",
+          "title": "Análisis de documentos",
+          "difficulty": "basic",
+          "description": "Analiza este documento e indica: (a) cuántos campos tiene, (b) cuáles son subdocumentos, (c) cuáles son arrays:\n```json\n{\n  \"_id\": ObjectId(\"abc123\"),\n  \"nombre\": \"María López\",\n  \"edad\": 22,\n  \"activo\": true,\n  \"direccion\": {\"ciudad\": \"Barcelona\"},\n  \"asignaturas\": [\"BD\", \"Prog\", \"Redes\"],\n  \"notas\": [{\"asig\": \"BD\", \"nota\": 9.0}]\n}\n```",
+          "solution": "(a) 7 campos: _id, nombre, edad, activo, direccion, asignaturas, notas.\n(b) Subdocumentos: `direccion`.\n(c) Arrays: `asignaturas` (strings), `notas` (subdocumentos)."
+        },
+        {
+          "id": "ex-16-3-2",
+          "title": "Diferenciar herramientas MongoDB",
+          "difficulty": "basic",
+          "description": "Para cada tarea, indica qué herramienta usarías:\n1. Ver el contenido de una colección visualmente\n2. Insertar 100 documentos con un script\n3. Crear un índice compuesto\n4. Conectar desde la terminal",
+          "solution": "1. **Compass**: Interfaz gráfica.\n2. **mongosh**: Ejecuta scripts JavaScript.\n3. **Compass o mongosh**: Ambos permiten crear índices.\n4. **mongosh**: Shell de terminal."
+        },
+        {
+          "id": "ex-16-3-3",
+          "title": "Diseñar documentos para una academia",
+          "difficulty": "intermediate",
+          "description": "Diseña el documento para un alumno con: nombre, email, fecha nacimiento, dirección (ciudad y país), y 2 notas con asignatura y nota.",
+          "solution": "```json\n{\n  \"_id\": ObjectId(\"6501a2b3c4d5e6f7a8b9c0d1\"),\n  \"nombre\": \"Ana Martínez\",\n  \"email\": \"ana.martinez@email.com\",\n  \"fecha_nacimiento\": ISODate(\"1999-08-15\"),\n  \"direccion\": {\"ciudad\": \"Valencia\", \"pais\": \"España\"},\n  \"notas\": [\n    {\"asignatura\": \"Bases de Datos\", \"nota\": 8.5},\n    {\"asignatura\": \"Programación\", \"nota\": 9.2}\n  ]\n}\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-4",
+      "title": "Preparación del entorno MongoDB",
+      "order": 4,
+      "objectives": [
+        "Instalar MongoDB Community Server localmente",
+        "Configurar mongosh y MongoDB Compass",
+        "Comprender la conexión a MongoDB y su URI",
+        "Entender la relación conceptual entre colecciones y tablas",
+        "Crear y usar bases de datos y colecciones"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Instalación de MongoDB Community Server\n\nMongoDB Community Server es gratuito y funciona en Windows, macOS y Linux.\n\n**Pasos**:\n1. Descarga desde [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)\n2. Ejecuta el instalador con las opciones por defecto\n3. MongoDB escucha en el puerto **27017** por defecto\n\n```bash\nmongosh --version\nmongosh\n```\n\n> **Docker alternativo**: `docker run -d -p 27017:27017 --name mongodb mongo`"
+        },
+        {
+          "type": "text",
+          "content": "## La URI de conexión\n\n```\nmongodb://localhost:27017\n```\n\n**Partes**: `mongodb://` (protocolo), `localhost` (servidor), `27017` (puerto).\n\n**Con base específica**: `mongodb://localhost:27017/academia`\n\n> La URI sin autenticación funciona para desarrollo local."
+        },
+        {
+          "type": "text",
+          "content": "## Bases de datos y colecciones\n\nEn MongoDB, los datos se organizan en **bases de datos** → **colecciones** → **documentos**.\n\n> **Comparación conceptual (NO equivalencia exacta)**:\n\n| Relacional (SQL) | MongoDB | Nota |\n|---|---|---|\n| Base de datos | Base de datos | Misma idea |\n| Tabla | **Colección** | No hay esquema fijo |\n| Fila | **Documento** | Unidades de datos |\n| Columna | **Campo** | Dentro del documento |\n| PRIMARY KEY | **_id** | Generado automáticamente |\n| FOREIGN KEY | **Referencia manual** | No hay FK automática |\n| JOIN | **$lookup o embebido** | Diseño diferente |\n\n> La equivalencia es conceptual para facilitar la transición. No son lo mismo."
+        },
+        {
+          "type": "text",
+          "content": "## Crear bases de datos y colecciones\n\nSe crean automáticamente (lazy) al insertar el primer documento.\n\n```javascript\nuse academia\n\n// Crear DB y colección al insertar\ndb.alumnos.insertOne({ nombre: \"Juan\" })\n\nshow collections\nshow dbs\n```\n\n> Una base de datos vacía no aparece en `show dbs`."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-4-1",
+          "title": "Primeros pasos con mongosh",
+          "difficulty": "basic",
+          "description": "Escribe los comandos para:\n1. Conectarte a MongoDB local\n2. Seleccionar base \"academia_ficticia\"\n3. Insertar un documento de prueba\n4. Verificar colecciones\n5. Listar bases de datos",
+          "solution": "```javascript\n// 1. mongosh (desde terminal)\n// 2. use academia_ficticia\n// 3. db.prueba.insertOne({ prueba: true })\n// 4. show collections\n// 5. show dbs\n```"
+        },
+        {
+          "id": "ex-16-4-2",
+          "title": "Mapeo conceptual SQL vs MongoDB",
+          "difficulty": "intermediate",
+          "description": "Un sistema SQL tiene tablas: alumnos (id, nombre, email), asignaturas (id, nombre, creditos), matriculas (id, id_alumno FK, id_asignatura FK). Escribe las colecciones MongoDB con un documento cada una.",
+          "solution": "```javascript\ndb.alumnos.insertOne({ _id: ObjectId(\"...\"), nombre: \"Juan\", email: \"juan@email.com\" })\ndb.asignaturas.insertOne({ _id: ObjectId(\"...\"), nombre: \"BD\", creditos: 6 })\ndb.matriculas.insertOne({\n  _id: ObjectId(\"...\"),\n  idAlumno: ObjectId(\"...\"),\n  idAsignatura: ObjectId(\"...\"),\n  fecha: ISODate(\"2024-09-01\"),\n  estado: \"activa\"\n})\n```\n**Diferencia**: No hay FOREIGN KEY. La relación se mantiene con referencias."
+        },
+        {
+          "id": "ex-16-4-3",
+          "title": "Explorar el entorno",
+          "difficulty": "basic",
+          "description": "Escribe comandos para:\n1. Ver la BD actual\n2. Crear colección \"cursos\" con createCollection()\n3. Ver colecciones\n4. Eliminar colección \"prueba\"\n5. Ver estado con db.stats()",
+          "solution": "```javascript\n// 1. db o db.getName()\n// 2. db.createCollection(\"cursos\")\n// 3. show collections\n// 4. db.prueba.drop()\n// 5. db.stats()\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-5",
+      "title": "Documentos, colecciones y BSON",
+      "order": 5,
+      "objectives": [
+        "Comprender BSON como formato de almacenamiento",
+        "Usar _id correctamente",
+        "Crear documentos con diferentes tipos de datos BSON",
+        "Entender la flexibilidad de esquema y sus límites"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## BSON: el formato de almacenamiento\n\nBSON (Binary JSON) es el formato binario que MongoDB usa internamente.\n\n| Característica | JSON | BSON |\n|---|---|---|\n| Formato | Texto | Binario |\n| Tipos | string, number, boolean, null, array, object | + ObjectId, ISODate, NumberLong, NumberDecimal |\n| Eficiencia | Menos eficiente | Más eficiente |"
+        },
+        {
+          "type": "text",
+          "content": "## _id: el identificador único\n\nCada documento **debe** tener `_id` único en su colección.\n\n```javascript\n// MongoDB genera _id automáticamente\n{ _id: ObjectId(\"64a1b2c3...\"), nombre: \"Juan\" }\n\n// Tu propio _id\n{ _id: \"alumno-001\", nombre: \"Juan\" }\n\n// _id numérico\n{ _id: 42, nombre: \"Juan\" }\n```\n\n> **Comparación con SQL**: _id funciona como PRIMARY KEY pero no tiene Auto Increment y no es necesariamente numérico."
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de datos BSON\n\n```javascript\ndb.datos.insertOne({ campo: \"texto\" })       // String\ndb.datos.insertOne({ campo: 42 })             // Number (integer)\ndb.datos.insertOne({ campo: 3.14 })           // Number (double)\ndb.datos.insertOne({ campo: true })            // Boolean\ndb.datos.insertOne({ campo: null })            // Null\ndb.datos.insertOne({ campo: [1, 2, 3] })      // Array\ndb.datos.insertOne({ campo: { sub1: \"a\" } })  // Subdocument\ndb.datos.insertOne({ campo: ISODate(\"2024-01-15\") })  // ISODate\ndb.datos.insertOne({ campo: NumberDecimal(\"19.99\") })  // Decimal\n```\n\n> **Para dinero**: Usa siempre `NumberDecimal` para evitar errores de redondeo."
+        },
+        {
+          "type": "text",
+          "content": "## Flexibilidad de esquema\n\n```javascript\n// Documento 1: con dirección\ndb.alumnos.insertOne({ nombre: \"Juan\", direccion: { ciudad: \"Madrid\" } })\n\n// Documento 2: sin dirección, con teléfono\ndb.alumnos.insertOne({ nombre: \"María\", telefono: \"+34 600 123 456\" })\n```\n\n**Esto es válido, pero** la flexibilidad no es un cheque en blanco.\n\n> **Buenas prácticas**:\n1. Define un esquema conceptual claro.\n2. Usa los mismos nombres de campo para el mismo tipo de dato.\n3. Mantén consistencia en los tipos.\n4. Si un campo está en el 90% de documentos, considera si debería estar en todos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-5-1",
+          "title": "Crear documentos con diferentes tipos",
+          "difficulty": "basic",
+          "description": "Inserta un documento en \"prueba_tipos\" con 6+ tipos BSON diferentes.",
+          "solution": "```javascript\ndb.prueba_tipos.insertOne({\n  nombre: \"Producto Test\",    // string\n  precio: 29.99,              // number\n  activo: true,               // boolean\n  etiquetas: [\"nuevo\", \"oferta\"],  // array\n  especificaciones: { peso: 1.5 }, // subdocument\n  fecha_creacion: ISODate(\"2024-09-15\")  // ISODate\n})\n```"
+        },
+        {
+          "id": "ex-16-5-2",
+          "title": "Entender _id",
+          "difficulty": "basic",
+          "description": "Inserta 3 documentos: uno sin _id (auto), uno con _id string, uno con _id numérico.",
+          "solution": "```javascript\ndb.coleccion_ids.insertOne({ nombre: \"A\" })           // auto ObjectId\ndb.coleccion_ids.insertOne({ _id: \"custom-001\", nombre: \"B\" })  // string\ndb.coleccion_ids.insertOne({ _id: 42, nombre: \"C\" })  // number\ndb.coleccion_ids.find()\n```"
+        },
+        {
+          "id": "ex-16-5-3",
+          "title": "Flexibilidad de esquema",
+          "difficulty": "intermediate",
+          "description": "En \"productos\", inserta 3 documentos con diferentes estructuras. ¿Por qué es válido?",
+          "solution": "```javascript\ndb.productos.insertOne({ nombre: \"Auriculares\", precio: 19.99, categoria: \"Audio\" })\ndb.productos.insertOne({ nombre: \"Teclado\", precio: 79.99, categoria: \"Periféricos\", especificaciones: { tipo: \"Blue\" } })\ndb.productos.insertOne({ nombre: \"Camiseta\", precio: 15.99, categoria: \"Ropa\", variantes: [{ talla: \"M\", color: \"Negro\" }] })\n```\n**¿Por qué válido?** MongoDB permite documentos diferentes. **Problema**: cuando las consultas necesitan un campo que solo existe en algunos."
+        },
+        {
+          "id": "ex-16-5-4",
+          "title": "NumberDecimal para dinero",
+          "difficulty": "intermediate",
+          "description": "Inserta dos productos con precio usando NumberDecimal y number regular. ¿Cuál es la diferencia?",
+          "solution": "```javascript\ndb.precios.insertOne({ nombre: \"A\", precio: NumberDecimal(\"19.99\"), metodo: \"decimal\" })\ndb.precios.insertOne({ nombre: \"B\", precio: 19.99, metodo: \"number\" })\n```\n**Diferencia**: `0.1 + 0.2 = 0.30000000000000004` en double. `NumberDecimal(\"0.1\") + NumberDecimal(\"0.2\") = 0.3` exacto. Para dinero, siempre usa `NumberDecimal`."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-6",
+      "title": "Insertar y consultar documentos",
+      "order": 6,
+      "objectives": [
+        "Insertar documentos con insertOne e insertMany",
+        "Consultar documentos con find() y findOne()",
+        "Comprender la diferencia entre find() y findOne()"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## insertOne\n\n```javascript\nuse academia\ndb.alumnos.insertOne({\n  nombre: \"Juan García\", email: \"juan@email.com\",\n  ciudad: \"Madrid\", activo: true,\n  fecha_registro: ISODate(\"2024-09-01\"),\n  cursos: [\"Bases de Datos\", \"Programación\"]\n})\n```\n\nResultado: `{ acknowledged: true, insertedId: ObjectId(\"...\") }`"
+        },
+        {
+          "type": "text",
+          "content": "## insertMany\n\n```javascript\ndb.alumnos.insertMany([\n  { nombre: \"María López\", email: \"maria@email.com\", ciudad: \"Barcelona\", activo: true, cursos: [\"Redes\", \"Sistemas\"] },\n  { nombre: \"Carlos Martínez\", email: \"carlos@email.com\", ciudad: \"Valencia\", activo: true, cursos: [\"Bases de Datos\"] },\n  { nombre: \"Ana Rodríguez\", email: \"ana@email.com\", ciudad: \"Madrid\", activo: false, cursos: [] },\n  { nombre: \"Pedro Sánchez\", email: \"pedro@email.com\", ciudad: \"Sevilla\", activo: true, cursos: [\"Programación\", \"Redes\"] },\n  { nombre: \"Laura Fernández\", email: \"laura@email.com\", ciudad: \"Bilbao\", activo: true, cursos: [\"Bases de Datos\", \"Sistemas\"] }\n])\n```\n\n> `insertMany` es más eficiente que múltiples `insertOne`."
+        },
+        {
+          "type": "text",
+          "content": "## find(): consultar documentos\n\n```javascript\ndb.alumnos.find()                              // Todos\ndb.alumnos.find({ ciudad: \"Madrid\" })           // Filtro\ndb.alumnos.find({ ciudad: \"Madrid\", activo: true })  // Múltiples campos\ndb.alumnos.countDocuments({ activo: true })    // Contar\ndb.alumnos.find().limit(3)                     // Limitar\ndb.alumnos.find().sort({ nombre: 1 })          // Ordenar (1=asc, -1=desc)\ndb.alumnos.find({ activo: true }).sort({ nombre: 1 }).limit(5)\n```"
+        },
+        {
+          "type": "text",
+          "content": "## findOne(): un solo documento\n\n```javascript\ndb.alumnos.findOne({ email: \"juan@email.com\" })\n// Devuelve el documento directamente, o null\n```\n\n| find() | findOne() |\n|---|---|\n| Cursor (iterable) | Documento o null |\n| Puede devolver miles | Siempre uno |\n| Soporta .limit() | No |\n\n> Si buscas un solo registro, usa `findOne()`."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-6-1",
+          "title": "Insertar datos de una academia",
+          "difficulty": "basic",
+          "description": "Crea colección \"cursos\" con 4 cursos: nombre, duracion, nivel, precio, temario (array).",
+          "solution": "```javascript\ndb.cursos.insertMany([\n  { nombre: \"Introducción a Python\", duracion: 40, nivel: \"básico\", precio: 199.99, temario: [\"Variables\", \"Condicionales\", \"Bucles\", \"Funciones\"] },\n  { nombre: \"Bases de Datos MySQL\", duracion: 60, nivel: \"intermedio\", precio: 249.99, temario: [\"Modelo relacional\", \"SQL\", \"Índices\", \"Transacciones\"] },\n  { nombre: \"Desarrollo Web Full Stack\", duracion: 120, nivel: \"avanzado\", precio: 499.99, temario: [\"HTML/CSS\", \"JavaScript\", \"Node.js\", \"React\"] },\n  { nombre: \"Fundamentos de Redes\", duracion: 30, nivel: \"básico\", precio: 149.99, temario: [\"Modelo OSI\", \"TCP/IP\", \"Subnetting\"] }\n])\n```"
+        },
+        {
+          "id": "ex-16-6-2",
+          "title": "Consultas básicas con find()",
+          "difficulty": "basic",
+          "description": "Con la colección \"alumnos\": 1. Listar todos, 2. Alumnos de Madrid, 3. Activos de Barcelona, 4. Primer alumno por nombre, 5. Contar activos.",
+          "solution": "```javascript\n// 1\ndb.alumnos.find()\n// 2\ndb.alumnos.find({ ciudad: \"Madrid\" })\n// 3\ndb.alumnos.find({ ciudad: \"Barcelona\", activo: true })\n// 4\ndb.alumnos.find().sort({ nombre: 1 }).limit(1)\n// 5\ndb.alumnos.countDocuments({ activo: true })\n```"
+        },
+        {
+          "id": "ex-16-6-3",
+          "title": "findOne vs find",
+          "difficulty": "intermediate",
+          "description": "1. Busca el alumno con email \"maria@email.com\" con findOne()\n2. Busca todos los de \"Sevilla\" con find()\n3. ¿Cuál es la diferencia en el tipo de resultado?\n4. ¿Qué devuelve findOne() si no encuentra nada?",
+          "solution": "```javascript\n// 1\ndb.alumnos.findOne({ email: \"maria@email.com\" })  // Documento directo\n// 2\ndb.alumnos.find({ ciudad: \"Sevilla\" })  // Cursor iterable\n// 3. findOne() devuelve un objeto; find() devuelve un cursor\n// 4. findOne() devuelve null\n```"
+        },
+        {
+          "id": "ex-16-6-4",
+          "title": "Insertar y consultar dataset completo",
+          "difficulty": "intermediate",
+          "description": "Crea \"asignaturas\" con 5 asignaturas (nombre, ciclo, creditos, profesor subdocument, alumnos_matriculados array). Consulta las de DAM, las con más de 4 créditos, y ordénalas por créditos.",
+          "solution": "```javascript\ndb.asignaturas.insertMany([\n  { nombre: \"Bases de Datos\", ciclo: \"DAM\", creditos: 6, profesor: { nombre: \"Elena\", email: \"elena@academia.com\" }, alumnos_matriculados: [\"Juan\", \"María\"] },\n  { nombre: \"Programación Web\", ciclo: \"DAW\", creditos: 5, profesor: { nombre: \"Roberto\", email: \"roberto@academia.com\" }, alumnos_matriculados: [\"Ana\"] },\n  { nombre: \"Sistemas Operativos\", ciclo: \"ASIR\", creditos: 4, profesor: { nombre: \"Laura\", email: \"laura@academia.com\" }, alumnos_matriculados: [\"Pedro\"] },\n  { nombre: \"Desarrollo de Interfaces\", ciclo: \"DAM\", creditos: 5, profesor: { nombre: \"Elena\", email: \"elena@academia.com\" }, alumnos_matriculados: [\"Carlos\"] },\n  { nombre: \"Redes y Sistemas\", ciclo: \"ASIR\", creditos: 6, profesor: { nombre: \"Roberto\", email: \"roberto@academia.com\" }, alumnos_matriculados: [\"Laura\"] }\n])\n\ndb.asignaturas.find({ ciclo: \"DAM\" })\ndb.asignaturas.find({ creditos: { $gt: 4 } })\ndb.asignaturas.find().sort({ creditos: -1 })\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-7",
+      "title": "Filtros, operadores y proyecciones",
+      "order": 7,
+      "objectives": [
+        "Filtrar documentos con condiciones de igualdad",
+        "Usar operadores de comparación: $eq, $ne, $gt, $gte, $lt, $lte",
+        "Combinar filtros con $and, $or, $not",
+        "Usar $in para buscar en listas de valores",
+        "Consultar documentos con arrays",
+        "Proyectar campos específicos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Filtros de igualdad\n\n```javascript\ndb.alumnos.find({ ciudad: \"Madrid\" })\ndb.alumnos.find({ activo: true })\ndb.alumnos.findOne({ email: \"juan@email.com\" })\ndb.alumnos.find({ ciudad: \"Madrid\", activo: true })  // AND implícito\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Operadores de comparación\n\n| Operador | Significado | SQL |\n|---|---|---|\n| `$eq` | Igual a | `=` |\n| `$ne` | No igual | `!=` |\n| `$gt` | Mayor que | `>` |\n| `$gte` | Mayor o igual | `>=` |\n| `$lt` | Menor que | `<` |\n| `$lte` | Menor o igual | `<=` |\n\n```javascript\ndb.alumnos.find({ edad: { $gt: 20 } })\ndb.alumnos.find({ ciudad: { $ne: \"Madrid\" } })\ndb.alumnos.find({ edad: { $gte: 18, $lte: 25 } })\n```\n\n> `$eq` es el operador por defecto: `{ ciudad: \"Madrid\" }` = `{ ciudad: { $eq: \"Madrid\" } }`."
+        },
+        {
+          "type": "text",
+          "content": "## Operadores lógicos\n\n### $or\n```javascript\ndb.alumnos.find({ $or: [{ ciudad: \"Madrid\" }, { ciudad: \"Barcelona\" }] })\n```\n\n### $and (implícito o explícito)\n```javascript\ndb.alumnos.find({ ciudad: \"Madrid\", activo: true })  // implícito\ndb.alumnos.find({ $and: [{ ciudad: \"Madrid\" }, { activo: true }] })  // explícito\n```"
+        },
+        {
+          "type": "text",
+          "content": "## $in y $nin\n\n```javascript\n// Alumnos de Madrid, Barcelona o Valencia\ndb.alumnos.find({ ciudad: { $in: [\"Madrid\", \"Barcelona\", \"Valencia\"] } })\n\n// Alumnos que NO sean de Madrid ni Barcelona\ndb.alumnos.find({ ciudad: { $nin: [\"Madrid\", \"Barcelona\"] } })\n```\n\n> Equivalente SQL: `WHERE ciudad IN ('Madrid', 'Barcelona')`."
+        },
+        {
+          "type": "text",
+          "content": "## Consultar documentos con arrays\n\n```javascript\n// Alumnos inscritos en \"Bases de Datos\"\ndb.alumnos.find({ cursos: \"Bases de Datos\" })\n\n// Inscritos en AMBOS cursos\ndb.alumnos.find({ cursos: { $all: [\"Bases de Datos\", \"Programación\"] } })\n\n// Buscar en array de subdocumentos: nota > 8\ndb.alumnos.find({ \"notas.nota\": { $gt: 8 } })\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Proyecciones\n\n```javascript\n// Solo nombre y email, sin _id\ndb.alumnos.find({}, { nombre: 1, email: 1, _id: 0 })\n\n// Todos excepto cursos\ndb.alumnos.find({}, { cursos: 0 })\n```\n\n| Proyección | Resultado |\n|---|---|\n| `{}` | Todos los campos |\n| `{ nombre: 1 }` | Solo _id y nombre |\n| `{ nombre: 1, _id: 0 }` | Solo nombre |\n| `{ cursos: 0 }` | Todos excepto cursos |\n\n> `_id` se incluye por defecto. Para excluirlo, pon `_id: 0`."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-7-1",
+          "title": "Filtros de comparación",
+          "difficulty": "basic",
+          "description": "Escribe consultas para:\n1. Alumnos con edad > 22\n2. Edad entre 18 y 25\n3. NO de Madrid\n4. Email que empiece por \"ana\" (regex)",
+          "solution": "```javascript\n// 1\ndb.alumnos.find({ edad: { $gt: 22 } })\n// 2\ndb.alumnos.find({ edad: { $gte: 18, $lte: 25 } })\n// 3\ndb.alumnos.find({ ciudad: { $ne: \"Madrid\" } })\n// 4\ndb.alumnos.find({ email: { $regex: /^ana/i } })\n```"
+        },
+        {
+          "id": "ex-16-7-2",
+          "title": "Operadores lógicos",
+          "difficulty": "intermediate",
+          "description": "1. Madrid O Sevilla\n2. Activos Y > 20 años\n3. (Madrid Y > 20) O Barcelona\n4. NO Madrid NI Barcelona",
+          "solution": "```javascript\n// 1\ndb.alumnos.find({ $or: [{ ciudad: \"Madrid\" }, { ciudad: \"Sevilla\" }] })\n// 2\ndb.alumnos.find({ activo: true, edad: { $gt: 20 } })\n// 3\ndb.alumnos.find({ $or: [{ ciudad: \"Madrid\", edad: { $gt: 20 } }, { ciudad: \"Barcelona\" }] })\n// 4\ndb.alumnos.find({ ciudad: { $nin: [\"Madrid\", \"Barcelona\"] } })\n```"
+        },
+        {
+          "id": "ex-16-7-3",
+          "title": "Proyecciones",
+          "difficulty": "intermediate",
+          "description": "Con \"asignaturas\": 1. Solo nombre y ciclo sin _id, 2. Todos excepto alumnos_matriculados, 3. Nombre y email del profesor, 4. Filtrar DAM y mostrar nombre y creditos.",
+          "solution": "```javascript\n// 1\ndb.asignaturas.find({}, { nombre: 1, ciclo: 1, _id: 0 })\n// 2\ndb.asignaturas.find({}, { alumnos_matriculados: 0 })\n// 3\ndb.asignaturas.find({}, { nombre: 1, \"profesor.email\": 1, _id: 0 })\n// 4\ndb.asignaturas.find({ ciclo: \"DAM\" }, { nombre: 1, creditos: 1, _id: 0 })\n```"
+        },
+        {
+          "id": "ex-16-7-4",
+          "title": "Consultas en arrays",
+          "difficulty": "hard",
+          "description": "Con \"asignaturas\": 1. Donde \"Juan García\" está matriculado, 2. Con al menos 3 alumnos, 3. DAM o ASIR ($in), 4. Profesor \"Elena Vidal\".",
+          "solution": "```javascript\n// 1\ndb.asignaturas.find({ alumnos_matriculados: \"Juan García\" })\n// 2\ndb.asignaturas.find({ $expr: { $gte: [{ $size: \"$alumnos_matriculados\" }, 3] } })\n// 3\ndb.asignaturas.find({ ciclo: { $in: [\"DAM\", \"ASIR\"] } })\n// 4\ndb.asignaturas.find({ \"profesor.nombre\": \"Elena Vidal\" })\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-8",
+      "title": "Actualizar y eliminar documentos",
+      "order": 8,
+      "objectives": [
+        "Actualizar con updateOne y updateMany",
+        "Usar $set, $unset, $inc, $push, $pull",
+        "Eliminar con deleteOne y deleteMany",
+        "Mentalidad de verificación: buscar → modificar → verificar"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## updateOne\n\n```javascript\ndb.alumnos.updateOne(\n  { email: \"juan@email.com\" },\n  { $set: { ciudad: \"Sevilla\" } }\n)\n// { acknowledged: true, matchedCount: 1, modifiedCount: 1 }\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Operadores de actualización\n\n| Operador | Función | Ejemplo |\n|---|---|---|\n| `$set` | Establecer valor | `{ $set: { ciudad: \"Madrid\" } }` |\n| `$unset` | Eliminar campo | `{ $unset: { telefono: \"\" } }` |\n| `$inc` | Incrementar | `{ $inc: { edad: 1 } }` |\n| `$push` | Agregar a array | `{ $push: { cursos: \"Redes\" } }` |\n| `$pull` | Eliminar de array | `{ $pull: { cursos: \"Redes\" } }` |\n\n```javascript\ndb.alumnos.updateOne({ email: \"juan@email.com\" }, { $set: { activo: false } })\ndb.alumnos.updateOne({ email: \"juan@email.com\" }, { $unset: { telefono: \"\" } })\ndb.alumnos.updateOne({ email: \"juan@email.com\" }, { $inc: { edad: 1 } })\ndb.alumnos.updateOne({ email: \"juan@email.com\" }, { $push: { cursos: \"Redes\" } })\ndb.alumnos.updateOne({ email: \"juan@email.com\" }, { $pull: { cursos: \"Redes\" } })\n```\n\n> Si el campo no existe, `$set` lo crea. Si el array no existe, `$push` lo crea."
+        },
+        {
+          "type": "text",
+          "content": "## updateMany\n\n```javascript\ndb.alumnos.updateMany(\n  { ciudad: \"Sevilla\" },\n  { $set: { activo: true } }\n)\n```\n\n> **⚠️ ADVERTENCIA**: `updateMany` modifica TODOS los documentos que coinciden.\n\n**Mentalidad de verificación**:\n1. **Primero**: busca con `find()` para ver qué documentos se afectarían.\n2. **Luego**: ejecuta `updateMany()`.\n3. **Después**: verifica con `find()`."
+        },
+        {
+          "type": "text",
+          "content": "## deleteOne y deleteMany\n\n```javascript\ndb.alumnos.deleteOne({ email: \"pedro@email.com\" })\ndb.alumnos.deleteMany({ activo: false })\n```\n\n> **⚠️ CRÍTICO**: `deleteMany({})` elimina **TODOS** los documentos. SIEMPRE verifica primero.\n\n```javascript\ndb.alumnos.countDocuments()  // Ver cuántos hay antes de borrar\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-8-1",
+          "title": "Actualizaciones con $set y $unset",
+          "difficulty": "basic",
+          "description": "1. Cambiar ciudad de \"Juan García\" a \"Málaga\"\n2. Crear y eliminar campo teléfono de \"María López\"\n3. Añadir activo: false a \"Ana Rodríguez\"",
+          "solution": "```javascript\n// 1\ndb.alumnos.updateOne({ nombre: \"Juan García\" }, { $set: { ciudad: \"Málaga\" } })\n// 2\ndb.alumnos.updateOne({ nombre: \"María López\" }, { $set: { telefono: \"+34 600 111 222\" } })\ndb.alumnos.updateOne({ nombre: \"María López\" }, { $unset: { telefono: \"\" } })\n// 3\ndb.alumnos.updateOne({ nombre: \"Ana Rodríguez\" }, { $set: { activo: false } })\n```"
+        },
+        {
+          "id": "ex-16-8-2",
+          "title": "Incrementar y manipular arrays",
+          "difficulty": "intermediate",
+          "description": "1. Incrementar edad de \"Carlos Martínez\" en 1\n2. Agregar \"Redes\" a cursos de \"Juan García\"\n3. Eliminar \"Programación\" de cursos de \"Juan García\"\n4. Agregar nota {asignatura: \"Redes\", nota: 7.5} a \"Laura Fernández\"",
+          "solution": "```javascript\n// 1\ndb.alumnos.updateOne({ nombre: \"Carlos Martínez\" }, { $inc: { edad: 1 } })\n// 2\ndb.alumnos.updateOne({ nombre: \"Juan García\" }, { $push: { cursos: \"Redes\" } })\n// 3\ndb.alumnos.updateOne({ nombre: \"Juan García\" }, { $pull: { cursos: \"Programación\" } })\n// 4\ndb.alumnos.updateOne({ nombre: \"Laura Fernández\" }, { $push: { notas: { asignatura: \"Redes\", nota: 7.5 } } })\n```"
+        },
+        {
+          "id": "ex-16-8-3",
+          "title": "Eliminar con precaución",
+          "difficulty": "intermediate",
+          "description": "1. Ver cuántos alumnos inactivos hay\n2. Eliminar solo inactivos\n3. Verificar total\n4. ¿Qué pasaría con deleteMany({})?",
+          "solution": "```javascript\n// 1\ndb.alumnos.countDocuments({ activo: false })\n// 2\ndb.alumnos.deleteMany({ activo: false })\n// 3\ndb.alumnos.countDocuments()\n// 4. deleteMany({}) eliminaría TODOS. Es como DROP TABLE sin WHERE.\n```"
+        },
+        {
+          "id": "ex-16-8-4",
+          "title": "Mentalidad de verificación",
+          "difficulty": "hard",
+          "description": "Quieres poner activo: false a todos los alumnos de Madrid. Escribe: 1. Consulta previa, 2. Conteo, 3. Actualización, 4. Verificación, 5. ¿Qué pasa si te equivocas en el filtro?",
+          "solution": "```javascript\n// 1\ndb.alumnos.find({ ciudad: \"Madrid\" })\n// 2\ndb.alumnos.countDocuments({ ciudad: \"Madrid\" })\n// 3\ndb.alumnos.updateMany({ ciudad: \"Madrid\" }, { $set: { activo: false } })\n// 4\ndb.alumnos.find({ ciudad: \"Madrid\" })\n// 5. Si el filtro fuera { activo: true }, se modificarían TODOS los activos.\n```\n> La verificación previa es la diferencia entre un cambio controlado y un desastre."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-9",
+      "title": "Diseñar documentos: embebido vs referencias",
+      "order": 9,
+      "objectives": [
+        "Comprender cuándo embeber datos en un documento",
+        "Comprender cuándo usar referencias entre colecciones",
+        "Diseñar según patrones de acceso, cardinalidad y tamaño",
+        "No copiar el diseño relacional a MongoDB",
+        "Entender la desnormalización intencional"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Embebido: datos dentro del documento\n\n```javascript\ndb.alumnos.insertOne({\n  nombre: \"Juan García\",\n  email: \"juan@email.com\",\n  direccion: {\n    calle: \"Calle Mayor 1\",\n    ciudad: \"Madrid\",\n    codigo_postal: \"28001\",\n    pais: \"España\"\n  }\n})\n```\n\n**Ventaja**: Una sola consulta obtiene todo.\n**Desventaja**: Si muchos alumnos viven en la misma dirección, se duplica.\n\n**Cuándo embeber**: Dato 1:1, vida corta, se accede siempre con el padre."
+        },
+        {
+          "type": "text",
+          "content": "## Arrays de subdocumentos\n\n```javascript\ndb.cursos.insertOne({\n  nombre: \"Bases de Datos\",\n  lecciones: [\n    { titulo: \"Introducción\", duracion: 30, orden: 1 },\n    { titulo: \"Modelo Relacional\", duracion: 45, orden: 2 },\n    { titulo: \"SQL Básico\", duracion: 60, orden: 3 }\n  ]\n})\n```\n\n**Cuándo**: Colección pequeña (5-50 elementos), se accede siempre completa."
+        },
+        {
+          "type": "text",
+          "content": "## Referencias: colecciones separadas\n\n```javascript\ndb.matriculas.insertOne({\n  idAlumno: ObjectId(\"...\"),\n  idCurso: ObjectId(\"...\"),\n  fecha: ISODate(\"2024-09-01\"),\n  estado: \"activa\"\n})\n```\n\n**MongoDB NO tiene FOREIGN KEY automática**. La integridad se gestiona en la aplicación.\n\n**$lookup** (equivalente a LEFT JOIN):\n```javascript\ndb.matriculas.aggregate([\n  { $lookup: { from: \"alumnos\", localField: \"idAlumno\", foreignField: \"_id\", as: \"alumno\" } }\n])\n```\n\n**Cuándo referenciar**: Cardinalidad N:M, dato crece indefinidamente, acceso independiente."
+        },
+        {
+          "type": "text",
+          "content": "## No copiar el diseño relacional\n\n```javascript\n// MAL: copiar SQL\n{ _id: 1, nombre: \"Juan\" }  // alumnos\n{ _id: 1, id_alumno: 1, id_curso: 1 }  // matriculas\n\n// BIEN: diseño MongoDB\n{\n  _id: ObjectId(\"...\"),\n  nombre: \"Juan\",\n  cursos: [\n    { nombre: \"BD\", creditos: 6, nota: 8.5 }\n  ]\n}\n```\n\n> Diseña según **patrones de acceso**, no según tablas SQL."
+        },
+        {
+          "type": "text",
+          "content": "## Desnormalización intencional\n\n```javascript\ndb.matriculas.insertOne({\n  idAlumno: ObjectId(\"...\"),\n  nombreAlumno: \"Juan García\",  // Duplicado intencional\n  idCurso: ObjectId(\"...\"),\n  nombreCurso: \"Bases de Datos\",  // Duplicado intencional\n  nota: 8.5\n})\n```\n\n**Ventaja**: Una sola consulta.\n**Costo**: Si Juan cambia su nombre, hay que actualizar todas sus matrículas.\n\n**Criterios**: El dato se lee mucho más de lo que escribe, no cambia con frecuencia."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-9-1",
+          "title": "Embeber vs referenciar",
+          "difficulty": "basic",
+          "description": "¿Embeberías o usarías referencias? Justifica:\n1. Dirección de un alumno\n2. Notas de un alumno (pueden ser cientos)\n3. Alumnos matriculados en un curso (cientos)\n4. Historial de precios de un producto\n5. Comentarios en un blog",
+          "solution": "1. **Embebir**: 1:1, acceso conjunto, pequeña.\n2. **Referencia**: Cientos no caben en 16MB.\n3. **Referencia**: Cientos de alumnos. Colección \"matriculas\" separada.\n4. **Referencia**: Crece indefinidamente.\n5. **Depende**: Pocos (10-50) → embeber. Miles → referencia."
+        },
+        {
+          "id": "ex-16-9-2",
+          "title": "Diseñar embebido vs referenciado",
+          "difficulty": "intermediate",
+          "description": "Diseña un curso con:\nA) Lecciones embebidas (hasta 10)\nB) Lecciones en colección separada (50+)",
+          "solution": "```javascript\n// A: embebidas\ndb.cursos.insertOne({\n  nombre: \"Python\", duracion_total: 40,\n  lecciones: [\n    { titulo: \"Variables\", duracion: 30, orden: 1 },\n    { titulo: \"Condicionales\", duracion: 30, orden: 2 }\n  ]\n})\n\n// B: separadas\ndb.cursos.insertOne({ nombre: \"Web Full Stack\", duracion_total: 120, total_lecciones: 50 })\ndb.lecciones.insertMany([\n  { idCurso: ObjectId(\"...\"), titulo: \"HTML\", duracion: 30, orden: 1 },\n  { idCurso: ObjectId(\"...\"), titulo: \"CSS\", duracion: 45, orden: 2 }\n])\n```"
+        },
+        {
+          "id": "ex-16-9-3",
+          "title": "Desnormalización intencional",
+          "difficulty": "hard",
+          "description": "Sistema muestra frecuentemente \"Listado de alumnos con nota media\". Diseña versión normalizada, desnormalizada, justifica, y mitiga el problema.",
+          "solution": "```javascript\n// Normalizada: aggregate con $group sobre colección de notas\n// Desnormalizada:\ndb.alumnos.insertOne({ nombre: \"Juan\", nota_media: 8.5, total_notas: 12 })\n```\n**Por qué mejor**: Consulta frecuente, sin aggregate.\n**Problema**: nota_media se desactualiza.\n**Mitigación**: Actualizar nota_media cada vez que se inserta una nota."
+        },
+        {
+          "id": "ex-16-9-4",
+          "title": "Diseñar sistema completo",
+          "difficulty": "hard",
+          "description": "Diseña colecciones de plataforma académica: alumnos, cursos, profesores, matrículas, notas, valoraciones. Decide embebido vs referencias y justifica.",
+          "solution": "```javascript\n// ALUMNOS: independiente, dirección embebida (1:1)\n// CURSOS: independiente, profesor embebido si fijo por curso\n// MATRÍCULAS: referencia N:M (alumno ↔ curso)\n// NOTAS: referencia (pueden ser miles)\n// VALORACIONES: referencia (crecen indefinidamente)\n```\n**Regla**: Embebir cuando es 1:1 y se accede junto. Referenciar cuando es N:M o crece indefinidamente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-10",
+      "title": "Índices en MongoDB",
+      "order": 10,
+      "objectives": [
+        "Crear índices con createIndex",
+        "Crear índices únicos con unique: true",
+        "Crear índices compuestos y entender el orden",
+        "Comprender el costo de los índices",
+        "Usar explain() para analizar consultas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Por qué índices?\n\nSin un índice, MongoDB hace un **full collection scan**: lee todos los documentos.\n\n> Relación con M7 (índices en SQL): El concepto es el mismo.\n\n```javascript\ndb.alumnos.createIndex({ email: 1 })\ndb.alumnos.find({ email: \"juan@email.com\" })  // Mucho más rápido\n```\n\n> El valor `1` indica orden ascendente."
+        },
+        {
+          "type": "text",
+          "content": "## Índice único\n\n```javascript\ndb.alumnos.createIndex({ email: 1 }, { unique: true })\ndb.alumnos.insertOne({ nombre: \"Otro\", email: \"juan@email.com\" })\n// Error: E11000 duplicate key error\n```\n\n> Equivalente SQL: `UNIQUE (email)`."
+        },
+        {
+          "type": "text",
+          "content": "## Índices compuestos\n\n**El orden de los campos importa**.\n\n```javascript\ndb.alumnos.createIndex({ ciudad: 1, activo: 1 })\n\n// ✅ find({ ciudad: \"Madrid\" })  → usa el índice (primer campo)\n// ✅ find({ ciudad: \"Madrid\", activo: true })  → usa ambos\n// ❌ find({ activo: true })  → no puede usarlo eficientemente\n```\n\n> El índice funciona de izquierda a derecha."
+        },
+        {
+          "type": "text",
+          "content": "## Costo de los índices\n\n1. **Almacenamiento**: Cada índice ocupa espacio.\n2. **Escritura**: Cada INSERT/UPDATE/DELETE actualiza todos los índices.\n3. **Mantenimiento**: MongoDB los mantiene automáticamente.\n\n> No más índices = mejor. Solo indexa campos usados en filtros frecuentes.\n\n```javascript\ndb.alumnos.getIndexes()           // Ver índices\ndb.alumnos.dropIndex({ email: 1 })  // Eliminar\n```\n\n### explain()\n\n```javascript\ndb.alumnos.find({ email: \"juan@email.com\" }).explain(\"executionStats\")\n// stage: \"IXSCAN\" → usa índice (bueno)\n// stage: \"COLLSCAN\" → escanea toda la colección (malo)\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-10-1",
+          "title": "Crear índices básicos",
+          "difficulty": "basic",
+          "description": "1. Crear índice en email, 2. Crear índice único en email, 3. Listar índices, 4. Crear índice en ciudad.",
+          "solution": "```javascript\ndb.alumnos.createIndex({ email: 1 })\ndb.alumnos.createIndex({ email: 1 }, { unique: true })\ndb.alumnos.getIndexes()\ndb.alumnos.createIndex({ ciudad: 1 })\n```"
+        },
+        {
+          "id": "ex-16-10-2",
+          "title": "Índices compuestos",
+          "difficulty": "intermediate",
+          "description": "1. Crear índice compuesto {ciudad: 1, activo: 1}\n2. ¿Qué consulta lo aprovecha mejor: find({ciudad: \"Madrid\"}) o find({activo: true})?\n3. Crear índice con orden mixto {nombre: 1, ciudad: -1}",
+          "solution": "```javascript\ndb.alumnos.createIndex({ ciudad: 1, activo: 1 })\n// 2. find({ ciudad: \"Madrid\" }) porque \"ciudad\" es el primer campo\ndb.alumnos.createIndex({ nombre: 1, ciudad: -1 })\n```"
+        },
+        {
+          "id": "ex-16-10-3",
+          "title": "Costo de índices",
+          "difficulty": "intermediate",
+          "description": "1. Crear 3 índices, 2. Listar todos, 3. Eliminar el compuesto, 4. ¿Por qué no 20 índices?",
+          "solution": "```javascript\ndb.alumnos.createIndex({ email: 1 })\ndb.alumnos.createIndex({ ciudad: 1, activo: 1 })\ndb.alumnos.createIndex({ nombre: 1 })\ndb.alumnos.getIndexes()\ndb.alumnos.dropIndex({ ciudad: 1, activo: 1 })\n```\n**¿Por qué no 20?** Cada INSERT actualiza todos → más lento. Espacio en disco."
+        },
+        {
+          "id": "ex-16-10-4",
+          "title": "Usar explain()",
+          "difficulty": "hard",
+          "description": "1. explain() en consulta con índice, 2. explain() sin índice, 3. Comparar IXSCAN vs COLLSCAN.",
+          "solution": "```javascript\ndb.alumnos.createIndex({ email: 1 })\n// 1\ndb.alumnos.find({ email: \"juan@email.com\" }).explain(\"executionStats\")  // IXSCAN\n// 2\ndb.alumnos.find({ \"direccion.codigo_postal\": \"28001\" }).explain(\"executionStats\")  // COLLSCAN\n// 3. IXSCAN: rápido (busca en índice). COLLSCAN: lento (lee todo).\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-11",
+      "title": "Aggregation Pipeline",
+      "order": 11,
+      "objectives": [
+        "Comprender el concepto de pipeline de agregación",
+        "Usar $match para filtrar",
+        "Usar $group para agrupar y agregar",
+        "Usar $project para transformar",
+        "Usar $sort para ordenar",
+        "Construir pipelines completos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es el Aggregation Pipeline?\n\nSecuencia de **etapas** que procesan documentos:\n\n```\nDocumentos → $match → $group → $project → $sort → Resultado\n```\n\n> Relación con SQL GROUP BY: el pipeline puede hacer lo que GROUP BY hace, pero con más flexibilidad.\n\n```javascript\ndb.coleccion.aggregate([\n  { $etapa1: { ... } },\n  { $etapa2: { ... } }\n])\n```"
+        },
+        {
+          "type": "text",
+          "content": "## $match: filtrar\n\nSiempre al inicio para aprovechar índices.\n\n```javascript\ndb.alumnos.aggregate([{ $match: { activo: true } }])\ndb.alumnos.aggregate([{ $match: { ciudad: \"Madrid\", edad: { $gt: 20 } } }])\n```"
+        },
+        {
+          "type": "text",
+          "content": "## $group: agrupar\n\n```javascript\n// Contar por ciudad\ndb.alumnos.aggregate([{ $group: { _id: \"$ciudad\", total: { $sum: 1 } } }])\n\n// Promedio por ciudad\ndb.alumnos.aggregate([{ $group: { _id: \"$ciudad\", media: { $avg: \"$edad\" }, total: { $sum: 1 } } }])\n```\n\n**Operadores**: `$sum`, `$avg`, `$min`, `$max`, `$first`, `$last`."
+        },
+        {
+          "type": "text",
+          "content": "## $project: transformar\n\n```javascript\ndb.alumnos.aggregate([{ $project: {\n  _id: 0,\n  nombre_completo: { $concat: [\"$nombre\", \" - \", \"$email\"] },\n  ciudad: 1\n}}])\n\ndb.alumnos.aggregate([{ $project: {\n  nombre: 1, edad: 1,\n  es_mayor: { $gte: [\"$edad\", 18] }\n}}])\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Pipeline completo\n\n```javascript\ndb.alumnos.aggregate([\n  { $match: { activo: true } },\n  { $group: { _id: \"$ciudad\", total: { $sum: 1 } } },\n  { $sort: { total: -1 } }\n])\n// Resultado: { _id: \"Madrid\", total: 3 }, { _id: \"Barcelona\", total: 2 }, ...\n```\n\n> Flujo: $match filtra → $group agrupa → $sort ordena."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-11-1",
+          "title": "Pipeline básico",
+          "difficulty": "basic",
+          "description": "1. Contar alumnos por ciudad, 2. Ciudad con más alumnos, 3. Solo activos.",
+          "solution": "```javascript\n// 1\ndb.alumnos.aggregate([{ $group: { _id: \"$ciudad\", total: { $sum: 1 } } }])\n// 2\ndb.alumnos.aggregate([{ $group: { _id: \"$ciudad\", total: { $sum: 1 } } }, { $sort: { total: -1 } }, { $limit: 1 }])\n// 3\ndb.alumnos.aggregate([{ $match: { activo: true } }, { $project: { nombre: 1, email: 1, _id: 0 } }])\n```"
+        },
+        {
+          "id": "ex-16-11-2",
+          "title": "Agregaciones con $group",
+          "difficulty": "intermediate",
+          "description": "Con \"notas\": 1. Nota media por asignatura, 2. Nota más alta y más baja por alumno, 3. Notas por convocatoria.",
+          "solution": "```javascript\n// 1\ndb.notas.aggregate([{ $group: { _id: \"$asignatura\", media: { $avg: \"$nota\" }, total: { $sum: 1 } } }, { $sort: { media: -1 } }])\n// 2\ndb.notas.aggregate([{ $group: { _id: \"$idAlumno\", mejor: { $max: \"$nota\" }, peor: { $min: \"$nota\" } } }])\n// 3\ndb.notas.aggregate([{ $group: { _id: \"$convocatoria\", total: { $sum: 1 }, media: { $avg: \"$nota\" } } }, { $sort: { total: -1 } }])\n```"
+        },
+        {
+          "id": "ex-16-11-3",
+          "title": "Pipeline con $project",
+          "difficulty": "intermediate",
+          "description": "1. Nombre completo (nombre + \" - \" + email), 2. Campo \"mayor_edad\" (>= 18), 3. Solo Madrid con nombre y email.",
+          "solution": "```javascript\n// 1\ndb.alumnos.aggregate([{ $project: { _id: 0, nombre_completo: { $concat: [\"$nombre\", \" - \", \"$email\"] }, ciudad: 1 } }])\n// 2\ndb.alumnos.aggregate([{ $project: { nombre: 1, edad: 1, mayor_edad: { $gte: [\"$edad\", 18] } } }])\n// 3\ndb.alumnos.aggregate([{ $match: { ciudad: \"Madrid\" } }, { $project: { nombre: 1, email: 1, _id: 0 } }])\n```"
+        },
+        {
+          "id": "ex-16-11-4",
+          "title": "Pipeline completo",
+          "difficulty": "hard",
+          "description": "Con \"alumnos\": filtrar activos, agrupar por ciudad, calcular total/media/mayor_edad, ordenar, proyectar sin _id.",
+          "solution": "```javascript\ndb.alumnos.aggregate([\n  { $match: { activo: true } },\n  { $group: { _id: \"$ciudad\", total_alumnos: { $sum: 1 }, edad_media: { $avg: \"$edad\" }, mayor_edad: { $max: \"$edad\" } } },\n  { $sort: { total_alumnos: -1 } },\n  { $project: { _id: 0, ciudad: \"$_id\", total_alumnos: 1, edad_media: { $round: [\"$edad_media\", 1] }, mayor_edad: 1 } }\n])\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-12",
+      "title": "Validación y calidad de los datos",
+      "order": 12,
+      "objectives": [
+        "Definir reglas de validación en MongoDB",
+        "Comprender que flexibilidad ≠ ausencia de reglas",
+        "Crear validación con JSON Schema",
+        "Verificar la validación con datos reales"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Corregir el mito: \"NoSQL no tiene reglas\"\n\nMongoDB permite definir **reglas de validación** a nivel de colección:\n- Qué campos son obligatorios.\n- Qué tipos de datos se aceptan.\n- Qué valores son válidos.\n\n> La diferencia con SQL: en MongoDB la validación es opcional y más flexible, pero existe."
+        },
+        {
+          "type": "text",
+          "content": "## Validación con JSON Schema\n\n```javascript\ndb.createCollection(\"alumnos_validados\", {\n  validator: {\n    $jsonSchema: {\n      bsonType: \"object\",\n      required: [\"nombre\", \"email\", \"activo\"],\n      properties: {\n        nombre: { bsonType: \"string\" },\n        email: { bsonType: \"string\" },\n        activo: { bsonType: \"bool\" },\n        edad: { bsonType: \"int\", minimum: 16, maximum: 100 }\n      }\n    }\n  }\n})\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Probar la validación\n\n```javascript\n// ✅ Válido\ndb.alumnos_validados.insertOne({ nombre: \"Juan\", email: \"juan@email.com\", activo: true, edad: 22 })\n\n// ❌ Falta email\ndb.alumnos_validados.insertOne({ nombre: \"María\", activo: true })\n// Error: Document failed validation\n\n// ❌ Edad fuera de rango\ndb.alumnos_validados.insertOne({ nombre: \"Ana\", email: \"ana@email.com\", activo: true, edad: 10 })\n// Error: minimum: 16\n```\n\n> La validación se aplica en INSERT y UPDATE. No afecta documentos existentes."
+        },
+        {
+          "type": "text",
+          "content": "## Modificar validación\n\n```javascript\ndb.runCommand({\n  collMod: \"alumnos_validados\",\n  validator: {\n    $jsonSchema: {\n      bsonType: \"object\",\n      required: [\"nombre\", \"email\", \"activo\", \"ciudad\"],\n      properties: {\n        nombre: { bsonType: \"string\" },\n        email: { bsonType: \"string\" },\n        activo: { bsonType: \"bool\" },\n        ciudad: { bsonType: \"string\" }\n      }\n    }\n  },\n  validationLevel: \"moderate\",\n  validationAction: \"error\"\n})\n```\n\n| Nivel | Comportamiento |\n|---|---|\n| `strict` | Valida INSERT y UPDATE |\n| `moderate` | Solo si el documento ya es válido |\n\n| Acción | Comportamiento |\n|---|---|\n| `error` | Rechaza la operación |\n| `warn` | Permite pero registra advertencia |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-12-1",
+          "title": "Crear colección con validación",
+          "difficulty": "basic",
+          "description": "Crea \"productos_validados\" con: nombre (string, oblig), precio (number, mínimo 0), stock (int, mínimo 0), categoria (string, oblig). Inserta 2 válidos y 2 que fallen.",
+          "solution": "```javascript\ndb.createCollection(\"productos_validados\", {\n  validator: {\n    $jsonSchema: {\n      bsonType: \"object\",\n      required: [\"nombre\", \"precio\", \"stock\", \"categoria\"],\n      properties: {\n        nombre: { bsonType: \"string\" },\n        precio: { bsonType: \"double\", minimum: 0 },\n        stock: { bsonType: \"int\", minimum: 0 },\n        categoria: { bsonType: \"string\" }\n      }\n    }\n  }\n})\n\n// ✅ Válido\ndb.productos_validados.insertOne({ nombre: \"Auriculares\", precio: 29.99, stock: NumberInt(50), categoria: \"Audio\" })\n// ❌ Falta categoria\ndb.productos_validados.insertOne({ nombre: \"Ratón\", precio: 19.99, stock: NumberInt(25) })\n```"
+        },
+        {
+          "id": "ex-16-12-2",
+          "title": "Validación de subdocumentos",
+          "difficulty": "intermediate",
+          "description": "Crea \"matriculas_validadas\" con: idAlumno (ObjectId), idCurso (ObjectId), estado (string, enum: activa/suspendida/finalizada/cancelada), fecha (ISODate).",
+          "solution": "```javascript\ndb.createCollection(\"matriculas_validadas\", {\n  validator: {\n    $jsonSchema: {\n      bsonType: \"object\",\n      required: [\"idAlumno\", \"idCurso\", \"estado\", \"fecha\"],\n      properties: {\n        idAlumno: { bsonType: \"objectId\" },\n        idCurso: { bsonType: \"objectId\" },\n        estado: { bsonType: \"string\", enum: [\"activa\", \"suspendida\", \"finalizada\", \"cancelada\"] },\n        fecha: { bsonType: \"date\" }\n      }\n    }\n  }\n})\n```"
+        },
+        {
+          "id": "ex-16-12-3",
+          "title": "Flexibilidad con calidad",
+          "difficulty": "intermediate",
+          "description": "¿Por qué un sistema con validación es mejor? Da 3 ejemplos de problemas que previene.",
+          "solution": "1. **Datos inconsistentes**: Sin validación, `precio: \"caro\"` (string) en vez de `precio: 29.99`.\n2. **Campos faltantes**: Sin validación, un producto sin nombre ni categoría.\n3. **Valores fuera de rango**: Sin validación, `edad: -5`.\n\n> La flexibilidad permite documentos diferentes, pero no significa aceptar cualquier cosa."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-13",
+      "title": "Escalabilidad, replicación y sharding",
+      "order": 13,
+      "objectives": [
+        "Comprender que NoSQL no significa inconsistencia",
+        "Entender el teorema CAP",
+        "Comprender replicación y replica sets",
+        "Entender sharding y escalabilidad horizontal",
+        "Conocer conceptos básicos de seguridad"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Consistencia: NoSQL no es inconsistente\n\nNoSQL ofrece diferentes niveles de consistencia:\n- **Consistencia fuerte**: El dato escrito se lee inmediatamente.\n- **Consistencia eventual**: Eventualmente todas las réplicas tendrán el dato."
+        },
+        {
+          "type": "text",
+          "content": "## Teorema CAP\n\nUn sistema distribuido puede garantizar **máximo 2 de 3**:\n- **Consistency**: Todos los nodos ven los mismos datos.\n- **Availability**: Cada petición recibe respuesta.\n- **Partition tolerance**: Funciona con fallos de red.\n\n> La tolerancia a fallos es obligatoria. La elección real es entre consistencia y disponibilidad."
+        },
+        {
+          "type": "text",
+          "content": "## Replicación\n\nLa **replicación** crea múltiples copias de los datos.\n\n**Replica Set en MongoDB**:\n```\n┌─────────────┐\n│  Primario    │ ← Escribe aquí\n└──────┬──────┘\n       │ replicación\n┌──────┴──────┐     ┌──────────────┐\n│  Secundario │     │  Secundario  │\n└─────────────┘     └──────────────┘\n```\n\n- **Primary**: Recibe escrituras.\n- **Secondary**: Copia datos. Puede servir lecturas.\n- Si el primario falla, un secundario se convierte en primario automáticamente."
+        },
+        {
+          "type": "text",
+          "content": "## Sharding: escalabilidad horizontal\n\nDistribuye datos en múltiples servidores (shards).\n\n```\n┌─────────────┐     ┌─────────────────────────┐\n│   Router     │ ←→  │ Shard 1: alumnos A-H     │\n│  (mongos)    │     │ Shard 2: alumnos I-P     │\n└─────────────┘     │ Shard 3: alumnos Q-Z     │\n                    └─────────────────────────┘\n```\n\n**Shard key**: Campo que MongoDB usa para decidir en qué shard va cada documento.\n\n**Buen shard key**: Alta cardinalidad, distribución uniforme, alineado con consultas.\n**Mal shard key**: Pocos valores, hotspot, no se usa en consultas."
+        },
+        {
+          "type": "text",
+          "content": "## Vertical vs horizontal scaling\n\n| Tipo | Descripción | Ejemplo |\n|---|---|---|\n| **Vertical** | Más recursos al mismo servidor | Más RAM, CPU, disco |\n| **Horizontal** | Más servidores | Shards, réplicas |\n\n**Seguridad básica**:\n1. Autenticación: SIEMPRE en producción.\n2. Mínimo privilegio: Cada usuario solo lo que necesita.\n3. No exponer a Internet: Sin VPN o túnel seguro.\n4. Encriptación: TLS en tránsito, encryption at rest."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-13-1",
+          "title": "Conceptos de escalabilidad",
+          "difficulty": "basic",
+          "description": "1. ¿Qué es la replicación y por qué es importante?\n2. ¿Cuál es la diferencia entre primario y secundario?\n3. ¿Qué pasaría si el primario falla?",
+          "solution": "1. Replicación crea múltiples copias para alta disponibilidad y redundancia.\n2. **Primario**: recibe escrituras. **Secundario**: copia datos, puede servir lecturas.\n3. Un secundario se convierte en primario automáticamente."
+        },
+        {
+          "id": "ex-16-13-2",
+          "title": "Sharding y shard key",
+          "difficulty": "intermediate",
+          "description": "1. ¿Qué es sharding?\n2. ¿Qué es un shard key?\n3. ¿Por qué un booleano sería mal shard key?\n4. ¿Qué sería buen shard key para alumnos?",
+          "solution": "1. Distribuye datos en múltiples servidores.\n2. Campo que decide en qué shard va cada documento.\n3. Solo tiene 2 valores (true/false). No escala.\n4. `email` o `ciudad` (alta cardinalidad)."
+        },
+        {
+          "id": "ex-16-13-3",
+          "title": "Seguridad en MongoDB",
+          "difficulty": "basic",
+          "description": "Evalúa: 1. MongoDB accesible desde Internet sin contraseña, 2. Autenticación con usuario/contraseña, 3. Puerto 27017 expuesto en producción, 4. Conexión local sin autenticación.",
+          "solution": "1. **Inseguro**: Cualquiera podría modificar datos.\n2. **Seguro**: Primer paso de seguridad.\n3. **Inseguro**: Facilita ataques.\n4. **Aceptable para desarrollo**: Nunca en producción."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-14",
+      "title": "Caso práctico completo y comparación SQL vs NoSQL",
+      "order": 14,
+      "objectives": [
+        "Analizar requisitos de un sistema académico",
+        "Diseñar el modelo documental con justificación",
+        "Crear colecciones, insertar datos, y ejecutar consultas completas",
+        "Aplicar filtros, proyecciones, actualizaciones y eliminaciones",
+        "Crear índices, pipelines de agregación y validación",
+        "Comparar el modelo relacional con el documental"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Caso práctico: Plataforma académica ficticia\n\n### Requisitos\n- **Alumnos**: nombre, email, ciudad, dirección\n- **Cursos**: nombre, duración, nivel, precio, profesor\n- **Matrículas**: alumno ↔ curso (fecha, estado)\n- **Notas**: alumno + curso (nota, convocatoria)\n- **Valoraciones**: alumno + curso (puntuación, comentario)\n\n### Análisis de patrones de acceso\n1. Ver alumno → sus cursos y notas (lectura conjunta)\n2. Listar cursos → con profesor y conteo de alumnos\n3. Matricular → verificar duplicados\n4. Consultar notas → por alumno, por curso, por convocatoria\n5. Valoraciones → crecen indefinidamente"
+        },
+        {
+          "type": "text",
+          "content": "## Diseño del modelo documental\n\n**Colecciones**:\n- `alumnos`: `{_id, nombre, email, ciudad, direccion}`\n- `cursos`: `{_id, nombre, duracion, nivel, precio, profesor: {nombre, email}}`\n- `matriculas`: `{_id, idAlumno, idCurso, fecha, estado}`\n- `notas`: `{_id, idAlumno, idCurso, nota, convocatoria}`\n- `valoraciones`: `{_id, idAlumno, idCurso, puntuacion, comentario}`\n\n**Justificación**:\n- Dirección embebida en alumno (1:1)\n- Profesor embebido en curso (1:fijo por curso)\n- Matrículas con referencias (N:M, crecen independientemente)\n- Notas con referencias (pueden ser miles)\n- Valoraciones con referencias (crecen indefinidamente)"
+        },
+        {
+          "type": "text",
+          "content": "## Inserción de datos\n\n```javascript\n// Alumnos\ndb.alumnos.insertMany([\n  { nombre: \"Juan García\", email: \"juan@email.com\", ciudad: \"Madrid\", direccion: { calle: \"Mayor 1\", ciudad: \"Madrid\" } },\n  { nombre: \"María López\", email: \"maria@email.com\", ciudad: \"Barcelona\", direccion: { calle: \"Diagonal 100\", ciudad: \"Barcelona\" } },\n  { nombre: \"Carlos Martínez\", email: \"carlos@email.com\", ciudad: \"Valencia\", direccion: { calle: \"Colón 5\", ciudad: \"Valencia\" } },\n  { nombre: \"Ana Rodríguez\", email: \"ana@email.com\", ciudad: \"Madrid\", direccion: { calle: \"Gran Vía 20\", ciudad: \"Madrid\" } },\n  { nombre: \"Pedro Sánchez\", email: \"pedro@email.com\", ciudad: \"Sevilla\", direccion: { calle: \"Sierpes 10\", ciudad: \"Sevilla\" } }\n])\n\n// Cursos\ndb.cursos.insertMany([\n  { nombre: \"Bases de Datos\", duracion: 60, nivel: \"intermedio\", precio: 249.99, profesor: { nombre: \"Elena Vidal\", email: \"elena@academia.com\" } },\n  { nombre: \"Programación Web\", duracion: 80, nivel: \"intermedio\", precio: 299.99, profesor: { nombre: \"Roberto Díaz\", email: \"roberto@academia.com\" } },\n  { nombre: \"Redes\", duracion: 40, nivel: \"básico\", precio: 199.99, profesor: { nombre: \"Laura Blanco\", email: \"laura@academia.com\" } }\n])\n\n// Matrículas\ndb.matriculas.insertMany([\n  { idAlumno: ObjectId(\"...alumno1...\"), idCurso: ObjectId(\"...curso1...\"), fecha: ISODate(\"2024-09-01\"), estado: \"activa\" },\n  { idAlumno: ObjectId(\"...alumno1...\"), idCurso: ObjectId(\"...curso2...\"), fecha: ISODate(\"2024-09-01\"), estado: \"activa\" },\n  { idAlumno: ObjectId(\"...alumno2...\"), idCurso: ObjectId(\"...curso1...\"), fecha: ISODate(\"2024-09-02\"), estado: \"activa\" },\n  { idAlumno: ObjectId(\"...alumno3...\"), idCurso: ObjectId(\"...curso3...\"), fecha: ISODate(\"2024-09-03\"), estado: \"activa\" }\n])\n\n// Notas\ndb.notas.insertMany([\n  { idAlumno: ObjectId(\"...alumno1...\"), idCurso: ObjectId(\"...curso1...\"), nota: 8.5, convocatoria: \"Convocatoria 1\" },\n  { idAlumno: ObjectId(\"...alumno2...\"), idCurso: ObjectId(\"...curso1...\"), nota: 7.0, convocatoria: \"Convocatoria 1\" },\n  { idAlumno: ObjectId(\"...alumno1...\"), idCurso: ObjectId(\"...curso2...\"), nota: 9.0, convocatoria: \"Convocatoria 1\" },\n  { idAlumno: ObjectId(\"...alumno3...\"), idCurso: ObjectId(\"...curso3...\"), nota: 6.5, convocatoria: \"Convocatoria 1\" }\n])\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Consultas y operaciones\n\n```javascript\n// 1. Ver alumno con sus cursos (find por id)\ndb.alumnos.findOne({ email: \"juan@email.com\" })\n\n// 2. Alumnos de Madrid\ndb.alumnos.find({ ciudad: \"Madrid\" })\n\n// 3. Cursos con precio > 200\ndb.cursos.find({ precio: { $gt: 200 } })\n\n// 4. Notas >= 8\ndb.notas.find({ nota: { $gte: 8 } })\n\n// 5. Proyectar: solo nombre y email\ndb.alumnos.find({}, { nombre: 1, email: 1, _id: 0 })\n\n// 6. Actualizar precio de un curso\ndb.cursos.updateOne({ nombre: \"Bases de Datos\" }, { $set: { precio: 279.99 } })\n\n// 7. Agregar alumno a un curso\ndb.matriculas.insertOne({ idAlumno: ObjectId(\"...\"), idCurso: ObjectId(\"...\"), fecha: ISODate(\"2024-09-15\"), estado: \"activa\" })\n\n// 8. Eliminar una matrícula\ndb.matriculas.deleteOne({ _id: ObjectId(\"...\") })\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Índices, agregación y validación\n\n```javascript\n// Índices\ndb.alumnos.createIndex({ email: 1 }, { unique: true })\ndb.alumnos.createIndex({ ciudad: 1 })\ndb.notas.createIndex({ idAlumno: 1, idCurso: 1 })\ndb.matriculas.createIndex({ idAlumno: 1, idCurso: 1 })\n\n// Agregación: notas media por curso\ndb.notas.aggregate([\n  { $group: { _id: \"$idCurso\", nota_media: { $avg: \"$nota\" }, total: { $sum: 1 } } },\n  { $sort: { nota_media: -1 } }\n])\n\n// Agregación: alumnos por ciudad\ndb.alumnos.aggregate([\n  { $group: { _id: \"$ciudad\", total: { $sum: 1 } } },\n  { $sort: { total: -1 } }\n])\n\n// Validación en matrículas\ndb.runCommand({\n  collMod: \"matriculas\",\n  validator: {\n    $jsonSchema: {\n      bsonType: \"object\",\n      required: [\"idAlumno\", \"idCurso\", \"fecha\", \"estado\"],\n      properties: {\n        estado: { bsonType: \"string\", enum: [\"activa\", \"suspendida\", \"finalizada\", \"cancelada\"] }\n      }\n    }\n  }\n})\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Comparación SQL vs NoSQL para este caso\n\n| Aspecto | SQL | MongoDB |\n|---|---|---|\n| **Esquema** | Rígido, definido antes | Flexible, evoluciona |\n| **Integridad referencial** | FOREIGN KEY automática | Gestión en la aplicación |\n| **JOINs** | Nativos (INNER, LEFT, etc.) | $lookup o diseño embebido |\n| **Normalización** | Obligatoria para integridad | Opcional, se puede desnormalizar |\n| **Escalabilidad** | Vertical (más potente) | Horizontal (más servidores) |\n| **Transacciones** | ACID nativas | ACID limitadas (mejorando) |\n| **Rendimiento lectura** | Depende de JOINs e índices | Excelente con diseño correcto |\n| **Rendimiento escritura** | Overhead de constraints | Más rápido sin constraints |\n| **Consistencia** | Fuerte por defecto | Configurable (eventual/fuerte) |\n| **Herramientas** | MySQL Workbench, phpMyAdmin | mongosh, Compass |\n\n> **Conclusión**: Ambos modelos son válidos. La elección depende del problema. SQL es mejor para transacciones ACID y datos altamente estructurados. MongoDB es mejor para esquema flexible, escalabilidad horizontal y patrones de acceso conocidos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-14-1",
+          "title": "Caso práctico completo",
+          "difficulty": "hard",
+          "description": "Implementa el sistema completo descrito en la lección:\n1. Crear las 5 colecciones con validación en matrículas\n2. Insertar datos (al menos 3 en cada colección)\n3. Crear índices (email único, ciudad, notas compuesto)\n4. Ejecutar 5 consultas diferentes (filtro, proyección, comparación)\n5. Actualizar un precio y eliminar una matrícula\n6. Crear 2 pipelines de agregación (notas media por curso, alumnos por ciudad)\n7. Comparar con la versión SQL",
+          "solution": "```javascript\n// 1. Crear colecciones\ndb.createCollection(\"alumnos\")\ndb.createCollection(\"cursos\")\ndb.createCollection(\"notas\")\ndb.createCollection(\"valoraciones\")\ndb.createCollection(\"matriculas\", {\n  validator: {\n    $jsonSchema: {\n      bsonType: \"object\",\n      required: [\"idAlumno\", \"idCurso\", \"fecha\", \"estado\"],\n      properties: {\n        estado: { bsonType: \"string\", enum: [\"activa\", \"suspendida\", \"finalizada\", \"cancelada\"] }\n      }\n    }\n  }\n})\n\n// 2-3. Insertar datos e índices (ver bloques anteriores)\n\n// 4. Consultas\ndb.alumnos.find({ ciudad: \"Madrid\" })\ndb.alumnos.find({}, { nombre: 1, email: 1, _id: 0 })\ndb.cursos.find({ precio: { $gte: 200 } })\ndb.notas.find({ nota: { $gte: 8 } })\ndb.alumnos.find({ $or: [{ ciudad: \"Madrid\" }, { ciudad: \"Barcelona\" }] })\n\n// 5. Actualizar y eliminar\ndb.cursos.updateOne({ nombre: \"Bases de Datos\" }, { $set: { precio: 279.99 } })\ndb.matriculas.deleteOne({ _id: ObjectId(\"...\") })\n\n// 6. Agregación\ndb.notas.aggregate([{ $group: { _id: \"$idCurso\", nota_media: { $avg: \"$nota\" }, total: { $sum: 1 } } }, { $sort: { nota_media: -1 } }])\ndb.alumnos.aggregate([{ $group: { _id: \"$ciudad\", total: { $sum: 1 } } }, { $sort: { total: -1 } }])\n\n// 7. Comparación SQL vs NoSQL: ver tabla en la lección\n```\n\n**Comparación SQL**: Tablas con FKs, JOINs nativos, transacciones ACID.\n**Comparación MongoDB**: Colecciones con referencias, $lookup o embebido, escalabilidad horizontal."
+        }
+      ]
+    }
+  ]
+}

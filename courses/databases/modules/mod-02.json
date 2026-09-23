@@ -1,0 +1,444 @@
+{
+  "id": "mod-02",
+  "courseId": "databases-0484",
+  "title": "Preparación del entorno",
+  "slug": "preparacion-entorno",
+  "order": 2,
+  "description": "Instalación y configuración de MySQL y MySQL Workbench en Windows 11. Primeros contactos con el servidor, ejecución de sentencias básicas, creación de la primera base de datos y organización del entorno de trabajo.",
+  "objectives": [
+    "Identificar los componentes necesarios para trabajar con MySQL",
+    "Instalar MySQL Server en Windows 11 paso a paso",
+    "Instalar y configurar MySQL Workbench",
+    "Conectarse al servidor MySQL desde Workbench",
+    "Ejecutar sentencias SQL básicas de verificación",
+    "Crear y gestionar bases de datos con sentencias simples",
+    "Trabajar con scripts SQL en Workbench",
+    "Organizar los archivos del curso de forma eficiente",
+    "Diagnosticar y resolver problemas frecuentes de instalación y conexión"
+  ],
+  "estimatedMinutes": 480,
+  "lessons": [
+    {
+      "id": "lesson-02-1",
+      "title": "Qué vamos a instalar y por qué",
+      "order": 1,
+      "objectives": [
+        "Comprender qué componentes se van a instalar",
+        "Diferenciar entre MySQL Server y MySQL Workbench",
+        "Entender la arquitectura cliente-servidor en nuestro entorno"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Qué necesitamos instalar\n\nPara trabajar con bases de datos MySQL necesitamos dos componentes principales:\n\n1. **MySQL Server**: El \"motor\" que ejecuta y gestiona las bases de datos. Es un servicio que se ejecuta en segundo plano y procesa todas las peticiones SQL.\n\n2. **MySQL Workbench**: La herramienta gráfica que usaremos para conectarnos al servidor, escribir consultas, crear bases de datos y visualizar los resultados. Es como el \"panel de control\" del servidor.\n\n> **Analogía**: Piensa en MySQL Server como el motor de un coche (hace todo el trabajo real) y MySQL Workbench como el volante y los mandos (la interfaz con la que interactúas)."
+        },
+        {
+          "type": "text",
+          "content": "## Arquitectura cliente-servidor en nuestro entorno\n\nUna vez instalados ambos componentes, nuestro entorno funcionará así:\n\n```\n┌─────────────────┐     Consultas SQL      ┌──────────────────┐\n│                 │ ─────────────────────→ │                  │\n│ MySQL Workbench │                        │  MySQL Server    │\n│  (Cliente)      │ ←───────────────────── │  (Servidor)      │\n│                 │     Resultados         │                  │\n└─────────────────┘                        └────────┬─────────┘\n                                                    │\n                                            ┌───────▼────────┐\n                                            │  Tus bases de   │\n                                            │  datos (ficheros│\n                                            │  en disco)      │\n                                            └────────────────┘\n```\n\n- **MySQL Workbench** (el cliente) envía sentencias SQL al servidor.\n- **MySQL Server** (el servidor) procesa esas sentencias, accede a los datos y devuelve resultados.\n- Las bases de datos se almacenan como **ficheros en el disco duro** del ordenador.\n\nEs importante entender que Workbench y Server son independientes. Podrías tener el servidor corriendo en otro ordenador y conectarte desde Workbench a distancia."
+        },
+        {
+          "type": "text",
+          "content": "## Versiones que instalaremos\n\n- **MySQL Server 8.x** (Community Edition): La versión gratuita y completa. Incluye todo lo necesario para aprender y trabajar.\n- **MySQL Workbench 8.x**: La herramienta gráfica oficial de MySQL. Disponible para Windows, Mac y Linux.\n\n> **Nota**: En este curso usaremos Windows 11 como sistema operativo. Si usas Linux o macOS, los pasos son similares pero con algunas diferencias en la instalación."
+        },
+        {
+          "type": "text",
+          "content": "## Requisitos previos\n\nAntes de empezar la instalación, verifica que tu equipo cumple estos requisitos:\n\n| Requisito | Mínimo | Recomendado |\n|---|---|---|\n| **Sistema operativo** | Windows 10 64-bit | Windows 11 |\n| **RAM** | 4 GB | 8 GB o más |\n| **Disco duro** | 10 GB libres | 20 GB libres |\n| **Conexión a internet** | Sí (para descargar instaladores) | Sí |\n| **Permisos de administrador** | Sí | Sí |\n\nSi no tienes permisos de administrador en tu ordenador, consulta con el departamento de informática de tu centro antes de continuar."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-1-1",
+          "title": "Identificar componentes",
+          "difficulty": "basic",
+          "description": "Responde: (a) ¿Qué hace MySQL Server? (b) ¿Qué hace MySQL Workbench? (c) ¿Podemos usar MySQL Server sin Workbench? Explica por qué.",
+          "solution": "(a) MySQL Server es el servicio que ejecuta y gestiona las bases de datos. Procesa las sentencias SQL, almacena los datos en disco y gestiona el acceso concurrente de múltiples usuarios.\n\n(b) MySQL Workbench es una herramienta gráfica que nos permite conectarnos al servidor, escribir consultas, crear estructuras de bases de datos y visualizar resultados de forma visual e interactiva.\n\n(c) Sí, podemos usar MySQL Server sin Workbench. El servidor acepta conexiones desde cualquier cliente compatible (línea de comandos, aplicaciones web, otros programas). Workbench es solo una de las muchas formas de conectarnos al servidor."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-2",
+      "title": "Instalación de MySQL",
+      "order": 2,
+      "objectives": [
+        "Descargar el instalador de MySQL desde la web oficial",
+        "Ejecutar la instalación paso a paso en Windows 11",
+        "Configurar el servidor con opciones adecuadas para aprendizaje"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Descarga del instalador\n\n1. Ve a la página oficial: [https://dev.mysql.com/downloads/installer/](https://dev.mysql.com/downloads/installer/)\n2. Inicia sesión en tu cuenta Oracle (o crea una gratuita). Oracle ofrece la opción de descargar sin registro en algunos navegadores.\n3. Descarga el instalador **web** (≈2 MB) o el **completo** (≈400 MB). El web descarga los componentes durante la instalación; el completo los incluye todos.\n\n> **Recomendación**: Si tienes buena conexión a internet, usa el instalador **web**. Si tu conexión es lenta, descarga el **completo**."
+        },
+        {
+          "type": "text",
+          "content": "## Pasos de la instalación\n\n### Paso 1: Ejecutar el instalador\n\nHaz doble clic en el fichero descargado. Si Windows pregunta por permisos de administrador, haz clic en \"Sí\".\n\n### Paso 2: Tipo de instalación\n\nSelecciona **Custom** (Personalizada). Esto te permite elegir exactamente qué componentes instalar.\n\n### Paso 3: Seleccionar productos\n\nEn el panel izquierdo, añade al panel derecho:\n- **MySQL Server 8.x**\n- **MySQL Workbench 8.x**\n\nPuedes omitir los demás componentes (Connector, Shell, Router) por ahora.\n\n### Paso 4: Ejecutar la instalación\n\nHaz clic en **Execute**. El instalador descargará y configurará los componentes seleccionados. Esto puede tardar entre 5 y 15 minutos según tu conexión."
+        },
+        {
+          "type": "text",
+          "content": "### Paso 5: Configuración del servidor\n\nUna vez instalado, aparecerá la pantalla de configuración. Sigue estos pasos:\n\n1. **Type and Networking**: Selecciona **Development Computer** (elige esta opción para no consumir muchos recursos).\n2. **Authentication Method**: Selecciona **Use Strong Password Encryption (RECOMMENDED)**.\n3. **Accounts and Roles**: Establece una contraseña para el usuario **root**. Usa una contraseña que recuerdes fácilmente (para el curso, algo como `Root1234!` o similar). Anótala en un lugar seguro.\n4. **Windows Service**: Mantén las opciones por defecto (el servidor se ejecutará como servicio de Windows al iniciar el equipo).\n5. **Server Permissions**: Mantén las opciones por defecto.\n\n### Paso 6: Finalizar\n\nHaz clic en **Execute** y luego en **Finish**. La instalación está completa."
+        },
+        {
+          "type": "text",
+          "content": "## Verificar la instalación\n\nPara comprobar que MySQL se instaló correctamente:\n\n1. Abre el **Símbolo del sistema** (escribe \"cmd\" en la barra de búsqueda de Windows).\n2. Escribe la siguiente orden:\n\n```\nmysql --version\n```\n\n3. Deberías ver algo como:\n\n```\nmysql  Ver 8.0.xx for Win64 on x86_64 (MySQL Community Server - GPL)\n```\n\nSi ves ese mensaje, ¡enhorabuena! MySQL Server está instalado y funcionando.\n\nSi ves \"no se reconoce como comando\", significa que la ruta de MySQL no está en el PATH del sistema. No te preocupes: Workbench se conectará al servidor de todas formas."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-2-1",
+          "title": "Opciones de instalación",
+          "difficulty": "basic",
+          "description": "Durante la instalación de MySQL se eligieron varias opciones. Explica por qué seleccionamos \"Development Computer\" en lugar de \"Dedicated Computer\" y por qué elegimos el usuario \"root\" con contraseña fuerte.",
+          "solution": "**Development Computer**: Esta opción configura MySQL para usar pocos recursos del sistema (memoria, CPU). Es ideal para un ordenador personal donde también trabajas con otros programas. \"Dedicated Computer\" reservaría mucha memoria y CPU para MySQL, ralentizando el resto del sistema.\n\n**Usuario root con contraseña fuerte**: root es el usuario administrador con acceso total al servidor. Sin una contraseña fuerte, cualquiera podría acceder a todas las bases de datos y modificarlas o eliminarlas. En entornos de aprendizaje es habitual usar contraseñas sencillas, pero en producción siempre se debe usar una contraseña compleja."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-3",
+      "title": "Instalación de MySQL Workbench",
+      "order": 3,
+      "objectives": [
+        "Verificar que MySQL Workbench se instaló correctamente",
+        "Iniciar Workbench por primera vez",
+        "Comprender la interfaz principal de Workbench"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## MySQL Workbench ya está instalado\n\nSi en el paso anterior seleccionaste instalar MySQL Workbench junto al servidor, ya lo tienes disponible. Si no lo instalaste, puedes descargarlo por separado desde:\n\n[https://dev.mysql.com/downloads/workbench/](https://dev.mysql.com/downloads/workbench/)\n\nPara abrir Workbench:\n1. Haz clic en el botón de Windows.\n2. Escribe \"MySQL Workbench\".\n3. Haz clic en el icono que aparece.\n\nLa primera vez que se abre, Workbench detectará automáticamente la instalación de MySQL Server y mostrará una conexión preconfigurada."
+        },
+        {
+          "type": "text",
+          "content": "## Conocer la interfaz de Workbench\n\nCuando abres Workbench, verás la pantalla principal con estas zonas:\n\n```\n┌─────────────────────────────────────────────────────┐\n│  MySQL Workbench                              [─][□][×] │\n├─────────────────────────────────────────────────────┤\n│                                                     │\n│   ┌──────────────┐   Conexiones recientes           │\n│   │  MySQL 8.0   │   ┌─────────────────────┐       │\n│   │  localhost    │   │  +  New Connection   │       │\n│   │  3306         │   └─────────────────────┘       │\n│   └──────────────┘                                  │\n│                                                     │\n│   ┌──────────────────────────────────────┐          │\n│   │  Modelos de BD (schemas)             │          │\n│   └──────────────────────────────────────┘          │\n│                                                     │\n└─────────────────────────────────────────────────────┘\n```\n\n### Zonas principales\n\n- **Conexiones**: Lista de conexiones configuradas. Normalmente verás una llamada \"Local instance MySQL80\" que se conecta al servidor local.\n- **Botón \"+ New Connection\"**: Para crear nuevas conexiones.\n- **Modelos**: Para diseñar bases de datos visualmente (lo veremos más adelante).\n\nHaz clic en la conexión \"Local instance MySQL80\" para conectarte al servidor."
+        },
+        {
+          "type": "text",
+          "content": "## Al conectarte: el editor SQL\n\nAl abrir la conexión, aparece el **editor SQL**, que es donde escribiremos nuestras sentencias:\n\n```\n┌─────────────────────────────────────────────────────┐\n│  Editor SQL                                         │\n│  ┌─────────────────────────────────────────────┐   │\n│  │  (Aquí escribes tus sentencias SQL)          │   │\n│  │                                              │   │\n│  │  SELECT VERSION();                           │   │\n│  │                                              │   │\n│  └─────────────────────────────────────────────┘   │\n│  [▶ Ejecutar]  [🔒]  [📁 Abrir]  [💾 Guardar]       │\n├─────────────────────────────────────────────────────┤\n│  Resultados                                         │\n│  ┌─────────────────────────────────────────────┐   │\n│  │  (Aquí aparecen los resultados)              │   │\n│  └─────────────────────────────────────────────┘   │\n└─────────────────────────────────────────────────────┘\n```\n\n- **Panel superior**: Editor donde escribes sentencias SQL.\n- **Botón de ejecutar** (rayo o ▶): Ejecuta la sentencia donde está el cursor.\n- **Panel inferior**: Muestra los resultados de la consulta."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-3-1",
+          "title": "Identificar zonas de Workbench",
+          "difficulty": "basic",
+          "description": "Describe para qué sirve cada una de estas zonas de MySQL Workbench: (a) la pantalla de conexiones, (b) el editor SQL, (c) el panel de resultados.",
+          "solution": "(a) **Pantalla de conexiones**: Muestra las conexiones configuradas al servidor MySQL. Permite crear, editar y eliminar conexiones. Al hacer clic en una conexión, se abre una sesión de trabajo con el servidor.\n\n(b) **Editor SQL**: Es el espacio donde escribes las sentencias SQL (CREATE, SELECT, INSERT, etc.). Es como un bloc de notas especializado en SQL que envía lo que escribes al servidor para que lo ejecute.\n\n(c) **Panel de resultados**: Muestra el resultado de ejecutar una sentencia. Si es una consulta SELECT, muestra una tabla con los datos. Si es una sentencia de definición (CREATE, DROP), muestra un mensaje de éxito o error."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-4",
+      "title": "Primer contacto con MySQL Workbench",
+      "order": 4,
+      "objectives": [
+        "Abrir MySQL Workbench y conectarse al servidor",
+        "Explorar la interfaz principal",
+        "Comprender la estructura de un servidor MySQL"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Abrir Workbench y conectarse\n\n1. Abre **MySQL Workbench** desde el menú de Windows.\n2. En la pantalla principal, haz clic en la conexión **\"Local instance MySQL80\"**.\n3. Introduce la contraseña del usuario root que configuraste durante la instalación.\n4. Marca la casilla **\"Save password in vault\"** para no tener que escribirla cada vez (solo en tu ordenador personal).\n5. Haz clic en **OK**.\n\nSi todo va bien, se abrirá el editor SQL. ¡Estás conectado al servidor!"
+        },
+        {
+          "type": "text",
+          "content": "## Explorar la interfaz\n\nUna vez dentro, toma un momento para explorar:\n\n### Menú principal\n\n- **File**: Abrir, guardar y gestionar scripts SQL.\n- **Edit**: Copiar, pegar, buscar texto.\n- **View**: Mostrar u ocultar paneles (navigator, output, etc.).\n- **Query**: Ejecutar sentencias, formatear código.\n- **Database**: Conexiones, administraores, gestores de esquemas.\n\n### Panel Navigator (izquierda)\n\nMuestra la estructura del servidor:\n- **Management**: Herramientas de administración (usuarios, logs, backups).\n- **Instance**: Información del servidor (variables, estado, procesos).\n- **Performance**: Métricas de rendimiento.\n- **Schemas**: Las bases de datos existentes en el servidor.\n\nHaz clic en **Schemas** para ver las bases de datos. Verás al menos las bases de datos del sistema: `information_schema`, `mysql`, `performance_schema` y `sys`."
+        },
+        {
+          "type": "text",
+          "content": "## Las bases de datos del sistema\n\nMySQL crea automáticamente varias bases de datos de sistema. No las toques, pero es bueno saber qué son:\n\n| Base de datos | Función |\n|---|---|\n| **information_schema** | Almacena metadatos sobre todas las bases de datos del servidor |\n| **mysql** | Información de usuarios, privilegios y configuración del servidor |\n| **performance_schema** | Métricas de rendimiento del servidor |\n| **sys** | Vistas simplificadas de performance_schema para diagnóstico |\n\n> **Importante**: Estas bases de datos son internas del servidor. Nunca las modifiques ni borres. Las tuyas (las que crearemos) aparecerán también en esta lista."
+        }
+      ],
+      "exercises": []
+    },
+    {
+      "id": "lesson-02-5",
+      "title": "Conectarse al servidor MySQL",
+      "order": 5,
+      "objectives": [
+        "Entender los parámetros de una conexión MySQL",
+        "Crear una nueva conexión en Workbench",
+        "Diagnosticar errores de conexión"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Parámetros de conexión\n\nPara conectarse a un servidor MySQL se necesitan estos datos:\n\n| Parámetro | Descripción | Valor típico |\n|---|---|---|\n| **Hostname** | Dirección del servidor | `localhost` o `127.0.0.1` (tu propio ordenador) |\n| **Port** | Puerto de comunicación | `3306` (puerto por defecto de MySQL) |\n| **Username** | Usuario para autenticarse | `root` (administrador) |\n| **Password** | Contraseña del usuario | La que configuraste en la instalación |\n\n> **Nota**: `localhost` y `127.0.0.1` significan lo mismo: \"este mismo ordenador\". Si el servidor estuviera en otro equipo, usarías su dirección IP o nombre de dominio."
+        },
+        {
+          "type": "text",
+          "content": "## Crear una nueva conexión\n\nSi necesitas crear una conexión nueva (por ejemplo, para otro servidor o con otro usuario):\n\n1. En la pantalla principal de Workbench, haz clic en **\"New Connection\"** (+).\n2. Rellena los campos:\n   - **Connection Name**: Un nombre descriptivo (ej: \"Mi servidor local\")\n   - **Hostname**: `localhost`\n   - **Port**: `3306`\n   - **Username**: `root`\n   - **Password**: Haz clic en \"Store in Vault\" y escribe tu contraseña.\n3. Haz clic en **Test Connection** para verificar que funciona.\n4. Si ves \"Successfully made the MySQL connection\", haz clic en **OK**.\n\nLa nueva conexión aparecerá en la pantalla principal junto a la existente."
+        },
+        {
+          "type": "text",
+          "content": "## Errores de conexión habituales\n\n| Error | Causa probable | Solución |\n|---|---|---|\n| **Can't connect to MySQL server** | El servidor no está ejecutándose | Inicia el servicio MySQL desde el Panel de Control de Windows o la línea de comandos |\n| **Access denied for user** | Contraseña incorrecta o usuario no existe | Verifica la contraseña. Prueba con `root` y la contraseña de la instalación |\n| **Lost connection** | Timeout o problema de red | Verifica que el puerto 3306 no está bloqueado por un firewall |\n| **Host is blocked** | Demasiados intentos fallidos | Reinicia el servicio MySQL |\n\n### Cómo comprobar que el servidor está corriendo\n\n1. Pulsa **Ctrl + Shift + Esc** para abrir el Administrador de tareas.\n2. Ve a la pestaña **Servicios**.\n3. Busca **MySQL80** (o el nombre del servicio que se creó).\n4. El estado debe ser **\"En ejecución\"**.\n\nSi no aparece o está detenido, haz clic derecho y selecciona **Iniciar**."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-5-1",
+          "title": "Diagnosticar problemas de conexión",
+          "difficulty": "intermediate",
+          "description": "Un compañero te dice que no puede conectarse a MySQL desde Workbench. Recibe el error \"Can't connect to MySQL server on 'localhost' (10061)\". ¿Qué pasos le recomendarías para solucionarlo?",
+          "solution": "Pasos para diagnosticar y solucionar:\n\n1. **Comprobar que el servicio MySQL está ejecutándose**: Abrir el Administrador de tareas → pestaña Servicios → buscar \"MySQL80\". Si no está en ejecución, hacer clic derecho → Iniciar.\n\n2. **Reiniciar el servicio**: Si ya está en ejecución pero no responde, reiniciarlo (clic derecho → Reiniciar).\n\n3. **Verificar el puerto**: El error 10061 indica que nadie está escuchando en el puerto 3306. Puede ser que el servicio esté configurado en otro puerto. Revisar el fichero de configuración `my.ini` para confirmar el puerto.\n\n4. **Firewall**: Verificar que Windows Defender u otro firewall no está bloqueando el puerto 3306.\n\n5. **Reinstalar el servicio**: Como último recurso, reinstalar MySQL Server desde el instalador."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-6",
+      "title": "Comprobar que MySQL funciona",
+      "order": 6,
+      "objectives": [
+        "Ejecutar la primera sentencia SQL en Workbench",
+        "Verificar la versión de MySQL con SELECT VERSION()",
+        "Interpretar los resultados de una consulta"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Nuestra primera sentencia SQL\n\nAhora vamos a comprobar que todo funciona. En el editor SQL de Workbench, escribe:\n\n```sql\nSELECT VERSION();\n```\n\nPara ejecutarla tienes varias opciones:\n- Haz clic en el icono del **rayo** (▶) en la barra de herramientas.\n- Pulsa **Ctrl + Enter** para ejecutar solo la sentencia donde está el cursor.\n- Pulsa **Ctrl + Shift + Enter** para ejecutar todas las sentencias del editor.\n\nEn el panel de resultados deberías ver algo como:\n\n```\n+-----------+\n| VERSION() |\n+-----------+\n| 8.0.36    |\n+-----------+\n```\n\n¡Felicidades! Acabas de ejecutar tu primera consulta SQL. El resultado te dice la versión exacta de MySQL que tienes instalado."
+        },
+        {
+          "type": "text",
+          "content": "## Anatomía de una consulta\n\nAnalicemos qué acabamos de hacer:\n\n- **SELECT**: Palabra clave que indica \"quiero consultar datos\".\n- **VERSION()**: Una función de MySQL que devuelve la versión del servidor.\n- **;** (punto y coma): Marca el final de una sentencia SQL. Siempre debemos terminar las sentencias con punto y coma.\n\n> **Regla importante**: En MySQL, cada sentencia se termina con `;`. Si olvidas el punto y coma, Workbench esperará más texto antes de ejecutar.\n\n### Otras sentencias útiles de verificación\n\n```sql\n-- Ver el usuario conectado\nSELECT USER();\n\n-- Ver la fecha y hora del servidor\nSELECT NOW();\n\n-- Ver las bases de datos existentes\nSHOW DATABASES;\n```\n\nPrueba a ejecutar cada una de estas sentencias en el editor."
+        },
+        {
+          "type": "text",
+          "content": "## El panel de resultados\n\nCuando ejecutas una consulta, los resultados aparecen en la parte inferior:\n\n- **Pestaña Resultset**: Muestra los datos en formato de tabla (como una hoja de cálculo).\n- **Pestaña Output**: Muestra mensajes del servidor (qué sentencia se ejecutó, cuántas filas se devolvieron, tiempo de ejecución).\n- **Pestaña Action Output**: Detalles técnicos de la ejecución.\n\nSi la consulta tiene un error, verás un mensaje en rojo con la descripción del problema y la línea donde se produjo. Esto es muy útil para depurar."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-6-1",
+          "title": "Ejecutar sentencias de verificación",
+          "difficulty": "basic",
+          "description": "Ejecuta en Workbench estas 4 sentencias y apunta los resultados que obtienes: (a) SELECT VERSION(); (b) SELECT USER(); (c) SELECT NOW(); (d) SHOW DATABASES;.",
+          "solution": "Los resultados variarán según tu instalación. Ejemplo:\n\n(a) SELECT VERSION();\n```\n+-----------+\n| VERSION() |\n+-----------+\n| 8.0.36    |\n+-----------+\n```\n(b) SELECT USER();\n```\n+----------------+\n| USER()         |\n+----------------+\n| root@localhost |\n+----------------+\n```\n(c) SELECT NOW();\n```\n+---------------------+\n| NOW()               |\n+---------------------+\n| 2024-03-15 10:30:00 |\n+---------------------+\n```\n(d) SHOW DATABASES;\n```\n+--------------------+\n| Database           |\n+--------------------+\n| information_schema |\n| mysql              |\n| performance_schema |\n| sys                |\n+--------------------+\n```\n\nLo importante es que veas resultados en todas las consultas. Si alguna da error, revisa la conexión."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-7",
+      "title": "Crear nuestra primera base de datos",
+      "order": 7,
+      "objectives": [
+        "Crear una base de datos con CREATE DATABASE",
+        "Verificar la creación con SHOW DATABASES",
+        "Seleccionar una base de datos con USE",
+        "Eliminar una base de datos con DROP DATABASE"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Crear una base de datos\n\nVamos a crear nuestra primera base de datos. En el editor SQL, escribe:\n\n```sql\nCREATE DATABASE mi_primera_bd;\n```\n\nEjecútalo con Ctrl + Enter. En el panel de output verás un mensaje de éxito. ¡Acabas de crear tu primera base de datos!\n\n> **Convención de nombres**: En MySQL, los nombres de las bases de datos suelen escribirse en minúsculas y sin espacios. Si quieres separar palabras, usa guiones bajos (`_`). Ejemplo: `escuela_primaria`, `tienda_online`."
+        },
+        {
+          "type": "text",
+          "content": "## Verificar que se creó\n\nEjecuta ahora:\n\n```sql\nSHOW DATABASES;\n```\n\nEn los resultados verás algo así:\n\n```\n+--------------------+\n| Database           |\n+--------------------+\n| information_schema |\n| mi_primera_bd      |\n| mysql              |\n| performance_schema |\n| sys                |\n+--------------------+\n```\n\nNota que `mi_primera_bd` aparece en la lista. ¡Tu base de datos existe!\n\nTambién puedes verla en el panel **Navigator** de Workbench, en la sección **Schemas**. Haz clic en el icono de recarga si no aparece."
+        },
+        {
+          "type": "text",
+          "content": "## Seleccionar la base de datos\n\nPara trabajar con una base de datos, primero debes \"seleccionarla\". Piensa en ello como abrir una carpeta antes de trabajar con sus ficheros:\n\n```sql\nUSE mi_primera_bd;\n```\n\nAl ejecutar esta sentencia, el servidor \"abre\" la base de datos `mi_primera_bd` como contexto para las siguientes sentencias. A partir de ahora, cualquier tabla o consulta se ejecutará sobre esta base de datos.\n\n> **Truco**: En Workbench, también puedes hacer doble clic sobre el nombre de la base de datos en el panel Navigator para seleccionarla. La base de datos seleccionada aparece en **negrita**."
+        },
+        {
+          "type": "text",
+          "content": "## Eliminar una base de datos\n\nSi creaste una base de datos por error o quieres eliminarla, usa DROP DATABASE:\n\n```sql\nDROP DATABASE mi_primera_bd;\n```\n\n> **⚠️ ADVERTENCIA**: DROP DATABASE elimina permanentemente la base de datos y TODOS sus datos. No hay \"papelera\" ni deshacer. Úsalo solo con certeza.\n\nPara practicar, crea y elimina una base de datos de prueba:\n\n```sql\nCREATE DATABASE test_temporal;\nSHOW DATABASES;\nDROP DATABASE test_temporal;\nSHOW DATABASES;\n```\n\nObserva cómo aparece y desaparece de la lista."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-7-1",
+          "title": "Gestionar bases de datos",
+          "difficulty": "basic",
+          "description": "Ejecuta los siguientes pasos en orden y describe qué ves en cada momento:\n1. CREATE DATABASE escuela;\n2. SHOW DATABASES;\n3. USE escuela;\n4. CREATE DATABASE instituto;\n5. SHOW DATABASES;\n6. DROP DATABASE escuela;\n7. SHOW DATABASES;",
+          "solution": "Resultados esperados:\n\n1. Se crea la base de datos \"escuela\" (mensaje de éxito en el output).\n\n2. SHOW DATABASES muestra \"escuela\" junto a las bases de datos del sistema.\n\n3. USE escuela selecciona la base de datos. No produce resultado visible, pero ahora \"escuela\" está en negrita en el Navigator.\n\n4. Se crea \"instituto\".\n\n5. SHOW DATABASES muestra ahora \"escuela\" e \"instituto\" (ambas creadas).\n\n6. DROP DATABASE escuela elimina \"escuela\" permanentemente.\n\n7. SHOW DATABASES muestra solo \"instituto\" (\"escuela\" ya no existe).\n\nLa clave es entender que CREATE crea, USE selecciona, y DROP elimina permanentemente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-8",
+      "title": "Ejecutar nuestras primeras sentencias",
+      "order": 8,
+      "objectives": [
+        "Ejecutar múltiples sentencias en un solo bloque",
+        "Comprender el orden de ejecución de las sentencias",
+        "Usar comentarios en SQL"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Múltiples sentencias a la vez\n\nEn Workbench puedes escribir varias sentencias juntas y ejecutarlas todas de golpe. Prueba este bloque:\n\n```sql\nCREATE DATABASE IF NOT EXISTS academia;\nSHOW DATABASES;\nUSE academia;\nSELECT DATABASE();\n```\n\nExplicación línea a línea:\n- `CREATE DATABASE IF NOT EXISTS academia`: Crea la base de datos \"academia\" solo si no existe ya. Si ya existe, no da error.\n- `SHOW DATABASES`: Muestra todas las bases de datos (incluida la nueva \"academia\").\n- `USE academia`: Selecciona \"academia\" como base de datos activa.\n- `SELECT DATABASE()`: Devuelve el nombre de la base de datos seleccionada actualmente."
+        },
+        {
+          "type": "text",
+          "content": "## Comentarios en SQL\n\nLos comentarios son anotaciones que el servidor ignora. Son muy útiles para documentar tu código:\n\n```sql\n-- Esto es un comentario de una sola línea\n\n/*\nEsto es un comentario\nde varias líneas\n*/\n\n-- Creamos la base de datos del curso\nCREATE DATABASE IF NOT EXISTS curso_bd;\n\n-- Verificamos que se creó\nSHOW DATABASES;\n```\n\n> **Buenas prácticas**: Usa comentarios para explicar POR QUÉ haces algo, no QUÉ haces. El \"qué\" ya lo dice el código SQL."
+        },
+        {
+          "type": "text",
+          "content": "## Cuidado con el punto y coma\n\nEl punto y coma `;` es el terminador de sentencia. Si lo olvidas, Workbench esperará más contenido. Si lo pones de más, puede causar problemas.\n\n```sql\n-- Correcto: cada sentencia termina en ;\nSELECT VERSION();\nSELECT USER();\n\n-- Incorrecto: falta el ; al final\nSELECT VERSION()\nSELECT USER();\n\n-- Ejecutar ambas con Ctrl+Shift+Enter ejecuta todo el bloque\n```\n\nEn Workbench, si usas **Ctrl + Enter** se ejecuta solo la sentencia donde está el cursor (hasta el primer `;`). Si usas **Ctrl + Shift + Enter**, se ejecuta todo el contenido del editor."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-8-1",
+          "title": "Escribir un bloque de sentencias",
+          "difficulty": "basic",
+          "description": "Escribe un bloque de sentencias SQL que haga lo siguiente en orden:\n1. Crear una base de datos llamada \"biblioteca\" (solo si no existe)\n2. Ver todas las bases de datos\n3. Seleccionar \"biblioteca\"\n4. Confirmar que está seleccionada",
+          "solution": "```sql\n-- Base de datos para el ejercicio de biblioteca\nCREATE DATABASE IF NOT EXISTS biblioteca;\n\n-- Verificar que se creó\nSHOW DATABASES;\n\n-- Seleccionar la base de datos\nUSE biblioteca;\n\n-- Confirmar la selección\nSELECT DATABASE();\n```\n\nAl ejecutar el bloque completo, el último resultado debería mostrar:\n```\n+-----------+\n| DATABASE()|\n+-----------+\n| biblioteca|\n+-----------+\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-9",
+      "title": "Trabajar con scripts SQL",
+      "order": 9,
+      "objectives": [
+        "Crear un fichero script SQL en Workbench",
+        "Guardar y cargar scripts",
+        "Comprender la diferencia entre script y sentencias sueltas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un script SQL?\n\nUn **script SQL** es un fichero de texto que contiene una o más sentencias SQL. Es como un \"programa\" que el servidor ejecuta línea a línea.\n\nLa ventaja de usar scripts es que:\n- Puedes **guardar** tu trabajo y reutilizarlo después.\n- Puedes **compartir**lo con compañeros.\n- Puedes **documentar** lo que haces paso a paso.\n- Puedes **ejecutarlo completo** de una vez, sin copiar y pegar."
+        },
+        {
+          "type": "text",
+          "content": "## Crear tu primer script\n\n1. En el editor SQL, escribe estas sentencias:\n\n```sql\n-- Script 01: Creación de la base de datos del curso\n-- Fecha: 2024\n-- Descripción: Crea la base de datos para practicar\n\n-- Paso 1: Crear la base de datos\nCREATE DATABASE IF NOT EXISTS curso_bd;\n\n-- Paso 2: Verificar que se creó\nSHOW DATABASES;\n\n-- Paso 3: Seleccionarla\nUSE curso_bd;\n\n-- Paso 4: Confirmar\nSELECT DATABASE();\n```\n\n2. Haz clic en **File → Save Script As...** o pulsa **Ctrl + Shift + S**.\n3. Guarda el fichero como `script_01_creacion_bd.sql` en una carpeta dedicada al curso.\n\nEl fichero `.sql` es simplemente un fichero de texto. Puedes abrirlo con cualquier editor de texto (el Bloc de Notas, VS Code, etc.)."
+        },
+        {
+          "type": "text",
+          "content": "## Cargar y ejecutar un script\n\nPara abrir un script guardado:\n\n1. **File → Open SQL Script...** o pulsa **Ctrl + O**.\n2. Navega hasta el fichero `.sql` y ábrelo.\n3. El script se carga en una nueva pestaña del editor.\n\nPara ejecutar el script completo:\n- Pulsa **Ctrl + Shift + Enter** para ejecutar todas las sentencias de una vez.\n- O usa el menú **Query → Execute (All or Selection)**.\n\n> **Consejo**: Usa el icono de la **carpeta** (📁) en la barra de herramientas para abrir scripts rápidamente."
+        },
+        {
+          "type": "text",
+          "content": "## Organización de scripts\n\nA medida que avancemos en el curso, crearás muchos scripts. Es buena práctica nombrarlos de forma ordenada:\n\n```\n📁 curso_bd/\n  📁 scripts/\n    script_01_creacion_bd.sql\n    script_02_tablas.sql\n    script_03_insercion_datos.sql\n    script_04_consultas.sql\n  📁 backups/\n    backup_completo.sql\n  📄 notas.txt\n```\n\nNombrar los scripts con números al principio (`script_01_`, `script_02_`, ...) te ayuda a encontrar el orden en que se crearon."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-9-1",
+          "title": "Crear un script de verificación",
+          "difficulty": "basic",
+          "description": "Crea un script SQL llamado `verificar_entorno.sql` que contenga sentencias para: (a) mostrar la versión de MySQL, (b) mostrar el usuario conectado, (c) mostrar la fecha del servidor, (d) listar las bases de datos, (e) mostrar la base de datos seleccionada. Guarda el script y ejecútalo.",
+          "solution": "```sql\n-- Script: verificacion_entorno.sql\n-- Propósito: Verificar que el entorno MySQL funciona correctamente\n\n-- 1. Versión de MySQL\nSELECT VERSION();\n\n-- 2. Usuario conectado\nSELECT USER();\n\n-- 3. Fecha y hora del servidor\nSELECT NOW();\n\n-- 4. Lista de bases de datos\nSHOW DATABASES;\n\n-- 5. Base de datos seleccionada\nSELECT DATABASE();\n```\n\nAl ejecutar el script completo (Ctrl + Shift + Enter), deberías ver 5 resultados en el panel Resultset, uno por cada consulta."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-10",
+      "title": "Organización de los archivos del curso",
+      "order": 10,
+      "objectives": [
+        "Diseñar una estructura de carpetas para el curso",
+        "Entender la importancia de organizar scripts y backups",
+        "Crear una rutina de guardado y backup"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Por qué organizar los archivos?\n\nA medida que avances en el curso, tendrás decenas de scripts SQL, notas, ejercicios y posiblemente copias de seguridad. Sin una organización clara, perderás tiempo buscando ficheros o, peor aún, sobrescribirás trabajo importante.\n\n> **Principio**: Un minuto invirtiendo en organización te ahorra diez minutos buscando después."
+        },
+        {
+          "type": "text",
+          "content": "## Estructura recomendada para el curso\n\nCrea la siguiente estructura de carpetas en tu ordenador:\n\n```\n📁 Cursos_BD/\n  📁 modulo_01_introduccion/\n    📄 notas_modulo_01.txt\n  📁 modulo_02_entorno/\n    📁 scripts/\n      script_01_creacion_bd.sql\n      script_02_verificacion.sql\n      script_03_ejercicios.sql\n    📁 backups/\n      backup_modulo_02.sql\n    📄 notas_modulo_02.txt\n  📁 modulo_03_tablas/\n    ...\n```\n\n### Convenciones de nomenclatura\n\n| Tipo de fichero | Formato | Ejemplo |\n|---|---|---|\n| **Scripts SQL** | `script_NN_descripcion.sql` | `script_01_creacion_bd.sql` |\n| **Backups** | `backup_NN_fecha.sql` | `backup_01_20240315.sql` |\n| **Notas** | `notas_modulo_NN.txt` | `notas_modulo_02.txt` |\n| **Ejercicios** | `ejercicio_NN_descripcion.sql` | `ejercicio_01_biblioteca.sql` |"
+        },
+        {
+          "type": "text",
+          "content": "## Rutina de backup\n\nEs buena práctica hacer copias de seguridad periódicas de tu trabajo. En MySQL, puedes exportar una base de datos completa a un fichero `.sql` con:\n\n```\nmysqldump -u root -p mi_base_de_datos > backup.sql\n```\n\nPero por ahora, en Workbench puedes hacerlo de forma gráfica:\n\n1. Ve a **Server → Data Export**.\n2. Selecciona la base de datos que quieres respaldar.\n3. Elige \"Export to Self-Contained File\" y selecciona la ruta.\n4. Haz clic en **Start Export**.\n\nGuarda los backups en la carpeta `backups/` de tu estructura."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-10-1",
+          "title": "Diseñar una estructura de carpetas",
+          "difficulty": "basic",
+          "description": "Diseña una estructura de carpetas para un curso de bases de datos con 5 módulos. Incluye carpetas para scripts, backups y notas. Explica tu criterio de organización.",
+          "solution": "Estructura propuesta:\n\n```\n📁 Cursos_BD/\n  📁 modulo_01_introduccion/\n    📄 notas.txt\n  📁 modulo_02_entorno/\n    📁 scripts/\n    📁 backups/\n    📄 notas.txt\n  📁 modulo_03_tablas/\n    📁 scripts/\n    📁 backups/\n    📄 notas.txt\n  📁 modulo_04_consultas/\n    📁 scripts/\n    📁 backups/\n    📄 notas.txt\n  📁 modulo_05_avanzado/\n    📁 scripts/\n    📁 backups/\n    📄 notas.txt\n```\n\n**Criterio de organización:**\n- Cada módulo tiene su propia carpeta para aislar el contenido.\n- Dentro de cada módulo, una subcarpeta `scripts/` para los ficheros SQL.\n- Una subcarpeta `backups/` para copias de seguridad de ese módulo.\n- Un fichero `notas.txt` para anotaciones personales del módulo.\n- Los nombres incluyen número de módulo para mantener el orden alfabético."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-11",
+      "title": "Problemas frecuentes de instalación y conexión",
+      "order": 11,
+      "objectives": [
+        "Identificar los errores más comunes al instalar MySQL",
+        "Diagnosticar problemas de conexión desde Workbench",
+        "Aplicar soluciones prácticas a cada problema"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Problemas durante la instalación\n\n### 1. \"MySQL Installer doesn't start\"\n\n**Causa**: Falta el framework .NET o versión incompatible.\n**Solución**:\n- Actualiza Windows Update.\n- Instala .NET Framework 4.8 desde la web de Microsoft.\n- Reintentar la instalación.\n\n### 2. \"Could not start service\"\n\n**Causa**: Otro servicio MySQL ya está corriendo o hay un conflicto de puerto.\n**Solución**:\n- Abre el Administrador de tareas → Servicios.\n- Busca servicios relacionados con MySQL y deten todos.\n- Reinicia la instalación.\n\n### 3. \"Access denied for user 'root'@'localhost'\"\n\n**Causa**: La contraseña que introduces no coincide con la que se configuró.\n**Solución**:\n- Verifica que el Caps Lock está desactivado.\n- Prueba la contraseña que anotaste durante la instalación.\n- Si no la recuerdas, necesitarás restablecerla (ver sección avanzada)."
+        },
+        {
+          "type": "text",
+          "content": "## Problemas de conexión desde Workbench\n\n### 4. \"Can't connect to MySQL server on 'localhost' (10061)\"\n\n**Causa**: El servidor MySQL no está ejecutándose.\n**Solución**:\n- Abre el Administrador de tareas → Servicios.\n- Busca **MySQL80**.\n- Si está detenido, haz clic derecho → **Iniciar**.\n- Si no aparece, reinicia el ordenador y vuelve a comprobar.\n\n### 5. \"Lost connection to MySQL server during query\"\n\n**Causa**: Timeout por inactividad o consulta muy larga.\n**Solución**:\n- Reconecta (haz clic en la conexión en el Navigator).\n- Si ocurre habitualmente, aumenta el timeout en la configuración de la conexión de Workbench.\n\n### 6. \"Host 'xxx' is blocked\"\n\n**Causa**: Demasiados intentos fallidos de conexión. MySQL bloquea la IP temporalmente.\n**Solución**:\n- Espera unos minutos y vuelve a intentar.\n- Si persiste, reinicia el servicio MySQL."
+        },
+        {
+          "type": "text",
+          "content": "## Problemas con Workbench\n\n### 7. Workbench no muestra las bases de datos\n\n**Solución**:\n- Haz clic en el icono de **recarga** (🔄) junto a \"Schemas\" en el Navigator.\n- Si no aparece, ejecuta `SHOW DATABASES;` en el editor para verificar.\n\n### 8. No se abre el editor SQL al conectar\n\n**Solución**:\n- Verifica que seleccionaste la conexión correcta.\n- Cierra Workbench y ábrelo de nuevo.\n- Si persiste, elimina la conexión y créala de nuevo.\n\n### 9. El texto del editor es muy pequeño\n\n**Solución**:\n- Ve a **Edit → Preferences → Fonts & Colors**.\n- Aumenta el tamaño de la fuente del editor SQL.\n\n> **Consejo general**: Antes de buscar soluciones complejas, intenta siempre: (1) reiniciar Workbench, (2) reiniciar el servicio MySQL, (3) reiniciar el ordenador. Estos tres pasos resuelven el 80% de los problemas."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-11-1",
+          "title": "Diagnosticar escenarios de error",
+          "difficulty": "intermediate",
+          "description": "Para cada escenario, indica el error más probable y la solución:\n1. Un alumno instala MySQL pero al abrir Workbench no puede conectarse.\n2. Otro alumno obtiene \"Access denied\" al introducir la contraseña.\n3. Un tercero instaló MySQL pero no puede ejecutar sentencias porque Workbench muestra \"Not connected\".\n4. Alguien instaló MySQL hace meses y ahora el servicio no arranca.",
+          "solution": "1. **Error probable**: \"Can't connect to MySQL server\" (10061). **Solución**: El servicio MySQL no está ejecutándose. Abrir Administrador de tareas → Servicios → buscar MySQL80 → Iniciar.\n\n2. **Error probable**: \"Access denied for user 'root'@'localhost'\". **Solución**: La contraseña es incorrecta. Verificar el Caps Lock, probar la contraseña original de la instalación. Si no se recuerda, usar el asistente de restablecimiento de contraseña de MySQL.\n\n3. **Error probable**: Workbench está abierto pero no hay conexión activa. **Solución**: Hacer clic en la conexión en el Navigator o en la pantalla principal. Si no hay conexión configurada, crear una nueva con los parámetros: localhost, puerto 3306, usuario root.\n\n4. **Error probable**: El servicio MySQL80 está detenido o bloqueado. **Solución**: Intentar iniciar desde Servicios. Si no arranca, revisar el log de errores de MySQL (en `C:\\ProgramData\\MySQL\\MySQL Server 8.0\\Data\\`). Si hay errores de permisos, reinstalar el servicio desde el instalador."
+        },
+        {
+          "id": "ex-02-11-2",
+          "title": "Caso práctico de troubleshoot",
+          "difficulty": "intermediate",
+          "description": "Un compañero te envía este mensaje de error en Workbench:\n\n```\nError Code: 1045. Access denied for user 'root'@'localhost' (using password: YES)\n```\n\n¿Qué significa este error exactamente? Enumera 3 posibles causas y 3 soluciones.",
+          "solution": "**Significado**: MySQL rechazó la conexión porque la contraseña proporcionada para el usuario root no es correcta. El `(using password: YES)` indica que se introdujo una contraseña, pero no coincide.\n\n**Posibles causas**:\n1. La contraseña que se está escribiendo es incorrecta (error de tipeo, Caps Lock activado).\n2. La contraseña se cambió después de la instalación y se olvidó la nueva.\n3. Se está usando un usuario diferente al configurado (por ejemplo, root@127.0.0.1 en lugar de root@localhost).\n\n**Soluciones**:\n1. Verificar el Caps Lock y reescribir la contraseña cuidadosamente.\n2. Usar el asistente de Workbench para editar la conexión y probar la contraseña en \"Store in Vault\".\n3. Si nada funciona, usar la línea de comandos de MySQL con `--init-file` para restablecer la contraseña de root (proceso avanzado que requiere reiniciar el servicio)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-12",
+      "title": "Práctica final y repaso del módulo",
+      "order": 12,
+      "objectives": [
+        "Repasar los conceptos clave del módulo",
+        "Aplicar todos los conocimientos en una práctica integradora",
+        "Evaluar la comprensión de los temas tratados"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\nEn este módulo hemos cubierto todo lo necesario para empezar a trabajar con MySQL:\n\n### Lo que aprendimos\n\n1. **Componentes necesarios**: MySQL Server (motor) y MySQL Workbench (interfaz gráfica).\n2. **Instalación**: Descarga, configuración paso a paso y verificación.\n3. **Conexión**: Parámetros de conexión (host, puerto, usuario, contraseña) y resolución de errores.\n4. **Primeras sentencias**: SELECT VERSION(), SELECT USER(), SELECT NOW(), SHOW DATABASES.\n5. **Gestión de bases de datos**: CREATE DATABASE, USE, DROP DATABASE.\n6. **Scripts SQL**: Crear, guardar, cargar y ejecutar scripts.\n7. **Organización**: Estructura de carpetas y convenciones de nomenclatura.\n8. **Troubleshooting**: Diagnóstico y solución de problemas habituales."
+        },
+        {
+          "type": "text",
+          "content": "## Mapa mental del módulo\n\n```\nMySQL instalado\n├── MySQL Server (servicio en segundo plano)\n│   ├── Puerto 3306\n│   ├── Usuario root\n│   └── Bases de datos del sistema\n├── MySQL Workbench (interfaz gráfica)\n│   ├── Conexión a localhost:3306\n│   ├── Editor SQL\n│   └── Panel de resultados\n└── Sentencias aprendidas\n    ├── SELECT VERSION();  → versión\n    ├── SELECT USER();     → usuario\n    ├── SELECT NOW();      → fecha\n    ├── SHOW DATABASES;    → listar BDs\n    ├── SELECT DATABASE(); → BD seleccionada\n    ├── CREATE DATABASE;   → crear BD\n    ├── USE;               → seleccionar BD\n    └── DROP DATABASE;     → eliminar BD\n```\n\n> **Clave**: Lo más importante es que ahora tienes un entorno funcional y sabes cómo usarlo. En los próximos módulos empezaremos a crear tablas y a trabajar con datos reales."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-12-1",
+          "title": "Práctica integradora",
+          "difficulty": "intermediate",
+          "description": "Realiza todas las siguientes tareas en orden y documenta los resultados:\n\n1. Crea una base de datos llamada `practica_final`\n2. Verifica que aparece en la lista de bases de datos\n3. Selecciona la base de datos\n4. Confirma que está seleccionada con SELECT DATABASE()\n5. Crea un script SQL que contenga todas las sentencias anteriores con comentarios\n6. Guarda el script como `practica_final_mod02.sql`\n7. Elimina la base de datos con DROP DATABASE\n8. Verifica que ya no existe",
+          "solution": "```sql\n-- Práctica final Módulo 02\n-- Creación y gestión de una base de datos\n\n-- Paso 1: Crear la base de datos\nCREATE DATABASE IF NOT EXISTS practica_final;\n\n-- Paso 2: Verificar que se creó\nSHOW DATABASES;\n-- Resultado esperado: \"practica_final\" aparece en la lista\n\n-- Paso 3: Seleccionar la base de datos\nUSE practica_final;\n\n-- Paso 4: Confirmar la selección\nSELECT DATABASE();\n-- Resultado esperado:\n-- +-----------+\n-- | DATABASE()|\n-- +-----------+\n-- | practica_final |\n-- +-----------+\n\n-- Paso 5: Eliminar la base de datos (después de verificar)\nDROP DATABASE practica_final;\n\n-- Paso 6: Verificar que ya no existe\nSHOW DATABASES;\n-- Resultado esperado: \"practica_final\" ya no aparece\n```\n\nLo importante es ejecutar cada paso secuencialmente y observar los resultados."
+        },
+        {
+          "id": "ex-02-12-2",
+          "title": "Cuestionario de repaso",
+          "difficulty": "basic",
+          "description": "Responde a las siguientes preguntas:\n1. ¿Cuál es la diferencia entre MySQL Server y MySQL Workbench?\n2. ¿Qué sentencia usas para ver la versión de MySQL?\n3. ¿Qué hace la sentencia USE en MySQL?\n4. ¿Qué significan localhost y el puerto 3306?\n5. ¿Cuál es el riesgo de usar DROP DATABASE?",
+          "solution": "1. **MySQL Server** es el servicio que ejecuta y gestiona las bases de datos (el \"motor\"). **MySQL Workbench** es la herramienta gráfica para conectarse al servidor y trabajar con él (la \"interfaz\"). Son independientes: Workbench es solo un cliente del servidor.\n\n2. `SELECT VERSION();` devuelve la versión exacta de MySQL instalada.\n\n3. `USE` selecciona una base de datos como contexto activo. Todas las sentencias posteriores se ejecutan sobre esa base de datos hasta que se seleccione otra.\n\n4. `localhost` (o 127.0.0.1) indica \"este mismo ordenador\". El puerto `3306` es el canal de comunicación por defecto que usa MySQL para recibir conexiones.\n\n5. `DROP DATABASE` elimina permanentemente la base de datos y TODOS sus datos. No hay forma de recuperarlos (no hay papelera ni deshacer). Es una operación irreversible."
+        },
+        {
+          "id": "ex-02-12-3",
+          "title": "Escenario de troubleshooting",
+          "difficulty": "intermediate",
+          "description": "Un alumno tiene el siguiente problema: instaló MySQL correctamente, puede ver el servicio en ejecución, pero Workbench muestra \"Cannot connect to Database Engine\" al intentar conectarse. Describe paso a paso cómo diagnosticarías y resolverías este problema.",
+          "solution": "**Diagnóstico paso a paso:**\n\n1. **Verificar que el servicio MySQL está corriendo**: Administrador de tareas → Servicios → buscar MySQL80. Estado debe ser \"En ejecución\".\n\n2. **Comprobar el puerto**: Abrir Símbolo del sistema y ejecutar: `netstat -an | findstr 3306`. Si no hay resultados, el servicio no está escuchando en el puerto esperado.\n\n3. **Probar conexión desde línea de comandos**: Abrir Símbolo del sistema y ejecutar: `mysql -u root -p`. Si se conecta, el problema está en la configuración de Workbench, no en el servidor.\n\n4. **Revisar la configuración de conexión en Workbench**: Hacer clic derecho en la conexión → Editar Connection. Verificar hostname (localhost), puerto (3306) y usuario (root).\n\n5. **Probar con IP en lugar de hostname**: Cambiar localhost por 127.0.0.1 en la configuración.\n\n6. **Revisar el firewall de Windows**: Puede estar bloqueando el puerto 3306. Añadir una excepción para MySQL.\n\n7. **Crear una nueva conexión**: Eliminar la conexión existente y crear una nueva desde cero con los parámetros correctos.\n\n**Si nada funciona**: Reiniciar el servicio MySQL y volver a intentar."
+        }
+      ]
+    }
+  ]
+}

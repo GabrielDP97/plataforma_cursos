@@ -23,6 +23,7 @@ import { Badge } from '../components/ui/badge';
 import { Skeleton } from '../components/ui/skeleton';
 import { ScrollReveal } from '../components/ui/ScrollReveal';
 
+
 /* ============================================================================
    HOME PAGE — Plataforma para 1.º de DAM y DAW
    ============================================================================ */
@@ -530,7 +531,7 @@ export function HomePage() {
       </section>
 
       {/* ====================================================================
-          SECTION 9 — FOOTER
+          SECTION 7 — FOOTER
           ==================================================================== */}
       <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-12 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">

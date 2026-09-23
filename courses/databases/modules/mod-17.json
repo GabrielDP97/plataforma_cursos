@@ -1,0 +1,732 @@
+{
+  "id": "mod-17",
+  "courseId": "databases-0484",
+  "title": "Proyecto final",
+  "slug": "proyecto-final",
+  "order": 17,
+  "description": "Proyecto completo de una tienda online: analisis de requisitos, diseno E/R, normalizacion a 3NF, creacion de la BD con DDL e integridad referencial, datos de prueba, consultas basicas y avanzadas, modificacion de datos, transacciones con control de stock, procedimientos almacenados, funciones, triggers con auditoria, pruebas y depuracion, y entrega final documentada.",
+  "objectives": [
+    "Analizar requisitos de negocio de un sistema real (tienda online)",
+    "Identificar entidades, atributos, relaciones y reglas de negocio",
+    "Disenar un diagrama E/R completo y correcto",
+    "Transformar el modelo E/R en un modelo relacional",
+    "Aplicar normalizacion hasta 3NF sobre el diseno propuesto",
+    "Crear la base de datos con DDL completo: tipos de datos, PK, FK, CHECK, DEFAULT, UNIQUE",
+    "Definir acciones referenciales (CASCADE, RESTRICT, SET NULL) justificadamente",
+    "Generar un conjunto de datos de prueba rico y realista",
+    "Resolver consultas de negocio con GROUP BY, HAVING y funciones de agregacion",
+    "Ejecutar consultas multitabla con JOINs, subconsultas, EXISTS y UNION",
+    "Modificar datos de forma segura con INSERT, UPDATE y DELETE controlado",
+    "Implementar transacciones atomicas con control de concurrencia en stock",
+    "Disenar procedimientos almacenados y funciones con parametros IN/OUT",
+    "Crear triggers para auditoria y validacion con SIGNAL para errores claros",
+    "Ejecutar pruebas de integridad, consultas, transacciones, rutinas y triggers",
+    "Documentar y entregar el proyecto completo con scripts separados y README"
+  ],
+  "estimatedMinutes": 900,
+  "lessons": [
+    {
+      "id": "lesson-17-1",
+      "title": "Presentacion del proyecto y requisitos",
+      "order": 1,
+      "objectives": [
+        "Comprender el alcance completo del proyecto de la tienda online",
+        "Conocer los requisitos de negocio que se deben satisfacer",
+        "Identificar las entregables y criterios de evaluacion",
+        "Establecer el plan de trabajo fase por fase"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Bienvenido al Proyecto Final\n\nA lo largo de los modulos 1 al 16 has aprendido teoria y practica de bases de datos relacionales. Ahora es momento de **aplicar TODO** en un proyecto completo.\n\n**El dominio**: Una **tienda online** que vende productos a clientes. El sistema debe gestionar catalogo de productos, pedidos, pagos, direcciones de envio e historial de precios.\n\n> **Filosofia del proyecto**: No vas a recibir soluciones paso a paso. Vas a **disenar, implementar y probar** tomando tus propias decisiones. Donde haya dudas, te daremos preguntas guia y una solucion de referencia al final de cada fase."
+        },
+        {
+          "type": "text",
+          "content": "## Requisitos de negocio completos\n\n### Entidades principales\n\n| Entidad | Descripcion |\n|---|---|\n| **CLIENTES** | Personas que compran en la tienda |\n| **DIRECCIONES** | Direcciones de envio asociadas a un cliente |\n| **CATEGORIAS** | Agrupacion de productos |\n| **PRODUCTOS** | Articulos en venta |\n| **PEDIDOS** | Ordenes de compra realizadas por un cliente |\n| **LINEA_PEDIDO** | Cada linea de un pedido (producto, cantidad, precio) |\n| **PAGOS** | Registros de pago asociados a un pedido |\n\n### Atributos requeridos\n\n**CLIENTES**: id, nombre, apellidos, email (UNIQUE), fecha_alta, estado\n**DIRECCIONES**: id, id_cliente (FK), calle, ciudad, cp, es_principal (indicador de direccion principal)\n**CATEGORIAS**: id, nombre, descripcion\n**PRODUCTOS**: id, nombre, descripcion, precio (DECIMAL, >= 0), stock (>= 0), activo (booleano), id_categoria (FK)\n**PEDIDOS**: id, id_cliente (FK), fecha, estado (ENUM: pendiente, procesando, enviado, entregado, cancelado), total, direccion_envio\n**LINEA_PEDIDO**: id_pedido (FK), numero_linea, id_producto (FK), cantidad (> 0), precio_unitario (precio historico al momento de la venta)\n**PAGOS**: id, id_pedido (FK), importe, fecha, estado (ENUM: pendiente, completado, rechazado), metodo_pago"
+        },
+        {
+          "type": "text",
+          "content": "## Reglas de negocio\n\nEstas reglas son **obligatorias**. Tu disenio debe garantizarlas a nivel de BD:\n\n1. **Email unico**: No pueden existir dos clientes con el mismo email.\n2. **Precios no negativos**: precio >= 0 en PRODUCTOS. precio_unitario >= 0 en LINEA_PEDIDO.\n3. **Stock no negativo**: stock >= 0 en PRODUCTOS.\n4. **Cantidad positiva**: cantidad > 0 en LINEA_PEDIDO.\n5. **Pedido requiere cliente**: Un pedido debe estar asociado a un cliente existente.\n6. **Linea requiere producto valido**: Cada linea de pedido apunta a un producto existente.\n7. **Precio historico**: El precio_unitario en LINEA_PEDIDO se fija al momento de la venta y **NO cambia** si luego se actualiza el precio del producto.\n8. **No vender mas del stock disponible**: La cantidad de un producto en un pedido no puede superar el stock actual.\n9. **Operaciones atomicas**: Crear un pedido (insertar pedido + lineas + reducir stock + registrar pago) debe ser una transaccion atomica."
+        },
+        {
+          "type": "text",
+          "content": "## Entregables y fases del proyecto\n\nEl proyecto se ejecuta en **fases secuenciales**. Cada fase genera un entregable que la siguiente fase consume:\n\n| Fase | Lecciones | Entregable |\n|---|---|---|\n| **1. Analisis** | L17-2 | Lista de entidades, atributos, relaciones, reglas |\n| **2. Diseno E/R** | L17-3 | Diagrama E/R completo |\n| **3. Modelo relacional** | L17-4 | Tablas con PK, FK, tipos |\n| **4. Normalizacion** | L17-5 | Verificacion 3NF |\n| **5. DDL** | L17-6, L17-7 | schema.sql creado |\n| **6. Datos** | L17-8 | datos.sql con dataset rico |\n| **7. Consultas** | L17-9, L17-10 | consultas.sql |\n| **8. Modificacion** | L17-11 | dml.sql |\n| **9. Transacciones** | L17-12 | transacciones.sql |\n| **10. Rutinas** | L17-13 | rutinas.sql |\n| **11. Triggers** | L17-14 | triggers.sql |\n| **12. Pruebas** | L17-15 | pruebas.md |\n| **13. Entrega** | L17-16 | README + todos los scripts |\n\n### Criterios de evaluacion\n- **Correctitud**: Cumple todos los requisitos de negocio?\n- **Diseno**: El modelo E/R es claro? La normalizacion es correcta?\n- **Integridad**: Las restricciones protegen los datos?\n- **Calidad del codigo**: SQL legible, comentado, con convencion consistente?\n- **Documentacion**: El README explica decisiones y ejecucion?\n- **Pruebas**: Se probaron casos normales y edge cases?"
+        }
+      ],
+      "exercises": []
+    },
+    {
+      "id": "lesson-17-2",
+      "title": "Analisis del problema",
+      "order": 2,
+      "objectives": [
+        "Identificar candidatos a entidades, atributos e identificadores",
+        "Descubrir relaciones y cardinalidades entre entidades",
+        "Analizar reglas de negocio e implicaciones de diseno",
+        "Resolver preguntas clave sobre diseno antes de dibujar el E/R"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Paso 1: Identificar candidatos a entidades\n\nLee los requisitos de negocio y lista todo lo que parece ser una entidad (algo que se guarda informacion sobre):\n\n**Candidatos obvios**: CLIENTE, PRODUCTO, PEDIDO, CATEGORIA\n**Candidatos que debes identificar**: DIRECCION (es atributo multivaluado de cliente o entidad separada?), LINEA_PEDIDO (es entidad o simplemente una relacion?), PAGO (entidad independiente o dependiente del pedido?)\n\n> **Pregunta guia**: DIRECCION deberia ser un atributo compuesto en CLIENTE o una tabla separada? Piensa en: un cliente puede tener varias direcciones? Las direcciones se reutilizan entre clientes? Si un cliente cambia de direccion, queremos mantener el historial?"
+        },
+        {
+          "type": "text",
+          "content": "## Paso 2: Atributos e identificadores\n\nPara cada entidad, lista sus atributos y determina:\n- Cual es la clave primaria?\n- Hay atributos que deban ser unicos (UNIQUE)?\n- Que tipo de dato sugiere cada atributo?\n- Hay atributos derivados o calculados?\n\n**Observa el caso de LINEA_PEDIDO**: No tiene id propio. Su identificador compuesto es (id_pedido, numero_linea). Esto lo convierte en una **entidad dependiente** o **asociativa**.\n\n**Observa el caso de DIRECCION**: Tiene es_principal para indicar la direccion por defecto. Un cliente puede tener varias direcciones, pero solo una es principal."
+        },
+        {
+          "type": "text",
+          "content": "## Paso 3: Relaciones y cardinalidades\n\nDetermina las relaciones entre entidades. Preguntate para cada par:\n\n| Pregunta | Cardinalidad |\n|---|---|\n| Un cliente puede tener varias direcciones? | 1:N |\n| Una direccion puede pertenecer a varios clientes? | No (1:N) |\n| Una categoria puede tener varios productos? | 1:N |\n| Un producto pertenece a una sola categoria? | Si (1:N) |\n| Un cliente puede hacer varios pedidos? | 1:N |\n| Un pedido pertenece a un solo cliente? | Si (1:N) |\n| Un pedido tiene varias lineas? | 1:N |\n| Una linea pertenece a un solo pedido? | Si (1:N) |\n| Un producto aparece en varias lineas de pedido? | Si (indirectamente) |\n| Un pedido puede tener varios pagos? | 1:N |\n\n> **Dato clave**: La relacion entre PEDIDO y PRODUCTO es **indirecta** a traves de LINEA_PEDIDO. No hay relacion directa entre estos dos. LINEA_PEDIDO es la tabla asociativa que resuelve la relacion N:M entre pedidos y productos."
+        },
+        {
+          "type": "text",
+          "content": "## Paso 4: Reglas de negocio y sus implicaciones\n\nAnaliza cada regla y piensa que modelo la garantiza:\n\n**Regla: email unico**\n- Implicacion: UNIQUE constraint en la columna email de CLIENTES.\n\n**Regla: precio historico no cambia**\n- Implicacion: LINEA_PEDIDO tiene su propia columna precio_unitario que se copia del precio actual del producto al momento de insertar la linea. No es una FK a PRODUCTO.precio.\n\n**Regla: no vender mas del stock**\n- Implicacion: Esto requiere logica a nivel de aplicacion o transaccion (veremos en transacciones). No se puede resolver solo con CHECK constraints en MySQL.\n\n**Regla: operaciones atomicas**\n- Implicacion: Transacciones con BEGIN...COMMIT/ROLLBACK. Veremos en la fase de transacciones."
+        },
+        {
+          "type": "text",
+          "content": "## Preguntas para resolver antes de disenar\n\nEstas preguntas te ayudan a tomar decisiones de diseno. Piensa en cada una antes de continuar:\n\n1. **PEDIDO debe guardar el total directamente?** O se calcula sumando las lineas? Si se almacena, como se mantiene consistente?\n2. **LINEA_PEDIDO necesita un id propio?** O la PK compuesta (id_pedido, numero_linea) es suficiente?\n3. **Que pasa si un producto se desactiva?** Se puede eliminar si tiene pedidos asociados?\n4. **DIRECCION_ENVIO en PEDIDO es una FK a DIRECCION o un campo de texto?** Si es FK, que pasa si el cliente cambia su direccion despues?\n5. **PAGO puede existir sin PEDIDO?** Que es lo logico?\n\n> **Solucion de referencia** al final de esta leccion te mostrara como resolver estas preguntas de forma coherente."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-2-1",
+          "title": "Analisis de entidades y relaciones",
+          "difficulty": "hard",
+          "description": "Basandote en los requisitos de la tienda online, completa el siguiente analisis:\n\n1. **Lista de entidades finales**: Escribe cada entidad con todos sus atributos, indicando PK, FK y restricciones.\n2. **Lista de relaciones**: Para cada par de entidades relacionadas, indica cardinalidad y si la relacion tiene atributos propios.\n3. **Resolucion de preguntas**: Responde las 5 preguntas de diseno del bloque anterior con justificacion.\n4. **Reglas no cubiertas por el modelo**: Identifica que reglas de negocio NO se pueden garantizar solo con el modelo de tablas.",
+          "solution": "### Entidades finales\n\n**CLIENTES**: id (PK, AUTO_INCREMENT), nombre (VARCHAR NOT NULL), apellidos (VARCHAR NOT NULL), email (VARCHAR NOT NULL UNIQUE), fecha_alta (DATE DEFAULT CURRENT_DATE), estado (ENUM: activo, inactivo)\n\n**DIRECCIONES**: id (PK, AUTO_INCREMENT), id_cliente (FK -> CLIENTES), calle (VARCHAR NOT NULL), ciudad (VARCHAR NOT NULL), cp (VARCHAR NOT NULL), es_principal (BOOLEAN DEFAULT FALSE)\n\n**CATEGORIAS**: id (PK, AUTO_INCREMENT), nombre (VARCHAR NOT NULL UNIQUE), descripcion (TEXT)\n\n**PRODUCTOS**: id (PK, AUTO_INCREMENT), nombre (VARCHAR NOT NULL), descripcion (TEXT), precio (DECIMAL(10,2) NOT NULL CHECK >= 0), stock (INT NOT NULL DEFAULT 0 CHECK >= 0), activo (BOOLEAN DEFAULT TRUE), id_categoria (FK -> CATEGORIAS)\n\n**PEDIDOS**: id (PK, AUTO_INCREMENT), id_cliente (FK -> CLIENTES), fecha (DATETIME DEFAULT CURRENT_TIMESTAMP), estado (ENUM: pendiente, procesando, enviado, entregado, cancelado), total (DECIMAL(10,2) DEFAULT 0), direccion_envio (TEXT NOT NULL)\n\n**LINEA_PEDIDO**: id_pedido (FK -> PEDIDOS), numero_linea (INT NOT NULL), id_producto (FK -> PRODUCTOS), cantidad (INT NOT NULL CHECK > 0), precio_unitario (DECIMAL(10,2) NOT NULL CHECK >= 0). PK compuesta: (id_pedido, numero_linea)\n\n**PAGOS**: id (PK, AUTO_INCREMENT), id_pedido (FK -> PEDIDOS), importe (DECIMAL(10,2) NOT NULL), fecha (DATETIME DEFAULT CURRENT_TIMESTAMP), estado (ENUM: pendiente, completado, rechazado), metodo_pago (VARCHAR NOT NULL)\n\n### Relaciones\n\n- CLIENTES -> DIRECCIONES: 1:N\n- CATEGORIAS -> PRODUCTOS: 1:N\n- CLIENTES -> PEDIDOS: 1:N\n- PEDIDOS -> LINEA_PEDIDO: 1:N\n- PRODUCTOS -> LINEA_PEDIDO: 1:N (indirecta)\n- PEDIDOS -> PAGOS: 1:N\n\n### Resolucion de preguntas\n\n1. **Total en PEDIDO**: Se almacena como redundancia controlada para no recalcular siempre. Se actualiza con trigger o en la transaccion de pedido.\n2. **PK de LINEA_PEDIDO**: PK compuesta (id_pedido, numero_linea). No necesita id propio.\n3. **Producto desactivado**: ON DELETE RESTRICT. No se puede eliminar si tiene pedidos. Se desactiva con activo = FALSE.\n4. **DIRECCION_ENVIO**: Campo TEXT, no FK. Es un snapshot de la direccion al momento del pedido (independiente de cambios futuros).\n5. **PAGO sin PEDIDO**: No. FK NOT NULL a PEDIDOS."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-3",
+      "title": "Diseno del modelo E/R",
+      "order": 3,
+      "objectives": [
+        "Construir un diagrama E/R completo con entidades, atributos y relaciones",
+        "Representar cardinalidades correctamente (1:1, 1:N, N:M)",
+        "Identificar entidades debiles y asociativas",
+        "Documentar el diagrama con explicacion de cada elemento"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Recordatorio: notacion E/R\n\n**Entidades**: Rectangulos con el nombre en mayusculas.\n**Atributos**: Elipsas conectadas a la entidad. PK subrayado.\n**Relaciones**: Rombos entre entidades.\n**Cardinalidades**: 1 o N en cada lado de la relacion.\n\n### Representacion en texto\n\nUsaremos una representacion textual estructurada que puedes trasladar a cualquier herramienta (draw.io, Mermaid, Lucidchart, etc.)."
+        },
+        {
+          "type": "text",
+          "content": "## Diagrama E/R textual de la tienda online\n\n`\n+-------------------+        +-------------------+\n|     CLIENTES      |        |    DIRECCIONES    |\n|-------------------|  1  N  |-------------------|\n| <u>id</u>             |<--------| <u>id</u>              |\n| nombre            |        | id_cliente (FK)   |\n| apellidos         |        | calle             |\n| email (UNIQUE)    |        | ciudad            |\n| fecha_alta        |        | cp                |\n| estado            |        | es_principal      |\n+--------+----------+        +-------------------+\n         |\n         | 1\n         |\n         | N\n         v\n+-------------------+        +-------------------+\n|     PEDIDOS       |        |     PAGOS         |\n|-------------------|  1  N  |-------------------|\n| <u>id</u>              |<--------| <u>id</u>              |\n| id_cliente (FK)   |        | id_pedido (FK)    |\n| fecha             |        | importe           |\n| estado            |        | fecha             |\n| total             |        | estado            |\n| direccion_envio   |        | metodo_pago       |\n+--------+----------+        +-------------------+\n         |\n         | 1\n         |\n         | N\n         v\n+-------------------+        +-------------------+\n|  LINEA_PEDIDO     |        |    PRODUCTOS      |\n|-------------------|  N  1  |-------------------|\n| id_pedido (FK,PK) |-------->| <u>id</u>              |\n| numero_linea (PK) |        | nombre            |\n| id_producto (FK)  |        | descripcion       |\n| cantidad          |        | precio            |\n| precio_unitario   |        | stock             |\n+-------------------+        | activo            |\n                             | id_categoria (FK) |\n                             +--------+----------+\n                                      | N\n                                      | 1\n                                      v\n                             +-------------------+\n                             |   CATEGORIAS      |\n                             |-------------------|\n                             | <u>id</u>              |\n                             | nombre (UNIQUE)   |\n                             | descripcion       |\n                             +-------------------+\n`\n\n### Nota sobre CARDINALIDADES\n\nLa relacion PEDIDO <-> PRODUCTO es **N:M** pero se resuelve a traves de la entidad asociativa **LINEA_PEDIDO**. En el E/R, LINEA_PEDIDO conecta con PEDIDOS (1:N) y con PRODUCTOS (N:1)."
+        },
+        {
+          "type": "text",
+          "content": "## Explicacion de cada relacion\n\n### CLIENTES -> DIRECCIONES (1:N)\nUn cliente puede tener multiples direcciones de envio. Cada direccion pertenece a un solo cliente. La direccion principal se marca con es_principal.\n\n### CLIENTES -> PEDIDOS (1:N)\nUn cliente puede realizar multiples pedidos. Un pedido siempre pertenece a un solo cliente.\n\n### CATEGORIAS -> PRODUCTOS (1:N)\nUna categoria agrupa multiples productos. Cada producto pertenece a exactamente una categoria.\n\n### PEDIDOS -> LINEA_PEDIDO (1:N)\nUn pedido contiene multiples lineas (productos pedidos). Cada linea pertenece a un solo pedido.\n\n### PRODUCTOS -> LINEA_PEDIDO (1:N)\nUn producto puede aparecer en multiples lineas de diferentes pedidos. Cada linea apunta a un solo producto.\n\n### PEDIDOS -> PAGOS (1:N)\nUn pedido puede tener multiples pagos (parciales, intentos fallidos, etc.). Cada pago pertenece a un solo pedido."
+        },
+        {
+          "type": "text",
+          "content": "## Entidades debiles\n\n**LINEA_PEDIDO** es una entidad dependiente (debil) de PEDIDOS. No tiene sentido sin su pedido padre. Su identificacion depende de (id_pedido, numero_linea).\n\n**PAGO** tiene id propio (independiente) pero su existencia depende logicamente de PEDIDO. Podriamos haber usado una PK compuesta, pero el id simple facilita referencias externas futuras.\n\n> **Decision de diseno**: PAGO usa id propio porque en sistemas reales los pagos pueden ser referenciados por sistemas externos (pasarelas de pago, contabilidad). Un id simple es mas practico que una PK compuesta."
+        },
+        {
+          "type": "text",
+          "content": "## Puntos de decision clave\n\nAntes de continuar, verifica que tu diseno resuelve estos puntos:\n\n1. DIRECCION_ENVIO en PEDIDOS es texto o FK?\n   - **Referencia**: Texto. Es un snapshot de la direccion al momento de la compra. Si fuera FK, un cambio de direccion del cliente alteraria el historial.\n\n2. LINEA_PEDIDO tiene id propio?\n   - **Referencia**: No. PK compuesta (id_pedido, numero_linea). Mas natural para una entidad asociativa.\n\n3. PAGOS tiene id propio?\n   - **Referencia**: Si. Facilita integracion con sistemas externos.\n\n4. PRODUCTO puede ser eliminado si tiene pedidos?\n   - **Referencia**: No (RESTRICT). Se desactiva con activo = FALSE.\n\nEstas decisiones afectaran directamente el modelo relacional en la siguiente leccion."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-3-1",
+          "title": "Dibujar y documentar el E/R",
+          "difficulty": "hard",
+          "description": "Usando la herramienta que prefieras (draw.io, Mermaid, Lucidchart, papel), crea el diagrama E/R completo de la tienda online. Luego documenta:\n1. Cada entidad con todos sus atributos (marca PK con subrayado)\n2. Cada relacion con su cardinalidad exacta\n3. Justificacion de al menos 3 decisiones de diseno que tomaste\n4. Identificacion de entidades debiles si las hay",
+          "solution": "El diagrama debe incluir 7 entidades: CLIENTES, DIRECCIONES, CATEGORIAS, PRODUCTOS, PEDIDOS, LINEA_PEDIDO, PAGOS.\n\nCardinalidades:\n- CLIENTES 1:N DIRECCIONES\n- CLIENTES 1:N PEDIDOS\n- CATEGORIAS 1:N PRODUCTOS\n- PEDIDOS 1:N LINEA_PEDIDO\n- PRODUCTOS 1:N LINEA_PEDIDO (indirecta)\n- PEDIDOS 1:N PAGOS\n\nDecisiones justificadas (ejemplo):\n1. DIRECCION_ENVIO como TEXT en PEDIDO en lugar de FK, para preservar snapshot historico.\n2. LINEA_PEDIDO sin id propio, usando PK compuesta (id_pedido, numero_linea) por ser entidad asociativa.\n3. PAGO con id propio para facilitar integracion con pasarelas externas.\n\nEntidad debil: LINEA_PEDIDO (depende de PEDIDOS para su identificacion)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-4",
+      "title": "Del E/R al modelo relacional",
+      "order": 4,
+      "objectives": [
+        "Transformar el diagrama E/R en un modelo relacional de tablas",
+        "Decidir PK, FK, tipos de datos y restricciones para cada tabla",
+        "Manejar entidades asociativas y entidades debiles en el modelo relacional",
+        "Comprender el concepto de precio historico y su implementacion"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Reglas de transformacion E/R -> Relacional\n\n| Elemento E/R | Equivalente relacional |\n|---|---|\n| Entidad fuerte | Tabla con PK simple |\n| Entidad debil | Tabla con PK compuesta o FK + atributo |\n| Relacion 1:N | FK en el lado N |\n| Relacion N:M | Tabla asociativa con PK compuesta |\n| Atributo multivaluado | Tabla separada |\n| Atributo compuesto | Columnas separadas |\n| Relacion 1:1 | FK en una de las dos tablas (la mas debil) |"
+        },
+        {
+          "type": "text",
+          "content": "## Modelo relacional de la tienda online\n\n### CLIENTES\n`sql\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  apellidos VARCHAR(150) NOT NULL,\n  email VARCHAR(150) NOT NULL,\n  fecha_alta DATE DEFAULT (CURRENT_DATE),\n  estado ENUM('activo', 'inactivo') DEFAULT 'activo',\n  UNIQUE (email)\n);\n`\n\n### DIRECCIONES\n`sql\nCREATE TABLE direcciones (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_cliente INT NOT NULL,\n  calle VARCHAR(200) NOT NULL,\n  ciudad VARCHAR(100) NOT NULL,\n  cp VARCHAR(10) NOT NULL,\n  es_principal BOOLEAN DEFAULT FALSE,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n    ON DELETE CASCADE ON UPDATE CASCADE\n);\n`\n\n### CATEGORIAS\n`sql\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  descripcion TEXT,\n  UNIQUE (nombre)\n);\n`\n\n### PRODUCTOS\n`sql\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(200) NOT NULL,\n  descripcion TEXT,\n  precio DECIMAL(10,2) NOT NULL DEFAULT 0.00,\n  stock INT NOT NULL DEFAULT 0,\n  activo BOOLEAN DEFAULT TRUE,\n  id_categoria INT NOT NULL,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE,\n  CHECK (precio >= 0),\n  CHECK (stock >= 0)\n);\n`"
+        },
+        {
+          "type": "text",
+          "content": "### PEDIDOS\n`sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_cliente INT NOT NULL,\n  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,\n  estado ENUM('pendiente', 'procesando', 'enviado', 'entregado', 'cancelado') DEFAULT 'pendiente',\n  total DECIMAL(10,2) DEFAULT 0.00,\n  direccion_envio TEXT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE\n);\n`\n\n### LINEA_PEDIDO (entidad asociativa / debil)\n`sql\nCREATE TABLE linea_pedido (\n  id_pedido INT NOT NULL,\n  numero_linea INT NOT NULL,\n  id_producto INT NOT NULL,\n  cantidad INT NOT NULL,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, numero_linea),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE CASCADE ON UPDATE CASCADE,\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE,\n  CHECK (cantidad > 0),\n  CHECK (precio_unitario >= 0)\n);\n`\n\n> **Clave del diseno**: precio_unitario en LINEA_PEDIDO es el **precio historico**. Se copia del precio actual de PRODUCTO al momento de insertar la linea. Si luego cambia productos.precio, las lineas existentes **no se ven afectadas**."
+        },
+        {
+          "type": "text",
+          "content": "### PAGOS\n`sql\nCREATE TABLE pagos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_pedido INT NOT NULL,\n  importe DECIMAL(10,2) NOT NULL,\n  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,\n  estado ENUM('pendiente', 'completado', 'rechazado') DEFAULT 'pendiente',\n  metodo_pago VARCHAR(50) NOT NULL,\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE\n);\n`\n\n## Resumen de tipos de datos elegidos\n\n| Columna | Tipo | Justificacion |\n|---|---|---|\n| id (todas) | INT AUTO_INCREMENT | Enteros autoincrementales |\n| nombre, apellidos | VARCHAR | Longitud variable, acotada |\n| email | VARCHAR UNIQUE | Busqueda rapida, unicidad |\n| descripcion | TEXT | Puede ser larga |\n| precio, importe | DECIMAL(10,2) | Precision monetaria, sin errores de punto flotante |\n| stock, cantidad | INT | Enteros para cantidades |\n| fecha_alta | DATE | Solo fecha sin hora |\n| fecha (pedidos) | DATETIME | Fecha y hora exactas |\n| activo, es_principal | BOOLEAN | True/False |\n| estado | ENUM | Valores predefinidos |\n| cp | VARCHAR | No es numero, puede empezar por 0 |\n| direccion_envio | TEXT | Snapshot libre |\n| metodo_pago | VARCHAR | Flexibilidad para diferentes metodos |"
+        },
+        {
+          "type": "text",
+          "content": "## Orden de creacion por dependencias FK\n\nEl orden de creacion **importa** porque las FK deben apuntar a tablas que ya existen:\n\n1. categorias (sin FK)\n2. clientes (sin FK)\n3. direcciones (FK -> clientes)\n4. productos (FK -> categorias)\n5. pedidos (FK -> clientes)\n6. linea_pedido (FK -> pedidos, FK -> productos)\n7. pagos (FK -> pedidos)\n\n> **Verifica tu diseno**: El orden que elegiste respeta las dependencias? Hay alguna tabla que apunte a otra que aun no existe?"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-4-1",
+          "title": "Modelo relacional completo",
+          "difficulty": "hard",
+          "description": "Escribe el modelo relacional completo de la tienda online.\n\n1. Para cada tabla, escribe el CREATE TABLE con: nombre de tabla, columnas con tipos, PK, FK con FOREIGN KEY explicito, CHECK, DEFAULT, NOT NULL, UNIQUE donde aplique.\n2. Justifica cada tipo de dato elegido.\n3. Para cada FK, indica la tabla y columna referenciada.\n4. Indica el orden de creacion correcto.\n5. Resuelve: por que precio_unitario en LINEA_PEDIDO es DECIMAL(10,2) y no una FK a PRODUCTOS.precio?",
+          "solution": "Las tablas deben coincidir con el modelo de referencia mostrado arriba.\n\nJustificacion de tipos:\n- DECIMAL(10,2) para precios: exactitud monetaria, 10 digitos totales, 2 decimales (hasta 99,999,999.99)\n- VARCHAR para cp: puede contener letras, empieza por 0, no se usa para calculos\n- TEXT para descripcion y direccion_envio: contenido de longitud impredecible\n- ENUM para estado: valores fijos conocidos\n\nprecio_unitario NO es FK porque es un valor copiado (snapshot). Si fuera FK, un cambio de precio del producto alteraria el historial de ventas.\n\nOrden: categorias -> clientes -> direcciones -> productos -> pedidos -> linea_pedido -> pagos."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-5",
+      "title": "Normalizacion",
+      "order": 5,
+      "objectives": [
+        "Detectar redundancias y anomalias en un diseno desnormalizado",
+        "Aplicar 1NF, 2NF y 3NF de forma sistematica",
+        "Relacionar la normalizacion con el diseno de la tienda online",
+        "Verificar que el modelo propuesto cumple 3NF"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Empezar con una estructura deliberadamente mala\n\nPara practicar normalizacion, imaginemos que alguien creo **una sola tabla** para toda la tienda:\n\n`sql\nCREATE TABLE pedidos_completos (\n  id_pedido INT,\n  fecha_pedido DATETIME,\n  estado_pedido VARCHAR(20),\n  cliente_nombre VARCHAR(100),\n  cliente_apellidos VARCHAR(150),\n  cliente_email VARCHAR(150),\n  direccion_envio TEXT,\n  producto_nombre VARCHAR(200),\n  producto_precio DECIMAL(10,2),\n  producto_categoria VARCHAR(100),\n  cantidad INT,\n  precio_unitario DECIMAL(10,2),\n  importe_pago DECIMAL(10,2),\n  metodo_pago VARCHAR(50)\n);\n`\n\nEsta tabla tiene **problemas graves**. Vamos a encontrarlos."
+        },
+        {
+          "type": "text",
+          "content": "## Deteccion de problemas\n\n### Redundancias evidentes\n- Si un cliente hace 10 pedidos, su nombre, apellidos y email se repiten 10 veces.\n- Si un producto aparece en 5 pedidos, su nombre, precio y categoria se repiten 5 veces.\n- Si un pedido tiene 3 lineas, la fecha, estado y direccion se repiten 3 veces.\n\n### Anomalias de actualizacion\n- Si el cliente cambia de email, hay que actualizar TODAS las filas de sus pedidos. Si se olvida una, queda inconsistencia.\n\n### Anomalias de insercion\n- No podemos registrar un cliente sin que haya hecho un pedido (no hay donde guardar sus datos).\n- No podemos registrar un producto sin que nadie lo haya comprado.\n\n### Anomalias de eliminacion\n- Si cancelamos el unico pedido de un producto, perderiamos los datos del producto.\n\n### Dependencias\n- producto_categoria depende de producto_nombre (no de la PK id_pedido).\n- cliente_email depende de cliente_nombre (no de la PK)."
+        },
+        {
+          "type": "text",
+          "content": "## Aplicacion de 1NF\n\n**1NF**: Cada celda contiene un valor atomico. No hay grupos repetidos.\n\n**Problema detectado**: Si un pedido tuviera multiples metodos de pago en una celda, violaria 1NF. En nuestro diseno actual ya es atomico, pero separar PAGOS en su propia tabla garantiza 1NF.\n\n**Accion**: Separamos en tablas atomicas: CLIENTES, PRODUCTOS, PEDIDOS, LINEA_PEDIDO, PAGOS.\n\n> Verificacion: Cada columna de nuestro modelo contiene un solo valor? Si."
+        },
+        {
+          "type": "text",
+          "content": "## Aplicacion de 2NF\n\n**2NF**: Cumple 1NF + todos los atributos no clave dependen de **toda** la PK, no solo de una parte.\n\n**Aplicacion a LINEA_PEDIDO**: PK compuesta (id_pedido, numero_linea).\n- id_producto depende de (id_pedido, numero_linea) -> correcto\n- cantidad depende de (id_pedido, numero_linea) -> correcto\n- precio_unitario depende de (id_pedido, numero_linea) -> correcto (es el precio al momento del pedido)\n\n**Observacion**: Si hubieramos puesto el nombre del producto en LINEA_PEDIDO, dependeria solo de id_producto (no de id_pedido), violando 2NF. Por eso NO guardamos datos del producto en LINEA_PEDIDO, solo el id y el precio snapshot.\n\n> Verificacion: Algún atributo no clave depende solo de parte de una PK compuesta? No."
+        },
+        {
+          "type": "text",
+          "content": "## Aplicacion de 3NF\n\n**3NF**: Cumple 2NF + no hay dependencias transitivas (atributo no clave -> atributo no clave).\n\n**Analisis por tabla**:\n- **CLIENTES**: nombre, apellidos, email, fecha_alta, estado -> todos dependen directamente de id.\n- **PRODUCTOS**: nombre, precio, stock, activo -> dependen de id. id_categoria es FK (referencia, no dependencia transitiva).\n- **PEDIDOS**: id_cliente, fecha, estado, total, direccion_envio -> dependen de id.\n- **LINEA_PEDIDO**: id_producto, cantidad, precio_unitario -> dependen de la PK compuesta.\n- **PAGOS**: id_pedido, importe, fecha, estado, metodo_pago -> dependen de id.\n\n**Podria haber dependencia transitiva?** Solo si guardaramos el nombre de la categoria dentro de PRODUCTOS (dependencia transitiva: id -> id_categoria -> nombre_categoria). Al tener solo id_categoria como FK, evitamos esto.\n\n> Verificacion: Algún atributo no clave determina a otro atributo no clave? No."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-5-1",
+          "title": "Verificar normalizacion",
+          "difficulty": "hard",
+          "description": "Toma tu modelo relacional de la leccion anterior y verifica formalmente que cumple 3NF.\n\n1. Para cada tabla, lista todas las dependencias funcionales.\n2. Para cada tabla, indica si cumple 1NF, 2NF y 3NF, justificando.\n3. Si encuentras alguna violacion, corrige el modelo.\n4. Explica por que guardar el nombre del producto en LINEA_PEDIDO violaria 2NF.",
+          "solution": "Dependencias funcionales por tabla:\n\n**CLIENTES**: id -> nombre, apellidos, email, fecha_alta, estado. email -> id (UNIQUE). Cumple 3NF: no hay transitivas.\n\n**CATEGORIAS**: id -> nombre, descripcion. Cumple 3NF.\n\n**PRODUCTOS**: id -> nombre, descripcion, precio, stock, activo, id_categoria. Cumple 3NF: id_categoria es FK, no transitiva.\n\n**PEDIDOS**: id -> id_cliente, fecha, estado, total, direccion_envio. Cumple 3NF.\n\n**LINEA_PEDIDO**: (id_pedido, numero_linea) -> id_producto, cantidad, precio_unitario. Cumple 2NF (dependen de toda la PK) y 3NF (no transitivas).\n\n**PAGOS**: id -> id_pedido, importe, fecha, estado, metodo_pago. Cumple 3NF.\n\nSi LINEA_PEDIDO tuviera producto_nombre, habria dependencia: (id_pedido, numero_linea) -> id_producto -> producto_nombre. Esto viola 2NF porque producto_nombre depende solo de id_producto, no de toda la PK compuesta."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-6",
+      "title": "Creacion de la base de datos (DDL)",
+      "order": 6,
+      "objectives": [
+        "Ejecutar CREATE DATABASE y CREATE TABLE con tipos de datos correctos",
+        "Justificar la eleccion de cada tipo de dato",
+        "Respetar el orden de creacion por dependencias FK",
+        "Generar el script schema.sql"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Crear la base de datos\n\n`sql\n-- =============================================\n-- PROYECTO: Tienda Online - Esquema\n-- =============================================\n\nDROP DATABASE IF EXISTS tienda_online;\nCREATE DATABASE tienda_online\n  CHARACTER SET utf8mb4\n  COLLATE utf8mb4_unicode_ci;\n\nUSE tienda_online;\n`\n\n**Por que utf8mb4?** Soporta caracteres especiales (tildes, enie, emojis). Es el estandar actual para MySQL."
+        },
+        {
+          "type": "text",
+          "content": "## Crear tablas (orden correcto)\n\n`sql\n-- 1. CATEGORIAS (sin dependencias)\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  descripcion TEXT,\n  UNIQUE (nombre)\n);\n\n-- 2. CLIENTES (sin dependencias)\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  apellidos VARCHAR(150) NOT NULL,\n  email VARCHAR(150) NOT NULL,\n  fecha_alta DATE DEFAULT (CURRENT_DATE),\n  estado ENUM('activo', 'inactivo') DEFAULT 'activo',\n  UNIQUE (email)\n);\n\n-- 3. DIRECCIONES (depende de clientes)\nCREATE TABLE direcciones (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_cliente INT NOT NULL,\n  calle VARCHAR(200) NOT NULL,\n  ciudad VARCHAR(100) NOT NULL,\n  cp VARCHAR(10) NOT NULL,\n  es_principal BOOLEAN DEFAULT FALSE,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n    ON DELETE CASCADE ON UPDATE CASCADE\n);\n\n-- 4. PRODUCTOS (depende de categorias)\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(200) NOT NULL,\n  descripcion TEXT,\n  precio DECIMAL(10,2) NOT NULL DEFAULT 0.00,\n  stock INT NOT NULL DEFAULT 0,\n  activo BOOLEAN DEFAULT TRUE,\n  id_categoria INT NOT NULL,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE,\n  CHECK (precio >= 0),\n  CHECK (stock >= 0)\n);\n\n-- 5. PEDIDOS (depende de clientes)\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_cliente INT NOT NULL,\n  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,\n  estado ENUM('pendiente','procesando','enviado','entregado','cancelado') DEFAULT 'pendiente',\n  total DECIMAL(10,2) DEFAULT 0.00,\n  direccion_envio TEXT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE\n);\n\n-- 6. LINEA_PEDIDO (depende de pedidos y productos)\nCREATE TABLE linea_pedido (\n  id_pedido INT NOT NULL,\n  numero_linea INT NOT NULL,\n  id_producto INT NOT NULL,\n  cantidad INT NOT NULL,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, numero_linea),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE CASCADE ON UPDATE CASCADE,\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE,\n  CHECK (cantidad > 0),\n  CHECK (precio_unitario >= 0)\n);\n\n-- 7. PAGOS (depende de pedidos)\nCREATE TABLE pagos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_pedido INT NOT NULL,\n  importe DECIMAL(10,2) NOT NULL,\n  fecha DATETIME DEFAULT CURRENT_TIMESTAMP,\n  estado ENUM('pendiente','completado','rechazado') DEFAULT 'pendiente',\n  metodo_pago VARCHAR(50) NOT NULL,\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE RESTRICT ON UPDATE CASCADE\n);\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Justificacion de tipos de datos\n\n| Tipo | Uso | Por que |\n|---|---|---|\n| INT | IDs, stock, cantidad | Enteros eficientes, AUTO_INCREMENT para PKs |\n| VARCHAR(n) | nombres, emails, cp | Longitud variable con limite conocido |\n| TEXT | descripciones, direccion_envio | Contenido de longitud impredecible |\n| DECIMAL(10,2) | precios, importes, total | Precision exacta para dinero (sin errores float) |\n| DATE | fecha_alta | Solo fecha, sin hora |\n| DATETIME | fecha de pedidos, pagos | Fecha + hora para trazabilidad |\n| BOOLEAN | activo, es_principal | True/False (internamente TINYINT) |\n| ENUM | estado de pedido/pago/cliente | Valores fijos predefinidos |\n\n### Por que NO usar FLOAT/DOUBLE para precios?\n\n\u0000.1 + 0.2 en punto flotante = \u0000.30000000000000004. Para dinero, esto genera errores acumulativos. DECIMAL almacena valores exactos."
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes al crear tablas\n\n1. **Crear tabla con FK a tabla que no existe**: Si creas linea_pedido antes que pedidos, MySQL dara error.\n2. **Olvidar NOT NULL en columnas obligatorias**: email en clientes debe ser NOT NULL + UNIQUE.\n3. **Usar FLOAT para precios**: Errores de precision. Usa DECIMAL.\n4. **Usar INT para cp**: Codigos postales pueden empezar por 0 o contener guiones. Usa VARCHAR.\n5. **Olvidar CHECK**: MySQL 8+ soporta CHECK constraints. Usalas para precio >= 0, stock >= 0, cantidad > 0."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-6-1",
+          "title": "Crear schema.sql completo",
+          "difficulty": "hard",
+          "description": "Crea el archivo schema.sql con la base de datos completa de la tienda online.\n\n1. Incluye DROP DATABASE IF EXISTS y CREATE DATABASE\n2. Crea las 7 tablas en el orden correcto\n3. Incluye TODAS las restricciones: PK, FK, NOT NULL, UNIQUE, DEFAULT, CHECK, AUTO_INCREMENT\n4. Usa los tipos de datos justificados\n5. Ejecuta el script en MySQL y verifica que se crea sin errores",
+          "solution": "El script completo debe ser el mostrado en los bloques anteriores. Verifica ejecutando en MySQL:\n\n`sql\nSOURCE schema.sql;\nSHOW TABLES;\n-- Debe mostrar: categorias, clientes, direcciones, productos, pedidos, linea_pedido, pagos\n\nDESCRIBE clientes;\n-- Verificar: id (int, auto_increment, pk), nombre (varchar not null), ...\n\n-- Verificar que no se puede crear un producto con precio negativo:\nINSERT INTO productos (nombre, precio, stock, id_categoria) VALUES ('Test', -10, 5, 1);\n-- Debe fallar por CHECK constraint\n`\n\nSi alguna tabla falla al crearse, revisa el orden de las dependencias FK."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-7",
+      "title": "Restricciones e integridad",
+      "order": 7,
+      "objectives": [
+        "Integrar todas las restricciones: PK, FK, NOT NULL, UNIQUE, DEFAULT, CHECK",
+        "Analizar y justificar las acciones referenciales (CASCADE, RESTRICT, SET NULL)",
+        "Comprender el impacto de cada accion referencial en la integridad de datos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Acciones referenciales: Que pasa cuando se borra o actualiza?\n\nCada FOREIGN KEY puede definir:\n- **ON DELETE**: que hacer cuando se borra el registro padre\n- **ON UPDATE**: que hacer cuando se actualiza la PK del padre\n\nOpciones principales:\n- **CASCADE**: Borrar/actualizar automaticamente los hijos\n- **RESTRICT**: Impedir la operacion si hay hijos\n- **SET NULL**: Poner la FK a NULL (solo si la columna lo permite)\n- **NO ACTION**: Similar a RESTRICT (en MySQL, equivalente por defecto)"
+        },
+        {
+          "type": "text",
+          "content": "## Analisis relacion por relacion\n\n### DIRECCIONES -> CLIENTES\n`\nON DELETE CASCADE: Si se borra un cliente, se borran sus direcciones.\nON UPDATE CASCADE: Si cambia el id del cliente, se actualiza en direcciones.\n`\n**Justificacion**: Una direccion no tiene sentido sin su cliente. Si el cliente se elimina, sus direcciones tambien.\n\n### PRODUCTOS -> CATEGORIAS\n`\nON DELETE RESTRICT: No se puede borrar una categoria si tiene productos.\nON UPDATE CASCADE: Si cambia el id de categoria, se actualiza en productos.\n`\n**Justificacion**: No queremos perder productos al borrar una categoria. Primero hay que reasignar o eliminar productos.\n\n### PEDIDOS -> CLIENTES\n`\nON DELETE RESTRICT: No se puede borrar un cliente si tiene pedidos.\nON UPDATE CASCADE: Si cambia el id del cliente, se actualiza en pedidos.\n`\n**Justificacion**: El historial de pedidos es valioso. No se debe borrar un cliente con pedidos. Se desactiva en su lugar."
+        },
+        {
+          "type": "text",
+          "content": "### LINEA_PEDIDO -> PEDIDOS\n`\nON DELETE CASCADE: Si se borra un pedido, se borran sus lineas.\nON UPDATE CASCADE: Si cambia el id del pedido, se actualiza en lineas.\n`\n**Justificacion**: Las lineas no existen sin su pedido. Borrar pedido = borrar sus lineas.\n\n### LINEA_PEDIDO -> PRODUCTOS\n`\nON DELETE RESTRICT: No se puede borrar un producto si aparece en algun pedido.\nON UPDATE CASCADE: Si cambia el id del producto, se actualiza en lineas.\n`\n**Justificacion**: No debemos borrar un producto que tiene historial de ventas. Se desactiva con \u0007ctivo = FALSE.\n\n### PAGOS -> PEDIDOS\n`\nON DELETE RESTRICT: No se puede borrar un pedido si tiene pagos registrados.\nON UPDATE CASCADE: Si cambia el id del pedido, se actualiza en pagos.\n`\n**Justificacion**: Los pagos son registros financieros. No se deben perder. Si el pedido tiene pagos, no se puede eliminar."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen de acciones referenciales\n\n| FK | ON DELETE | ON UPDATE | Justificacion |\n|---|---|---|---|\n| direcciones -> clientes | CASCADE | CASCADE | Direccion sin cliente no tiene sentido |\n| productos -> categorias | RESTRICT | CASCADE | No perder productos al borrar categoria |\n| pedidos -> clientes | RESTRICT | CASCADE | Preservar historial de pedidos |\n| linea_pedido -> pedidos | CASCADE | CASCADE | Lineas dependen del pedido |\n| linea_pedido -> productos | RESTRICT | CASCADE | No borrar producto con historial |\n| pagos -> pedidos | RESTRICT | CASCADE | Preservar registros financieros |\n\n> **Patron**: Las entidades dependientes (direcciones, linea_pedido) usan CASCADE. Las entidades con valor historico o financiero (pedidos, pagos, productos) usan RESTRICT."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen completo de restricciones\n\n| Restriccion | Donde | Proposito |\n|---|---|---|\n| PK (id) | Todas las tablas | Identificador unico |\n| PK compuesta | linea_pedido | (id_pedido, numero_linea) |\n| FK | direcciones, productos, pedidos, linea_pedido, pagos | Integridad referencial |\n| NOT NULL | nombre, email, precio, etc. | Campos obligatorios |\n| UNIQUE | clientes.email, categorias.nombre | Sin duplicados |\n| DEFAULT | estado, fecha, stock, etc. | Valores iniciales |\n| CHECK | precio >= 0, stock >= 0, cantidad > 0 | Reglas de negocio |\n| AUTO_INCREMENT | Todas las PKs simples | Generacion automatica |\n\n### Verificacion\n\nPrueba estas restricciones en MySQL:\n1. Intenta crear dos clientes con el mismo email -> debe fallar\n2. Intenta crear un producto con precio negativo -> debe fallar\n3. Intenta borrar una categoria que tiene productos -> debe fallar\n4. Borra un cliente que tiene direcciones -> las direcciones se borran tambien"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-7-1",
+          "title": "Justificar acciones referenciales",
+          "difficulty": "hard",
+          "description": "Para cada una de las 6 FOREIGN KEY de la tienda online:\n1. Indica que ON DELETE y ON UPDATE elegirias\n2. Justifica tu eleccion con un escenario concreto\n3. Describe que pasaria si la accion fuera CASCADE cuando no deberia\n4. Verifica tu eleccion ejecutando un DELETE en MySQL y comprobando el resultado",
+          "solution": "Las elecciones deben coincidir con el analisis de la leccion.\n\nEscenarios de verificacion:\n`sql\n-- Prueba RESTRICT: intentar borrar categoria con productos\nDELETE FROM categorias WHERE id = 1;\n-- Debe fallar si hay productos en esa categoria\n\n-- Prueba CASCADE: borrar cliente con direcciones\nDELETE FROM clientes WHERE id = 5;\n-- Sus direcciones deben desaparecer tambien\n\n-- Prueba RESTRICT: intentar borrar producto con pedidos\nDELETE FROM productos WHERE id = 1;\n-- Debe fallar si aparece en linea_pedido\n`\n\nSi alguna restriccion no se comporta como esperabas, revisa la definicion de la FK."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-8",
+      "title": "Datos de prueba",
+      "order": 8,
+      "objectives": [
+        "Crear un conjunto de datos rico y realista para la tienda online",
+        "Disenar datos que cubran casos normales y edge cases",
+        "Generar el script datos.sql con inserciones en orden correcto",
+        "Crear un script de reset para practica local"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Principios para datos de prueba\n\nLos datos de prueba no son aleatorios. Deben ser **disenados** para:\n1. **Cubrir todas las relaciones**: clientes con y sin pedidos, productos con y sin ventas.\n2. **Probar restricciones**: estados variados, precios diferentes, stock agotado.\n3. **Permitir verificacion**: datos conocidos para validar consultas.\n4. **Ser realistas**: nombres, emails, direcciones, precios coherentes.\n5. **Incluir edge cases**: productos sin stock, pedidos cancelados, pagos rechazados."
+        },
+        {
+          "type": "text",
+          "content": "## Dataset de referencia\n\n### Categorias (6)\n`sql\nINSERT INTO categorias (nombre, descripcion) VALUES\n  ('Electronica', 'Dispositivos electronicos y gadgets'),\n  ('Ropa', 'Vestimenta y accesorios de moda'),\n  ('Hogar', 'Articulos para el hogar y decoracion'),\n  ('Deportes', 'Equipamiento deportivo y fitness'),\n  ('Libros', 'Libros fisicos y digitales'),\n  ('Alimentos', 'Productos alimentarios y bebidas');\n`\n\n### Clientes (12)\n`sql\nINSERT INTO clientes (nombre, apellidos, email, fecha_alta, estado) VALUES\n  ('Ana', 'Garcia Lopez', 'ana.garcia@email.com', '2025-01-15', 'activo'),\n  ('Carlos', 'Martinez Ruiz', 'carlos.mtz@email.com', '2025-02-20', 'activo'),\n  ('Maria', 'Lopez Sanchez', 'maria.lop@email.com', '2025-03-10', 'activo'),\n  ('Pedro', 'Hernandez Diaz', 'pedro.hd@email.com', '2025-04-05', 'activo'),\n  ('Laura', 'Garcia Moreno', 'laura.gm@email.com', '2025-05-12', 'activo'),\n  ('Javier', 'Torres Navarro', 'javier.tn@email.com', '2025-06-18', 'activo'),\n  ('Isabel', 'Ruiz Fernandez', 'isabel.rf@email.com', '2025-07-22', 'activo'),\n  ('Miguel', 'Sanchez Blanco', 'miguel.sb@email.com', '2025-08-30', 'inactivo'),\n  ('Elena', 'Diaz Romero', 'elena.dr@email.com', '2025-09-14', 'activo'),\n  ('David', 'Moreno Jimenez', 'david.mj@email.com', '2025-10-01', 'activo'),\n  ('Sara', 'Navarro Vega', 'sara.nv@email.com', '2025-11-20', 'activo'),\n  ('Pablo', 'Fernandez Castro', 'pablo.fc@email.com', '2026-01-05', 'activo');\n`\n\n**Notas de diseno**: Cliente 8 esta inactivo. Cliente 12 es nuevo. Clientes 1-7 tienen pedidos, 8-12 no (variedad)."
+        },
+        {
+          "type": "text",
+          "content": "### Direcciones (13)\n`sql\nINSERT INTO direcciones (id_cliente, calle, ciudad, cp, es_principal) VALUES\n  (1, 'Calle Mayor 15, 3B', 'Madrid', '28001', TRUE),\n  (1, 'Avenida de la Paz 42', 'Madrid', '28021', FALSE),\n  (2, 'Calle Gran Via 8, 1A', 'Madrid', '28013', TRUE),\n  (3, 'Paseo de Castellana 100', 'Madrid', '28046', TRUE),\n  (4, 'Calle Alcala 200, 5C', 'Madrid', '28027', TRUE),\n  (5, 'Calle Serrano 55, 2D', 'Madrid', '28006', TRUE),\n  (6, 'Puerta del Sol 3, 7', 'Madrid', '28012', TRUE),\n  (7, 'Calle Velazquez 90, 4A', 'Madrid', '28009', TRUE),\n  (9, 'Calle Goya 120, 1B', 'Madrid', '28009', TRUE),\n  (10, 'Avenida de America 35', 'Madrid', '28028', TRUE),\n  (3, 'Calle Preciados 15, 3', 'Madrid', '28013', FALSE),\n  (5, 'Calle Fuencarral 80, 2A', 'Madrid', '28004', FALSE),\n  (9, 'Calle Princesa 45, 6C', 'Madrid', '28008', FALSE);\n`\n\n**Notas**: Cliente 1 tiene 2 direcciones (una principal, una secundaria). Cliente 3 tiene 2 direcciones. Cliente 8 (inactivo) no tiene direcciones."
+        },
+        {
+          "type": "text",
+          "content": "### Productos (30)\n`sql\nINSERT INTO productos (nombre, descripcion, precio, stock, activo, id_categoria) VALUES\n  -- Electronica (5)\n  ('Auriculares Bluetooth X500', 'Auriculares inalambricos con cancelacion de ruido', 79.99, 50, TRUE, 1),\n  ('Raton inalambrico Pro', 'Raton ergonomico con 6 botones programables', 29.99, 120, TRUE, 1),\n  ('Teclado mecanico RGB', 'Teclado con switches Cherry MX y retroiluminacion', 89.99, 35, TRUE, 1),\n  ('Cable USB-C 2m', 'Cable de carga rapida y transferencia de datos', 12.99, 200, TRUE, 1),\n  ('Webcam HD 1080p', 'Camara con microfono integrado', 49.99, 0, FALSE, 1),\n  -- Ropa (5)\n  ('Camiseta algodon basica', 'Camiseta unisex de algodon 100%', 15.99, 150, TRUE, 2),\n  ('Jeans Classic Fit', 'Vaqueros clasicos azul oscuro', 39.99, 80, TRUE, 2),\n  ('Chaqueta impermeable', 'Chaqueta ligera resistente al agua', 69.99, 25, TRUE, 2),\n  ('Zapatillas running', 'Calzado deportivo para correr', 89.99, 45, TRUE, 2),\n  ('Gafas de sol UV400', 'Proteccion solar con montura ligera', 25.99, 60, TRUE, 2),\n  -- Hogar (5)\n  ('Lampara de escritorio LED', 'Lampara regulable con carga USB', 34.99, 40, TRUE, 3),\n  ('Juego de sabanas King', 'Sabanas de algodon egipcio 400 hilos', 59.99, 30, TRUE, 3),\n  ('Robot aspirador S5', 'Aspirador robot con mapeo laser', 299.99, 10, TRUE, 3),\n  ('Set de cuchillos chef', '6 cuchillos de acero inoxidable', 45.99, 0, FALSE, 3),\n  ('Candelabro vintage', 'Candelabro de hierro forjado', 22.99, 20, TRUE, 3),\n  -- Deportes (5)\n  ('Mancuernas ajustables 20kg', 'Set de mancuernas con soporte', 119.99, 15, TRUE, 4),\n  ('Balon futbol FIFA Pro', 'Balon oficial tamano 5', 35.99, 70, TRUE, 4),\n  ('Esterilla yoga premium', 'Esterilla antideslizante 6mm', 29.99, 55, TRUE, 4),\n  ('Bicicleta estatica', 'Bicicleta con monitor de ritmo cardiaco', 249.99, 8, TRUE, 4),\n  ('Soga saltar profesional', 'Soga con rodamientos de acero', 14.99, 100, TRUE, 4),\n  -- Libros (5)\n  ('SQL en 24 horas', 'Aprende SQL desde cero', 24.99, 90, TRUE, 5),\n  ('El arte de la guerra', 'Edicion clasica de Sun Tzu', 9.99, 150, TRUE, 5),\n  ('Cocina mediterranea', '100 recetas saludables', 19.99, 45, TRUE, 5),\n  ('Harry Potter vol.1', 'La piedra filosofal', 14.99, 200, TRUE, 5),\n  ('Clean Code', 'Guia de codigo limpio', 34.99, 60, TRUE, 5),\n  -- Alimentos (5)\n  ('Aceite de oliva virgen 1L', 'Primera prensada en frio', 8.99, 100, TRUE, 6),\n  ('Cafe molido premium', 'Mezcla de 3 origenes', 12.99, 80, TRUE, 6),\n  ('Chocolate negro 70%', 'Cacao organico', 4.99, 120, TRUE, 6),\n  ('Miel de flores 500g', 'Miel pura de montana', 11.99, 60, TRUE, 6),\n  ('Te verde organico', '20 bolsitas premium', 6.99, 90, TRUE, 6);\n`\n\n**Notas**: Productos con stock 0 (5 y 14). Productos caros y baratos. Categorias con 5 productos cada una."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-8-1",
+          "title": "Generar datos de prueba completos",
+          "difficulty": "hard",
+          "description": "Crea el archivo datos.sql con:\n\n1. Las 6 categorias\n2. Los 12 clientes\n3. Al menos 13 direcciones\n4. Los 30 productos\n5. 20-25 pedidos variados con diferentes estados, fechas y clientes\n6. 30-40 lineas de pedido (1-4 productos por pedido)\n7. 15-20 pagos con diferentes estados y metodos\n\nEl script debe ejecutarse sin errores. Incluye un script de reset al inicio.",
+          "solution": "Script de reset:\n`sql\nSET FOREIGN_KEY_CHECKS = 0;\nTRUNCATE TABLE pagos;\nTRUNCATE TABLE linea_pedido;\nTRUNCATE TABLE pedidos;\nTRUNCATE TABLE direcciones;\nTRUNCATE TABLE productos;\nTRUNCATE TABLE categorias;\nTRUNCATE TABLE clientes;\nSET FOREIGN_KEY_CHECKS = 1;\n`\n\nLos pedidos deben cubrir: al menos 1 por cada estado posible, diferentes fechas (2025-2026), diferentes clientes, diferentes totales, y al menos 1 cancelado. Los pagos deben incluir al menos 1 rechazado y 1 pendiente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-9",
+      "title": "Consultas basicas y resumen",
+      "order": 9,
+      "objectives": [
+        "Resolver consultas de negocio con SELECT, WHERE, ORDER BY",
+        "Usar funciones de agregacion: COUNT, SUM, AVG, MIN, MAX",
+        "Agrupar datos con GROUP BY y filtrar con HAVING",
+        "Generar reportes utiles para el negocio de la tienda"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Filosofia: consultas de negocio, no ejercicios artificiales\n\nCada consulta que escribas debe responder una pregunta que un **duleno de tienda** realmente se haria.\n\n### Consulta 1: Productos activos con stock disponible\n\n> Que productos puedo vender ahora mismo?\n\n`sql\nSELECT p.nombre, p.precio, p.stock, c.nombre AS categoria\nFROM productos p\nINNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.activo = TRUE AND p.stock > 0\nORDER BY p.precio DESC;\n`\n\n### Consulta 2: Clientes registrados por mes\n\n> Como va el registro de clientes mes a mes?\n\n`sql\nSELECT DATE_FORMAT(fecha_alta, '%Y-%m') AS mes,\n  COUNT(*) AS nuevos_clientes\nFROM clientes\nGROUP BY DATE_FORMAT(fecha_alta, '%Y-%m')\nORDER BY mes;\n`\n\n### Consulta 3: Precio promedio por categoria\n\n> En que categoria es mas caro el producto promedio?\n\n`sql\nSELECT c.nombre AS categoria,\n  ROUND(AVG(p.precio), 2) AS precio_promedio,\n  COUNT(p.id) AS num_productos\nFROM productos p\nINNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.activo = TRUE\nGROUP BY c.id, c.nombre\nORDER BY precio_promedio DESC;\n`"
+        },
+        {
+          "type": "text",
+          "content": "### Consulta 4: Los 5 productos mas caros\n\n> Cuales son mis productos premium?\n\n`sql\nSELECT nombre, precio, stock,\n  CASE\n    WHEN stock = 0 THEN 'Agotado'\n    WHEN stock < 10 THEN 'Poco stock'\n    ELSE 'Disponible'\n  END AS disponibilidad\nFROM productos\nWHERE activo = TRUE\nORDER BY precio DESC\nLIMIT 5;\n`\n\n### Consulta 5: Pedidos por estado\n\n> Cuantos pedidos tengo en cada estado?\n\n`sql\nSELECT estado, COUNT(*) AS cantidad,\n  ROUND(AVG(total), 2) AS total_promedio\nFROM pedidos\nGROUP BY estado\nORDER BY cantidad DESC;\n`\n\n### Consulta 6: Ingresos totales por categoria\n\n> Que categoria genera mas ingresos?\n\n`sql\nSELECT c.nombre AS categoria,\n  SUM(lp.cantidad * lp.precio_unitario) AS ingresos_totales,\n  SUM(lp.cantidad) AS unidades_vendidas\nFROM linea_pedido lp\nINNER JOIN productos p ON lp.id_producto = p.id\nINNER JOIN categorias c ON p.id_categoria = c.id\nINNER JOIN pedidos ped ON lp.id_pedido = ped.id\nWHERE ped.estado != 'cancelado'\nGROUP BY c.id, c.nombre\nORDER BY ingresos_totales DESC;\n`"
+        },
+        {
+          "type": "text",
+          "content": "### Consulta 7: Productos sin stock\n\n> Que productos necesito reponer?\n\n`sql\nSELECT nombre, precio, stock,\n  CASE\n    WHEN activo = TRUE THEN 'Activo - REPOSAR'\n    ELSE 'Inactivo - Revisar'\n  END AS estado_reposicion\nFROM productos\nWHERE stock = 0\nORDER BY activo DESC, nombre;\n`\n\n### Consulta 8: Total de ingresos confirmados\n\n> Cuanto dinero he facturado?\n\n`sql\nSELECT SUM(importe) AS facturacion_total,\n  COUNT(*) AS pagos_completados,\n  ROUND(AVG(importe), 2) AS pago_promedio\nFROM pagos\nWHERE estado = 'completado';\n`\n\n### Consulta 9: Top 5 clientes por gasto\n\n> Quienes son mis mejores clientes?\n\n`sql\nSELECT c.nombre, c.apellidos, c.email,\n  COUNT(DISTINCT ped.id) AS num_pedidos,\n  SUM(ped.total) AS gasto_total\nFROM clientes c\nINNER JOIN pedidos ped ON c.id = ped.id_cliente\nWHERE ped.estado NOT IN ('cancelado')\nGROUP BY c.id, c.nombre, c.apellidos, c.email\nORDER BY gasto_total DESC\nLIMIT 5;\n`\n\n### Consulta 10: Productos que nunca se han vendido\n\n> Que productos tengo que nadie ha comprado?\n\n`sql\nSELECT p.nombre, p.precio, p.stock, c.nombre AS categoria\nFROM productos p\nINNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.id NOT IN (SELECT DISTINCT id_producto FROM linea_pedido)\nORDER BY p.nombre;\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Resumen de tecnicas utilizadas\n\n| Tecnica | Consultas |\n|---|---|\n| SELECT con WHERE | Todas |\n| INNER JOIN | 1, 3, 6, 9, 10 |\n| COUNT, SUM, AVG | 2, 3, 5, 6, 8, 9 |\n| GROUP BY | 2, 3, 5, 6, 9 |\n| ORDER BY ... LIMIT | 4, 9 |\n| CASE WHEN | 4, 7 |\n| DATE_FORMAT | 2 |\n| ROUND | 3, 5, 8 |\n| Subquery con NOT IN | 10 |\n| DISTINCT | 6, 9, 10 |\n\n> **Regla de oro**: Siempre ejecuta la consulta y verifica que el resultado tiene sentido con los datos que insertaste."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-9-1",
+          "title": "Consultas de negocio basicas",
+          "difficulty": "intermediate",
+          "description": "Escribe consultas SQL para resolver:\n1. Cuantos productos hay en cada categoria (solo categorias con mas de 3 productos)?\n2. Cual es el producto mas barato de cada categoria?\n3. Cuantos clientes estan activos vs inactivos?\n4. Cual es el importe total de los pagos rechazados?\n5. Que clientes se registraron en los ultimos 6 meses?",
+          "solution": "`sql\n-- 1. Productos por categoria (mas de 3)\nSELECT c.nombre, COUNT(p.id) AS num_productos\nFROM categorias c\nINNER JOIN productos p ON c.id = p.id_categoria\nGROUP BY c.id, c.nombre\nHAVING COUNT(p.id) > 3\nORDER BY num_productos DESC;\n\n-- 2. Producto mas barato por categoria\nSELECT c.nombre, p.nombre, p.precio\nFROM productos p\nINNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.precio = (\n  SELECT MIN(p2.precio) FROM productos p2\n  WHERE p2.id_categoria = p.id_categoria AND p2.activo = TRUE\n)\nORDER BY c.nombre;\n\n-- 3. Clientes activos vs inactivos\nSELECT estado, COUNT(*) AS cantidad FROM clientes GROUP BY estado;\n\n-- 4. Pagos rechazados totales\nSELECT SUM(importe) AS total_rechazados FROM pagos WHERE estado = 'rechazado';\n\n-- 5. Clientes ultimos 6 meses\nSELECT nombre, apellidos, email, fecha_alta FROM clientes\nWHERE fecha_alta >= DATE_SUB(CURRENT_DATE, INTERVAL 6 MONTH)\nORDER BY fecha_alta DESC;\n`"
+        },
+        {
+          "id": "ex-17-9-2",
+          "title": "Reportes de agregacion",
+          "difficulty": "intermediate",
+          "description": "Escribe consultas para:\n1. Cual es el total facturado por cada metodo de pago?\n2. En que mes se hicieron mas pedidos?\n3. Cual es la diferencia de precio entre el producto mas caro y el mas barato de cada categoria?\n4. Cuantos pedidos tiene cada cliente (incluir clientes sin pedidos)?",
+          "solution": "`sql\n-- 1. Total por metodo de pago\nSELECT metodo_pago, SUM(importe) AS total, COUNT(*) AS num_pagos\nFROM pagos WHERE estado = 'completado'\nGROUP BY metodo_pago ORDER BY total DESC;\n\n-- 2. Mes con mas pedidos\nSELECT DATE_FORMAT(fecha, '%Y-%m') AS mes, COUNT(*) AS pedidos\nFROM pedidos GROUP BY DATE_FORMAT(fecha, '%Y-%m')\nORDER BY pedidos DESC LIMIT 1;\n\n-- 3. Rango de precios por categoria\nSELECT c.nombre, MAX(p.precio) - MIN(p.precio) AS diferencia\nFROM productos p INNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.activo = TRUE GROUP BY c.id, c.nombre ORDER BY diferencia DESC;\n\n-- 4. Pedidos por cliente (incluyendo sin pedidos)\nSELECT c.nombre, c.apellidos, COUNT(ped.id) AS num_pedidos\nFROM clientes c LEFT JOIN pedidos ped ON c.id = ped.id_cliente\nGROUP BY c.id, c.nombre, c.apellidos ORDER BY num_pedidos DESC;\n`"
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-10",
+      "title": "Consultas multitabla y avanzadas",
+      "order": 10,
+      "objectives": [
+        "Ejecutar JOINs con multiples tablas simultaneamente",
+        "Usar subconsultas, EXISTS, NOT EXISTS y UNION",
+        "Resolver preguntas de negocio complejas",
+        "Combinar multiples tecnicas en una sola consulta"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## INNER JOIN: solo coincidencias\n\n### Clientes con su cantidad de pedidos\n\n`sql\nSELECT c.id, c.nombre, c.apellidos,\n  COUNT(ped.id) AS num_pedidos\nFROM clientes c\nINNER JOIN pedidos ped ON c.id = ped.id_cliente\nGROUP BY c.id, c.nombre, c.apellidos\nORDER BY num_pedidos DESC;\n`\n\n### Pedidos con detalle de lineas\n\n`sql\nSELECT ped.id AS pedido, c.nombre AS cliente,\n  ped.fecha, ped.estado, p.nombre AS producto,\n  lp.cantidad, lp.precio_unitario,\n  (lp.cantidad * lp.precio_unitario) AS subtotal\nFROM pedidos ped\nINNER JOIN clientes c ON ped.id_cliente = c.id\nINNER JOIN linea_pedido lp ON ped.id = lp.id_pedido\nINNER JOIN productos p ON lp.id_producto = p.id\nORDER BY ped.id, lp.numero_linea;\n`"
+        },
+        {
+          "type": "text",
+          "content": "## LEFT JOIN: incluir todos de la izquierda\n\n### Clientes sin pedidos\n\n`sql\nSELECT c.nombre, c.apellidos, c.email\nFROM clientes c\nLEFT JOIN pedidos ped ON c.id = ped.id_cliente\nWHERE ped.id IS NULL;\n`\n\n### Productos que nunca se vendieron\n\n`sql\nSELECT p.nombre, p.precio, c.nombre AS categoria\nFROM productos p\nINNER JOIN categorias c ON p.id_categoria = c.id\nLEFT JOIN linea_pedido lp ON p.id = lp.id_producto\nWHERE lp.id_pedido IS NULL\nORDER BY p.nombre;\n`"
+        },
+        {
+          "type": "text",
+          "content": "## EXISTS y NOT EXISTS\n\n### Clientes que han hecho al menos un pedido de mas de 100EUR\n\n`sql\nSELECT c.nombre, c.apellidos\nFROM clientes c\nWHERE EXISTS (\n  SELECT 1 FROM pedidos ped\n  WHERE ped.id_cliente = c.id AND ped.total > 100\n)\nORDER BY c.nombre;\n`\n\n### Productos cuyo precio supera la media de su categoria\n\n`sql\nSELECT p.nombre, p.precio, c.nombre AS categoria,\n  (SELECT ROUND(AVG(p2.precio), 2)\n   FROM productos p2 WHERE p2.id_categoria = p.id_categoria) AS media_categoria\nFROM productos p\nINNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.precio > (\n  SELECT AVG(p2.precio) FROM productos p2 WHERE p2.id_categoria = p.id_categoria\n)\nORDER BY c.nombre, p.precio DESC;\n`"
+        },
+        {
+          "type": "text",
+          "content": "## UNION: combinar resultados\n\n### Resumen unificado de pagos\n\n`sql\nSELECT 'Completado' AS tipo, COUNT(*) AS cantidad, SUM(importe) AS total\nFROM pagos WHERE estado = 'completado'\nUNION ALL\nSELECT 'Rechazado', COUNT(*), SUM(importe)\nFROM pagos WHERE estado = 'rechazado'\nUNION ALL\nSELECT 'Pendiente', COUNT(*), SUM(importe)\nFROM pagos WHERE estado = 'pendiente';\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Consultas complejas de negocio\n\n### Pedidos cuyo total supera la media\n\n`sql\nSELECT ped.id, c.nombre AS cliente, ped.fecha, ped.total,\n  ROUND((SELECT AVG(total) FROM pedidos WHERE estado != 'cancelado'), 2) AS media_general\nFROM pedidos ped\nINNER JOIN clientes c ON ped.id_cliente = c.id\nWHERE ped.total > (SELECT AVG(total) FROM pedidos WHERE estado != 'cancelado')\n  AND ped.estado != 'cancelado'\nORDER BY ped.total DESC;\n`\n\n### Productos vendidos por categoria\n\n`sql\nSELECT c.nombre AS categoria,\n  COUNT(DISTINCT lp.id_pedido) AS num_pedidos,\n  SUM(lp.cantidad) AS unidades_totales,\n  SUM(lp.cantidad * lp.precio_unitario) AS ingresos\nFROM linea_pedido lp\nINNER JOIN productos p ON lp.id_producto = p.id\nINNER JOIN categorias c ON p.id_categoria = c.id\nINNER JOIN pedidos ped ON lp.id_pedido = ped.id\nWHERE ped.estado != 'cancelado'\nGROUP BY c.id, c.nombre\nHAVING SUM(lp.cantidad * lp.precio_unitario) > 0\nORDER BY ingresos DESC;\n`\n\n### Pedidos con pago completado y productos agotados\n\n`sql\nSELECT DISTINCT ped.id AS pedido, c.nombre AS cliente, ped.fecha, ped.total\nFROM pedidos ped\nINNER JOIN clientes c ON ped.id_cliente = c.id\nINNER JOIN pagos pg ON ped.id = pg.id_pedido\nWHERE pg.estado = 'completado'\n  AND EXISTS (\n    SELECT 1 FROM linea_pedido lp\n    INNER JOIN productos p ON lp.id_producto = p.id\n    WHERE lp.id_pedido = ped.id AND p.stock = 0\n  );\n`"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-10-1",
+          "title": "Consultas multitabla",
+          "difficulty": "hard",
+          "description": "Escribe consultas SQL para resolver:\n1. Que clientes han comprado productos de mas de 5 categorias diferentes?\n2. Cual es el gasto total de cada cliente en cada categoria?\n3. Que productos se han vendido mas de 5 veces en total (unidades)?\n4. Lista los pedidos que tienen al menos un pago rechazado.\n5. Que clientes no tienen ninguna direccion registrada?",
+          "solution": "`sql\n-- 1. Clientes con +5 categorias distintas\nSELECT c.nombre, c.apellidos, COUNT(DISTINCT cat.id) AS categorias\nFROM clientes c\nINNER JOIN pedidos ped ON c.id = ped.id_cliente\nINNER JOIN linea_pedido lp ON ped.id = lp.id_pedido\nINNER JOIN productos p ON lp.id_producto = p.id\nINNER JOIN categorias cat ON p.id_categoria = cat.id\nWHERE ped.estado != 'cancelado'\nGROUP BY c.id, c.nombre, c.apellidos\nHAVING COUNT(DISTINCT cat.id) > 5;\n\n-- 2. Gasto por cliente y categoria\nSELECT c.nombre, c.apellidos, cat.nombre AS categoria,\n  SUM(lp.cantidad * lp.precio_unitario) AS gasto\nFROM clientes c\nINNER JOIN pedidos ped ON c.id = ped.id_cliente\nINNER JOIN linea_pedido lp ON ped.id = lp.id_pedido\nINNER JOIN productos p ON lp.id_producto = p.id\nINNER JOIN categorias cat ON p.id_categoria = cat.id\nWHERE ped.estado != 'cancelado'\nGROUP BY c.id, c.nombre, c.apellidos, cat.id, cat.nombre\nORDER BY c.nombre, gasto DESC;\n\n-- 3. Productos vendidos >5 unidades\nSELECT p.nombre, SUM(lp.cantidad) AS unidades\nFROM productos p\nINNER JOIN linea_pedido lp ON p.id = lp.id_producto\nINNER JOIN pedidos ped ON lp.id_pedido = ped.id\nWHERE ped.estado != 'cancelado'\nGROUP BY p.id, p.nombre\nHAVING SUM(lp.cantidad) > 5 ORDER BY unidades DESC;\n\n-- 4. Pedidos con pago rechazado\nSELECT DISTINCT ped.id, c.nombre, ped.fecha, ped.total\nFROM pedidos ped\nINNER JOIN clientes c ON ped.id_cliente = c.id\nINNER JOIN pagos pg ON ped.id = pg.id_pedido\nWHERE pg.estado = 'rechazado';\n\n-- 5. Clientes sin direccion\nSELECT c.nombre, c.apellidos, c.email\nFROM clientes c LEFT JOIN direcciones d ON c.id = d.id_cliente\nWHERE d.id IS NULL;\n`"
+        },
+        {
+          "id": "ex-17-10-2",
+          "title": "Consultas avanzadas con subconsultas",
+          "difficulty": "hard",
+          "description": "Escribe consultas SQL para:\n1. Que productos tienen un precio mayor que todos los productos de la categoria 'Alimentos'?\n2. Cuales son los 3 dias con mayor facturacion?\n3. Que clientes han pagado con mas de un metodo de pago diferente?\n4. Lista los productos cuyo stock esta por debajo del promedio de stock de su categoria.\n5. Que pedidos tienen un solo producto en todas sus lineas?",
+          "solution": "`sql\n-- 1. Productos mas caros que todos los de Alimentos\nSELECT p.nombre, p.precio, c.nombre AS categoria\nFROM productos p INNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.precio > ALL (\n  SELECT p2.precio FROM productos p2\n  INNER JOIN categorias c2 ON p2.id_categoria = c2.id WHERE c2.nombre = 'Alimentos'\n) ORDER BY p.precio DESC;\n\n-- 2. 3 dias con mayor facturacion\nSELECT DATE(fecha) AS dia, SUM(total) AS facturacion\nFROM pedidos WHERE estado != 'cancelado'\nGROUP BY DATE(fecha) ORDER BY facturacion DESC LIMIT 3;\n\n-- 3. Clientes con >1 metodo de pago\nSELECT c.nombre, c.apellidos, COUNT(DISTINCT pg.metodo_pago) AS metodos\nFROM clientes c\nINNER JOIN pedidos ped ON c.id = ped.id_cliente\nINNER JOIN pagos pg ON ped.id = pg.id_pedido\nWHERE pg.estado = 'completado'\nGROUP BY c.id, c.nombre, c.apellidos\nHAVING COUNT(DISTINCT pg.metodo_pago) > 1;\n\n-- 4. Stock debajo del promedio de su categoria\nSELECT p.nombre, p.stock, c.nombre AS categoria,\n  (SELECT ROUND(AVG(p2.stock)) FROM productos p2\n   WHERE p2.id_categoria = p.id_categoria) AS stock_medio_cat\nFROM productos p INNER JOIN categorias c ON p.id_categoria = c.id\nWHERE p.stock < (SELECT AVG(p2.stock) FROM productos p2\n  WHERE p2.id_categoria = p.id_categoria)\nORDER BY c.nombre;\n\n-- 5. Pedidos con un solo producto\nSELECT ped.id, c.nombre, ped.total\nFROM pedidos ped INNER JOIN clientes c ON ped.id_cliente = c.id\nWHERE ped.id IN (\n  SELECT id_pedido FROM linea_pedido GROUP BY id_pedido\n  HAVING COUNT(DISTINCT id_producto) = 1\n) ORDER BY ped.id;\n`"
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-11",
+      "title": "Modificacion de datos",
+      "order": 11,
+      "objectives": [
+        "Ejecutar INSERT, UPDATE y DELETE de forma segura",
+        "Aplicar el principio SELECT antes de UPDATE/DELETE",
+        "Manejar errores controlados: UNIQUE, FK, CHECK, NOT NULL",
+        "Realizar operaciones DML complejas en la tienda online"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Principio de seguridad: SELECT antes de MODIFY\n\n**NUNCA** ejecutes un UPDATE o DELETE sin antes verificar que filas se veran afectadas.\n\n`sql\n-- MAL: UPDATE directo\nUPDATE productos SET precio = precio * 1.10;\n-- Esto actualiza TODOS los productos. Es lo que querias?\n\n-- BIEN: Verificar primero\nSELECT id, nombre, precio FROM productos WHERE activo = TRUE;\n-- Ahora si, con criterio:\nUPDATE productos SET precio = ROUND(precio * 1.10, 2) WHERE id_categoria = 1;\n`\n\n`sql\n-- MAL: DELETE directo\nDELETE FROM clientes WHERE estado = 'inactivo';\n-- Y si tienen pedidos? Y si RESTRICT lo impide?\n\n-- BIEN: Verificar primero\nSELECT c.id, c.nombre, c.apellidos, COUNT(ped.id) AS pedidos\nFROM clientes c\nLEFT JOIN pedidos ped ON c.id = ped.id_cliente\nWHERE c.estado = 'inactivo'\nGROUP BY c.id, c.nombre, c.apellidos;\n-- Ahora sabes que vas a borrar y sus dependencias\n`"
+        },
+        {
+          "type": "text",
+          "content": "## INSERT: casos practicos\n\n### Insertar un cliente con su direccion\n\n`sql\nINSERT INTO clientes (nombre, apellidos, email, fecha_alta, estado)\nVALUES ('Lucia', 'Torres Vega', 'lucia.tv@email.com', CURRENT_DATE, 'activo');\n\nSET @nuevo_id = LAST_INSERT_ID();\n\nINSERT INTO direcciones (id_cliente, calle, ciudad, cp, es_principal)\nVALUES (@nuevo_id, 'Calle Nueva 10, 2A', 'Barcelona', '08001', TRUE);\n`\n\n### INSERT con validacion de errores\n\n`sql\n-- Esto FALLA: email duplicado\nINSERT INTO clientes (nombre, apellidos, email)\nVALUES ('Test', 'Duplicado', 'ana.garcia@email.com');\n-- Error: Duplicate entry for key 'clientes.email'\n\n-- Esto FALLA: precio negativo\nINSERT INTO productos (nombre, precio, stock, id_categoria)\nVALUES ('Test', -5.00, 10, 1);\n-- Error: Check constraint violated\n\n-- Esto FALLA: categoria inexistente\nINSERT INTO productos (nombre, precio, stock, id_categoria)\nVALUES ('Test', 10.00, 10, 999);\n-- Error: foreign key constraint fails\n`"
+        },
+        {
+          "type": "text",
+          "content": "## UPDATE: casos practicos\n\n### Cambiar email de un cliente\n\n`sql\nSELECT id, nombre, email FROM clientes WHERE id = 1;\nUPDATE clientes SET email = 'nuevo.email@email.com' WHERE id = 1;\n`\n\n### Actualizar precio de productos de una categoria\n\n`sql\nSELECT nombre, precio FROM productos WHERE id_categoria = 1;\nUPDATE productos SET precio = ROUND(precio * 1.10, 2) WHERE id_categoria = 1;\nSELECT nombre, precio FROM productos WHERE id_categoria = 1;\n`\n\n### Cancelar un pedido\n\n`sql\nSELECT id, estado, total FROM pedidos WHERE id = 11;\nUPDATE pedidos SET estado = 'cancelado' WHERE id = 11;\n`\n\n### Actualizar stock de un producto\n\n`sql\nSELECT nombre, stock FROM productos WHERE id = 1;\nUPDATE productos SET stock = stock - 2 WHERE id = 1 AND stock >= 2;\n-- La condicion stock >= 2 evita stock negativo\nSELECT nombre, stock FROM productos WHERE id = 1;\n`"
+        },
+        {
+          "type": "text",
+          "content": "## DELETE: casos practicos\n\n### Desactivar producto (mejor que borrar)\n\n`sql\nSELECT id, nombre, activo, stock FROM productos WHERE id = 5;\nUPDATE productos SET activo = FALSE WHERE id = 5;\n`\n\n### Borrar un cliente sin pedidos\n\n`sql\nSELECT COUNT(*) AS pedidos FROM pedidos WHERE id_cliente = 12;\n-- Si es 0, se puede borrar (CASCADE borrara sus direcciones)\nDELETE FROM clientes WHERE id = 12;\n`\n\n### Intentar borrar un cliente CON pedidos (debe fallar)\n\n`sql\nSELECT COUNT(*) AS pedidos FROM pedidos WHERE id_cliente = 1;\nDELETE FROM clientes WHERE id = 1;\n-- Error: Cannot delete or update a parent row: foreign key constraint fails\n`\n\n> **Regla de oro para DELETE**: Si un DELETE falla por FK, no fuerces la eliminacion. Primero gestiona las dependencias (desactivar, reasignar) y luego borras."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-11-1",
+          "title": "Operaciones INSERT y UPDATE",
+          "difficulty": "intermediate",
+          "description": "Ejecuta las siguientes operaciones en la tienda online:\n\n1. Inserta un nuevo cliente con nombre 'Carmen Rios' y email 'carmen.rios@email.com'. Asociale una direccion en Sevilla.\n2. Inserta un nuevo producto en la categoria 'Electronica' con precio 59.99 y stock 30.\n3. Actualiza el precio de todos los productos de la categoria 'Libros' subiendolos un 5%.\n4. Cambia el estado del pedido 11 a 'procesando'.\n5. Desactiva el producto con id 5 (Webcam HD 1080p).",
+          "solution": "`sql\n-- 1. Nuevo cliente con direccion\nINSERT INTO clientes (nombre, apellidos, email, fecha_alta, estado)\nVALUES ('Carmen', 'Rios', 'carmen.rios@email.com', CURRENT_DATE, 'activo');\nSET @carmen_id = LAST_INSERT_ID();\nINSERT INTO direcciones (id_cliente, calle, ciudad, cp, es_principal)\nVALUES (@carmen_id, 'Avenida de la Constitucion 25, 4C', 'Sevilla', '41001', TRUE);\n\n-- 2. Nuevo producto\nSELECT id FROM categorias WHERE nombre = 'Electronica';\nINSERT INTO productos (nombre, descripcion, precio, stock, activo, id_categoria)\nVALUES ('Altavoz portatil BT', 'Altavoz Bluetooth resistente al agua', 59.99, 30, TRUE, 1);\n\n-- 3. Subir precios libros 5%\nSELECT nombre, precio FROM productos WHERE id_categoria = 5;\nUPDATE productos SET precio = ROUND(precio * 1.05, 2) WHERE id_categoria = 5;\nSELECT nombre, precio FROM productos WHERE id_categoria = 5;\n\n-- 4. Cambiar estado pedido 11\nSELECT id, estado FROM pedidos WHERE id = 11;\nUPDATE pedidos SET estado = 'procesando' WHERE id = 11;\n\n-- 5. Desactivar producto 5\nSELECT id, nombre, activo FROM productos WHERE id = 5;\nUPDATE productos SET activo = FALSE WHERE id = 5;\n`"
+        },
+        {
+          "id": "ex-17-11-2",
+          "title": "Operaciones DELETE seguras",
+          "difficulty": "hard",
+          "description": "Para cada operacion, primero verifica que se vera afectado y luego ejecuta:\n\n1. Elimina el cliente 12 (Pablo Fernandez Castro). Se puede? Por que?\n2. Elimina la direccion con id 13. Que cliente pierde esa direccion?\n3. Intenta eliminar la categoria 'Electronica'. Que sucede? Por que?\n4. Elimina todos los pagos con estado 'rechazado'. Afecta a los pedidos?\n5. Intenta eliminar el producto con id 1 (Auriculares Bluetooth). Se puede?",
+          "solution": "`sql\n-- 1. Verificar cliente 12\nSELECT c.id, c.nombre, COUNT(ped.id) AS pedidos\nFROM clientes c LEFT JOIN pedidos ped ON c.id = ped.id_cliente\nWHERE c.id = 12 GROUP BY c.id, c.nombre;\nDELETE FROM clientes WHERE id = 12;\n\n-- 2. Verificar direccion 13\nSELECT d.id, d.id_cliente, c.nombre\nFROM direcciones d INNER JOIN clientes c ON d.id_cliente = c.id WHERE d.id = 13;\nDELETE FROM direcciones WHERE id = 13;\n\n-- 3. Intentar borrar categoria\nDELETE FROM categorias WHERE nombre = 'Electronica';\n-- Error: RESTRICT impide borrar categoria con productos\n\n-- 4. Pagos rechazados\nSELECT * FROM pagos WHERE estado = 'rechazado';\nDELETE FROM pagos WHERE estado = 'rechazado';\n-- Los pedidos NO se ven afectados\n\n-- 5. Intentar borrar producto 1\nSELECT COUNT(*) FROM linea_pedido WHERE id_producto = 1;\nDELETE FROM productos WHERE id = 1;\n-- Error: RESTRICT impide borrar producto en pedidos\n`"
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-12",
+      "title": "Transacciones y control de stock",
+      "order": 12,
+      "objectives": [
+        "Comprender por que crear un pedido debe ser una transaccion atomica",
+        "Implementar BEGIN, COMMIT y ROLLBACK en escenarios reales",
+        "Controlar stock con FOR UPDATE para evitar condiciones de carrera",
+        "Analizar deadlocks y como prevenirlos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El corazon transaccional: crear un pedido\n\nCrear un pedido implica **multiples operaciones** que deben ser atomicas:\n\n1. Verificar que el cliente existe y esta activo\n2. Verificar que los productos existen y estan activos\n3. Verificar que hay stock suficiente\n4. Insertar el registro en PEDIDOS\n5. Insertar cada linea en LINEA_PEDIDO\n6. Reducir el stock de cada producto\n7. Registrar el pago o estado del pedido\n8. **Si TODO va bien -> COMMIT**\n9. **Si ALGO falla -> ROLLBACK**\n\n> **Sin transaccion**: Si el paso 6 falla en el segundo producto, tendrias un pedido con una linea insertada pero sin la otra, con stock reducido parcialmente, y sin forma consistente de arreglarlo."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: crear pedido con transaccion\n\n`sql\nSTART TRANSACTION;\n\n-- Paso 1: Verificar cliente activo\nSELECT id, estado FROM clientes WHERE id = 1;\n\n-- Paso 2: Verificar producto y stock con FOR UPDATE\nSELECT id, precio, stock, activo\nFROM productos WHERE id IN (1, 4)\nFOR UPDATE;\n-- FOR UPDATE bloquea estas filas hasta COMMIT o ROLLBACK\n\n-- Paso 3: Crear el pedido\nINSERT INTO pedidos (id_cliente, fecha, estado, total, direccion_envio)\nVALUES (1, CURRENT_TIMESTAMP, 'pendiente', 0, 'Calle Mayor 15, 3B, Madrid, 28001');\n\nSET @pedido_id = LAST_INSERT_ID();\n\n-- Paso 4: Insertar lineas\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES\n  (@pedido_id, 1, 1, 2, 79.99),\n  (@pedido_id, 2, 4, 3, 12.99);\n\n-- Paso 5: Reducir stock\nUPDATE productos SET stock = stock - 2 WHERE id = 1;\nUPDATE productos SET stock = stock - 3 WHERE id = 4;\n\n-- Paso 6: Calcular total\nUPDATE pedidos\nSET total = (2 * 79.99) + (3 * 12.99), estado = 'procesando'\nWHERE id = @pedido_id;\n\n-- Paso 7: Todo OK\nCOMMIT;\n-- Si algo fallo en cualquier paso: ROLLBACK;\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Concurrency: dos clientes compran el ultimo producto\n\nImagina que el producto con id=5 tiene stock = 1. Dos clientes intentan comprarlo al mismo tiempo:\n\n**Sin FOR UPDATE (peligroso)**:\n`\n-- Hilo A: Lee stock = 1\n-- Hilo B: Lee stock = 1\n-- Hilo A: Reduce a 0, COMMIT\n-- Hilo B: Reduce a -1, COMMIT  <- ERROR! Stock negativo\n`\n\n**Con FOR UPDATE (seguro)**:\n`\n-- Hilo A: SELECT ... FOR UPDATE -> Bloquea fila\n-- Hilo B: SELECT ... FOR UPDATE -> Espera (bloqueado)\n-- Hilo A: Reduce a 0, COMMIT\n-- Hilo B: Lee stock = 0, detecta insuficiente, ROLLBACK\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Deadlocks: el peligro de bloqueos cruzados\n\nUn **deadlock** ocurre cuando dos transacciones se bloquean mutuamente:\n\n`\n-- Transaccion A bloquea Producto 1\n-- Transaccion B bloquea Producto 2\n-- Transaccion A intenta bloquear Producto 2 -> Espera a B\n-- Transaccion B intenta bloquear Producto 1 -> Espera a A\n-- DEADLOCK: Ambas esperan eternamente\n`\n\n**MySQL detecta deadlocks** y elige una victima (ROLLBACK automatico). La otra transaccion continua.\n\n**Como prevenir deadlocks**:\n1. **Orden consistente**: Siempre acceder a los productos en orden de id (ascendente).\n2. **Transacciones cortas**: Minimizar el tiempo entre BEGIN y COMMIT.\n3. **FOR UPDATE con ORDER BY**: SELECT ... WHERE id IN (1,2,3) ORDER BY id FOR UPDATE garantiza el mismo orden."
+        },
+        {
+          "type": "text",
+          "content": "## Patron completo con manejo de errores\n\n`sql\nDELIMITER //\n\nCREATE PROCEDURE crear_pedido_atomico(\n  IN p_cliente_id INT,\n  IN p_producto_id INT,\n  IN p_cantidad INT,\n  IN p_direccion TEXT\n)\nBEGIN\n  DECLARE v_precio DECIMAL(10,2);\n  DECLARE v_stock INT;\n\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    ROLLBACK;\n    SELECT 'ERROR: Transaccion cancelada' AS resultado;\n  END;\n\n  START TRANSACTION;\n\n  -- Verificar cliente\n  IF NOT EXISTS (SELECT 1 FROM clientes WHERE id = p_cliente_id AND estado = 'activo') THEN\n    ROLLBACK;\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Cliente no valido o inactivo';\n  END IF;\n\n  -- Verificar producto y stock con FOR UPDATE\n  SELECT precio, stock INTO v_precio, v_stock\n  FROM productos WHERE id = p_producto_id AND activo = TRUE FOR UPDATE;\n\n  IF v_precio IS NULL THEN\n    ROLLBACK;\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Producto no valido o inactivo';\n  END IF;\n\n  IF v_stock < p_cantidad THEN\n    ROLLBACK;\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Stock insuficiente';\n  END IF;\n\n  -- Crear pedido\n  INSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\n  VALUES (p_cliente_id, 'pendiente', v_precio * p_cantidad, p_direccion);\n\n  -- Insertar linea\n  INSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\n  VALUES (LAST_INSERT_ID(), 1, p_producto_id, p_cantidad, v_precio);\n\n  -- Reducir stock\n  UPDATE productos SET stock = stock - p_cantidad WHERE id = p_producto_id;\n\n  COMMIT;\n  SELECT CONCAT('Pedido #', LAST_INSERT_ID(), ' creado exitosamente') AS resultado;\nEND //\n\nDELIMITER ;\n`"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-12-1",
+          "title": "Transacciones basicas",
+          "difficulty": "hard",
+          "description": "Ejecuta las siguientes transacciones en MySQL:\n\n1. Crea un pedido para el cliente 3 con los productos 2 y 3 (cantidad 1 cada uno). Usa BEGIN/COMMIT.\n2. Crea una transaccion que intente insertar un producto con precio negativo y verifica que hace ROLLBACK.\n3. Reduce el stock del producto 1 en 5 unidades dentro de una transaccion. Verifica el resultado.\n4. Cancela el pedido 11 (cambiar estado a 'cancelado') dentro de una transaccion.\n5. Crea una transaccion que intente borrar la categoria 1 (con productos). Que sucede? Necesitas ROLLBACK?",
+          "solution": "`sql\n-- 1. Crear pedido valido\nSTART TRANSACTION;\nINSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\nVALUES (3, 'pendiente', 0, 'Paseo de Castellana 100, Madrid, 28046');\nSET @pid = LAST_INSERT_ID();\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES (@pid, 1, 2, 1, 29.99);\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES (@pid, 2, 3, 1, 89.99);\nUPDATE productos SET stock = stock - 1 WHERE id = 2;\nUPDATE productos SET stock = stock - 1 WHERE id = 3;\nUPDATE pedidos SET total = 29.99 + 89.99 WHERE id = @pid;\nCOMMIT;\n\n-- 2. Transaccion con error\nSTART TRANSACTION;\nINSERT INTO productos (nombre, precio, stock, id_categoria)\nVALUES ('Test mal', -10, 5, 1);\nROLLBACK;\n\n-- 3. Reducir stock\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 1 FOR UPDATE;\nUPDATE productos SET stock = stock - 5 WHERE id = 1;\nSELECT stock FROM productos WHERE id = 1;\nCOMMIT;\n\n-- 4. Cancelar pedido\nSTART TRANSACTION;\nSELECT id, estado FROM pedidos WHERE id = 11;\nUPDATE pedidos SET estado = 'cancelado' WHERE id = 11;\nCOMMIT;\n\n-- 5. Intentar borrar categoria\nSTART TRANSACTION;\nDELETE FROM categorias WHERE id = 1;\n-- Error: RESTRICT impide borrar\nROLLBACK;\n`"
+        },
+        {
+          "id": "ex-17-12-2",
+          "title": "Control de concurrencia con FOR UPDATE",
+          "difficulty": "hard",
+          "description": "En dos sesiones de MySQL separadas, simula una condicion de carrera:\n\n1. En la sesion A: Abre una transaccion y selecciona el producto 1 con FOR UPDATE. No hagas COMMIT todavia.\n2. En la sesion B: Intenta seleccionar el mismo producto con FOR UPDATE. Que sucede?\n3. En la sesion A: Actualiza el stock y haz COMMIT.\n4. En la sesion B: Que ve ahora? Puede continuar?\n\nLuego responde:\n5. Por que FOR UPDATE es necesario para el control de stock?\n6. Como podrias prevenir un deadlock si dos pedidos actualizan los productos en orden inverso?",
+          "solution": "`sql\n-- Sesion A:\nSTART TRANSACTION;\nSELECT id, nombre, stock FROM productos WHERE id = 1 FOR UPDATE;\n-- stock = 48 (por ejemplo)\n-- NO HAGAS COMMIT AUN!\n\n-- Sesion B (en otra pestana/consola):\nSTART TRANSACTION;\nSELECT id, nombre, stock FROM productos WHERE id = 1 FOR UPDATE;\n-- ESPERA... no puede acceder hasta que A haga COMMIT o ROLLBACK\n\n-- Sesion A:\nUPDATE productos SET stock = stock - 2 WHERE id = 1;\nCOMMIT;\n\n-- Sesion B:\n-- Ahora puede acceder. Lee stock = 46\n`\n\n**Respuestas**:\n5. FOR UPDATE previene que dos transacciones lean el mismo stock y lo reduzcan simultaneamente, causando stock negativo.\n6. Para prevenir deadlocks: siempre acceder a los productos en orden ASC por id. WHERE id IN (4,1) ORDER BY id FOR UPDATE garantiza orden consistente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-13",
+      "title": "Procedimientos y funciones",
+      "order": 13,
+      "objectives": [
+        "Disenar procedimientos almacenados con parametros IN y OUT",
+        "Crear funciones que calculen valores derivados",
+        "Usar DECLARE, SELECT INTO, IF, CASE en logica procedural",
+        "Implementar rutinas utiles para la tienda online"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Procedimiento: crear pedido\n\n`sql\nDELIMITER //\n\nCREATE PROCEDURE crear_pedido(\n  IN p_cliente_id INT,\n  IN p_producto_id INT,\n  IN p_cantidad INT,\n  IN p_direccion TEXT\n)\nBEGIN\n  DECLARE v_precio DECIMAL(10,2);\n  DECLARE v_stock INT;\n  DECLARE v_pedido_id INT;\n  DECLARE v_estado_cliente VARCHAR(10);\n\n  -- Verificar cliente activo\n  SELECT estado INTO v_estado_cliente\n  FROM clientes WHERE id = p_cliente_id;\n\n  IF v_estado_cliente IS NULL THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El cliente no existe';\n  END IF;\n\n  IF v_estado_cliente != 'activo' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El cliente no esta activo';\n  END IF;\n\n  -- Verificar producto y stock\n  SELECT precio, stock INTO v_precio, v_stock\n  FROM productos WHERE id = p_producto_id AND activo = TRUE;\n\n  IF v_precio IS NULL THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El producto no existe o esta inactivo';\n  END IF;\n\n  IF v_stock < p_cantidad THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Stock insuficiente';\n  END IF;\n\n  -- Crear pedido\n  INSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\n  VALUES (p_cliente_id, 'pendiente', v_precio * p_cantidad, p_direccion);\n\n  SET v_pedido_id = LAST_INSERT_ID();\n\n  -- Insertar linea\n  INSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\n  VALUES (v_pedido_id, 1, p_producto_id, p_cantidad, v_precio);\n\n  -- Reducir stock\n  UPDATE productos SET stock = stock - p_cantidad WHERE id = p_producto_id;\n\n  SELECT CONCAT('Pedido #', v_pedido_id, ' creado. Total: ', v_precio * p_cantidad) AS resultado;\nEND //\n\nDELIMITER ;\n\n-- Uso:\nCALL crear_pedido(1, 2, 3, 'Calle Mayor 15, Madrid');\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Procedimiento: productos con stock bajo\n\n`sql\nDELIMITER //\n\nCREATE PROCEDURE productos_stock_bajo(\n  IN p_umbral INT\n)\nBEGIN\n  SELECT p.id, p.nombre, p.stock, c.nombre AS categoria,\n    CASE\n      WHEN p.stock = 0 THEN 'AGOTADO'\n      WHEN p.stock <= p_umbral THEN 'BAJO'\n      ELSE 'OK'\n    END AS estado_stock\n  FROM productos p\n  INNER JOIN categorias c ON p.id_categoria = c.id\n  WHERE p.activo = TRUE AND p.stock <= p_umbral\n  ORDER BY p.stock ASC, p.nombre;\nEND //\n\nDELIMITER ;\n\n-- Uso:\nCALL productos_stock_bajo(20);\n`\n\n## Procedimiento con parametro OUT\n\n`sql\nDELIMITER //\n\nCREATE PROCEDURE ttotal_pedidos_cliente(\n  IN p_cliente_id INT,\n  OUT p_total DECIMAL(10,2),\n  OUT p_num_pedidos INT\n)\nBEGIN\n  SELECT IFNULL(SUM(total), 0), COUNT(id)\n  INTO p_total, p_num_pedidos\n  FROM pedidos\n  WHERE id_cliente = p_cliente_id AND estado != 'cancelado';\nEND //\n\nDELIMITER ;\n\n-- Uso:\nCALL ttotal_pedidos_cliente(1, @total, @num);\nSELECT @total AS gasto_total, @num AS num_pedidos;\n`\n\n> **SELECT INTO**: Almacena el resultado de una consulta en variables. Funciona para consultas que devuelven una sola fila."
+        },
+        {
+          "type": "text",
+          "content": "## Funcion: calcular total de una linea de pedido\n\n`sql\nDELIMITER //\n\nCREATE FUNCTION calcular_total_linea(\n  p_cantidad INT,\n  p_precio_unitario DECIMAL(10,2)\n) RETURNS DECIMAL(10,2)\nDETERMINISTIC\nBEGIN\n  RETURN p_cantidad * p_precio_unitario;\nEND //\n\nDELIMITER ;\n\n-- Uso:\nSELECT lp.id_pedido, p.nombre, lp.cantidad, lp.precio_unitario,\n  calcular_total_linea(lp.cantidad, lp.precio_unitario) AS subtotal\nFROM linea_pedido lp\nINNER JOIN productos p ON lp.id_producto = p.id\nWHERE lp.id_pedido = 1;\n`\n\n> **DETERMINISTIC**: Indica que la funcion siempre devuelve el mismo resultado para los mismos argumentos."
+        },
+        {
+          "type": "text",
+          "content": "## Uso de IF y CASE en procedimientos\n\n`sql\nDELIMITER //\n\nCREATE PROCEDURE resumen_estado_pedido(\n  IN p_pedido_id INT\n)\nBEGIN\n  DECLARE v_estado VARCHAR(20);\n  DECLARE v_total DECIMAL(10,2);\n  DECLARE v_msg TEXT;\n\n  SELECT estado, total INTO v_estado, v_total\n  FROM pedidos WHERE id = p_pedido_id;\n\n  IF v_estado IS NULL THEN\n    SET v_msg = 'Pedido no encontrado';\n  ELSE\n    SET v_msg = CASE v_estado\n      WHEN 'pendiente' THEN 'Esperando procesamiento'\n      WHEN 'procesando' THEN 'En preparacion'\n      WHEN 'enviado' THEN 'En camino al cliente'\n      WHEN 'entregado' THEN 'Completado exitosamente'\n      WHEN 'cancelado' THEN 'Pedido cancelado'\n      ELSE 'Estado desconocido'\n    END;\n    SET v_msg = CONCAT(v_msg, '. Total: ', v_total);\n  END IF;\n\n  SELECT v_msg AS resumen;\nEND //\n\nDELIMITER ;\n\n-- Uso:\nCALL resumen_estado_pedido(1);\n`\n\n## Resumen de elementos procedural\n\n| Elemento | Uso |\n|---|---|\n| DECLARE | Declarar variables locales |\n| SELECT INTO | Almacenar resultado de consulta |\n| IF ... THEN ... END IF | Condicional |\n| CASE ... WHEN ... END | Multiples condiciones |\n| SET | Asignar valor a variable |\n| SIGNAL SQLSTATE '45000' | Lanzar error personalizado |\n| RETURNS ... DETERMINISTIC | Definir funcion |\n| IN / OUT / INOUT | Parametros de procedimiento |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-13-1",
+          "title": "Crear procedimientos almacenados",
+          "difficulty": "hard",
+          "description": "Crea los siguientes procedimientos en la tienda online:\n\n1. listar_pedidos_cliente(cliente_id): Muestra todos los pedidos de un cliente con su fecha, estado y total.\n2. \buscar_productos(termino): Busca productos cuyo nombre o descripcion contenga el termino dado (usa LIKE).\n3. resumen_ventas(): Muestra un resumen general: total facturado, numero de pedidos, ticket medio, producto mas vendido.",
+          "solution": "`sql\n-- 1. Listar pedidos de un cliente\nDELIMITER //\nCREATE PROCEDURE listar_pedidos_cliente(IN p_cliente_id INT)\nBEGIN\n  SELECT ped.id AS pedido, ped.fecha, ped.estado, ped.total,\n    (SELECT COUNT(*) FROM linea_pedido lp WHERE lp.id_pedido = ped.id) AS num_lineas\n  FROM pedidos ped\n  WHERE ped.id_cliente = p_cliente_id\n  ORDER BY ped.fecha DESC;\nEND //\nDELIMITER ;\n\n-- 2. Buscar productos\nDELIMITER //\nCREATE PROCEDURE buscar_productos(IN p_termino VARCHAR(100))\nBEGIN\n  SELECT p.id, p.nombre, p.precio, p.stock, c.nombre AS categoria\n  FROM productos p\n  INNER JOIN categorias c ON p.id_categoria = c.id\n  WHERE p.activo = TRUE\n    AND (p.nombre LIKE CONCAT('%', p_termino, '%')\n         OR p.descripcion LIKE CONCAT('%', p_termino, '%'))\n  ORDER BY p.nombre;\nEND //\nDELIMITER ;\n\n-- 3. Resumen de ventas\nDELIMITER //\nCREATE PROCEDURE resumen_ventas()\nBEGIN\n  SELECT SUM(pg.importe) AS total_facturado,\n    COUNT(DISTINCT ped.id) AS num_pedidos,\n    ROUND(AVG(ped.total), 2) AS ticket_medio,\n    (SELECT p.nombre FROM linea_pedido lp\n     INNER JOIN productos p ON lp.id_producto = p.id\n     INNER JOIN pedidos ped2 ON lp.id_pedido = ped2.id\n     WHERE ped2.estado != 'cancelado'\n     GROUP BY p.id ORDER BY SUM(lp.cantidad) DESC LIMIT 1) AS producto_mas_vendido\n  FROM pagos pg\n  INNER JOIN pedidos ped ON pg.id_pedido = ped.id\n  WHERE pg.estado = 'completado';\nEND //\nDELIMITER ;\n`"
+        },
+        {
+          "id": "ex-17-13-2",
+          "title": "Crear funciones y procedimientos con OUT",
+          "difficulty": "hard",
+          "description": "Crea las siguientes rutinas:\n\n1. **Funcion** total_pedido(pedido_id): Retorna el total calculado de las lineas de un pedido (SUMA de cantidad * precio_unitario).\n2. **Procedimiento** resumen_cliente(cliente_id, OUT total_gastado, OUT num_pedidos, OUT ultimo_pedido): Retorna via OUT el total gastado, el numero de pedidos y la fecha del ultimo pedido.\n3. **Procedimiento** productos_mas_vendidos(limite): Muestra los N productos mas vendidos en unidades totales.",
+          "solution": "`sql\n-- 1. Funcion ttotal_pedido\nDELIMITER //\nCREATE FUNCTION ttotal_pedido(p_pedido_id INT) RETURNS DECIMAL(10,2)\nDETERMINISTIC\nBEGIN\n  DECLARE v_total DECIMAL(10,2);\n  SELECT IFNULL(SUM(cantidad * precio_unitario), 0)\n  INTO v_total FROM linea_pedido WHERE id_pedido = p_pedido_id;\n  RETURN v_total;\nEND //\nDELIMITER ;\n\n-- 2. Procedimiento resumen_cliente\nDELIMITER //\nCREATE PROCEDURE resumen_cliente(\n  IN p_cliente_id INT,\n  OUT p_total_gastado DECIMAL(10,2),\n  OUT p_num_pedidos INT,\n  OUT p_ultimo_pedido DATETIME\n)\nBEGIN\n  SELECT IFNULL(SUM(total), 0), COUNT(id), MAX(fecha)\n  INTO p_total_gastado, p_num_pedidos, p_ultimo_pedido\n  FROM pedidos WHERE id_cliente = p_cliente_id AND estado != 'cancelado';\nEND //\nDELIMITER ;\n\nCALL resumen_cliente(1, @gastado, @num, @ultimo);\nSELECT @gastado, @num, @ultimo;\n\n-- 3. Productos mas vendidos\nDELIMITER //\nCREATE PROCEDURE productos_mas_vendidos(IN p_limite INT)\nBEGIN\n  SELECT p.nombre, c.nombre AS categoria,\n    SUM(lp.cantidad) AS unidades_vendidas,\n    SUM(lp.cantidad * lp.precio_unitario) AS ingresos\n  FROM linea_pedido lp\n  INNER JOIN productos p ON lp.id_producto = p.id\n  INNER JOIN categorias c ON p.id_categoria = c.id\n  INNER JOIN pedidos ped ON lp.id_pedido = ped.id\n  WHERE ped.estado != 'cancelado'\n  GROUP BY p.id, p.nombre, c.nombre\n  ORDER BY unidades_vendidas DESC LIMIT p_limite;\nEND //\nDELIMITER ;\n\nCALL productos_mas_vendidos(5);\n`"
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-14",
+      "title": "Triggers, auditoria y errores",
+      "order": 14,
+      "objectives": [
+        "Crear una tabla de auditoria para cambios en estados de pedido",
+        "Implementar triggers AFTER UPDATE que registren cambios de estado",
+        "Usar SIGNAL para errores descriptivos en validaciones",
+        "Distinguir cuando usar triggers vs cuando usar CHECK/FK"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Tabla de auditoria\n\n`sql\nCREATE TABLE auditoria_pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_pedido INT NOT NULL,\n  estado_anterior VARCHAR(20),\n  estado_nuevo VARCHAR(20),\n  usuario VARCHAR(100) DEFAULT CURRENT_USER(),\n  fecha_cambio DATETIME DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE CASCADE ON UPDATE CASCADE\n);\n`\n\n> **Por que una tabla aparte?** Los triggers se ejecutan automaticamente. La tabla de auditoria nos permite rastrear quien cambio que y cuando, sin modificar la logica de negocio principal."
+        },
+        {
+          "type": "text",
+          "content": "## Trigger: registrar cambios de estado\n\n`sql\nDELIMITER //\n\nCREATE TRIGGER trg_estado_pedido\nAFTER UPDATE ON pedidos\nFOR EACH ROW\nBEGIN\n  -- Solo registrar si el estado realmente cambio\n  IF OLD.estado != NEW.estado THEN\n    INSERT INTO auditoria_pedidos (id_pedido, estado_anterior, estado_nuevo)\n    VALUES (NEW.id, OLD.estado, NEW.estado);\n  END IF;\nEND //\n\nDELIMITER ;\n`\n\n### Por que la condicion IF OLD.estado != NEW.estado?\n\nSi actualizas el total sin cambiar el estado, el trigger se ejecuta (es AFTER UPDATE) pero **no inserta nada** porque el estado no cambio. Esto evita registros de auditoria innecesarios.\n\n### Prueba del trigger\n\n`sql\n-- Cambiar estado de un pedido\nUPDATE pedidos SET estado = 'enviado' WHERE id = 1;\n\n-- Verificar auditoria\nSELECT * FROM auditoria_pedidos WHERE id_pedido = 1;\n-- Debe mostrar: estado_anterior = 'procesando', estado_nuevo = 'enviado'\n\n-- Cambiar estado otra vez\nUPDATE pedidos SET estado = 'entregado' WHERE id = 1;\n\n-- Verificar que se registro\nSELECT * FROM auditoria_pedidos WHERE id_pedido = 1;\n-- Debe mostrar 2 registros\n`"
+        },
+        {
+          "type": "text",
+          "content": "## SIGNAL para errores descriptivos\n\nMySQL permite lanzar errores personalizados con SIGNAL.\n\n### Ejemplo: no permitir cambiar a estado inconsistente\n\n`sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_estado_pedido\nBEFORE UPDATE ON pedidos\nFOR EACH ROW\nBEGIN\n  -- No se puede volver de 'entregado' a 'pendiente'\n  IF OLD.estado = 'entregado' AND NEW.estado = 'pendiente' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede revertir un pedido entregado';\n  END IF;\n\n  -- No se puede cambiar el estado de un pedido cancelado\n  IF OLD.estado = 'cancelado' AND NEW.estado != 'cancelado' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Un pedido cancelado no puede cambiar de estado';\n  END IF;\nEND //\n\nDELIMITER ;\n`\n\n### Prueba\n\n`sql\n-- Cambiar a estado 'cancelado'\nUPDATE pedidos SET estado = 'cancelado' WHERE id = 12;\n-- OK\n\n-- Intentar cambiar de vuelta\nUPDATE pedidos SET estado = 'pendiente' WHERE id = 12;\n-- Error: Un pedido cancelado no puede cambiar de estado\n`"
+        },
+        {
+          "type": "text",
+          "content": "## SIGNAL para stock insuficiente en procedimiento\n\n`sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_stock\nBEFORE INSERT ON linea_pedido\nFOR EACH ROW\nBEGIN\n  DECLARE v_stock INT;\n\n  SELECT stock INTO v_stock\n  FROM productos WHERE id = NEW.id_producto;\n\n  IF v_stock < NEW.cantidad THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Stock insuficiente para esta cantidad';\n  END IF;\nEND //\n\nDELIMITER ;\n`\n\n> **Nota**: Este trigger valida stock al INSERTAR en linea_pedido. Sin embargo, en un sistema real, la validacion de stock se hace mejor en una transaccion con FOR UPDATE (leccion 12), porque el stock puede cambiar entre la validacion y la insercion."
+        },
+        {
+          "type": "text",
+          "content": "## Cuando usar triggers vs CHECK/FK?\n\n| Situacion | Mejor herramienta |\n|---|---|\n| Valor debe ser >= 0 | CHECK constraint |\n| FK debe existir | FOREIGN KEY |\n| No borrar registro con hijos | ON DELETE RESTRICT |\n| Validar logica compleja (IF condicional) | TRIGGER + SIGNAL |\n| Registrar quien cambio que | TRIGGER + tabla de auditoria |\n| Prevenir transiciones de estado invalidas | TRIGGER + SIGNAL |\n| Mantener un campo calculado (total) | TRIGGER o PROCEDURE |\n\n### Regla practica\n\n**Si se puede expresar con CHECK o FK, usalas**. Son mas simples, mas rapidas y se ejecutan antes que los triggers. Los triggers son para logica que **no se puede expresar** con constraints."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-14-1",
+          "title": "Crear sistema de auditoria",
+          "difficulty": "hard",
+          "description": "Implementa el sistema de auditoria completo:\n\n1. Crea la tabla auditoria_pedidos con todos los campos necesarios.\n2. Crea el trigger trg_estado_pedido (AFTER UPDATE) que registre cambios de estado.\n3. Crea el trigger trg_validar_estado (BEFORE UPDATE) que impida transiciones invalidas.\n4. Prueba ambos triggers haciendo varios cambios de estado.\n5. Consulta la tabla de auditoria y verifica que los registros son correctos.",
+          "solution": "`sql\n-- 1. Tabla de auditoria\nCREATE TABLE auditoria_pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_pedido INT NOT NULL,\n  estado_anterior VARCHAR(20),\n  estado_nuevo VARCHAR(20),\n  usuario VARCHAR(100) DEFAULT CURRENT_USER(),\n  fecha_cambio DATETIME DEFAULT CURRENT_TIMESTAMP,\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id)\n    ON DELETE CASCADE ON UPDATE CASCADE\n);\n\n-- 2. Trigger AFTER UPDATE\nDELIMITER //\nCREATE TRIGGER trg_estado_pedido\nAFTER UPDATE ON pedidos\nFOR EACH ROW\nBEGIN\n  IF OLD.estado != NEW.estado THEN\n    INSERT INTO auditoria_pedidos (id_pedido, estado_anterior, estado_nuevo)\n    VALUES (NEW.id, OLD.estado, NEW.estado);\n  END IF;\nEND //\nDELIMITER ;\n\n-- 3. Trigger BEFORE UPDATE\nDELIMITER //\nCREATE TRIGGER trg_validar_estado\nBEFORE UPDATE ON pedidos\nFOR EACH ROW\nBEGIN\n  IF OLD.estado = 'entregado' AND NEW.estado = 'pendiente' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede revertir un pedido entregado';\n  END IF;\n  IF OLD.estado = 'cancelado' AND NEW.estado != 'cancelado' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Un pedido cancelado no puede cambiar de estado';\n  END IF;\nEND //\nDELIMITER ;\n\n-- 4. Pruebas\nUPDATE pedidos SET estado = 'procesando' WHERE id = 11;\nUPDATE pedidos SET estado = 'enviado' WHERE id = 11;\nUPDATE pedidos SET estado = 'entregado' WHERE id = 11;\nUPDATE pedidos SET estado = 'pendiente' WHERE id = 11;\n-- Error esperado\n\n-- 5. Verificar auditoria\nSELECT * FROM auditoria_pedidos WHERE id_pedido = 11 ORDER BY fecha_cambio;\n`"
+        },
+        {
+          "id": "ex-17-14-2",
+          "title": "Triggers de validacion",
+          "difficulty": "hard",
+          "description": "Crea los siguientes triggers:\n\n1. ** trg_nuevo_cliente**: AFTER INSERT en clientes. Si el email contiene 'test', automaticamente poner estado = 'inactivo'.\n2. ** trg_actualizar_total**: AFTER INSERT en linea_pedido. Recalcula el total del padre.\n3. Prueba cada trigger y verifica que funciona correctamente.",
+          "solution": "`sql\n-- 1. Trigger para clientes de prueba\nDELIMITER //\nCREATE TRIGGER trg_nuevo_cliente\nAFTER INSERT ON clientes\nFOR EACH ROW\nBEGIN\n  IF NEW.email LIKE '%test%' AND NEW.estado = 'activo' THEN\n    UPDATE clientes SET estado = 'inactivo' WHERE id = NEW.id;\n  END IF;\nEND //\nDELIMITER ;\n\n-- Prueba:\nINSERT INTO clientes (nombre, apellidos, email)\nVALUES ('Test', 'Usuario', 'test.usuario@email.com');\n-- Verificar: el cliente debe estar inactivo\n\n-- 2. Trigger para actualizar total\nDELIMITER //\nCREATE TRIGGER trg_actualizar_total\nAFTER INSERT ON linea_pedido\nFOR EACH ROW\nBEGIN\n  UPDATE pedidos\n  SET total = (\n    SELECT IFNULL(SUM(cantidad * precio_unitario), 0)\n    FROM linea_pedido WHERE id_pedido = NEW.id_pedido\n  ) WHERE id = NEW.id_pedido;\nEND //\nDELIMITER ;\n\n-- Prueba:\nINSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\nVALUES (1, 'pendiente', 0, 'Calle Test');\nSET @pid = LAST_INSERT_ID();\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES (@pid, 1, 1, 2, 79.99);\nSELECT id, total FROM pedidos WHERE id = @pid;\n-- Total debe ser 159.98\n`"
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-15",
+      "title": "Pruebas y depuracion",
+      "order": 15,
+      "objectives": [
+        "Ejecutar pruebas de integridad sobre la base de datos",
+        "Verificar que las consultas devuelven resultados correctos",
+        "Probar transacciones con COMMIT, ROLLBACK y errores controlados",
+        "Depurar scripts SQL con errores intencionales"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Fase de pruebas: por que importa\n\nUn proyecto sin pruebas es un proyecto a medias. Las pruebas verifican que:\n1. Las restricciones realmente protegen los datos\n2. Las consultas devuelven resultados correctos\n3. Las transacciones fallan y recuperan correctamente\n4. Los triggers y procedimientos funcionan como se espera\n\n> **Filosofia**: Prueba TODO, incluyendo lo que \"deberia funcionar\". Los bugs mas peligrosos estan donde no los esperas."
+        },
+        {
+          "type": "text",
+          "content": "## Pruebas de integridad\n\n### Prueba 1: Email duplicado\n`sql\n-- Debe fallar\nINSERT INTO clientes (nombre, apellidos, email)\nVALUES ('Duplicate', 'Test', 'ana.garcia@email.com');\n-- Error: Duplicate entry\n`\n\n### Prueba 2: Precio negativo\n`sql\n-- Debe fallar\nINSERT INTO productos (nombre, precio, stock, id_categoria)\nVALUES ('Test negativo', -5.00, 10, 1);\n-- Error: CHECK constraint\n`\n\n### Prueba 3: Cantidad 0\n`sql\n-- Debe fallar (requiere LINEA_PEDIDO existente)\n-- Primero crear un pedido y linea:\nINSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\nVALUES (1, 'pendiente', 0, 'Test');\nSET @pid = LAST_INSERT_ID();\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES (@pid, 1, 1, 0, 10.00);\n-- Error: CHECK constraint cantidad > 0\n`\n\n### Prueba 4: FK inexistente\n`sql\n-- Debe fallar\nINSERT INTO productos (nombre, precio, stock, id_categoria)\nVALUES ('Test FK', 10.00, 10, 999);\n-- Error: foreign key constraint\n`\n\n### Prueba 5: Borrar categoria con productos\n`sql\n-- Debe fallar\nDELETE FROM categorias WHERE id = 1;\n-- Error: RESTRICT\n`\n\n### Prueba 6: Borrar cliente con pedidos\n`sql\n-- Debe fallar\nDELETE FROM clientes WHERE id = 1;\n-- Error: RESTRICT\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Pruebas de consultas\n\nPara cada consulta, verifica que los resultados son coherentes con los datos insertados:\n\n`sql\n-- Verificar productos activos con stock\nSELECT COUNT(*) AS productos_disponibles\nFROM productos WHERE activo = TRUE AND stock > 0;\n-- Debe ser > 0\n\n-- Verificar que el total de un pedido coincide con sus lineas\nSELECT ped.id, ped.total,\n  (SELECT SUM(cantidad * precio_unitario) FROM linea_pedido WHERE id_pedido = ped.id) AS calculado\nFROM pedidos ped\nWHERE ped.total != (\n  SELECT IFNULL(SUM(cantidad * precio_unitario), 0)\n  FROM linea_pedido WHERE id_pedido = ped.id\n);\n-- Debe devolver 0 filas (todos los totales coinciden)\n\n-- Verificar que no hay stock negativo\nSELECT COUNT(*) FROM productos WHERE stock < 0;\n-- Debe ser 0\n\n-- Verificar unico email\nSELECT email, COUNT(*) FROM clientes GROUP BY email HAVING COUNT(*) > 1;\n-- Debe devolver 0 filas\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Pruebas de transacciones\n\n### Prueba COMMIT\n`sql\nSTART TRANSACTION;\nUPDATE productos SET stock = stock - 1 WHERE id = 1;\nCOMMIT;\nSELECT stock FROM productos WHERE id = 1;\n-- Stock debe haber disminuido en 1\n`\n\n### Prueba ROLLBACK\n`sql\nSTART TRANSACTION;\nUPDATE productos SET stock = stock - 100 WHERE id = 1;\nROLLBACK;\nSELECT stock FROM productos WHERE id = 1;\n-- Stock debe ser el mismo que antes\n`\n\n### Prueba stock insuficiente\n`sql\nSTART TRANSACTION;\nSELECT stock FROM productos WHERE id = 5 FOR UPDATE;\n-- stock = 0\nUPDATE productos SET stock = stock - 1 WHERE id = 5;\n-- Esto viola CHECK (stock < 0)\nROLLBACK;\n`\n\n### Prueba abort en medio\n`sql\nSTART TRANSACTION;\nINSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\nVALUES (1, 'pendiente', 0, 'Test abort');\n-- Simular error aqui...\nROLLBACK;\n-- El pedido no debe existir\nSELECT COUNT(*) FROM pedidos WHERE direccion_envio = 'Test abort';\n-- Debe ser 0"
+        },
+        {
+          "type": "text",
+          "content": "## Pruebas de rutinas y triggers\n\n### Procedimiento con entrada valida\n`sql\nCALL crear_pedido(1, 2, 1, 'Direccion de prueba');\n-- Debe crear el pedido exitosamente\n`\n\n### Procedimiento con entrada invalida\n`sql\nCALL crear_pedido(999, 2, 1, 'Direccion');\n-- Error: Cliente no existe\n\nCALL crear_pedido(1, 2, 9999, 'Direccion');\n-- Error: Stock insuficiente\n`\n\n### Trigger de auditoria\n`sql\n-- Verificar que se registro el cambio\nSELECT * FROM auditoria_pedidos ORDER BY fecha_cambio DESC LIMIT 5;\n-- Debe mostrar registros de los cambios hechos\n`\n\n### Trigger de validacion de estado\n`sql\n-- Intentar accion invalida\nUPDATE pedidos SET estado = 'cancelado' WHERE id = 1;\nUPDATE pedidos SET estado = 'pendiente' WHERE id = 1;\n-- Error: Un pedido cancelado no puede cambiar de estado\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Depuracion: scripts intencionalmente rotos\n\nA continuacion, errores comunes que debes detectar y corregir:\n\n### Error 1: FK a tabla inexistente\n`sql\n-- MAL:\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY,\n  id_cliente INT,\n  FOREIGN KEY (id_cliente) REFERENCES usuarios(id) -- No existe 'usuarios'\n);\n-- FIX: Cambiar 'usuarios' por 'clientes'\n`\n\n### Error 2: UPDATE sin WHERE\n`sql\n-- MAL:\nUPDATE productos SET precio = 0;\n-- FIX: Agregar WHERE con criterio especifico\nUPDATE productos SET precio = 0 WHERE id = 999;\n`\n\n### Error 3: JOIN incorrecto\n`sql\n-- MAL:\nSELECT * FROM pedidos p\nINNER JOIN productos pr ON p.id = pr.id; -- Tipicamente une id de pedido con id de producto\n-- FIX: Usar la tabla intermedia\nSELECT * FROM pedidos p\nINNER JOIN linea_pedido lp ON p.id = lp.id_pedido\nINNER JOIN productos pr ON lp.id_producto = pr.id;\n`\n\n### Error 4: GROUP BY incompleto\n`sql\n-- MAL:\nSELECT c.nombre, p.nombre, COUNT(*)\nFROM categorias c\nINNER JOIN productos p ON c.id = p.id_categoria\nGROUP BY c.nombre;\n-- FIX: Incluir todas las columnas no agregadas\nGROUP BY c.nombre, p.nombre;\n`\n\n### Error 5: Delimiter mal cerrado\n`sql\n-- MAL:\nDELIMITER //\nCREATE PROCEDURE test()\nBEGIN\n  SELECT 1;\n-- Falta END // y DELIMITER ;\n\n-- FIX:\nDELIMITER //\nCREATE PROCEDURE test()\nBEGIN\n  SELECT 1;\nEND //\nDELIMITER ;\n`"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-15-1",
+          "title": "Suite de pruebas de integridad",
+          "difficulty": "hard",
+          "description": "Ejecuta la siguiente bateria de pruebas y documenta los resultados:\n\n1. Intenta crear un cliente con email duplicado (debe fallar)\n2. Intenta crear un producto con precio negativo (debe fallar)\n3. Intenta crear un producto con stock negativo (debe fallar)\n4. Intenta crear un producto con categoria inexistente (debe fallar)\n5. Intenta borrar una categoria con productos (debe fallar)\n6. Intenta borrar un cliente con pedidos (debe fallar)\n7. Borra un cliente sin pedidos (debe funcionar)\n8. Verifica que no hay stock negativo en ningun producto\n9. Verifica que todos los emails son unicos\n10. Verifica que el total de cada pedido coincide con la suma de sus lineas",
+          "solution": "Todas las pruebas deben documentarse con el resultado esperado vs obtenido. Las pruebas 1-6 deben fallar. La prueba 7 debe funcionar. Las pruebas 8-10 deben devolver 0 anomalias.\n\nTemplate de documentacion:\n| # | Prueba | Esperado | Resultado | OK? |\n|---|---|---|---|---|\n| 1 | Email duplicado | Error | Error: Duplicate entry | Si |\n| 2 | Precio negativo | Error | Error: CHECK constraint | Si |\n| ... | ... | ... | ... | ... |"
+        },
+        {
+          "id": "ex-17-15-2",
+          "title": "Pruebas de transacciones",
+          "difficulty": "hard",
+          "description": "Ejecuta y verifica:\n\n1. Una transaccion que cree un pedido exitosamente (verificar COMMIT)\n2. Una transaccion que intente crear un pedido con producto inexistente (verificar ROLLBACK)\n3. Una transaccion que intente vender mas stock del disponible (verificar ROLLBACK)\n4. Dos transacciones simultaneas intentando comprar el ultimo producto (verificar FOR UPDATE)",
+          "solution": "`sql\n-- 1. Pedido exitoso\nSTART TRANSACTION;\nINSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\nVALUES (2, 'pendiente', 0, 'Test commit');\nSET @pid = LAST_INSERT_ID();\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES (@pid, 1, 2, 1, 29.99);\nUPDATE productos SET stock = stock - 1 WHERE id = 2;\nUPDATE pedidos SET total = 29.99 WHERE id = @pid;\nCOMMIT;\nSELECT * FROM pedidos WHERE id = @pid;\n\n-- 2. Producto inexistente\nSTART TRANSACTION;\nINSERT INTO pedidos (id_cliente, estado, total, direccion_envio)\nVALUES (2, 'pendiente', 0, 'Test rollback');\nSET @pid = LAST_INSERT_ID();\nINSERT INTO linea_pedido (id_pedido, numero_linea, id_producto, cantidad, precio_unitario)\nVALUES (@pid, 1, 999, 1, 10.00);\n-- Error: FK constraint\nROLLBACK;\nSELECT COUNT(*) FROM pedidos WHERE direccion_envio = 'Test rollback';\n-- Debe ser 0\n`"
+        },
+        {
+          "id": "ex-17-15-3",
+          "title": "Depurar scripts con errores",
+          "difficulty": "hard",
+          "description": "Encuentra y corrige los errores en los siguientes scripts:\n\n1. Script con FK a tabla inexistente\n2. Script con UPDATE sin WHERE\n3. Script con JOIN incorrecto\n4. Script con GROUP BY incompleto\n5. Script con Delimiter mal cerrado",
+          "solution": "Los errores y sus correcciones estan documentados en el bloque de contenido de la leccion. Cada script debe ser corregido y ejecutado exitosamente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-17-16",
+      "title": "Entrega final, documentacion y solucion de referencia",
+      "order": 16,
+      "objectives": [
+        "Definir la estructura de deliverables del proyecto",
+        "Crear un README completo que explique el proyecto",
+        "Documentar decisiones de diseno y justificaciones",
+        "Presentar la solucion de referencia completa"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Estructura de deliverables\n\nTu proyecto debe contener los siguientes archivos:\n\n`\ntienda_online/\n  schema.sql          -- DDL: creacion de BD y tablas\n  datos.sql           -- DML: insercion de datos de prueba\n  consultas.sql       -- Consultas basicas y avanzadas\n  dml.sql             -- Operaciones INSERT, UPDATE, DELETE\n  transacciones.sql   -- Transacciones con control de stock\n  rutinas.sql         -- Procedimientos almacenados y funciones\n  triggers.sql        -- Triggers y tabla de auditoria\n  pruebas.md          -- Documento de pruebas ejecutadas\n  README.md           -- Documentacion completa del proyecto\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Que debe contener el README.md\n\n`markdown\n# Proyecto: Tienda Online - Base de Datos MySQL\n\n## Objetivo\nSistema de gestion de una tienda online que vende productos a clientes.\n\n## Modelo de datos\nDescripcion de las 7 tablas: CLIENTES, DIRECCIONES, CATEGORIAS,\nPRODUCTOS, PEDIDOS, LINEA_PEDIDO, PAGOS.\n\n## Diagrama E/R\n[Incluir imagen o representacion textual del diagrama]\n\n## Decisiones de diseno\n1. DIRECCION_ENVIO como TEXT (snapshot historico)\n2. LINEA_PEDIDO con PK compuesta (sin id propio)\n3. PAGO con id propio (integracion con sistemas externos)\n4. Restricciones CHECK para reglas de negocio\n5. Acciones referenciales justificadas\n\n## Instalacion y ejecucion\n1. Ejecutar schema.sql\n2. Ejecutar datos.sql\n3. Ejecutar triggers.sql (antes de rutinas)\n4. Ejecutar rutinas.sql\n\n## Scripts\n- **schema.sql**: Crea la BD y las 7 tablas\n- **datos.sql**: Inserta dataset de prueba (12 clientes, 30 productos, 20+ pedidos)\n- **consultas.sql**: 10+ consultas de negocio\n- **dml.sql**: Operaciones de modificacion seguras\n- **transacciones.sql**: Creacion atomica de pedidos\n- **rutinas.sql**: 4+ procedimientos y funciones\n- **triggers.sql**: Auditoria y validacion\n- **pruebas.md**: Resultados de todas las pruebas\n\n## Pruebas\nResumen de pruebas ejecutadas y resultados.\n\n## Limitaciones\n- El control de stock requiere transacciones con FOR UPDATE\n- El trigger de stock es una capa adicional, no el mecanismo principal\n- No maneja multiples unidades de medida\n\n## Extensiones opcionales\nVer seccion de desafios en la leccion.\n`"
+        },
+        {
+          "type": "text",
+          "content": "## Codigo SQL legible\n\nTu SQL debe ser legible para cualquier persona:\n\n`sql\n-- =============================================\n-- CONSULTA: Productos mas vendidos\n-- Proposito: Identificar los productos con mayor demanda\n-- Parametros: Ninguno\n-- Retorna: Lista de productos ordenados por unidades vendidas\n-- =============================================\n\nSELECT\n  p.nombre AS producto,\n  c.nombre AS categoria,\n  SUM(lp.cantidad) AS unidades_vendidas,\n  SUM(lp.cantidad * lp.precio_unitario) AS ingresos\nFROM linea_pedido lp\nINNER JOIN productos p ON lp.id_producto = p.id\nINNER JOIN categorias c ON p.id_categoria = c.id\nINNER JOIN pedidos ped ON lp.id_pedido = ped.id\nWHERE ped.estado != 'cancelado'\nGROUP BY p.id, p.nombre, c.nombre\nORDER BY unidades_vendidas DESC\nLIMIT 10;\n`\n\n### Convenciones de nomenclatura\n- **Tablas**: plural, snake_case (productos, linea_pedido)\n- **Columnas**: singular, snake_case (id_cliente, precio_unitario)\n- **PK**: id (excepto entidades asociativas: id_pedido, numero_linea)\n- **FK**: id_tabla_singular (id_cliente, id_categoria, id_pedido, id_producto)\n- **Indices**: idx_tabla_columna (idx_productos_categoria)\n- **Triggers**: trg_accion_tabla (trg_estado_pedido)\n- **Procedures**: verbo_nombre (crear_pedido, listar_pedidos_cliente)\n- **Functions**: verbo_nombre (calcular_total_linea, ttotal_pedido)"
+        },
+        {
+          "type": "text",
+          "content": "## Soluciones alternativas validas\n\nDiferentes disenos pueden ser igualmente validos:\n\n1. **PAGO con PK compuesta** (id_pedido, numero_pago) en lugar de id propio\n2. **TABLA DIRECCION_ENVIO** separada en lugar de TEXT en PEDIDO\n3. **ESTADO como VARCHAR** en lugar de ENUM (mas flexible)\n4. **LOG_TABLE** en lugar de tabla de auditoria nombrada\n5. **TOTAL calculado** solo con vista/virtual en lugar de campo almacenado\n\n> **Clave**: No hay una sola respuesta correcta. Lo importante es que puedas **justificar** cada decision."
+        },
+        {
+          "type": "text",
+          "content": "## Desafios opcionales\n\nSi completaste el proyecto base, intenta estas extensiones:\n\n1. **Sistema de cupones/descuentos**: Tabla CUPONES con porcentaje, fecha_expiracion, uso_maximo. LINEA_PEDIDO con columna descuento.\n2. **Proveedores**: Tabla PROVEEDORES, relacion con PRODUCTOS (un producto puede tener multiples proveedores).\n3. **Devoluciones**: Tabla DEVOLUCIONES con motivo, estado, fecha. Relacion con PEDIDO y PRODUCTO.\n4. **Valoraciones**: Tabla VALORACIONES con puntuacion (1-5), comentario. Relacion CLIENTE-PRODUCTO.\n5. **Favoritos**: Tabla FAVORITOS como relacion N:M entre CLIENTES y PRODUCTOS.\n6. **Multi-almacen**: Tabla ALMACENES, STOCK_POR_ALMACEN. Un producto tiene stock distribuido.\n7. **Historial de precios**: Tabla HISTORIAL_PRECIOS para auditar cambios de precio.\n\n> **Extension NoSQL** (conecta con M16): Que parte de la tienda podria beneficiarse de un modelo documental? El catalogo de productos con campos variables por categoria es un candidato ideal para MongoDB."
+        },
+        {
+          "type": "text",
+          "content": "## Autoevaluacion\n\nAntes de entregar, verifica:\n\n### Diseno\n- [ ] Diagrama E/R completo con 7 entidades\n- [ ] Modelo relacional con PK, FK, tipos justificados\n- [ ] Normalizacion verificada hasta 3NF\n- [ ] Acciones referenciales justificadas\n\n### Implementacion\n- [ ] schema.sql ejecuta sin errores\n- [ ] datos.sql inserta dataset rico y coherente\n- [ ] Todas las consultas devuelven resultados correctos\n- [ ] Transacciones funcionan (COMMIT y ROLLBACK)\n- [ ] Procedimientos y funciones operan correctamente\n- [ ] Triggers registran cambios y validan estado\n\n### Documentacion\n- [ ] README.md explica el proyecto completo\n- [ ] Cada script tiene comentarios utiles\n- [ ] Convencion de nomenclatura consistente\n- [ ] Pruebas documentadas en pruebas.md\n\n### Calidad\n- [ ] SQL legible con indentacion correcta\n- [ ] Sin errores de tipeo en nombres de tablas/columnas\n- [ ] Datos de prueba realistas y variados\n- [ ] No hay inconsistencias entre scripts"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-17-16-1",
+          "title": "Entrega completa del proyecto",
+          "difficulty": "hard",
+          "description": "Prepara la entrega final del proyecto:\n\n1. Organiza todos los scripts en la estructura de carpetas indicada.\n2. Asegurate de que cada script se puede ejecutar en orden: schema -> datos -> triggers -> rutinas -> consultas -> dml -> transacciones.\n3. Crea el README.md completo.\n4. Ejecuta TODOS los scripts desde cero en una BD limpia y verifica que no hay errores.\n5. Documenta al menos 10 pruebas en pruebas.md con resultado esperado vs obtenido.\n6. Revisa la convencion de nomenclatura: todo en snake_case, sin inconsistencias.",
+          "solution": "La entrega debe incluir los 9 archivos listados arriba, ejecutables en orden sin errores. El README debe contener minimo: objetivo, modelo de datos, diagrama, decisiones de diseno, instrucciones de instalacion, y limitaciones.\n\nVerificacion final:\n`sql\n-- Crear BD limpia\nDROP DATABASE IF EXISTS tienda_online;\nSOURCE schema.sql;\nSOURCE datos.sql;\nSOURCE triggers.sql;\nSOURCE rutinas.sql;\n\n-- Verificar que todo funciona\nSHOW TABLES;\n-- 8 tablas: categorias, clientes, direcciones, productos, pedidos, linea_pedido, pagos, auditoria_pedidos\n\nSELECT COUNT(*) FROM productos;\n-- 30 productos\n\nSELECT COUNT(*) FROM pedidos;\n-- 20+ pedidos\n\nCALL resumen_ventas();\n-- Debe devolver resultados\n\nCALL productos_stock_bajo(20);\n-- Debe mostrar productos con stock bajo\n`"
+        }
+      ]
+    }
+  ]
+}
