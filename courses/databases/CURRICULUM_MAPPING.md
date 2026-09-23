@@ -120,9 +120,14 @@
 | Diseño E/R completo | mod-03 | lesson-03-1 a lesson-03-5 |
 | Transformación E/R a relacional | mod-04 | lesson-04-1 a lesson-04-5 |
 | Normalización completa (1NF, 2NF, 3NF) | mod-05 | lesson-05-1 a lesson-05-5 |
-| Índices para optimización | mod-07 | lesson-07-1 |
-| Vistas | mod-07 | lesson-07-2 |
-| Seguridad (usuarios y privilegios) | mod-07 | lesson-07-3 |
+| Vistas: conceptos y ventajas | mod-07 | lesson-07-1 |
+| Crear y gestionar vistas | mod-07 | lesson-07-2 |
+| Índices y rendimiento | mod-07 | lesson-07-3 |
+| Crear y gestionar índices | mod-07 | lesson-07-4 |
+| Usuarios y autenticación | mod-07 | lesson-07-5 |
+| Privilegios, GRANT y REVOKE | mod-07 | lesson-07-6 |
+| Seguridad y mínimo privilegio | mod-07 | lesson-07-7 |
+| Caso práctico y repaso | mod-07 | lesson-07-8 |
 | Proyecto final: diseño completo | mod-17 | lesson-17-1 a lesson-17-3 |
 
 ### RA7: Bases de datos no relacionales
@@ -141,9 +146,9 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 70 |
-| Bloques de contenido | ~250 |
-| Ejercicios | ~50 |
+| Lecciones totales | 75 |
+| Bloques de contenido | ~265 |
+| Ejercicios | ~62 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
@@ -156,7 +161,7 @@
 | mod-04: E/R a Relacional | 5 | 15 | 3 |
 | mod-05: Normalización | 5 | 15 | 3 |
 | mod-06: Creación SQL | 4 | 12 | 3 |
-| mod-07: Estructura y seguridad | 3 | 9 | 2 |
+| mod-07: Vistas, índices, usuarios y privilegios | 8 | 24 | 14 |
 | mod-08: Consultas básicas | 4 | 12 | 3 |
 | mod-09: Funciones y resumen | 3 | 9 | 3 |
 | mod-10: Consultas multitabla | 3 | 9 | 2 |
@@ -167,7 +172,7 @@
 | mod-15: Triggers/cursores | 2 | 6 | 2 |
 | mod-16: NoSQL | 2 | 6 | 2 |
 | mod-17: Proyecto final | 3 | 9 | 3 |
-| **TOTAL** | **70** | **~204** | **~50** |
+| **TOTAL** | **75** | **~265** | **~62** |
 
 ## Bases de datos de ejemplo utilizadas
 

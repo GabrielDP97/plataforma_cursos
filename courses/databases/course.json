@@ -41,7 +41,7 @@
     { "id": "mod-04", "title": "Del modelo E/R al modelo relacional", "slug": "er-a-relacional", "order": 4 },
     { "id": "mod-05", "title": "Normalización", "slug": "normalizacion", "order": 5 },
     { "id": "mod-06", "title": "Creación de bases de datos con SQL", "slug": "creacion-sql", "order": 6 },
-    { "id": "mod-07", "title": "Elementos avanzados de estructura y seguridad", "slug": "estructura-seguridad", "order": 7 },
+    { "id": "mod-07", "title": "Vistas, índices, usuarios y privilegios", "slug": "vistas-indices-seguridad", "order": 7 },
     { "id": "mod-08", "title": "Consultas SQL básicas", "slug": "consultas-basicas", "order": 8 },
     { "id": "mod-09", "title": "Funciones y consultas resumen", "slug": "funciones-consultas-resumen", "order": 9 },
     { "id": "mod-10", "title": "Consultas multitabla", "slug": "consultas-multitabla", "order": 10 },
