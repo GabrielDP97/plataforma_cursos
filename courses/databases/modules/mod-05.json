@@ -4,122 +4,263 @@
   "title": "Normalización",
   "slug": "normalizacion",
   "order": 5,
-  "description": "Problemas de diseño, redundancia, anomalías, dependencias funcionales y formas normales 1NF, 2NF, 3NF.",
+  "description": "Problemas de diseño, redundancia, anomalías, dependencias funcionales, claves y formas normales 1NF, 2NF, 3NF. Proceso completo de normalización y caso práctico final.",
   "objectives": [
-    "Identificar problemas de diseño en una tabla",
-    "Comprender la redundancia y las anomalías de actualización",
-    "Definir dependencias funcionales",
-    "Aplicar la Primera Forma Normal (1NF)",
-    "Aplicar la Segunda Forma Normal (2NF)",
-    "Aplicar la Tercera Forma Normal (3NF)",
-    "Realizar ejercicios completos de normalización"
+    "Comprender por qué es necesario normalizar una base de datos",
+    "Identificar redundancia y las tres anomalías de actualización",
+    "Definir dependencias funcionales y su notación",
+    "Identificar claves candidatas, primarias y determinantes",
+    "Aplicar la Primera Forma Normal (1NF) eliminando valores no atómicos",
+    "Aplicar la Segunda Forma Normal (2NF) eliminando dependencias parciales",
+    "Aplicar la Tercera Forma Normal (3NF) eliminando dependencias transitivas",
+    "Realizar un proceso completo de normalización paso a paso",
+    "Resolver casos prácticos aplicando todas las formas normales"
   ],
-  "estimatedMinutes": 360,
+  "estimatedMinutes": 480,
   "lessons": [
     {
       "id": "lesson-05-1",
-      "title": "Problemas de diseño: redundancia y anomalías",
+      "title": "¿Por qué normalizamos una base de datos?",
       "order": 1,
       "objectives": [
-        "Identificar redundancia en una tabla",
-        "Reconocer las tres anomalías de actualización",
-        "Comprender por qué la normalización es necesaria"
+        "Comprender el propósito de la normalización",
+        "Reconocer los problemas que resuelve la normalización",
+        "Entender el proceso progresivo de las formas normales"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## ¿Por qué normalizar?\n\nSupongamos que tenemos esta tabla en una tienda online:\n\n```sql\nCREATE TABLE pedidos_bad (\n  id_pedido INT,\n  fecha DATE,\n  cliente_nombre VARCHAR(50),\n  cliente_email VARCHAR(100),\n  cliente_direccion VARCHAR(200),\n  producto_nombre VARCHAR(100),\n  producto_precio DECIMAL(10,2),\n  producto_categoria VARCHAR(50),\n  cantidad INT,\n  total DECIMAL(10,2)\n);\n```\n\n### Datos de ejemplo\n\n```\n+------------+------------+----------+-------------------+------------------+--------------+-----------------+-----------------+------+--------+\n| id_pedido  | fecha      | cliente  | email             | direccion        | producto     | precio          | categoria       | cant | total  |\n+------------+------------+----------+-------------------+------------------+--------------+-----------------+-----------------+------+--------+\n| 1          | 2026-01-10 | Juan     | juan@mail.com     | C/ Mayor 1       | Portátil     | 649.99          | Informática     | 1    | 649.99 |\n| 2          | 2026-01-11 | Juan     | juan@mail.com     | C/ Mayor 1       | Ratón        | 19.99           | Periféricos     | 2    | 39.98  |\n| 3          | 2026-01-12 | María    | maria@mail.com    | Av. Libertad 5   | Portátil     | 649.99          | Informática     | 1    | 649.99 |\n+------------+------------+----------+-------------------+------------------+--------------+-----------------+-----------------+------+--------+\n```"
+          "content": "## ¿Qué es la normalización?\n\nLa **normalización** es el proceso de organizar los datos en una base de datos para **minimizar la redundancia** y **evitar anomalías** de actualización.\n\nFue propuesta por **Edgar F. Codd** en 1970 como parte del modelo relacional. El objetivo es diseñar tablas donde cada dato se almacene **una sola vez**.\n\n### ¿Por qué es necesaria?\n\nCuando diseñamos una tabla sin seguir reglas, cometemos errores comunes:\n- Guardamos el mismo dato **múltiples veces** (redundancia).\n- Si queremos actualizar un dato, hay que cambiarlo en **muchas filas**.\n- Si borramos una fila, podemos **perder información** que no debería perderse.\n- No podemos guardar ciertos datos **sin tener otros datos**.\n\nLa normalización resuelve estos problemas de forma **sistemática**."
         },
         {
           "type": "text",
-          "content": "## El problema: Redundancia\n\nObserva los datos:\n- **\"Juan\"**, **\"juan@mail.com\"**, **\"C/ Mayor 1\"** aparecen **2 veces**.\n- **\"Portátil\"**, **\"649.99\"**, **\"Informática\"** aparecen **2 veces**.\n\nEsta **redundancia** causa tres tipos de **anomalías**:\n\n### 1. Anomalía de inserción\n\nNo podemos guardar un cliente nuevo sin que haga un pedido, porque la tabla es de pedidos.\n\n```sql\n-- ¿Cómo guardo un cliente nuevo que aún no ha comprado?\n-- No puedo: necesito un id_pedido, que no tengo.\n```\n\n### 2. Anomalía de eliminación\n\nSi eliminamos el pedido 2, perdemos la información de que \"Juan\" tiene el email \"juan@mail.com\".\n\n```sql\n-- Eliminar el pedido 2 elimina también los datos de Juan\n-- (si fuera el único pedido de Juan)\n```\n\n### 3. Anomalía de actualización\n\nSi Juan cambia de email, hay que actualizar TODOS los pedidos de Juan. Si olvidamos alguno, los datos quedan inconsistentes.\n\n```sql\n-- Si Juan cambia de email, hay que actualizar CADA FILA\nUPDATE pedidos_bad SET cliente_email = 'juan.nuevo@mail.com'\nWHERE cliente_nombre = 'Juan';\n-- Si hay 100 pedidos de Juan, hay que actualizar 100 filas\n```\n\n> **Conclusión**: Esta tabla tiene un diseño deficiente. La normalización resuelve estos problemas."
+          "content": "## El proceso: Formas normales\n\nLa normalización se realiza en **pasos sucesivos**, cada uno con una regla:\n\n```\nTabla sin normalizar\n    ↓  1FN: Valores atómicos\nTabla en 1FN\n    ↓  2FN: Sin dependencias parciales\nTabla en 2FN\n    ↓  3FN: Sin dependencias transitivas\nTabla en 3FN\n```\n\nCada forma normal **hereda** las restricciones de la anterior:\n- Para estar en **2FN**, primero debes estar en **1FN**.\n- Para estar en **3FN**, primero debes estar en **2FN**.\n\n> **Idea clave**: No saltas pasos. Primero arreglas la 1FN, luego la 2FN, luego la 3FN.\n\n### ¿Hasta dónde normalizar?\n\nEn la práctica, la **3FN** es suficiente para la mayoría de bases de datos. Existen formas normales superiores (BCNF, 4FN, 5FN), pero se usan en casos muy específicos.\n\nPara el módulo 0484, la **3FN** es el objetivo."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo motivador\n\nImagina una tabla de una academia:\n\n```\n+----+---------+-----------+--------------+----------+---------------+------+\n| id | nombre  | asignatura| profesor     | departamento | nota        | |\n+----+---------+-----------+--------------+----------+---------------+------+\n|  1 | Juan    | Matemáticas| Ana García  | Ciencias | 8.5           |\n|  1 | Juan    | Física    | Luis Ruiz    | Ciencias | 7.0           |\n|  2 | María   | Matemáticas| Ana García  | Ciencias | 9.0           |\n+----+---------+-----------+--------------+----------+---------------+------+\n```\n\n**Problemas visibles:**\n- \"Juan\" se repite 2 veces.\n- \"Ana García\" y \"Ciencias\" se repite 2 veces.\n- Si Ana García cambia de departamento, hay que actualizar **todas** las filas.\n- Si borramos a María y era la única en Matemáticas, perdemos el dato de que Ana García imparte Matemáticas.\n\nLa normalización resuelve todo esto. A lo largo de este módulo veremos cómo."
         }
       ],
-      "exercises": [
-        {
-          "id": "ex-05-1-1",
-          "title": "Detectar anomalías",
-          "difficulty": "basic",
-          "description": "Dada la tabla de alumnos y notas:\n\n| id_alumno | nombre | id_asignatura | asignatura | nota |\n|---|---|---|---|---|\n| 1 | Juan | 1 | BD | 8 |\n| 1 | Juan | 2 | Prog | 9 |\n| 2 | María | 1 | BD | 7 |\n\nIdentifica al menos una anomalía de cada tipo (inserción, eliminación, actualización).",
-          "solution": "**Anomalía de inserción**: No podemos insertar una asignatura nueva si ningún alumno la tiene. La tabla solo almacena notas, y necesitamos un id_alumno para insertar una fila.\n\n**Anomalía de eliminación**: Si eliminamos todas las notas de Juan (filas 1 y 2), perdemos también su nombre. La información del alumno se pierde.\n\n**Anomalía de actualización**: Si el nombre de Juan está mal escrito y hay 50 filas con \"Juan\", hay que actualizar las 50. Si solo actualizamos algunas, los datos quedan inconsistentes (en unas filas \"Juan\" y en otras \"Jn\")."
-        }
-      ]
+      "exercises": []
     },
     {
       "id": "lesson-05-2",
-      "title": "Dependencias funcionales",
+      "title": "Redundancia y anomalías",
       "order": 2,
       "objectives": [
-        "Definir dependencias funcionales",
-        "Identificar claves candidatas a partir de dependencias",
-        "Comprender la notación formal de dependencias"
+        "Identificar redundancia en una tabla",
+        "Reconocer las tres anomalías de actualización",
+        "Comprender por qué la redundancia es problemática"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## ¿Qué es una dependencia funcional?\n\nUna **dependencia funcional** (DF) es una relación entre atributos que expresa que **conociendo un atributo (o conjunto de atributos), podemos determinar de forma única otro atributo**.\n\n### Notación\n\n```\nA → B\n```\n\nSe lee: \"A determina B\" o \"B depende funcionalmente de A\".\n\n**Significado**: Si conocemos el valor de A, podemos saber el valor exacto de B.\n\n### Ejemplo en la tabla de alumnos\n\n```\nTabla: alumnos (id, nombre, apellido, email, fecha_nacimiento)\n\nDependencias funcionales:\n  id → nombre, apellido, email, fecha_nacimiento\n  email → id, nombre, apellido\n```\n\n- Si conocemos el `id`, sabemos exactamente el `nombre`, `apellido`, etc. → `id` determina todos los demás atributos.\n- Si conocemos el `email`, también podemos saber quién es el alumno → `email` también es identificador."
+          "content": "## El problema: Redundancia\n\nSupongamos que tenemos esta tabla en una tienda online:\n\n```\nCREATE TABLE pedidos_bad (\n  id_pedido INT,\n  fecha DATE,\n  cliente_nombre VARCHAR(50),\n  cliente_email VARCHAR(100),\n  cliente_direccion VARCHAR(200),\n  producto_nombre VARCHAR(100),\n  producto_precio DECIMAL(10,2),\n  producto_categoria VARCHAR(50),\n  cantidad INT,\n  total DECIMAL(10,2)\n);\n```\n\n### Datos de ejemplo\n\n```\n+------------+------------+----------+----------------+------------------+--------------+----------------+----------------+------+--------+\n| id_pedido  | fecha      | cliente  | email          | direccion        | producto     | precio         | categoria      | cant | total  |\n+------------+------------+----------+----------------+------------------+--------------+----------------+----------------+------+--------+\n| 1          | 2026-01-10 | Juan     | juan@mail.com  | C/ Mayor 1       | Portátil     | 649.99         | Informática    | 1    | 649.99 |\n| 2          | 2026-01-11 | Juan     | juan@mail.com  | C/ Mayor 1       | Ratón        | 19.99          | Periféricos    | 2    | 39.98  |\n| 3          | 2026-01-12 | María    | maria@mail.com | Av. Libertad 5   | Portátil     | 649.99         | Informática    | 1    | 649.99 |\n+------------+------------+----------+----------------+------------------+--------------+----------------+----------------+------+--------+\n```\n\nObserva los datos:\n- **\"Juan\"**, **\"juan@mail.com\"**, **\"C/ Mayor 1\"** aparecen **2 veces**.\n- **\"Portátil\"**, **\"649.99\"**, **\"Informática\"** aparecen **2 veces**.\n\nEsta **redundancia** es la raíz de los problemas que veremos a continuación."
         },
         {
           "type": "text",
-          "content": "## Tipos de dependencias\n\n### Dependencia funcional completa\n\nUn atributo B depende funcionalmente de **todos** los atributos del conjunto A, no de una parte.\n\n```\n(A, B) → C\n```\n\nB y A juntos determinan C, pero ni A solo ni B solo determinan C.\n\n### Dependencia funcional parcial\n\nUn atributo B depende de **una parte** del conjunto A.\n\n```\n(A, B) → C, pero también A → C\n```\n\nEn este caso, C depende solo de A, no necesita a B.\n\n### Ejemplo práctico\n\n```sql\n-- Tabla: notas (id_alumno, id_asignatura, nota, nombre_alumno)\n\n-- Dependencias:\n(id_alumno, id_asignatura) → nota        -- Completa: la nota depende de AMBOS\n(id_alumno, id_asignatura) → nombre_alumno -- Parcial: el nombre depende solo de id_alumno\n```\n\nLa nota 8.5 depende de **qué alumno** y **qué asignatura**. Pero el nombre \"Juan\" depende solo del alumno, no de la asignatura."
+          "content": "## Las tres anomalías\n\n### 1. Anomalía de inserción\n\nNo podemos guardar un cliente nuevo sin que haga un pedido, porque la tabla es de pedidos.\n\n```sql\n-- ¿Cómo guardo un cliente nuevo que aún no ha comprado?\n-- No puedo: necesito un id_pedido, que no tengo.\n```\n\n**Problema**: Los datos de cliente están \"atrapados\" en la tabla de pedidos.\n\n### 2. Anomalía de eliminación\n\nSi eliminamos el pedido 2, perdemos la información de que \"Juan\" tiene el email \"juan@mail.com\".\n\n```sql\n-- Eliminar el pedido 2 elimina también los datos de Juan\n-- (si fuera el único pedido de Juan)\n```\n\n**Problema**: Borrar un pedido borra información del cliente que no debería perderse.\n\n### 3. Anomalía de actualización\n\nSi Juan cambia de email, hay que actualizar TODOS los pedidos de Juan. Si olvidamos alguno, los datos quedan inconsistentes.\n\n```sql\n-- Si Juan cambia de email, hay que actualizar CADA FILA\nUPDATE pedidos_bad SET cliente_email = 'juan.nuevo@mail.com'\nWHERE cliente_nombre = 'Juan';\n-- Si hay 100 pedidos de Juan, hay que actualizar 100 filas\n```\n\n**Problema**: Un solo cambio requiere modificar múltiples filas. Si alguna se olvida, los datos quedan inconsistentes."
         },
         {
           "type": "text",
-          "content": "## Claves candidatas\n\nUna **clave candidata** es un conjunto de atributos que:\n1. **Identifica** de forma única cada fila (identificador).\n2. Es **minimal**: no tiene atributos redundantes.\n\n### Ejemplo\n\n```\nTabla: matriculas (id_alumno, id_asignatura, fecha_matricula, nota)\n\nClave candidata: (id_alumno, id_asignatura)\n- Identifica cada matrícula de forma única.\n- Es minimal: no se puede quitar ningún atributo.\n```\n\n### Reglas para encontrar claves candidatas\n\n1. Los atributos que **no aparecen en ningún lado derecho** de una DF son candidatos a clave.\n2. Aplica la **clausura**: qué atributos se pueden determinar a partir de ellos.\n3. Si la clausura contiene todos los atributos, es clave candidata."
+          "content": "## Resumen de anomalías\n\n| Anomalía | Qué ocurre | Ejemplo |\n|---|---|---|\n| **Inserción** | No podemos guardar un dato sin otro dato | No se puede guardar un cliente sin pedido |\n| **Eliminación** | Borrar un registro borra información relacionada | Borrar un pedido borra datos del cliente |\n| **Actualización** | Actualizar un dato requiere cambiar múltiples filas | Cambiar email implica actualizar todos los pedidos |\n\n> **Conclusión**: Esta tabla tiene un diseño deficiente. La normalización resuelve estos problemas separando los datos en tablas donde cada dato se almacena **una sola vez**."
         }
       ],
       "exercises": [
         {
           "id": "ex-05-2-1",
-          "title": "Identificar dependencias",
-          "difficulty": "intermediate",
-          "description": "Dada la tabla: `pedidos (id_pedido, id_cliente, cliente_nombre, cliente_email, id_producto, producto_nombre, cantidad, precio_unitario)`\n\nIdentifica todas las dependencias funcionales y la clave candidata.",
-          "solution": "**Dependencias funcionales:**\n- `id_pedido → id_cliente, id_producto, cantidad, precio_unitario`\n  (Conociendo el pedido, sabemos todo lo demás)\n\n- `id_cliente → cliente_nombre, cliente_email`\n  (Conociendo el cliente, sabemos su nombre y email)\n\n- `id_producto → producto_nombre, precio_unitario`\n  (Conociendo el producto, sabemos su nombre y precio)\n\n**Clave candidata:** `id_pedido`\n- Con `id_pedido` podemos determinar todos los demás atributos (directa o indirectamente).\n- Es minimal: no se puede quitar ningún atributo.\n\n**Problema**: `cliente_nombre` depende solo de `id_cliente`, no de toda la clave. `producto_nombre` depende solo de `id_producto`. Estas son dependencias parciales que violan la 2NF."
+          "title": "Detectar anomalías",
+          "difficulty": "basic",
+          "description": "Dada la tabla de alumnos y notas:\n\n| id_alumno | nombre | id_asignatura | asignatura | nota |\n|---|---|---|---|---|\n| 1 | Juan | 1 | BD | 8 |\n| 1 | Juan | 2 | Prog | 9 |\n| 2 | María | 1 | BD | 7 |\n\nIdentifica al menos una anomalía de cada tipo (inserción, eliminación, actualización).",
+          "solution": "**Anomalía de inserción**: No podemos insertar una asignatura nueva si ningún alumno la tiene. La tabla solo almacena notas, y necesitamos un id_alumno para insertar una fila.\n\n**Anomalía de eliminación**: Si eliminamos todas las notas de Juan (filas 1 y 2), perdemos también su nombre. La información del alumno se pierde.\n\n**Anomalía de actualización**: Si el nombre de Juan está mal escrito y hay 50 filas con \"Juan\", hay que actualizar las 50. Si solo actualizamos algunas, los datos quedan inconsistentes (en unas filas \"Juan\" y en otras \"Jn\")."
+        },
+        {
+          "id": "ex-05-2-2",
+          "title": "Redundancia en tabla de empleados",
+          "difficulty": "basic",
+          "description": "Dada la tabla:\n\n| id_emp | nombre | departamento | jefe_nombre | jefe_email |\n|---|---|---|---|---|\n| 1 | Ana | Ventas | Carlos | carlos@empresa.com |\n| 2 | Luis | Ventas | Carlos | carlos@empresa.com |\n| 3 | María | IT | Pedro | pedro@empresa.com |\n\nIndica qué datos están redundantes y qué anomalías podrían ocurrir.",
+          "solution": "**Datos redundantes**:\n- \"Carlos\" y \"carlos@empresa.com\" aparecen 2 veces (datos del jefe de Ventas).\n- \"Pedro\" y \"pedro@empresa.com\" aparecen 1 vez (pero si hubiera más empleados en IT, se repetirían).\n\n**Anomalías posibles**:\n- **Inserción**: No podemos guardar un jefe nuevo si no tiene empleados asignados.\n- **Eliminación**: Si Ana y Luis se van, perdemos los datos de Carlos (jefe de Ventas).\n- **Actualización**: Si Carlos cambia de email, hay que actualizar todas las filas de empleados de Ventas."
         }
       ]
     },
     {
       "id": "lesson-05-3",
-      "title": "Primera Forma Normal (1NF)",
+      "title": "Dependencias funcionales",
       "order": 3,
       "objectives": [
-        "Definir la Primera Forma Normal",
-        "Identificar violaciones de la 1NF",
-        "Convertir una tabla no normalizada a 1NF"
+        "Definir dependencias funcionales",
+        "Identificar el tipo de dependencia (completa, parcial, transitiva)",
+        "Comprender la notación formal de dependencias"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Primera Forma Normal (1NF)\n\n> **Regla**: Una tabla está en **1NF** si y solo si **todos los atributos son atómicos** (indivisibles). No debe haber:\n> - Valores repetidos en una celda.\n> - Grupos de valores.\n> - Atributos multivalorados en la misma tabla.\n\n### Ejemplo: Tabla NO en 1NF\n\n```sql\n-- Tabla de alumnos con teléfonos múltiples en una celda\n+----+----------+------------------------+\n| id | nombre   | telefonos              |\n+----+----------+------------------------+\n|  1 | Juan     | 612345678, 698765432  |\n|  2 | María    | 654321987              |\n+----+----------+------------------------+\n```\n\n**Problema**: El campo `telefonos` contiene múltiples valores separados por coma. No es atómico.\n\n### Solución: Separar en tabla aparte\n\n```sql\n-- Tabla de alumnos (ahora en 1NF)\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL\n);\n\n-- Tabla de teléfonos (cada teléfono es una fila)\nCREATE TABLE alumno_telefonos (\n  id_alumno INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_alumno, telefono),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n```\n+----+----------+            +------------+------------+\n| id | nombre   |            | id_alumno  | telefono   |\n+----+----------+            +------------+------------+\n|  1 | Juan     |            |          1 | 612345678  |\n|  2 | María    |            |          1 | 698765432  |\n+----+----------+            |          2 | 654321987  |\n                             +------------+------------+\n```"
+          "content": "## ¿Qué es una dependencia funcional?\n\nUna **dependencia funcional** (DF) es una relación entre atributos que expresa que **conociendo un atributo (o conjunto de atributos), podemos determinar de forma única otro atributo**.\n\n### Notación\n\n```\nA → B\n```\n\nSe lee: \"A determina B\" o \"B depende funcionalmente de A\".\n\n**Significado**: Si conocemos el valor de A, podemos saber el valor exacto de B.\n\n### Ejemplo en la tabla de alumnos\n\n```\nTabla: alumnos (id, nombre, apellido, email, fecha_nacimiento)\n\nDependencias funcionales:\n  id → nombre, apellido, email, fecha_nacimiento\n  email → id, nombre, apellido\n```\n\n- Si conocemos el `id`, sabemos exactamente el `nombre`, `apellido`, etc.\n- Si conocemos el `email`, también podemos saber quién es el alumno."
         },
         {
           "type": "text",
-          "content": "## Otras violaciones de 1NF\n\n### Direcciones compuestas\n\n```\n+----+----------+----------------------------------------+\n| id | nombre   | direccion                              |\n+----+----------+----------------------------------------+\n|  1 | Juan     | C/ Mayor 1, Madrid, 28001              |\n+----+----------+----------------------------------------+\n```\n\n**Problema**: `direccion` contiene calle, ciudad y código postal.\n\n**Solución**: Separar en columnas atómicas:\n\n```sql\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  calle VARCHAR(100),\n  ciudad VARCHAR(50),\n  codigo_postal VARCHAR(5)\n);\n```\n\n### Campos repetidos\n\n```\n+----+----------+------------+------------+------------+\n| id | nombre   | nota_1     | nota_2     | nota_3     |\n+----+----------+------------+------------+------------+\n|  1 | Juan     | 8          | 7          | 9          |\n+----+----------+------------+------------+------------+\n```\n\n**Problema**: `nota_1`, `nota_2`, `nota_3` son valores repetidos. Si hay más de 3 notas, ¿qué hacemos?\n\n**Solución**: Crear una tabla de notas separada:\n\n```sql\nCREATE TABLE notas (\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n> **Regla práctica**: Si un campo tiene un número que varía (nota_1, nota_2, nota_3...), probablemente está en una tabla separada."
+          "content": "## Tipos de dependencias\n\n### Dependencia funcional completa\n\nUn atributo B depende funcionalmente de **todos** los atributos del conjunto A, no de una parte.\n\n```\n(A, B) → C\n```\n\nB y A juntos determinan C, pero ni A solo ni B solo determinan C.\n\n### Dependencia funcional parcial\n\nUn atributo B depende de **una parte** del conjunto A.\n\n```\n(A, B) → C, pero también A → C\n```\n\nEn este caso, C depende solo de A, no necesita a B.\n\n### Ejemplo práctico\n\n```\nTabla: notas (id_alumno, id_asignatura, nota, nombre_alumno)\n\nDependencias:\n(id_alumno, id_asignatura) → nota        -- Completa: la nota depende de AMBOS\n(id_alumno, id_asignatura) → nombre_alumno -- Parcial: el nombre depende solo de id_alumno\n```\n\nLa nota 8.5 depende de **qué alumno** y **qué asignatura**. Pero el nombre \"Juan\" depende solo del alumno, no de la asignatura."
+        },
+        {
+          "type": "text",
+          "content": "## Dependencia transitiva\n\nUna dependencia transitiva ocurre cuando un atributo depende de otro **a través de un tercero**.\n\n```\nA → B → C\n```\n\nSi A determina B, y B determina C, entonces A determina C de forma **transitiva**.\n\n### Ejemplo\n\n```\nTabla: alumnos (id, nombre, codigo_postal, ciudad)\n\nDependencias:\nid → codigo_postal\nid → ciudad (a través de codigo_postal)\ncodigo_postal → ciudad\n```\n\nLa ciudad depende del código postal, no directamente del id. Esto es una dependencia transitiva.\n\n### Resumen de dependencias\n\n| Tipo | Notación | Ejemplo | ¿Problema para... |\n|---|---|---|---|\n| **Completa** | (A,B) → C | nota depende de alumno + asignatura | Ninguna (es correcta) |\n| **Parcial** | A → C (siendo (A,B) la PK) | nombre depende solo de id_alumno | 2FN |\n| **Transitiva** | A → B → C | ciudad depende de código postal | 3FN |"
         }
       ],
       "exercises": [
         {
           "id": "ex-05-3-1",
-          "title": "Convertir a 1NF",
+          "title": "Identificar dependencias",
           "difficulty": "intermediate",
-          "description": "Convierte la siguiente tabla a 1NF:\n\n| id_empleado | nombre | departamentos | jefe |\n|---|---|---|---|\n| 1 | Ana | Ventas, Marketing | Carlos |\n| 2 | Luis | IT | María |\n\nEl campo \"departamentos\" contiene varios valores separados por coma.",
-          "solution": "**Tabla en 1NF:**\n\n```sql\nCREATE TABLE empleados (\n  id_empleado INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL,\n  jefe VARCHAR(50)\n);\n\nCREATE TABLE empleado_departamentos (\n  id_empleado INT,\n  departamento VARCHAR(50),\n  PRIMARY KEY (id_empleado, departamento),\n  FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)\n);\n```\n\n**Datos resultantes:**\n\nempleados:\n| id_empleado | nombre | jefe |\n|---|---|---|\n| 1 | Ana | Carlos |\n| 2 | Luis | María |\n\nempleado_departamentos:\n| id_empleado | departamento |\n|---|---|\n| 1 | Ventas |\n| 1 | Marketing |\n| 2 | IT |\n\nCada celda ahora es atómica: un solo departamento por fila."
+          "description": "Dada la tabla: `pedidos (id_pedido, id_cliente, cliente_nombre, cliente_email, id_producto, producto_nombre, cantidad, precio_unitario)`\n\nIdentifica todas las dependencias funcionales y la clave candidata.",
+          "solution": "**Dependencias funcionales:**\n- `id_pedido → id_cliente, id_producto, cantidad, precio_unitario`\n  (Conociendo el pedido, sabemos todo lo demás)\n\n- `id_cliente → cliente_nombre, cliente_email`\n  (Conociendo el cliente, sabemos su nombre y email)\n\n- `id_producto → producto_nombre, precio_unitario`\n  (Conociendo el producto, sabemos su nombre y precio)\n\n**Clave candidata:** `id_pedido`\n- Con `id_pedido` podemos determinar todos los demás atributos (directa o indirectamente).\n- Es minimal: no se puede quitar ningún atributo.\n\n**Problema**: `cliente_nombre` depende solo de `id_cliente`, no de toda la clave. `producto_nombre` depende solo de `id_producto`. Estas son dependencias parciales que violan la 2FN."
+        },
+        {
+          "id": "ex-05-3-2",
+          "title": "Clasificar dependencias",
+          "difficulty": "intermediate",
+          "description": "Dada la tabla `empleados (id, nombre, id_dept, nombre_dept, id_jefe, nombre_jefe)` con estas dependencias:\n- `id → nombre, id_dept, id_jefe`\n- `id_dept → nombre_dept`\n- `id_jefe → nombre_jefe`\n\nClasifica cada dependencia como completa, parcial o transitiva.",
+          "solution": "**Análisis:**\n- La PK es `id` (clave simple).\n\n**Dependencias:**\n- `id → nombre, id_dept, id_jefe`: **Dependencia completa**. Todos los atributos dependen directamente de la PK.\n- `id_dept → nombre_dept`: **Dependencia transitiva**. `nombre_dept` depende de `id_dept`, no directamente de `id`. Ruta: `id → id_dept → nombre_dept`.\n- `id_jefe → nombre_jefe`: **Dependencia transitiva**. `nombre_jefe` depende de `id_jefe`, no directamente de `id`. Ruta: `id → id_jefe → nombre_jefe`.\n\n**Nota**: Como la PK es simple (`id`), no hay dependencias parciales (la 2FN se cumple automáticamente). Pero las transitivas violan la 3FN."
+        },
+        {
+          "id": "ex-05-3-3",
+          "title": "Dependencias en reservas",
+          "difficulty": "basic",
+          "description": "Dada la tabla `reservas (id_reserva, id_cliente, id_habitacion, fecha_entrada, fecha_salida, precio_total)`, escribe todas las dependencias funcionales posibles y justifica cada una.",
+          "solution": "**Dependencias:**\n\n- `id_reserva → id_cliente, id_habitacion, fecha_entrada, fecha_salida, precio_total`\n  Cada reserva tiene un solo cliente, una habitación, unas fechas y un precio.\n\n- `id_cliente → (ninguno)`\n  Conociendo el cliente no sabemos nada más de la reserva.\n\n- `id_habitacion → (ninguno)`\n  Conociendo la habitación no sabemos nada más de la reserva.\n\n- `(id_cliente, id_habitacion, fecha_entrada) → fecha_salida, precio_total`\n  Un cliente en una habitación en una fecha específica tiene una reserva concreta.\n\n**Clave candidata**: `id_reserva` (determina todos los demás atributos directamente)."
         }
       ]
     },
     {
       "id": "lesson-05-4",
-      "title": "Segunda Forma Normal (2NF)",
+      "title": "Claves y determinantes",
       "order": 4,
       "objectives": [
-        "Definir la Segunda Forma Normal",
-        "Identificar dependencias parciales",
-        "Convertir una tabla de 1NF a 2NF"
+        "Identificar claves candidatas a partir de dependencias",
+        "Comprender la diferencia entre clave primaria, candidata y superclave",
+        "Determinar el rol de los determinantes en la normalización"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Segunda Forma Normal (2NF)\n\n> **Regla**: Una tabla está en **2NF** si está en 1NF **y** no tiene **dependencias parciales**.\n> \n> Es decir: **todos los atributos no clave dependen de TODA la clave candidata**, no solo de una parte.\n\n> **Nota**: Solo se aplica a tablas con claves compuestas (más de un atributo en la PK).\n\n### Ejemplo: Tabla en 1NF pero NO en 2NF\n\n```sql\n-- Tabla de pedidos con clave compuesta\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cliente_nombre VARCHAR(50),  -- ❌ Depende solo de id_pedido\n  cliente_email VARCHAR(100),  -- ❌ Depende solo de id_pedido\n  producto_nombre VARCHAR(100),-- ❌ Depende solo de id_producto\n  precio_unitario DECIMAL(10,2),-- ❌ Depende solo de id_producto\n  cantidad INT,               -- ✅ Depende de AMBOS\n  PRIMARY KEY (id_pedido, id_producto)\n);\n```\n\n**Dependencias:**\n```\nid_pedido → cliente_nombre, cliente_email     (parcial)\nid_producto → producto_nombre, precio_unitario (parcial)\n(id_pedido, id_producto) → cantidad           (completa)\n```\n\n**Problema**: `cliente_nombre` depende solo de `id_pedido`, no de `id_producto`. Esto es una dependencia parcial → No está en 2NF."
+          "content": "## Claves candidatas\n\nUna **clave candidata** es un conjunto de atributos que:\n1. **Identifica** de forma única cada fila (identificador).\n2. Es **minimal**: no tiene atributos redundantes.\n\n### Ejemplo\n\n```\nTabla: matriculas (id_alumno, id_asignatura, fecha_matricula, nota)\n\nClave candidata: (id_alumno, id_asignatura)\n- Identifica cada matrícula de forma única.\n- Es minimal: no se puede quitar ningún atributo.\n```\n\n### Reglas para encontrar claves candidatas\n\n1. Los atributos que **no aparecen en ningún lado derecho** de una DF son candidatos a clave.\n2. Aplica la **clausura**: qué atributos se pueden determinar a partir de ellos.\n3. Si la clausura contiene todos los atributos, es clave candidata.\n\n### Ejemplo paso a paso\n\n```\nTabla: alumnos_asig (id_alumno, id_asignatura, nombre_alumno, nota)\nDFs:\n  id_alumno → nombre_alumno\n  (id_alumno, id_asignatura) → nota\n\n1. Atributos no derechos: id_alumno, id_asignatura (ambos no aparecen como dependientes)\n2. Clausura de (id_alumno, id_asignatura):\n   - id_alumno → nombre_alumno ✓\n   - (id_alumno, id_asignatura) → nota ✓\n   - Clausura = {id_alumno, id_asignatura, nombre_alumno, nota} = todos los atributos\n3. (id_alumno, id_asignatura) es clave candidata ✓\n``"
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de claves\n\n| Tipo | Definición | Ejemplo |\n|---|---|---|\n| **Clave candidata** | Conjunto minimal que identifica cada fila | `id_pedido` en la tabla pedidos |\n| **Clave primaria (PK)** | La clave candidata elegida para identificar filas | `id_pedido` (elegida como PK) |\n| **Superclave** | Conjunto que identifica cada fila (puede no ser minimal) | `(id_pedido, fecha)` |\n| **Clave foránea (FK)** | Atributo que apunta a la PK de otra tabla | `id_cliente` en pedidos |\n\n### Relación entre claves y dependencias\n\n- La **clave candidata** es el **determinante** de todas las demás dependencias.\n- Si una tabla tiene una sola clave candidata, esa es la PK.\n- Si tiene varias, se elige una como PK y las demás son **claves alternativas**.\n\n### ¿Por qué importa para la normalización?\n\nLas dependencias parciales y transitivas se definen **respecto a la clave primaria**:\n- **2FN**: Eliminar dependencias parciales (atributos que dependen de parte de la PK).\n- **3FN**: Eliminar dependencias transitivas (atributos que dependen de otro atributo no clave)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-4-1",
+          "title": "Encontrar claves candidatas",
+          "difficulty": "intermediate",
+          "description": "Dadas estas dependencias funcionales, encuentra la clave candidata:\n\nTabla: `reservas (id_cliente, id_habitacion, fecha_entrada, fecha_salida, precio_total)`\nDFs:\n- `id_cliente → (ninguno)`\n- `id_habitacion → (ninguno)`\n- `(id_cliente, id_habitacion, fecha_entrada) → fecha_salida, precio_total`\n\n¿Cuál es la clave candidata?",
+          "solution": "**Clave candidata: `(id_cliente, id_habitacion, fecha_entrada)`**\n\n**Proceso:**\n1. Atributos no derechos: `id_cliente`, `id_habitacion`, `fecha_entrada` (no aparecen como dependientes de nadie).\n2. Clausura de `(id_cliente, id_habitacion, fecha_entrada)`:\n   - `(id_cliente, id_habitacion, fecha_entrada) → fecha_salida, precio_total` ✓\n   - Clausura = {id_cliente, id_habitacion, fecha_entrada, fecha_salida, precio_total} = todos los atributos.\n3. Es clave candidata ✓\n\n**¿Por qué no sirve un solo atributo?** Porque `id_cliente` solo no determina `fecha_salida` ni `precio_total`. Un cliente puede tener varias reservas."
+        },
+        {
+          "id": "ex-05-4-2",
+          "title": "Múltiples claves candidatas",
+          "difficulty": "hard",
+          "description": "Dada la tabla `usuarios (id, username, email, password_hash)` con estas dependencias:\n- `id → username, email, password_hash`\n- `email → id, username, password_hash`\n- `username → id, email, password_hash`\n\n¿Cuántas claves candidatas hay? ¿Cuál elegirías como PK?",
+          "solution": "**Claves candidatas: 3**\n\n1. `id` → determina todos los demás atributos ✓\n2. `email` → determina todos los demás atributos ✓\n3. `username` → determina todos los demás atributos ✓\n\nTodas son claves candidatas porque cada una determina la fila de forma única y es minimal.\n\n**¿Cuál elegir como PK?** `id` (clave surrogate):\n- **Estabilidad**: El `id` numérico nunca cambia. El email o username podrían cambiar.\n- **Rendimiento**: Las comparaciones de INT son más rápidas que VARCHAR.\n- **Consistencia**: Mantiene un patrón uniforme con otras tablas.\n\nLos demás quedan como **claves alternativas** (UNIQUE)."
+        },
+        {
+          "id": "ex-05-4-3",
+          "title": "Clave compuesta como candidata",
+          "difficulty": "intermediate",
+          "description": "Dada la tabla `matriculas (id_alumno, id_asignatura, anno_academico, nota, fecha_matricula)` con estas dependencias:\n- `(id_alumno, id_asignatura, anno_academico) → nota, fecha_matricula`\n- `id_alumno → (ninguno)`\n- `id_asignatura → (ninguno)`\n\n¿Cuál es la clave candidata? ¿Es compuesta?",
+          "solution": "**Clave candidata: `(id_alumno, id_asignatura, anno_academico)`**\n\n**Proceso:**\n1. Atributos no derechos: `id_alumno`, `id_asignatura`, `anno_academico` (no aparecen como dependientes).\n2. Clausura de `(id_alumno, id_asignatura, anno_academico)`:\n   - `(id_alumno, id_asignatura, anno_academico) → nota, fecha_matricula` ✓\n   - Clausura = {id_alumno, id_asignatura, anno_academico, nota, fecha_matricula} = todos.\n3. Es clave candidata ✓\n\n**Es compuesta** (3 columnas). Un solo atributo no basta: un alumno puede tener varias asignaturas, una asignatura puede tener varios alumnos, y el mismo alumno puede matricularse en la misma asignatura en diferentes años."
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-5",
+      "title": "Primera Forma Normal — 1FN",
+      "order": 5,
+      "objectives": [
+        "Definir la Primera Forma Normal",
+        "Identificar violaciones de la 1FN",
+        "Convertir una tabla no normalizada a 1FN"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Primera Forma Normal (1FN)\n\n> **Regla**: Una tabla está en **1FN** si y solo si **todos los atributos son atómicos** (indivisibles). No debe haber:\n> - Valores repetidos en una celda.\n> - Grupos de valores.\n> - Atributos multivalorados en la misma tabla.\n\n### Ejemplo: Tabla NO en 1FN\n\n```sql\n-- Tabla de alumnos con teléfonos múltiples en una celda\n+----+----------+------------------------+\n| id | nombre   | telefonos              |\n+----+----------+------------------------+\n|  1 | Juan     | 612345678, 698765432  |\n|  2 | María    | 654321987              |\n+----+----------+------------------------+\n```\n\n**Problema**: El campo `telefonos` contiene múltiples valores separados por coma. No es atómico.\n\n### Solución: Separar en tabla aparte\n\n```sql\n-- Tabla de alumnos (ahora en 1FN)\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL\n);\n\n-- Tabla de teléfonos (cada teléfono es una fila)\nCREATE TABLE alumno_telefonos (\n  id_alumno INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_alumno, telefono),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n```\n+----+----------+            +------------+------------+\n| id | nombre   |            | id_alumno  | telefono   |\n+----+----------+            +------------+------------+\n|  1 | Juan     |            |          1 | 612345678  |\n|  2 | María    |            |          1 | 698765432  |\n+----+----------+            |          2 | 654321987  |\n                             +------------+------------+\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Otras violaciones de 1FN\n\n### Direcciones compuestas\n\n```\n+----+----------+----------------------------------------+\n| id | nombre   | direccion                              |\n+----+----------+----------------------------------------+\n|  1 | Juan     | C/ Mayor 1, Madrid, 28001              |\n+----+----------+----------------------------------------+\n```\n\n**Problema**: `direccion` contiene calle, ciudad y código postal.\n\n**Solución**: Separar en columnas atómicas:\n\n```sql\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  calle VARCHAR(100),\n  ciudad VARCHAR(50),\n  codigo_postal VARCHAR(5)\n);\n```\n\n### Campos repetidos\n\n```\n+----+----------+------------+------------+------------+\n| id | nombre   | nota_1     | nota_2     | nota_3     |\n+----+----------+------------+------------+------------+\n|  1 | Juan     | 8          | 7          | 9          |\n+----+----------+------------+------------+------------+\n```\n\n**Problema**: `nota_1`, `nota_2`, `nota_3` son valores repetidos. Si hay más de 3 notas, ¿qué hacemos?\n\n**Solución**: Crear una tabla de notas separada:\n\n```sql\nCREATE TABLE notas (\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n> **Regla práctica**: Si un campo tiene un número que varía (nota_1, nota_2, nota_3...), probablemente está en una tabla separada."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-5-1",
+          "title": "Convertir a 1FN",
+          "difficulty": "intermediate",
+          "description": "Convierte la siguiente tabla a 1FN:\n\n| id_empleado | nombre | departamentos | jefe |\n|---|---|---|---|\n| 1 | Ana | Ventas, Marketing | Carlos |\n| 2 | Luis | IT | María |\n\nEl campo \"departamentos\" contiene varios valores separados por coma.",
+          "solution": "**Tabla en 1FN:**\n\n```sql\nCREATE TABLE empleados (\n  id_empleado INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL,\n  jefe VARCHAR(50)\n);\n\nCREATE TABLE empleado_departamentos (\n  id_empleado INT,\n  departamento VARCHAR(50),\n  PRIMARY KEY (id_empleado, departamento),\n  FOREIGN KEY (id_empleado) REFERENCES empleados(id_empleado)\n);\n```\n\n**Datos resultantes:**\n\nempleados:\n| id_empleado | nombre | jefe |\n|---|---|---|\n| 1 | Ana | Carlos |\n| 2 | Luis | María |\n\nempleado_departamentos:\n| id_empleado | departamento |\n|---|---|\n| 1 | Ventas |\n| 1 | Marketing |\n| 2 | IT |\n\nCada celda ahora es atómica: un solo departamento por fila."
+        },
+        {
+          "id": "ex-05-5-2",
+          "title": "Tabla de eventos a 1FN",
+          "difficulty": "intermediate",
+          "description": "Convierte a 1FN:\n\n| id_evento | nombre_evento | ponentes | fecha |\n|---|---|---|---|\n| 1 | Conference DB | Ana García, Luis Ruiz | 2026-03-15 |\n| 2 | Workshop SQL | María López | 2026-03-20 |\n\nEl campo \"ponentes\" contiene varios nombres separados por coma.",
+          "solution": "**Tabla eventos (solo atómicos):**\n\n```sql\nCREATE TABLE eventos (\n  id_evento INT PRIMARY KEY,\n  nombre_evento VARCHAR(100) NOT NULL,\n  fecha DATE NOT NULL\n);\n```\n\n**Tabla evento_ponentes (multivalorado):**\n\n```sql\nCREATE TABLE evento_ponentes (\n  id_evento INT,\n  ponente VARCHAR(100),\n  PRIMARY KEY (id_evento, ponente),\n  FOREIGN KEY (id_evento) REFERENCES eventos(id_evento)\n);\n```\n\n**Datos resultantes:**\neventos: (1, \"Conference DB\", 2026-03-15), (2, \"Workshop SQL\", 2026-03-20)\nevento_ponentes: (1, \"Ana García\"), (1, \"Luis Ruiz\"), (2, \"María López\")"
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-6",
+      "title": "Ejercicios de Primera Forma Normal",
+      "order": 6,
+      "objectives": [
+        "Identificar violaciones de 1FN en diferentes escenarios",
+        "Convertir tablas no normalizadas a 1FN",
+        "Distinguir entre atributos atómicos y no atómicos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Práctica de 1FN\n\nEn estos ejercicios practicarás:\n1. Detectar qué viola la 1FN.\n2. Separar atributos no atómicos en tablas correctas.\n3. Decidir cuándo crear tablas separadas vs. columnas adicionales.\n\n### Recordatorio: Reglas de 1FN\n\n- Cada celda contiene **un solo valor**.\n- No hay **valores repetidos** (nota_1, nota_2, nota_3...).\n- No hay **listas** separadas por comas.\n- No hay **grupos de valores** en una misma columna."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-6-1",
+          "title": "Violaciones de 1FN",
+          "difficulty": "basic",
+          "description": "¿Cuál de estas tablas viola la 1FN? Justifica.\n\n**Tabla A:**\n| id | nombre | email |\n|---|---|---|\n| 1 | Juan | juan@mail.com |\n\n**Tabla B:**\n| id | nombre | habilidades |\n|---|---|---|\n| 1 | Juan | SQL, Python, Java |\n\n**Tabla C:**\n| id | nombre | fecha_nacimiento |\n|---|---|---|\n| 1 | Juan | 1995-03-15 |",
+          "solution": "**Tabla A**: ✅ En 1FN. Cada celda es atómica.\n\n**Tabla B**: ❌ Viola 1FN. El campo `habilidades` contiene múltiples valores separados por coma (\"SQL, Python, Java\"). Debería ser una tabla separada:\n\n```sql\nCREATE TABLE empleado_habilidades (\n  id_empleado INT,\n  habilidad VARCHAR(50),\n  PRIMARY KEY (id_empleado, habilidad)\n);\n```\n\n**Tabla C**: ✅ En 1FN. La fecha es un valor atómico."
+        },
+        {
+          "id": "ex-05-6-2",
+          "title": "Catálogo de biblioteca a 1FN",
+          "difficulty": "intermediate",
+          "description": "Convierte a 1NF:\n\n| id_libro | titulo | autores | generos |\n|---|---|---|---|\n| 1 | Cien años | García Márquez | Realismo, Novela |\n| 2 | El principito | Saint-Exupéry | Fábula |",
+          "solution": "**Tabla libros (solo atributos atómicos):**\n\n```sql\nCREATE TABLE libros (\n  id_libro INT PRIMARY KEY,\n  titulo VARCHAR(200) NOT NULL\n);\n```\n\n**Tabla libro_autores (multivalorado):**\n\n```sql\nCREATE TABLE libro_autores (\n  id_libro INT,\n  autor VARCHAR(100),\n  PRIMARY KEY (id_libro, autor),\n  FOREIGN KEY (id_libro) REFERENCES libros(id_libro)\n);\n```\n\n**Tabla libro_generos (multivalorado):**\n\n```sql\nCREATE TABLE libro_generos (\n  id_libro INT,\n  genero VARCHAR(50),\n  PRIMARY KEY (id_libro, genero),\n  FOREIGN KEY (id_libro) REFERENCES libros(id_libro)\n);\n```\n\n**Datos resultantes:**\nlibros: (1, \"Cien años...\"), (2, \"El principito\")\nlibro_autores: (1, \"García Márquez\"), (2, \"Saint-Exupéry\")\nlibro_generos: (1, \"Realismo\"), (1, \"Novela\"), (2, \"Fábula\")"
+        },
+        {
+          "id": "ex-05-6-3",
+          "title": "Campos repetidos a 1FN",
+          "difficulty": "intermediate",
+          "description": "Convierte a 1NF esta tabla de un examen:\n\n| id_alumno | nombre | nota_p1 | nota_p2 | nota_p3 | nota_p4 |\n|---|---|---|---|---|---|\n| 1 | Juan | 8 | 7 | 9 | 6 |\n| 2 | María | 9 | 8 | NULL | 7 |\n\nLos campos nota_p1 a nota_p4 representan notas de 4 partes del examen.",
+          "solution": "**Problema**: Los campos `nota_p1` a `nota_p4` son valores repetidos. Si el examen tiene más partes, habría que añadir columnas.\n\n**Tabla en 1FN:**\n\n```sql\nCREATE TABLE alumnos (\n  id_alumno INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE notas_examen (\n  id_alumno INT,\n  n_parte INT,\n  nota DECIMAL(4,2),\n  PRIMARY KEY (id_alumno, n_parte),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id_alumno)\n);\n```\n\n**Datos resultantes:**\nnotas_examen:\n| id_alumno | n_parte | nota |\n|---|---|---|\n| 1 | 1 | 8 |\n| 1 | 2 | 7 |\n| 1 | 3 | 9 |\n| 1 | 4 | 6 |\n| 2 | 1 | 9 |\n| 2 | 2 | 8 |\n| 2 | 4 | 7 |\n\nAhora se pueden añadir partes sin modificar la estructura."
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-7",
+      "title": "Segunda Forma Normal — 2FN",
+      "order": 7,
+      "objectives": [
+        "Definir la Segunda Forma Normal",
+        "Identificar dependencias parciales",
+        "Convertir una tabla de 1FN a 2FN"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Segunda Forma Normal (2NF)\n\n> **Regla**: Una tabla está en **2NF** si está en 1FN **y** no tiene **dependencias parciales**.\n> \n> Es decir: **todos los atributos no clave dependen de TODA la clave candidata**, no solo de una parte.\n\n> **Nota**: Solo se aplica a tablas con claves compuestas (más de un atributo en la PK).\n\n### Ejemplo: Tabla en 1FN pero NO en 2NF\n\n```sql\n-- Tabla de pedidos con clave compuesta\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cliente_nombre VARCHAR(50),  -- ❌ Depende solo de id_pedido\n  cliente_email VARCHAR(100),  -- ❌ Depende solo de id_pedido\n  producto_nombre VARCHAR(100),-- ❌ Depende solo de id_producto\n  precio_unitario DECIMAL(10,2),-- ❌ Depende solo de id_producto\n  cantidad INT,               -- ✅ Depende de AMBOS\n  PRIMARY KEY (id_pedido, id_producto)\n);\n```\n\n**Dependencias:**\n```\nid_pedido → cliente_nombre, cliente_email     (parcial)\nid_producto → producto_nombre, precio_unitario (parcial)\n(id_pedido, id_producto) → cantidad           (completa)\n```\n\n**Problema**: `cliente_nombre` depende solo de `id_pedido`, no de `id_producto`. Esto es una dependencia parcial → No está en 2NF."
         },
         {
           "type": "text",
@@ -128,18 +269,57 @@
       ],
       "exercises": [
         {
-          "id": "ex-05-4-1",
+          "id": "ex-05-7-1",
           "title": "Convertir a 2NF",
           "difficulty": "intermediate",
           "description": "Convierte a 2NF esta tabla:\n\n```sql\nCREATE TABLE reservas (\n  id_cliente INT,\n  id_hotel INT,\n  nombre_cliente VARCHAR(50),\n  nombre_hotel VARCHAR(100),\n  ciudad_hotel VARCHAR(50),\n  fecha_reserva DATE,\n  PRIMARY KEY (id_cliente, id_hotel)\n);\n```\n\nIdentifica las dependencias parciales y crea las tablas resultantes.",
           "solution": "**Dependencias:**\n- `id_cliente → nombre_cliente` (parcial)\n- `id_hotel → nombre_hotel, ciudad_hotel` (parcial)\n- `(id_cliente, id_hotel) → fecha_reserva` (completa)\n\n**Tablas en 2NF:**\n\n```sql\nCREATE TABLE clientes (\n  id_cliente INT PRIMARY KEY,\n  nombre_cliente VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE hoteles (\n  id_hotel INT PRIMARY KEY,\n  nombre_hotel VARCHAR(100) NOT NULL,\n  ciudad_hotel VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE reservas (\n  id_cliente INT,\n  id_hotel INT,\n  fecha_reserva DATE NOT NULL,\n  PRIMARY KEY (id_cliente, id_hotel),\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),\n  FOREIGN KEY (id_hotel) REFERENCES hoteles(id_hotel)\n);\n```\n\nCada atributo no clave depende de toda la clave de su tabla."
+        },
+        {
+          "id": "ex-05-7-2",
+          "title": "Envíos a 2NF",
+          "difficulty": "intermediate",
+          "description": "Convierte a 2NF:\n\n```sql\nCREATE TABLE envios (\n  id_pedido INT,\n  id_producto INT,\n  cliente_nombre VARCHAR(50),\n  cliente_telefono VARCHAR(20),\n  producto_peso DECIMAL(6,2),\n  cantidad INT,\n  PRIMARY KEY (id_pedido, id_producto)\n);\n```\n\nIdentifica las dependencias parciales y crea las tablas resultantes.",
+          "solution": "**Dependencias:**\n- `id_pedido → cliente_nombre, cliente_telefono` (parcial)\n- `id_producto → producto_peso` (parcial)\n- `(id_pedido, id_producto) → cantidad` (completa)\n\n**Tablas en 2NF:**\n\n```sql\nCREATE TABLE clientes (\n  id_pedido INT PRIMARY KEY,\n  cliente_nombre VARCHAR(50) NOT NULL,\n  cliente_telefono VARCHAR(20)\n);\n\nCREATE TABLE productos (\n  id_producto INT PRIMARY KEY,\n  producto_peso DECIMAL(6,2) NOT NULL\n);\n\nCREATE TABLE envios (\n  id_pedido INT,\n  id_producto INT,\n  cantidad INT NOT NULL DEFAULT 1,\n  PRIMARY KEY (id_pedido, id_producto),\n  FOREIGN KEY (id_pedido) REFERENCES clientes(id_pedido),\n  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)\n);\n```\n\nCada atributo depende de toda la clave de su tabla."
         }
       ]
     },
     {
-      "id": "lesson-05-5",
-      "title": "Tercera Forma Normal (3NF)",
-      "order": 5,
+      "id": "lesson-05-8",
+      "title": "Ejercicios de Segunda Forma Normal",
+      "order": 8,
+      "objectives": [
+        "Detectar dependencias parciales en tablas con clave compuesta",
+        "Separar tablas en 2NF de forma correcta",
+        "Verificar que todos los atributos no clave dependen de toda la PK"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Práctica de 2NF\n\nEn estos ejercicios practicarás:\n1. Identificar dependencias parciales en tablas con PK compuesta.\n2. Decomponer tablas en 2NF.\n3. Verificar que cada tabla resultante cumple la 2NF.\n\n### Recordatorio: Regla de 2NF\n\n- La tabla debe estar en **1FN**.\n- **Todos** los atributos no clave deben depender de **toda** la PK, no de una parte.\n- Solo aplica cuando la PK es **compuesta** (2+ columnas)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-8-1",
+          "title": "Matrículas universitarias a 2NF",
+          "difficulty": "intermediate",
+          "description": "Convierte a 2NF:\n\n```sql\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  nombre_alumno VARCHAR(50),\n  email_alumno VARCHAR(100),\n  nombre_asignatura VARCHAR(100),\n  creditos INT,\n  nota DECIMAL(4,2),\n  PRIMARY KEY (id_alumno, id_asignatura)\n);\n```\n\nIdentifica las dependencias parciales y crea las tablas resultantes.",
+          "solution": "**Dependencias:**\n- `id_alumno → nombre_alumno, email_alumno` (parcial)\n- `id_asignatura → nombre_asignatura, creditos` (parcial)\n- `(id_alumno, id_asignatura) → nota` (completa)\n\n**Tablas en 2NF:**\n\n```sql\nCREATE TABLE alumnos (\n  id_alumno INT PRIMARY KEY,\n  nombre_alumno VARCHAR(50) NOT NULL,\n  email_alumno VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE asignaturas (\n  id_asignatura INT PRIMARY KEY,\n  nombre_asignatura VARCHAR(100) NOT NULL,\n  creditos INT NOT NULL\n);\n\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2) NOT NULL,\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id_alumno),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id_asignatura)\n);\n```\n\nCada atributo depende de toda la PK de su tabla."
+        },
+        {
+          "id": "ex-05-8-2",
+          "title": "Reservas de vuelos a 2NF",
+          "difficulty": "intermediate",
+          "description": "Convierte a 2NF:\n\n```sql\nCREATE TABLE reservas_vuelos (\n  id_cliente INT,\n  id_vuelo INT,\n  nombre_cliente VARCHAR(50),\n  telefono_cliente VARCHAR(20),\n  origen VARCHAR(50),\n  destino VARCHAR(50),\n  fecha_vuelo DATE,\n  asiento VARCHAR(10),\n  PRIMARY KEY (id_cliente, id_vuelo)\n);\n```\n\nIdentifica las dependencias parciales y crea las tablas resultantes.",
+          "solution": "**Dependencias:**\n- `id_cliente → nombre_cliente, telefono_cliente` (parcial)\n- `id_vuelo → origen, destino, fecha_vuelo` (parcial)\n- `(id_cliente, id_vuelo) → asiento` (completa)\n\n**Tablas en 2NF:**\n\n```sql\nCREATE TABLE clientes (\n  id_cliente INT PRIMARY KEY,\n  nombre_cliente VARCHAR(50) NOT NULL,\n  telefono_cliente VARCHAR(20)\n);\n\nCREATE TABLE vuelos (\n  id_vuelo INT PRIMARY KEY,\n  origen VARCHAR(50) NOT NULL,\n  destino VARCHAR(50) NOT NULL,\n  fecha_vuelo DATE NOT NULL\n);\n\nCREATE TABLE reservas_vuelos (\n  id_cliente INT,\n  id_vuelo INT,\n  asiento VARCHAR(10) NOT NULL,\n  PRIMARY KEY (id_cliente, id_vuelo),\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),\n  FOREIGN KEY (id_vuelo) REFERENCES vuelos(id_vuelo)\n);\n```\n\nEl asiento depende de la combinación cliente + vuelo (un cliente tiene un asiento en un vuelo específico)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-9",
+      "title": "Tercera Forma Normal — 3FN",
+      "order": 9,
       "objectives": [
         "Definir la Tercera Forma Normal",
         "Identificar dependencias transitivas",
@@ -156,16 +336,149 @@
         },
         {
           "type": "text",
-          "content": "## Ejemplo completo: Pedidos en 3NF\n\n```sql\n-- Estado inicial (en 2NF, con transitiva)\nCREATE TABLE pedidos_2nf (\n  id_pedido INT PRIMARY KEY,\n  id_cliente INT,\n  nombre_cliente VARCHAR(50),\n  email_cliente VARCHAR(100),\n  id_producto INT,\n  nombre_producto VARCHAR(100),\n  precio_producto DECIMAL(10,2),\n  id_categoria INT,\n  nombre_categoria VARCHAR(50),\n  cantidad INT\n);\n\n-- En 3NF: eliminar dependencias transitivas\nCREATE TABLE clientes (\n  id_cliente INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE categorias (\n  id_categoria INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE productos (\n  id_producto INT PRIMARY KEY,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  id_categoria INT,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)\n);\n\nCREATE TABLE pedidos (\n  id_pedido INT PRIMARY KEY,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)\n);\n\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cantidad INT NOT NULL DEFAULT 1,\n  PRIMARY KEY (id_pedido, id_producto),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido),\n  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)\n);\n```\n\n### Resumen del proceso\n\n```\nTabla original (sin normalizar)\n    ↓ 1NF: Eliminar valores atómicos\nTabla en 1NF\n    ↓ 2NF: Eliminar dependencias parciales\nTabla en 2NF\n    ↓ 3NF: Eliminar dependencias transitivas\nTabla en 3NF\n```"
+          "content": "## Ejemplo completo: Pedidos en 3NF\n\n```sql\n-- Estado inicial (en 2NF, con transitiva)\nCREATE TABLE pedidos_2nf (\n  id_pedido INT PRIMARY KEY,\n  id_cliente INT,\n  nombre_cliente VARCHAR(50),\n  email_cliente VARCHAR(100),\n  id_producto INT,\n  nombre_producto VARCHAR(100),\n  precio_producto DECIMAL(10,2),\n  id_categoria INT,\n  nombre_categoria VARCHAR(50),\n  cantidad INT\n);\n\n-- En 3NF: eliminar dependencias transitivas\nCREATE TABLE clientes (\n  id_cliente INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE categorias (\n  id_categoria INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE productos (\n  id_producto INT PRIMARY KEY,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  id_categoria INT,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)\n);\n\nCREATE TABLE pedidos (\n  id_pedido INT PRIMARY KEY,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente)\n);\n\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cantidad INT NOT NULL DEFAULT 1,\n  PRIMARY KEY (id_pedido, id_producto),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id_pedido),\n  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)\n);\n```\n\n### Resumen del proceso\n\n```\nTabla original (sin normalizar)\n    ↓ 1FN: Eliminar valores no atómicos\nTabla en 1FN\n    ↓ 2FN: Eliminar dependencias parciales\nTabla en 2FN\n    ↓ 3FN: Eliminar dependencias transitivas\nTabla en 3FN\n```"
         }
       ],
       "exercises": [
         {
-          "id": "ex-05-5-1",
+          "id": "ex-05-9-1",
           "title": "Normalización completa",
           "difficulty": "hard",
           "description": "Normaliza completamente esta tabla hasta 3NF:\n\n```sql\nCREATE TABLE inscripciones (\n  id_alumno INT,\n  nombre_alumno VARCHAR(50),\n  id_asignatura INT,\n  nombre_asignatura VARCHAR(100),\n  id_profesor INT,\n  nombre_profesor VARCHAR(50),\n  departamento_profesor VARCHAR(50),\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(20),\n  PRIMARY KEY (id_alumno, id_asignatura, convocatoria)\n);\n```\n\nMuestra el proceso paso a paso.",
-          "solution": "**Paso 1: Identificar dependencias**\n```\n(id_alumno, id_asignatura, convocatoria) → nota  (completa)\nid_alumno → nombre_alumno                        (parcial)\nid_asignatura → nombre_asignatura                 (parcial)\nid_profesor → nombre_profesor, departamento_profesor (parcial)\nid_asignatura → id_profesor                       (parcial)\n```\n\n**Paso 2: 1NF** ✓\nTodos los atributos son atómicos. Ya está en 1NF.\n\n**Paso 3: 2NF - Eliminar dependencias parciales**\n\n```sql\nCREATE TABLE alumnos (\n  id_alumno INT PRIMARY KEY,\n  nombre_alumno VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE profesores (\n  id_profesor INT PRIMARY KEY,\n  nombre_profesor VARCHAR(50) NOT NULL,\n  departamento_profesor VARCHAR(50)\n);\n\nCREATE TABLE asignaturas (\n  id_asignatura INT PRIMARY KEY,\n  nombre_asignatura VARCHAR(100) NOT NULL,\n  id_profesor INT,\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id_profesor)\n);\n\nCREATE TABLE inscripciones (\n  id_alumno INT,\n  id_asignatura INT,\n  convocatoria VARCHAR(20),\n  nota DECIMAL(4,2) NOT NULL,\n  PRIMARY KEY (id_alumno, id_asignatura, convocatoria),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id_alumno),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id_asignatura)\n);\n```\n\n**Paso 4: 3NF - Verificar dependencias transitivas**\n- `asignaturas`: `id_asignatura → id_profesor → nombre_profesor`. Esto es transitivo.\n- Pero `nombre_profesor` está en `profesores`, no en `asignaturas`. No hay transitiva en la tabla.\n- Ya está en 3NF. ✓\n\n**Resultado final:** 4 tablas en 3NF."
+          "solution": "**Paso 1: Identificar dependencias**\n```\n(id_alumno, id_asignatura, convocatoria) → nota  (completa)\nid_alumno → nombre_alumno                        (parcial)\nid_asignatura → nombre_asignatura                 (parcial)\nid_profesor → nombre_profesor, departamento_profesor (parcial)\nid_asignatura → id_profesor                       (parcial)\n```\n\n**Paso 2: 1FN** ✓\nTodos los atributos son atómicos. Ya está en 1FN.\n\n**Paso 3: 2NF - Eliminar dependencias parciales**\n\n```sql\nCREATE TABLE alumnos (\n  id_alumno INT PRIMARY KEY,\n  nombre_alumno VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE profesores (\n  id_profesor INT PRIMARY KEY,\n  nombre_profesor VARCHAR(50) NOT NULL,\n  departamento_profesor VARCHAR(50)\n);\n\nCREATE TABLE asignaturas (\n  id_asignatura INT PRIMARY KEY,\n  nombre_asignatura VARCHAR(100) NOT NULL,\n  id_profesor INT,\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id_profesor)\n);\n\nCREATE TABLE inscripciones (\n  id_alumno INT,\n  id_asignatura INT,\n  convocatoria VARCHAR(20),\n  nota DECIMAL(4,2) NOT NULL,\n  PRIMARY KEY (id_alumno, id_asignatura, convocatoria),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id_alumno),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id_asignatura)\n);\n```\n\n**Paso 4: 3FN - Verificar dependencias transitivas**\n- `asignaturas`: `id_asignatura → id_profesor → nombre_profesor`. Pero `nombre_profesor` está en `profesores`, no en `asignaturas`. No hay transitiva en la tabla.\n- Ya está en 3FN. ✓\n\n**Resultado final:** 4 tablas en 3NF."
+        },
+        {
+          "id": "ex-05-9-2",
+          "title": "Eliminar transitivas en biblioteca",
+          "difficulty": "intermediate",
+          "description": "Convierte a 3NF:\n\n```sql\nCREATE TABLE prestamos (\n  id_prestamo INT PRIMARY KEY,\n  id_libro INT,\n  titulo_libro VARCHAR(200),\n  id_lector INT,\n  nombre_lector VARCHAR(50),\n  fecha_prestamo DATE,\n  fecha_devolucion DATE\n);\n```\n\nIdentifica la dependencia transitiva y crea las tablas resultantes.",
+          "solution": "**Dependencias:**\n- `id_prestamo → id_libro, id_lector, fecha_prestamo, fecha_devolucion`\n- `id_libro → titulo_libro` ← transitiva\n- `id_lector → nombre_lector` ← transitiva\n\n**Tablas en 3NF:**\n\n```sql\nCREATE TABLE libros (\n  id_libro INT PRIMARY KEY,\n  titulo_libro VARCHAR(200) NOT NULL\n);\n\nCREATE TABLE lectores (\n  id_lector INT PRIMARY KEY,\n  nombre_lector VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE prestamos (\n  id_prestamo INT PRIMARY KEY,\n  id_libro INT,\n  id_lector INT,\n  fecha_prestamo DATE NOT NULL,\n  fecha_devolucion DATE,\n  FOREIGN KEY (id_libro) REFERENCES libros(id_libro),\n  FOREIGN KEY (id_lector) REFERENCES lectores(id_lector)\n);\n```\n\n`titulo_libro` y `nombre_lector` ahora están en sus propias tablas, donde dependen directamente de la PK."
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-10",
+      "title": "Ejercicios de Tercera Forma Normal",
+      "order": 10,
+      "objectives": [
+        "Detectar dependencias transitivas en tablas en 2NF",
+        "Eliminar dependencias transitivas separando tablas",
+        "Verificar que una tabla está en 3NF"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Práctica de 3FN\n\nEn estos ejercicios practicarás:\n1. Identificar dependencias transitivas.\n2. Separar tablas para eliminar transitivas.\n3. Verificar que no queden dependencias de atributos no clave a otros atributos no clave.\n\n### Recordatorio: Regla de 3FN\n\n- La tabla debe estar en **2NF**.\n- **Ningún** atributo no clave puede depender de **otro** atributo no clave.\n- Solo pueden depender de la **clave primaria**."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-10-1",
+          "title": "Eliminar transitivas en tienda",
+          "difficulty": "intermediate",
+          "description": "Convierte a 3NF:\n\n```sql\nCREATE TABLE productos_tienda (\n  id_producto INT PRIMARY KEY,\n  nombre VARCHAR(100),\n  precio DECIMAL(10,2),\n  id_categoria INT,\n  nombre_categoria VARCHAR(50),\n  descripcion_categoria TEXT\n);\n```\n\nIdentifica la dependencia transitiva y crea las tablas resultantes.",
+          "solution": "**Dependencias:**\n- `id_producto → nombre, precio, id_categoria, nombre_categoria, descripcion_categoria`\n- `id_categoria → nombre_categoria, descripcion_categoria` ← transitiva\n\n**La transitiva es**: `id_producto → id_categoria → nombre_categoria`\n\n**Tablas en 3NF:**\n\n```sql\nCREATE TABLE categorias (\n  id_categoria INT PRIMARY KEY,\n  nombre_categoria VARCHAR(50) NOT NULL,\n  descripcion_categoria TEXT\n);\n\nCREATE TABLE productos_tienda (\n  id_producto INT PRIMARY KEY,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  id_categoria INT,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)\n);\n```\n\n`nombre_categoria` y `descripcion_categoria` ahora están en `categorias`, donde dependen directamente de la PK `id_categoria`."
+        },
+        {
+          "id": "ex-05-10-2",
+          "title": "Detectar transitiva en empleados",
+          "difficulty": "intermediate",
+          "description": "¿Esta tabla está en 3NF? Si no, conviértela:\n\n```sql\nCREATE TABLE empleados (\n  id_empleado INT PRIMARY KEY,\n  nombre VARCHAR(50),\n  id_departamento INT,\n  nombre_departamento VARCHAR(50),\n  ubicacion_departamento VARCHAR(100)\n);\n```",
+          "solution": "**No está en 3NF.** Tiene una dependencia transitiva:\n\n- `id_empleado → id_departamento → nombre_departamento, ubicacion_departamento`\n\n**Tablas en 3NF:**\n\n```sql\nCREATE TABLE departamentos (\n  id_departamento INT PRIMARY KEY,\n  nombre_departamento VARCHAR(50) NOT NULL,\n  ubicacion_departamento VARCHAR(100)\n);\n\nCREATE TABLE empleados (\n  id_empleado INT PRIMARY KEY,\n  nombre VARCHAR(50) NOT NULL,\n  id_departamento INT,\n  FOREIGN KEY (id_departamento) REFERENCES departamentos(id_departamento)\n);\n```\n\nAhora `nombre_departamento` y `ubicacion_departamento` dependen directamente de `id_departamento`."
+        },
+        {
+          "id": "ex-05-10-3",
+          "title": "Tabla ya en 3NF",
+          "difficulty": "intermediate",
+          "description": "¿Esta tabla está en 3NF? Justifica:\n\n```sql\nCREATE TABLE pedidos (\n  id_pedido INT PRIMARY KEY,\n  fecha DATE,\n  id_cliente INT,\n  total DECIMAL(10,2)\n);\n```\n\nDependencias:\n- `id_pedido → fecha, id_cliente, total`",
+          "solution": "**Sí está en 3NF.**\n\n**Análisis:**\n- La PK es `id_pedido` (clave simple, no compuesta → 2NF automática).\n- `fecha`, `id_cliente` y `total` dependen directamente de `id_pedido`.\n- No hay dependencias transitivas: ningún atributo no clave determina a otro atributo no clave.\n\n**¿Por qué no hay transitivas?** `id_cliente` es una FK, pero `fecha` no depende de `id_cliente`, ni `total` depende de `fecha`. Cada atributo depende directamente de la PK."
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-11",
+      "title": "Normalización completa paso a paso",
+      "order": 11,
+      "objectives": [
+        "Aplicar el proceso completo de normalización de forma sistemática",
+        "Identificar el nivel de normalización de una tabla",
+        "Realizar descomposición sin pérdida de información"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Proceso sistemático de normalización\n\nPara normalizar una tabla, sigue estos pasos en orden:\n\n### Paso 0: Identificar la tabla y sus dependencias\n\n1. Lista **todos los atributos** de la tabla.\n2. Identifica la **clave candidata** (o candidatas).\n3. Escribe **todas las dependencias funcionales**.\n\n### Paso 1: Verificar/convertir a 1FN\n\n- ¿Algún atributo contiene múltiples valores?\n- ¿Algún atributo tiene grupos repetidos (nota_1, nota_2...)?\n- Si sí → Separar en tablas donde cada celda sea atómica.\n\n### Paso 2: Verificar/convertir a 2FN\n\n- ¿La PK es compuesta?\n- Si sí → ¿Algún atributo no clave depende de **parte** de la PK?\n- Si sí → Separar en tablas donde cada atributo dependa de toda la PK.\n\n### Paso 3: Verificar/convertir a 3FN\n\n- ¿Algún atributo no clave depende de **otro** atributo no clave?\n- Si sí → Separar en tablas donde cada atributo no clave dependa **directamente** de la PK."
+        },
+        {
+          "type": "text",
+          "content": "## Descomposición sin pérdida\n\nCuando separas una tabla en varias, debes garantizar que **no pierdes información**. Esto se llama **descomposición sin pérdida**.\n\n### Regla de verificación\n\nSi separas la tabla R en R1 y R2, la descomposición es sin pérdida si:\n\n```\nR1 ∩ R2 → R1  o  R1 ∩ R2 → R2\n```\n\nEs decir: la **intersección** de ambas tablas debe determinar al menos una de ellas.\n\n### Ejemplo\n\n```\nTabla original: pedidos (id_pedido, fecha, id_cliente, cliente_nombre)\n\nDescomposición:\nR1: pedidos (id_pedido, fecha, id_cliente)\nR2: clientes (id_cliente, cliente_nombre)\n\nIntersección: id_cliente\nid_cliente → cliente_nombre (R2) ✓ → Descomposición sin pérdida\n```\n\n### ¿Qué pasa si la descomposición NO es sin pérdida?\n\nSi la intersección no determina ninguna tabla, **pierdes información** y no puedes reconstruir la tabla original con un JOIN."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo completo paso a paso\n\nTabla original:\n\n```sql\nCREATE TABLE academia_bad (\n  id_alumno INT,\n  nombre_alumno VARCHAR(50),\n  id_asignatura INT,\n  nombre_asignatura VARCHAR(100),\n  id_profesor INT,\n  nombre_profesor VARCHAR(50),\n  departamento VARCHAR(50),\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(20),\n  PRIMARY KEY (id_alumno, id_asignatura, convocatoria)\n);\n```\n\n**Paso 0: Dependencias**\n```\n(id_alumno, id_asignatura, convocatoria) → nota\nid_alumno → nombre_alumno\nid_asignatura → nombre_asignatura, id_profesor\nid_profesor → nombre_profesor, departamento\n```\n\n**Paso 1: 1FN** ✓ (ya está)\n\n**Paso 2: 2NF** → Eliminar parciales:\n- `id_alumno → nombre_alumno` → tabla `alumnos`\n- `id_asignatura → nombre_asignatura, id_profesor` → tabla `asignaturas`\n- `(id_alumno, id_asignatura, convocatoria) → nota` → tabla `notas`\n\n**Paso 3: 3FN** → Eliminar transitivas:\n- `id_profesor → nombre_profesor, departamento` en `asignaturas` → tabla `profesores`\n\n**Resultado final (4 tablas):**\n```\nalumnos (id_alumno, nombre_alumno)\nprofesores (id_profesor, nombre_profesor, departamento)\nasignaturas (id_asignatura, nombre_asignatura, id_profesor)\nnotas (id_alumno, id_asignatura, convocatoria, nota)\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-11-1",
+          "title": "Normalización de sistema de reservas",
+          "difficulty": "hard",
+          "description": "Normaliza completamente hasta 3NF:\n\n```sql\nCREATE TABLE reservas_bad (\n  id_cliente INT,\n  nombre_cliente VARCHAR(50),\n  email_cliente VARCHAR(100),\n  id_hotel INT,\n  nombre_hotel VARCHAR(100),\n  id_ciudad INT,\n  nombre_ciudad VARCHAR(50),\n  id_habitacion INT,\n  tipo_habitacion VARCHAR(30),\n  fecha_entrada DATE,\n  fecha_salida DATE,\n  precio_noche DECIMAL(10,2),\n  PRIMARY KEY (id_cliente, id_hotel, id_habitacion, fecha_entrada)\n);\n```\n\nMuestra el proceso completo.",
+          "solution": "**Paso 0: Dependencias**\n```\n(id_cliente, id_hotel, id_habitacion, fecha_entrada) → fecha_salida, precio_noche\nid_cliente → nombre_cliente, email_cliente\nid_hotel → nombre_hotel, id_ciudad\nid_ciudad → nombre_ciudad\nid_habitacion → tipo_habitacion\n```\n\n**Paso 1: 1FN** ✓ (ya está)\n\n**Paso 2: 2NF** → Eliminar parciales:\n- `id_cliente → nombre_cliente, email_cliente` → tabla `clientes`\n- `id_hotel → nombre_hotel, id_ciudad` → tabla `hoteles`\n- `id_ciudad → nombre_ciudad` → tabla `ciudades` (transitiva, la resolvemos en 3NF)\n- `id_habitacion → tipo_habitacion` → tabla `habitaciones`\n- `(id_cliente, id_hotel, id_habitacion, fecha_entrada) → fecha_salida, precio_noche` → tabla `reservas`\n\n**Paso 3: 3FN** → Eliminar transitivas:\n- `id_hotel → id_ciudad → nombre_ciudad` → separar `ciudades`\n\n**Resultado final (5 tablas):**\n\n```sql\nCREATE TABLE ciudades (\n  id_ciudad INT PRIMARY KEY,\n  nombre_ciudad VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE hoteles (\n  id_hotel INT PRIMARY KEY,\n  nombre_hotel VARCHAR(100) NOT NULL,\n  id_ciudad INT,\n  FOREIGN KEY (id_ciudad) REFERENCES ciudades(id_ciudad)\n);\n\nCREATE TABLE clientes (\n  id_cliente INT PRIMARY KEY,\n  nombre_cliente VARCHAR(50) NOT NULL,\n  email_cliente VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE habitaciones (\n  id_habitacion INT PRIMARY KEY,\n  tipo_habitacion VARCHAR(30) NOT NULL\n);\n\nCREATE TABLE reservas (\n  id_cliente INT,\n  id_hotel INT,\n  id_habitacion INT,\n  fecha_entrada DATE,\n  fecha_salida DATE,\n  precio_noche DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_cliente, id_hotel, id_habitacion, fecha_entrada),\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),\n  FOREIGN KEY (id_hotel) REFERENCES hoteles(id_hotel),\n  FOREIGN KEY (id_habitacion) REFERENCES habitaciones(id_habitacion)\n);\n```\n\n**Verificación de descomposición sin pérdida**: Cada tabla intermedia comparte la PK con la tabla padre → la reconstrucción con JOINs es posible."
+        },
+        {
+          "id": "ex-05-11-2",
+          "title": "Normalización de encuesta",
+          "difficulty": "hard",
+          "description": "Normaliza completamente hasta 3NF:\n\n```sql\nCREATE TABLE encuestas_bad (\n  id_respuesta INT,\n  id_usuario INT,\n  nombre_usuario VARCHAR(50),\n  id_pregunta INT,\n  texto_pregunta TEXT,\n  id_categoria_pregunta INT,\n  nombre_categoria VARCHAR(50),\n  respuesta TEXT,\n  fecha_respuesta DATE,\n  PRIMARY KEY (id_respuesta)\n);\n```\n\nDependencias:\n- `id_respuesta → id_usuario, id_pregunta, respuesta, fecha_respuesta`\n- `id_usuario → nombre_usuario`\n- `id_pregunta → texto_pregunta, id_categoria_pregunta`\n- `id_categoria_pregunta → nombre_categoria`",
+          "solution": "**Paso 1: 1FN** ✓ (ya está)\n\n**Paso 2: 2NF** ✓ (PK simple `id_respuesta`, no hay parciales)\n\n**Paso 3: 3FN** → Eliminar transitivas:\n- `id_usuario → nombre_usuario` → tabla `usuarios`\n- `id_pregunta → texto_pregunta, id_categoria_pregunta` → tabla `preguntas`\n- `id_categoria_pregunta → nombre_categoria` → tabla `categorias_pregunta`\n\n**Resultado (4 tablas):**\n\n```sql\nCREATE TABLE usuarios (\n  id_usuario INT PRIMARY KEY,\n  nombre_usuario VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE categorias_pregunta (\n  id_categoria_pregunta INT PRIMARY KEY,\n  nombre_categoria VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE preguntas (\n  id_pregunta INT PRIMARY KEY,\n  texto_pregunta TEXT NOT NULL,\n  id_categoria_pregunta INT,\n  FOREIGN KEY (id_categoria_pregunta) REFERENCES categorias_pregunta(id_categoria_pregunta)\n);\n\nCREATE TABLE encuestas (\n  id_respuesta INT PRIMARY KEY,\n  id_usuario INT,\n  id_pregunta INT,\n  respuesta TEXT NOT NULL,\n  fecha_respuesta DATE NOT NULL,\n  FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),\n  FOREIGN KEY (id_pregunta) REFERENCES preguntas(id_pregunta)\n);\n```\n\nCada dato se almacena una vez. Sin transitivas."
+        }
+      ]
+    },
+    {
+      "id": "lesson-05-12",
+      "title": "Caso práctico final y repaso",
+      "order": 12,
+      "objectives": [
+        "Aplicar todas las formas normales en un caso completo",
+        "Resolver problemas mixtos de normalización",
+        "Comparar tablas normalizadas vs. no normalizadas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Caso práctico: Sistema de gestión de cursos\n\nUna plataforma de cursos online tiene esta tabla sin normalizar:\n\n```sql\nCREATE TABLE gestion_cursos_bad (\n  id_estudiante INT,\n  nombre_estudiante VARCHAR(50),\n  email_estudiante VARCHAR(100),\n  id_curso INT,\n  nombre_curso VARCHAR(100),\n  id_profesor INT,\n  nombre_profesor VARCHAR(50),\n  email_profesor VARCHAR(100),\n  id_categoria INT,\n  nombre_categoria VARCHAR(50),\n  nota DECIMAL(4,2),\n  fecha_inscripcion DATE,\n  PRIMARY KEY (id_estudiante, id_curso)\n);\n```\n\n**Datos de ejemplo:**\n\n| id_est | nombre | email | id_curso | nombre_curso | id_prof | prof_nombre | prof_email | id_cat | cat_nombre | nota | fecha |\n|---|---|---|---|---|---|---|---|---|---|---|---|\n| 1 | Juan | j@mail.com | 10 | BD | 1 | Ana | a@prof.com | 1 | Programación | 8.5 | 2026-01 |\n| 1 | Juan | j@mail.com | 20 | Redes | 2 | Luis | l@prof.com | 2 | Sistemas | 7.0 | 2026-01 |\n| 2 | María | m@mail.com | 10 | BD | 1 | Ana | a@prof.com | 1 | Programación | 9.0 | 2026-02 |\n\n**Problemas visibles:**\n- \"Juan\" y \"j@mail.com\" se repiten 2 veces.\n- \"Ana\" y \"a@prof.com\" se repiten 2 veces.\n- \"Programación\" se repite 2 veces.\n- Si Ana cambia de email, hay que actualizar todas sus filas."
+        },
+        {
+          "type": "text",
+          "content": "## Solución paso a paso\n\n**Paso 0: Dependencias**\n```\n(id_estudiante, id_curso) → nota, fecha_inscripcion\nid_estudiante → nombre_estudiante, email_estudiante\nid_curso → nombre_curso, id_profesor, id_categoria\nid_profesor → nombre_profesor, email_profesor\nid_categoria → nombre_categoria\n```\n\n**Paso 1: 1FN** ✓ (ya está)\n\n**Paso 2: 2NF** → Eliminar dependencias parciales:\n- `id_estudiante → nombre_estudiante, email_estudiante`\n- `id_curso → nombre_curso, id_profesor, id_categoria`\n- `(id_estudiante, id_curso) → nota, fecha_inscripcion`\n\n**Paso 3: 3FN** → Eliminar transitivas:\n- `id_profesor → nombre_profesor, email_profesor`\n- `id_categoria → nombre_categoria`\n\n**Resultado final (5 tablas):**\n\n```sql\nCREATE TABLE estudiantes (\n  id_estudiante INT PRIMARY KEY,\n  nombre_estudiante VARCHAR(50) NOT NULL,\n  email_estudiante VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE categorias (\n  id_categoria INT PRIMARY KEY,\n  nombre_categoria VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE profesores (\n  id_profesor INT PRIMARY KEY,\n  nombre_profesor VARCHAR(50) NOT NULL,\n  email_profesor VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE cursos (\n  id_curso INT PRIMARY KEY,\n  nombre_curso VARCHAR(100) NOT NULL,\n  id_profesor INT,\n  id_categoria INT,\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id_profesor),\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)\n);\n\nCREATE TABLE inscripciones (\n  id_estudiante INT,\n  id_curso INT,\n  nota DECIMAL(4,2),\n  fecha_inscripcion DATE NOT NULL,\n  PRIMARY KEY (id_estudiante, id_curso),\n  FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante),\n  FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)\n);\n```\n\n**Verificación:**\n- Cada dato se almacena **una sola vez**.\n- No hay anomalías de inserción, eliminación o actualización.\n- Las dependencias transitivas se eliminaron."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen comparativo\n\n| Forma Normal | Regla | Qué elimina | Ejemplo |\n|---|---|---|---|\n| **1FN** | Atributos atómicos | Valores múltiples, listas | Telefonos separados en tabla |\n| **2FN** | Sin dependencias parciales | Atributos que dependen de parte de la PK | nombre_alumno de la tabla notas |\n| **3FN** | Sin dependencias transitivas | Atributos que dependen de otros no clave | ciudad de la tabla alumnos |\n\n### Flujo de normalización\n\n```\n┌─────────────────────────────────┐\n│   Tabla sin normalizar          │\n│   (con redundancia y anomalías) │\n└──────────────┬──────────────────┘\n               ↓ 1FN\n┌─────────────────────────────────┐\n│   Tabla en 1FN                  │\n│   (valores atómicos)            │\n└──────────────┬──────────────────┘\n               ↓ 2FN\n┌─────────────────────────────────┐\n│   Tabla en 2FN                  │\n│   (sin dependencias parciales)  │\n└──────────────┬──────────────────┘\n               ↓ 3FN\n┌─────────────────────────────────┐\n│   Tabla en 3FN                  │\n│   (sin transitivas)             │\n│   ✅ Diseño correcto            │\n└─────────────────────────────────┘\n```\n\n> **Conclusión**: La normalización es un proceso **progresivo**. Cada paso resuelve un tipo específico de problema. En la práctica, llegar a **3FN** es suficiente para la mayoría de bases de datos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-05-12-1",
+          "title": "Repaso: Identificar nivel de normalización",
+          "difficulty": "intermediate",
+          "description": "Para cada tabla, indica en qué forma normal está (o si no está en ninguna):\n\n**Tabla A:**\n| id | nombre | telefono1 | telefono2 |\n|---|---|---|---|\n| 1 | Juan | 612... | 698... |\n\n**Tabla B:**\n| id_alumno | id_asignatura | nota | nombre_alumno |\n|---|---|---|---|\n| 1 | 1 | 8.5 | Juan |\n\n**Tabla C:**\n| id | nombre | email |\n|---|---|---|\n| 1 | Juan | juan@mail.com |\n\n**Tabla D:**\n| id | nombre | codigo_postal | ciudad |\n|---|---|---|---|\n| 1 | Juan | 28001 | Madrid |",
+          "solution": "**Tabla A: No está en 1FN.** `telefono1` y `telefono2` son valores repetidos. Debería ser una tabla separada `alumno_telefonos`.\n\n**Tabla B: Está en 1FN pero no en 2FN.** Tiene PK compuesta `(id_alumno, id_asignatura)` y `nombre_alumno` depende solo de `id_alumno` (dependencia parcial).\n\n**Tabla C: Está en 3NF.** PK simple `id`, todos los atributos dependen directamente de la PK, no hay transitivas.\n\n**Tabla D: Está en 2NF pero no en 3NF.** PK simple `id` (automáticamente 2NF), pero `ciudad` depende de `codigo_postal`, no directamente de `id` (dependencia transitiva)."
+        },
+        {
+          "id": "ex-05-12-2",
+          "title": "Repaso: Normalización completa de tienda",
+          "difficulty": "hard",
+          "description": "Normaliza completamente hasta 3NF:\n\n```sql\nCREATE TABLE tienda_bad (\n  id_venta INT,\n  fecha_venta DATE,\n  id_cliente INT,\n  nombre_cliente VARCHAR(50),\n  id_vendedor INT,\n  nombre_vendedor VARCHAR(50),\n  id_producto INT,\n  nombre_producto VARCHAR(100),\n  id_proveedor INT,\n  nombre_proveedor VARCHAR(100),\n  cantidad INT,\n  precio_unitario DECIMAL(10,2),\n  PRIMARY KEY (id_venta, id_producto)\n);\n```\n\nMuestra dependencias, proceso y resultado final.",
+          "solution": "**Dependencias:**\n```\n(id_venta, id_producto) → cantidad, precio_unitario\nid_venta → fecha_venta, id_cliente, id_vendedor\nid_cliente → nombre_cliente\nid_vendedor → nombre_vendedor\nid_producto → nombre_producto, id_proveedor\nid_proveedor → nombre_proveedor\n```\n\n**1FN** ✓ (ya está)\n\n**2NF** → Eliminar parciales:\n- `id_venta → fecha_venta, id_cliente, id_vendedor`\n- `id_producto → nombre_producto, id_proveedor`\n\n**3NF** → Eliminar transitivas:\n- `id_cliente → nombre_cliente`\n- `id_vendedor → nombre_vendedor`\n- `id_proveedor → nombre_proveedor`\n\n**Resultado (5 tablas):**\n\n```sql\nCREATE TABLE clientes (\n  id_cliente INT PRIMARY KEY,\n  nombre_cliente VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE vendedores (\n  id_vendedor INT PRIMARY KEY,\n  nombre_vendedor VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE proveedores (\n  id_proveedor INT PRIMARY KEY,\n  nombre_proveedor VARCHAR(100) NOT NULL\n);\n\nCREATE TABLE productos (\n  id_producto INT PRIMARY KEY,\n  nombre_producto VARCHAR(100) NOT NULL,\n  id_proveedor INT,\n  FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)\n);\n\nCREATE TABLE ventas (\n  id_venta INT,\n  id_producto INT,\n  fecha_venta DATE NOT NULL,\n  cantidad INT NOT NULL,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  id_cliente INT,\n  id_vendedor INT,\n  PRIMARY KEY (id_venta, id_producto),\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id_cliente),\n  FOREIGN KEY (id_vendedor) REFERENCES vendedores(id_vendedor),\n  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)\n);\n```\n\nCada dato se almacena una sola vez. Sin anomalías."
+        },
+        {
+          "id": "ex-05-12-3",
+          "title": "Repaso: Verificar diseño correcto",
+          "difficulty": "intermediate",
+          "description": "Un compañero propone este diseño para una biblioteca:\n\n```sql\nCREATE TABLE prestamos (\n  id_prestamo INT PRIMARY KEY,\n  id_lector INT,\n  nombre_lector VARCHAR(50),\n  id_libro INT,\n  titulo_libro VARCHAR(200),\n  fecha_prestamo DATE,\n  fecha_devolucion DATE\n);\n```\n\n¿Está normalizado? Si no, señala los problemas y propón un diseño en 3NF.",
+          "solution": "**No está normalizado.** Problemas:\n\n1. `nombre_lector` depende solo de `id_lector` → dependencia parcial (viola 2FN si la PK fuera compuesta, pero como PK es simple `id_prestamo`, técnicamente está en 2FN).\n\n2. `titulo_libro` depende solo de `id_libro` → dependencia transitiva: `id_prestamo → id_libro → titulo_libro` (viola 3FN).\n\n**Diseño en 3NF:**\n\n```sql\nCREATE TABLE lectores (\n  id_lector INT PRIMARY KEY,\n  nombre_lector VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE libros (\n  id_libro INT PRIMARY KEY,\n  titulo_libro VARCHAR(200) NOT NULL\n);\n\nCREATE TABLE prestamos (\n  id_prestamo INT PRIMARY KEY,\n  id_lector INT,\n  id_libro INT,\n  fecha_prestamo DATE NOT NULL,\n  fecha_devolucion DATE,\n  FOREIGN KEY (id_lector) REFERENCES lectores(id_lector),\n  FOREIGN KEY (id_libro) REFERENCES libros(id_libro)\n);\n```\n\nCada dato se almacena una vez. Sin transitivas."
         }
       ]
     }
