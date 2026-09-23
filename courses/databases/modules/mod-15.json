@@ -4,68 +4,845 @@
   "title": "Triggers, cursores y excepciones",
   "slug": "triggers-courseurs",
   "order": 15,
-  "description": "Triggers BEFORE/AFTER, cursores para iterar filas, manejo de excepciones y automatización de tareas.",
+  "description": "Domina los triggers BEFORE/AFTER en MySQL, los cursores para procesamiento fila por fila, y el manejo de excepciones con DECLARE HANDLER y SIGNAL. Incluye automatización de auditoría, buenas prácticas y un caso práctico completo de sistema de matriculación.",
   "objectives": [
-    "Crear triggers BEFORE INSERT, AFTER INSERT, BEFORE UPDATE, AFTER UPDATE, BEFORE DELETE, AFTER DELETE",
-    "Usar OLD y NEW para acceder a los valores",
-    "Declarar y usar cursores para iterar sobre resultados",
-    "Manejar errores con DECLARE HANDLER",
-    "Automatizar tareas con triggers"
+    "Crear y gestionar triggers BEFORE y AFTER para INSERT, UPDATE y DELETE",
+    "Usar OLD y NEW para acceder a valores antes y después de una operación",
+    "Diseñar sistemas de auditoría con triggers",
+    "Declarar, abrir, recorrer y cerrar cursores correctamente",
+    "Implementar handlers CONTINUE y EXIT para manejo de errores",
+    "Usar SIGNAL y RESIGNAL para errores personalizados",
+    "Distinguir cuándo usar cursores vs operaciones set-based",
+    "Aplicar buenas prácticas para triggers, cursores y handlers",
+    "Diseñar y ejecutar un caso práctico completo de matriculación y auditoría"
   ],
-  "estimatedMinutes": 360,
+  "estimatedMinutes": 720,
   "lessons": [
     {
       "id": "lesson-15-1",
-      "title": "Triggers",
+      "title": "Introducción a los triggers",
       "order": 1,
       "objectives": [
-        "Crear triggers BEFORE y AFTER",
-        "Usar NEW y OLD para acceder a valores",
-        "Implementar validaciones automáticas con triggers"
+        "Definir qué es un trigger y cómo se diferencia de un procedimiento",
+        "Identificar los eventos y momentos disponibles en MySQL",
+        "Comprender que los triggers se ejecutan automáticamente, no con CALL",
+        "Conocer el caso de uso principal: auditoría y validación"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## ¿Qué es un trigger?\n\nUn **trigger** (disparador) es un bloque de código que se ejecuta **automáticamente** cuando ocurre un evento en una tabla: INSERT, UPDATE o DELETE.\n\n> **Analogía**: Un trigger es como una alarma: cuando algo ocurre (alguien entra, alguien modifica algo), la alarma se activa automáticamente.\n\n### Tipos de triggers\n\n| Momento | Evento | Descripción |\n|---|---|---|\n| **BEFORE INSERT** | Antes de insertar | Validar o modificar datos antes de guardar |\n| **AFTER INSERT** | Después de insertar | Registrar o notificar después de guardar |\n| **BEFORE UPDATE** | Antes de actualizar | Validar o modificar antes de cambiar |\n| **AFTER UPDATE** | Después de actualizar | Registrar cambios después de actualizar |\n| **BEFORE DELETE** | Antes de eliminar | Validar o guardar respaldo antes de borrar |\n| **AFTER DELETE** | Después de eliminar | Registrar o limpiar después de borrar |\n\n### newValores: NEW y OLD\n\n| Trigger | OLD | NEW |\n|---|---|---|\n| INSERT | ❌ No existe | ✅ El valor que se va a insertar |\n| UPDATE | ✅ El valor anterior | ✅ El valor nuevo |\n| DELETE | ✅ El valor que se va a eliminar | ❌ No existe |"
+          "content": "## Qué es un trigger\n\nUn **trigger** (disparador) es un bloque de código que se ejecuta **automáticamente** cuando ocurre un evento en una tabla: INSERT, UPDATE o DELETE. No se invoca con CALL ni se llama desde una aplicación; MySQL lo dispara internamente.\n\n> **Analogía**: Un trigger es como una alarma en una tienda. Nadie le dice \"actívate\" — se activa sola cuando alguien entra, toca algo o se lleva un producto.\n\n### Diferencia clave con procedimientos\n\n| Característica | Trigger | Procedimiento |\n|---|---|---|\n| **Se ejecuta** | Automáticamente al modificar datos | Solo cuando lo llamas con CALL |\n| **Quién lo invoca** | MySQL internamente | Tu código o cliente SQL |\n| **Puede usar INSERT/UPDATE/DELETE** | Sí (los que lo disparan) | Sí (cualquier tabla) |\n| **Parámetros IN/OUT** | No | Sí |\n| **Retorna resultados** | No | Sí (con SELECT o OUT) |"
         },
         {
           "type": "text",
-          "content": "### Ejemplo 1: Validar nota antes de insertar\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  -- Validar que la nota esté entre 0 y 10\n  IF NEW.nota < 0 OR NEW.nota > 10 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Error: la nota debe estar entre 0 y 10';\n  END IF;\n\n  -- Validar que el alumno esté activo\n  IF NOT EXISTS (\n    SELECT 1 FROM alumnos WHERE id = NEW.id_alumno AND activo = TRUE\n  ) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Error: el alumno no está activo';\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- Esto funcionaría:\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (1, 1, 8.5, 'Convocatoria 1');\n\n-- Esto FALLARÍA:\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (1, 1, 15, 'Convocatoria 1');\n-- Error: la nota debe estar entre 0 y 10\n```\n\n### Ejemplo 2: Actualizar stock al insertar un pedido\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_reducir_stock\nAFTER INSERT ON lineas_pedido\nFOR EACH ROW\nBEGIN\n  UPDATE productos\n  SET stock = stock - NEW.cantidad\n  WHERE id = NEW.id_producto;\nEND //\n\nDELIMITER ;\n\n-- Cuando se inserta una línea de pedido, el stock se reduce automáticamente\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES (1, 1, 2, 649.99);\n-- El stock del producto 1 se reduce en 2\n```\n\n### Ejemplo 3: Registrar cambios en un log\n\n```sql\n-- Tabla de log\nCREATE TABLE log_notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_nota INT,\n  accion VARCHAR(10),\n  nota_anterior DECIMAL(4,2),\n  nota_nueva DECIMAL(4,2),\n  usuario VARCHAR(100),\n  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Trigger para registrar actualizaciones de nota\nDELIMITER //\n\nCREATE TRIGGER trg_log_actualizar_nota\nAFTER UPDATE ON notas\nFOR EACH ROW\nBEGIN\n  IF OLD.nota != NEW.nota THEN\n    INSERT INTO log_notas (id_nota, accion, nota_anterior, nota_nueva, usuario)\n    VALUES (NEW.id, 'UPDATE', OLD.nota, NEW.nota, USER());\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- Ahora, cada cambio de nota se registra automáticamente\nUPDATE notas SET nota = 8.0 WHERE id = 1;\n-- Se inserta automáticamente en log_notas\n```\n\n### Ejemplo 4: Respaldar antes de eliminar\n\n```sql\n-- Tabla de respaldo\nCREATE TABLE notas_respaldo LIKE notas;\n\nDELIMITER //\n\nCREATE TRIGGER trg_respaldo_nota\nBEFORE DELETE ON notas\nFOR EACH ROW\nBEGIN\n  INSERT INTO notas_respaldo\n  VALUES (OLD.id, OLD.id_alumno, OLD.id_asignatura,\n          OLD.nota, OLD.convocatoria, OLD.fecha_evaluacion);\nEND //\n\nDELIMITER ;\n\n-- Al eliminar una nota, se respalda automáticamente\nDELETE FROM notas WHERE id = 1;\n-- La nota se copia a notas_respaldo antes de eliminarse\n```\n\n### Listar y eliminar triggers\n\n```sql\n-- Ver todos los triggers de una tabla\nSHOW TRIGGERS FROM academia LIKE 'notas';\n\n-- Ver el código de un trigger\nSHOW CREATE TRIGGER trg_validar_nota;\n\n-- Eliminar\nDROP TRIGGER IF EXISTS trg_validar_nota;\n```"
+          "content": "## Eventos y momentos\n\nUn trigger se define combinando un **momento** (BEFORE o AFTER) y un **evento** (INSERT, UPDATE o DELETE).\n\n### Momentos\n\n- **BEFORE**: se ejecuta ANTES de que la operación aplique sobre la fila. Puedes validar, modificar valores o cancelar la operación.\n- **AFTER**: se ejecuta DESPUÉS de que la operación se completó correctamente. Ideal para auditoría, notificaciones o cálculos derivados.\n\n### Eventos\n\n- **INSERT**: se dispara al añadir filas nuevas.\n- **UPDATE**: se dispara al modificar filas existentes.\n- **DELETE**: se dispara al eliminar filas.\n\n### Tabla resumen\n\n| Momento | INSERT | UPDATE | DELETE |\n|---|---|---|---|\n| BEFORE | Antes de insertar la fila | Antes de modificar la fila | Antes de eliminar la fila |\n| AFTER | Después de insertar la fila | Después de modificar la fila | Después de eliminar la fila |\n\nEn MySQL, esta combinación genera **6 tipos posibles** de triggers por tabla."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo motivador: registro de cambios de matrícula\n\nSupón que necesitas registrar cada vez que una matrícula cambia de estado. Sin triggers, tendrías que añadir lógica de auditoría en cada aplicación que modifique la tabla. Con un trigger, la auditoría está en la base de datos y se ejecuta siempre.\n\n```sql\n-- Tabla de auditoría\nCREATE TABLE auditoria_matricula (\n  id_auditoria INT PRIMARY KEY AUTO_INCREMENT,\n  id_matricula INT,\n  accion VARCHAR(10),\n  estado_anterior VARCHAR(20),\n  estado_nuevo VARCHAR(20),\n  usuario VARCHAR(100),\n  fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n```\n\n```sql\n-- Trigger que registra cada cambio de estado\nDELIMITER //\n\nCREATE TRIGGER trg_auditar_matricula\nAFTER UPDATE ON matriculas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.estado <=> NEW.estado) THEN\n    INSERT INTO auditoria_matricula (\n      id_matricula, accion, estado_anterior, estado_nuevo, usuario\n    ) VALUES (\n      NEW.id, 'UPDATE', OLD.estado, NEW.estado, CURRENT_USER()\n    );\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nAhora cada `UPDATE` sobre `matriculas` genera automáticamente un registro de auditoría sin que la aplicación tenga que preocuparse."
+        },
+        {
+          "type": "text",
+          "content": "## Los triggers NO son una solución universal\n\nLos triggers son potentes, pero tienen limitaciones importantes:\n\n- **Lógica oculta**: Un INSERT aparentemente simple puede activar triggers que ejecutan UPDATEs, INSERTs en otras tablas y validaciones complejas. Difícil de depurar.\n- **Rendimiento**: Cada fila afectada dispara el trigger. En tablas con millones de filas, el impacto puede ser significativo.\n- **Portabilidad**: Los triggers no son estándar entre SGBD. Lo que funciona en MySQL puede no funcionar en PostgreSQL ni en SQL Server.\n- **Testing**: Probar triggers aislados es más difícil que probar una función regular.\n\n> **Regla práctica**: Usa triggers para validación de integridad de datos y auditoría. NO los uses para lógica de negocio compleja ni para reemplazar constraints que podrían resolver el problema directamente."
         }
       ],
       "exercises": [
         {
           "id": "ex-15-1-1",
-          "title": "Triggers prácticos",
-          "difficulty": "hard",
-          "description": "Crea los siguientes triggers:\n1. Un trigger BEFORE INSERT en `productos` que ponga el stock a 0 si es negativo\n2. Un trigger AFTER INSERT en `matriculas` que inserte una nota inicial de 0 en 'Pendiente'\n3. Un trigger BEFORE DELETE en `alumnos` que impida borrar alumnos con notas (lanzar error)",
-          "solution": "```sql\n-- 1. Stock no negativo\nDELIMITER //\n\nCREATE TRIGGER trg_stock_no_negativo\nBEFORE INSERT ON productos\nFOR EACH ROW\nBEGIN\n  IF NEW.stock < 0 THEN\n    SET NEW.stock = 0;\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- 2. Nota inicial al matricular\nDELIMITER //\n\nCREATE TRIGGER trg_nota_inicial\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\n  VALUES (NEW.id_alumno, NEW.id_asignatura, 0, 'Pendiente');\nEND //\n\nDELIMITER ;\n\n-- 3. Impedir borrar alumnos con notas\nDELIMITER //\n\nCREATE TRIGGER trg_impedir_borrar_alumno\nBEFORE DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  IF EXISTS (SELECT 1 FROM notas WHERE id_alumno = OLD.id) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede borrar un alumno con notas registradas';\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- Prueba:\n-- DELETE FROM alumnos WHERE id = 1;\n-- Error: No se puede borrar un alumno con notas registradas\n```"
+          "title": "Identificar componentes de un trigger",
+          "difficulty": "basic",
+          "description": "Analiza este trigger y responde:\n```sql\nCREATE TRIGGER trg_stock_insuficiente\nBEFORE INSERT ON lineas_pedido\nFOR EACH ROW\nBEGIN\n  IF NEW.cantidad > (SELECT stock FROM productos WHERE id = NEW.id_producto) THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Stock insuficiente';\n  END IF;\nEND;\n```\n1. ¿Cuál es el momento?\n2. ¿Cuál es el evento?\n3. ¿Sobre qué tabla opera?\n4. ¿Qué hace NEW.id_producto?\n5. ¿Se ejecuta con CALL?",
+          "solution": "1. **BEFORE** — se ejecuta antes de que la fila se inserte.\n2. **INSERT** — se dispara al añadir una fila.\n3. **lineas_pedido** — la tabla que recibe el INSERT.\n4. **NEW.id_producto** accede al valor de `id_producto` de la fila que se está insertando.\n5. **No** — se ejecuta automáticamente cuando alguien inserta en `lineas_pedido`. No se puede invocar con CALL."
+        },
+        {
+          "id": "ex-15-1-2",
+          "title": "Momento y evento correcto",
+          "difficulty": "intermediate",
+          "description": "Para cada caso, indica el momento (BEFORE/AFTER) y evento (INSERT/UPDATE/DELETE) más apropiado:\n1. Quieres validar que la nota esté entre 0 y 10 antes de guardarla\n2. Quieres registrar en un log cada vez que se crea una matrícula nueva\n3. Quieres impedir que se elimine un alumno que tenga notas\n4. Quieres calcular y guardar el stock restante después de un pedido",
+          "solution": "1. **BEFORE INSERT** sobre `notas` — validar antes de que la fila se guarde.\n2. **AFTER INSERT** sobre `matriculas` — registrar después de que la matrícula se haya creado correctamente.\n3. **BEFORE DELETE** sobre `alumnos` — validar antes de eliminar.\n4. **AFTER INSERT** sobre `lineas_pedido` — el stock se reduce después de insertar la línea."
+        },
+        {
+          "id": "ex-15-1-3",
+          "title": "Trigger para notificar nuevo alumno",
+          "difficulty": "intermediate",
+          "description": "Escribe un trigger que, al insertar un alumno nuevo, inserte un mensaje de bienvenida en una tabla `notificaciones` con el texto 'Bienvenido/a, {nombre}' y la fecha actual.",
+          "solution": "```sql\n-- Primero crear la tabla\nCREATE TABLE notificaciones (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  mensaje VARCHAR(200),\n  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- El trigger\nDELIMITER //\n\nCREATE TRIGGER trg_bienvenida_alumno\nAFTER INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO notificaciones (mensaje)\n  VALUES (CONCAT('Bienvenido/a, ', NEW.nombre));\nEND //\n\nDELIMITER ;\n```\n\nAhora cada INSERT en `alumnos` genera automáticamente una notificación."
         }
       ]
     },
     {
       "id": "lesson-15-2",
-      "title": "Cursores y manejo de errores",
+      "title": "BEFORE y AFTER",
       "order": 2,
       "objectives": [
-        "Declarar y abrir cursores",
-        "Recorrer filas con FETCH",
-        "Cerrar cursores",
-        "Manejar errores con DECLARE HANDLER"
+        "Comprender la diferencia entre BEFORE y AFTER concretamente",
+        "Escribir triggers BEFORE para validar y modificar valores",
+        "Escribir triggers AFTER para auditoría y efectos secundarios",
+        "Dominar la sintaxis CREATE TRIGGER completa",
+        "Recordar el uso correcto de DELIMITER"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Cursores\n\nUn **cursor** es un mecanismo que permite **recorrer fila por fila** el resultado de una consulta. Es como un puntero que va avanzando por cada fila.\n\n> **Nota**: Los cursores son lentos para grandes volúmenes de datos. Siempre intenta resolver problemas con consultas SQL directas antes de usar cursores.\n\n### Ciclo de vida de un cursor\n\n```\n1. DECLARE CURSOR    → Declarar el cursor con una consulta\n2. DECLARE HANDLER   → Manejar errores (opcional)\n3. OPEN cursor       → Abrir el cursor\n4. FETCH cursor      → Leer la siguiente fila\n5. Procesar la fila\n6. Repetir 4-5 hasta que no haya más filas\n7. CLOSE cursor      → Cerrar el cursor\n```\n\n### Ejemplo: Recorrer todas las asignaturas\n\n```sql\nDELIMITER //\n\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_creditos DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  -- Declarar cursor\n  DECLARE cur_asignaturas CURSOR FOR\n    SELECT id, nombre, creditos FROM asignaturas;\n\n  -- Manejar fin de datos\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  -- Abrir cursor\n  OPEN cur_asignaturas;\n\n  -- Recorrer filas\n  mi_bucle: LOOP\n    FETCH cur_asignaturas INTO v_id, v_nombre, v_creditos;\n\n    IF v_fin THEN\n      LEAVE mi_bucle;\n    END IF;\n\n    -- Procesar cada fila\n    SELECT v_id, v_nombre, v_creditos;\n  END LOOP mi_bucle;\n\n  -- Cerrar cursor\n  CLOSE cur_asignaturas;\nEND //\n\nDELIMITER ;\n```\n\n## DECLARE HANDLER: Manejo de errores\n\n```sql\n-- CONTINUE: continúa después del error\nDECLARE CONTINUE HANDLER FOR 1062\n  SELECT 'Error: duplicado' AS error;\n\n-- EXIT: sale del bloque BEGIN...END\nDECLARE EXIT HANDLER FOR SQLEXCEPTION\nBEGIN\n  ROLLBACK;\n  SELECT 'Error: transacción cancelada' AS error;\nEND;\n\n-- Capturar errores específicos por código\nDECLARE CONTINUE HANDLER FOR 1452\n  SELECT 'Error: clave foránea no encontrada' AS error;\n\n-- Capturar cualquier error\nDECLARE CONTINUE HANDLER FOR SQLWARNING, SQLEXCEPTION\n  SELECT 'Ha ocurrido un error' AS error;\n```\n\n### Ejemplo completo: Procedimiento con cursor y manejo de errores\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_media_por_asignatura()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_media DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre FROM asignaturas;\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  -- Tabla temporal para resultados\n  DROP TEMPORARY TABLE IF EXISTS tmp_medias;\n  CREATE TEMPORARY TABLE tmp_medias (\n    asignatura VARCHAR(100),\n    nota_media DECIMAL(4,2)\n  );\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v.nombre;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n\n    -- Calcular media de cada asignatura\n    SELECT ROUND(AVG(n.nota), 2) INTO v_media\n    FROM notas n WHERE n.id_asignatura = v_id;\n\n    -- Insertar en tabla temporal\n    INSERT INTO tmp_medias VALUES (v_nombre, IFNULL(v_media, 0));\n  END LOOP;\n\n  CLOSE cur;\n\n  -- Mostrar resultados\n  SELECT * FROM tmp_medias ORDER BY nota_media DESC;\n  DROP TEMPORARY TABLE tmp_medias;\nEND //\n\nDELIMITER ;\n\nCALL sp_media_por_asignatura();\n```"
+          "content": "## BEFORE: antes de aplicar la operación\n\nUn trigger BEFORE se ejecuta **antes** de que MySQL aplique la operación sobre la fila. Esto te da dos capacidades poderosas:\n\n1. **Validar**: Puedes comprobar si los datos cumplen las reglas y cancelar la operación con `SIGNAL` si no.\n2. **Modificar valores**: Puedes cambiar los valores de `NEW` antes de que se guarden en la tabla.\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_normalizar_email\nBEFORE INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  SET NEW.email = LOWER(NEW.email);\n  IF NEW.email IS NULL THEN\n    SET NEW.email = CONCAT(LOWER(NEW.nombre), '.', LOWER(NEW.apellido), '@academia.local');\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nEl `SET NEW.email = ...` modifica el valor **antes** de que se inserte en la tabla."
+        },
+        {
+          "type": "text",
+          "content": "## AFTER: después de aplicar la operación\n\nUn trigger AFTER se ejecuta **después** de que la operación se completó correctamente. En este punto:\n\n- La fila ya existe en la tabla (o ya fue modificada/eliminada).\n- **NO puedes modificar NEW** — los valores ya están guardados.\n- Puedes usar NEW y OLD para leer valores, pero no para cambiarlos.\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_log_nueva_matricula\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (\n    id_matricula, accion, estado_nuevo, usuario\n  ) VALUES (\n    NEW.id, 'INSERT', NEW.estado, CURRENT_USER()\n  );\nEND //\n\nDELIMITER ;\n```\n\n> **Clave**: AFTER triggers son para efectos secundarios (logs, cálculos derivados, notificaciones). BEFORE triggers son para validación y modificación."
+        },
+        {
+          "type": "text",
+          "content": "## Sintaxis completa de CREATE TRIGGER\n\n```sql\nCREATE TRIGGER nombre_trigger\n{BEFORE | AFTER} {INSERT | UPDATE | DELETE}\nON nombre_tabla\nFOR EACH ROW\nBEGIN\n  -- cuerpo del trigger\nEND;\n```\n\n### Partes obligatorias\n\n- **nombre_trigger**: identificador único dentro de la base de datos.\n- **BEFORE o AFTER**: el momento de ejecución.\n- **INSERT, UPDATE o DELETE**: el evento que lo dispara.\n- **ON tabla**: la tabla sobre la que opera.\n- **FOR EACH ROW**: ejecuta el cuerpo para cada fila afectada.\n- **BEGIN...END**: el bloque con la lógica.\n\n### Regla de denominación\n\nMySQL almacena los triggers por nombre. No puedes tener dos triggers con el mismo nombre en la misma tabla y el mismo evento. Un error común es olvidarse de dropear un trigger existente:\n\n```sql\nDROP TRIGGER IF EXISTS trg_validar_nota;\n\nCREATE TRIGGER trg_validar_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  IF NEW.nota < 0 OR NEW.nota > 10 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'La nota debe estar entre 0 y 10';\n  END IF;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## DELIMITER: no olvidarlo\n\nSi el cuerpo del trigger contiene múltiples sentencias (casi siempre), necesitas cambiar el DELIMITER:\n\n```sql\n-- CORRECTO\nDELIMITER //\n\nCREATE TRIGGER trg_ejemplo\nAFTER INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  DECLARE v_total INT;\n  SELECT COUNT(*) INTO v_total FROM alumnos;\n  INSERT INTO estadisticas (total_alumnos) VALUES (v_total);\nEND //\n\nDELIMITER ;\n```\n\n> **Regla**: Si el trigger tiene más de una sentencia dentro de BEGIN...END, usa DELIMITER."
+        },
+        {
+          "type": "text",
+          "content": "## FOR EACH ROW: filas, no sentencias\n\n`FOR EACH ROW` significa que el trigger se ejecuta **una vez por cada fila** que afecta la operación, NO una vez por sentencia.\n\n```sql\n-- Esta sentencia afecta 100 filas\nUPDATE notas SET nota = nota + 1 WHERE id_asignatura = 5;\n-- El trigger se ejecuta 100 VECES (una por cada fila modificada)\n```\n\nEsto tiene implicaciones de rendimiento: si modificas 10.000 filas con un solo UPDATE, el trigger se ejecuta 10.000 veces.\n\n### Matriz completa de triggers\n\nCada tabla puede tener hasta **6 triggers**:\n\n| BEFORE INSERT | AFTER INSERT |\n|---|---|\n| **BEFORE UPDATE** | **AFTER UPDATE** |\n| **BEFORE DELETE** | **AFTER DELETE** |"
         }
       ],
       "exercises": [
         {
           "id": "ex-15-2-1",
-          "title": "Cursores",
+          "title": "Trigger BEFORE para normalizar datos",
+          "difficulty": "basic",
+          "description": "Crea un trigger BEFORE INSERT en `alumnos` que:\n1. Convierta el nombre a la forma: primera letra mayúscula, resto minúscula\n2. Elimine espacios extra del nombre con TRIM",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_normalizar_nombre\nBEFORE INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  SET NEW.nombre = TRIM(NEW.nombre);\n  SET NEW.nombre = CONCAT(\n    UPPER(LEFT(NEW.nombre, 1)),\n    LOWER(SUBSTRING(NEW.nombre, 2))\n  );\nEND //\n\nDELIMITER ;\n```\n\nEl TRIM elimina espacios al inicio y final, y la concatenación convierte la primera letra a mayúscula y el resto a minúscula."
+        },
+        {
+          "id": "ex-15-2-2",
+          "title": "Trigger AFTER para log de eliminaciones",
+          "difficulty": "intermediate",
+          "description": "Crea una tabla `log_eliminaciones` y un trigger AFTER DELETE en `alumnos` que registre: id del alumno eliminado, nombre completo, y fecha de la eliminación.",
+          "solution": "```sql\n-- Tabla de log\nCREATE TABLE log_eliminaciones (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  nombre_completo VARCHAR(100),\n  fecha_eliminacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Trigger\nDELIMITER //\n\nCREATE TRIGGER trg_log_eliminar_alumno\nAFTER DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO log_eliminaciones (id_alumno, nombre_completo)\n  VALUES (OLD.id, CONCAT(OLD.nombre, ' ', OLD.apellido));\nEND //\n\nDELIMITER ;\n```\n\nIMPORTANTE: en DELETE solo está disponible OLD (la fila que se eliminó). No existe NEW."
+        },
+        {
+          "id": "ex-15-2-3",
+          "title": "Trigger BEFORE para establecer valor por defecto",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger BEFORE INSERT en `productos` que, si el stock es NULL o negativo, lo establezca a 0.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_stock_default\nBEFORE INSERT ON productos\nFOR EACH ROW\nBEGIN\n  IF NEW.stock IS NULL OR NEW.stock < 0 THEN\n    SET NEW.stock = 0;\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nAl ser BEFORE, modifica el valor ANTES de que se guarde en la tabla."
+        },
+        {
+          "id": "ex-15-2-4",
+          "title": "Trigger BEFORE UPDATE para proteger valores",
           "difficulty": "hard",
-          "description": "Crea un procedimiento con cursor que:\n1. Recorra todos los alumnos\n2. Para cada alumno, calcule su nota media\n3. Si la media es ≥ 7, inserte una fila en una tabla `alumnos_destacados` con el nombre y la media\n4. Maneje el caso de alumnos sin notas",
-          "solution": "```sql\n-- Tabla de destino\nCREATE TABLE IF NOT EXISTS alumnos_destacados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50),\n  apellido VARCHAR(50),\n  nota_media DECIMAL(4,2)\n);\n\nDELIMITER //\n\nCREATE PROCEDURE sp_alumnos_destacados()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  DECLARE v_media DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre, apellido FROM alumnos;\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  -- Limpiar tabla anterior\n  TRUNCATE TABLE alumnos_destacados;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre, v_apellido;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n\n    -- Calcular media (puede ser NULL si no tiene notas)\n    SELECT ROUND(AVG(n.nota), 2) INTO v_media\n    FROM notas n WHERE n.id_alumno = v_id;\n\n    -- Solo insertar si tiene media y es ≥ 7\n    IF v_media IS NOT NULL AND v_media >= 7 THEN\n      INSERT INTO alumnos_destacados (nombre, apellido, nota_media)\n      VALUES (v_nombre, v_apellido, v_media);\n    END IF;\n  END LOOP;\n\n  CLOSE cur;\n\n  -- Mostrar resultados\n  SELECT * FROM alumnos_destacados ORDER BY nota_media DESC;\nEND //\n\nDELIMITER ;\n\n-- Ejecutar\nCALL sp_alumnos_destacados();\n```"
+          "description": "Crea un trigger BEFORE UPDATE en `notas` que, si la nota cambia a un valor fuera de rango (0-10), restablezca el valor anterior en lugar de lanzar error.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_nota_rango\nBEFORE UPDATE ON notas\nFOR EACH ROW\nBEGIN\n  IF NEW.nota < 0 OR NEW.nota > 10 THEN\n    SET NEW.nota = OLD.nota;\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nEn lugar de SIGNAL (que detendría la operación), este trigger restablece el valor anterior silenciosamente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-3",
+      "title": "NEW y OLD",
+      "order": 3,
+      "objectives": [
+        "Entender qué representan OLD y NEW en cada tipo de trigger",
+        "Saber qué eventos disponen de OLD, NEW o ambos",
+        "Distinguir entre valores modificables y de solo lectura",
+        "Usar OLD y NEW para comparaciones y auditoría"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## OLD y NEW: acceso a valores de fila\n\nDentro de un trigger, `OLD` y `NEW` son referencias a los valores de las columnas de la fila que está siendo procesada.\n\n### Disponibilidad por evento\n\n| Evento | OLD | NEW |\n|---|---|---|\n| **INSERT** | No existe | ✅ Los valores que se van a insertar |\n| **UPDATE** | ✅ Los valores ANTES del cambio | ✅ Los valores DESPUÉS del cambio |\n| **DELETE** | ✅ Los valores que se van a eliminar | No existe |\n\n> **Regla**: INSERT solo tiene NEW (no había nada antes). DELETE solo tiene OLD (ya no habrá nada después). UPDATE tiene ambos."
+        },
+        {
+          "type": "text",
+          "content": "## Mutabilidad: qué se puede modificar\n\n- **NEW en BEFORE**: puedes modificar con `SET NEW.columna = valor`. Los valores modificados son los que se guardarán en la tabla.\n- **NEW en AFTER**: es de solo lectura. La fila ya se guardó.\n- **OLD (siempre)**: es de solo lectura en cualquier trigger. No puedes modificar el valor anterior.\n\n```sql\n-- BEFORE INSERT: puedo modificar NEW\nDELIMITER //\n\nCREATE TRIGGER trg_before_insert\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  SET NEW.nota = ROUND(NEW.nota, 2);  -- OK: modifica antes de guardar\n  SET NEW.fecha_evaluacion = CURDATE();  -- OK\nEND //\n\nDELIMITER ;\n```\n\n> **Analogía**: BEFORE es como un revisor antes de que el documento se imprima — puede corregir errores. AFTER es como un revisor después de que ya se imprimió — solo puede leer lo que hay."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: UPDATE con OLD y NEW\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_audit_nota\nAFTER UPDATE ON notas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.nota <=> NEW.nota) THEN\n    INSERT INTO log_cambios (\n      tabla, id_registro, campo, valor_anterior, valor_nuevo\n    ) VALUES (\n      'notas', NEW.id, 'nota', OLD.nota, NEW.nota\n    );\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\n- `OLD.nota`: la nota ANTES del cambio.\n- `NEW.nota`: la nota DESPUÉS del cambio.\n- Solo se registra si realmente cambió."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: DELETE con OLD\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_respaldar_matricula\nBEFORE DELETE ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO matriculas_historico (\n    id_matricula, id_alumno, id_asignatura, fecha_matricula, estado, fecha_borrado\n  ) VALUES (\n    OLD.id, OLD.id_alumno, OLD.id_asignatura,\n    OLD.fecha_matricula, OLD.estado, NOW()\n  );\nEND //\n\nDELIMITER ;\n```\n\nEn DELETE, solo existe `OLD`. `NEW` no existe porque la fila va a desaparecer."
+        },
+        {
+          "type": "text",
+          "content": "## Operador de comparación null-safe: <=>\n\nEl operador `<=>` es la comparación null-safe de MySQL. A diferencia de `=`:\n\n| Expresión | `=` (normal) | `<=>` (null-safe) |\n|---|---|---|\n| `5 = 5` | TRUE | TRUE |\n| `5 = NULL` | NULL (no TRUE) | FALSE |\n| `NULL = NULL` | NULL (no TRUE) | TRUE |\n| `NULL <=> NULL` | — | TRUE |\n\nEn triggers de UPDATE, `<=>` es preferible para detectar si un valor realmente cambió:\n\n```sql\n-- MAL: si ambos son NULL, = devuelve NULL, no TRUE\nIF OLD.estado = NEW.estado THEN\n\n-- BIEN: <=> maneja NULLs correctamente\nIF OLD.estado <=> NEW.estado THEN\n```\n\n> **Regla**: Para comparar valores que pueden ser NULL, usa siempre `<=>`."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-3-1",
+          "title": "Disponibilidad de OLD y NEW",
+          "difficulty": "basic",
+          "description": "Indica si OLD, NEW, ambos o ninguno están disponibles en cada tipo de trigger:\n1. BEFORE INSERT\n2. AFTER UPDATE\n3. BEFORE DELETE\n4. AFTER INSERT\n5. AFTER DELETE",
+          "solution": "1. **Solo NEW** — se va a insertar una fila nueva.\n2. **Ambos OLD y NEW** — se modificó una fila; OLD es el valor anterior, NEW el nuevo.\n3. **Solo OLD** — se va a eliminar una fila.\n4. **Solo NEW** — ya se insertó la fila.\n5. **Solo OLD** — ya se eliminó la fila."
+        },
+        {
+          "id": "ex-15-3-2",
+          "title": "Detectar cambios en UPDATE",
+          "difficulty": "intermediate",
+          "description": "Escribe un trigger AFTER UPDATE en `alumnos` que registre en `log_cambios` solo cuando el email haya cambiado. Usa el operador null-safe.",
+          "solution": "```sql\nCREATE TABLE IF NOT EXISTS log_cambios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  tabla VARCHAR(50),\n  id_registro INT,\n  campo VARCHAR(50),\n  valor_anterior VARCHAR(100),\n  valor_nuevo VARCHAR(100),\n  fecha_cambio TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\n\nCREATE TRIGGER trg_cambio_email\nAFTER UPDATE ON alumnos\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.email <=> NEW.email) THEN\n    INSERT INTO log_cambios (tabla, id_registro, campo, valor_anterior, valor_nuevo)\n    VALUES ('alumnos', NEW.id, 'email', OLD.email, NEW.email);\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\n`NOT (OLD.email <=> NEW.email)` es TRUE cuando los valores son diferentes, incluyendo cuando uno es NULL y el otro no."
+        },
+        {
+          "id": "ex-15-3-3",
+          "title": "Modificar valores en BEFORE INSERT",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger BEFORE INSERT en `notas` que:\n1. Redondee la nota a 2 decimales\n2. Si la nota es NULL, la establezca en 0",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_normalizar_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  IF NEW.nota IS NULL THEN\n    SET NEW.nota = 0;\n  ELSE\n    SET NEW.nota = ROUND(NEW.nota, 2);\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nEn BEFORE INSERT, podemos modificar NEW directamente con SET. Los valores modificados son los que se guardarán."
+        },
+        {
+          "id": "ex-15-3-4",
+          "title": "Respaldar datos antes de DELETE",
+          "difficulty": "hard",
+          "description": "Crea un trigger BEFORE DELETE en `asignaturas` que, antes de eliminar una asignatura, copie todas sus notas asociadas a una tabla `notas_historico` con el campo `fecha_respaldo`.",
+          "solution": "```sql\nCREATE TABLE IF NOT EXISTS notas_historico (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_nota_original INT,\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(50),\n  fecha_evaluacion DATE,\n  fecha_respaldo TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\n\nCREATE TRIGGER trg_respaldar_notas_asignatura\nBEFORE DELETE ON asignaturas\nFOR EACH ROW\nBEGIN\n  INSERT INTO notas_historico (\n    id_nota_original, id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion\n  )\n  SELECT id, id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion\n  FROM notas WHERE id_asignatura = OLD.id;\nEND //\n\nDELIMITER ;\n```\n\nEl trigger usa OLD.id para encontrar todas las notas de la asignatura que se va a eliminar y las copia al histórico antes de que se borre la asignatura."
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-4",
+      "title": "Triggers de INSERT",
+      "order": 4,
+      "objectives": [
+        "Crear triggers BEFORE INSERT para validar y normalizar datos",
+        "Crear triggers AFTER INSERT para auditoría y datos derivados",
+        "Implementar reducción automática de stock con triggers",
+        "Entender el caso de uso de AFTER INSERT para mantener tablas derivadas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## BEFORE INSERT: validar antes de guardar\n\nEl trigger BEFORE INSERT se ejecuta antes de que la fila se inserte en la tabla. Es el lugar ideal para:\n\n- **Validar** que los datos cumplan reglas de negocio.\n- **Normalizar** valores (convertir a mayúsculas, redondear, etc.).\n- **Asignar valores por defecto** cuando el cliente no los envía.\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_stock\nBEFORE INSERT ON productos\nFOR EACH ROW\nBEGIN\n  IF NEW.stock < 0 THEN\n    SET NEW.stock = 0;\n  END IF;\n  IF NEW.precio IS NULL THEN\n    SET NEW.precio = 0.00;\n  END IF;\n  IF TRIM(NEW.nombre) = '' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El nombre del producto no puede estar vacío';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## AFTER INSERT: efectos secundarios\n\nEl trigger AFTER INSERT se ejecuta después de que la fila se insertó correctamente. Es ideal para:\n\n- **Registrar auditoría** (quién insertó qué y cuándo).\n- **Mantener tablas derivadas** (totales, contadores, estadísticas).\n- **Reducir stock** cuando se inserta un pedido.\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_log_matricula\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (\n    id_matricula, accion, estado_nuevo, usuario, fecha_evento\n  ) VALUES (\n    NEW.id, 'INSERT', NEW.estado, CURRENT_USER(), NOW()\n  );\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: reducir stock al insertar pedido\n\nCuando un cliente hace un pedido, la línea del pedido se inserta en `lineas_pedido`. El stock del producto debe reducirse automáticamente.\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_reducir_stock\nAFTER INSERT ON lineas_pedido\nFOR EACH ROW\nBEGIN\n  DECLARE v_stock_actual INT;\n\n  SELECT stock INTO v_stock_actual\n  FROM productos WHERE id = NEW.id_producto;\n\n  IF v_stock_actual < NEW.cantidad THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Error: stock insuficiente para procesar el pedido';\n  END IF;\n\n  UPDATE productos\n  SET stock = stock - NEW.cantidad\n  WHERE id = NEW.id_producto;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## AFTER INSERT para mantener contadores\n\nSi necesitas un contador rápido de alumnos matriculados por asignatura, puedes mantener una tabla derivada con un trigger:\n\n```sql\nCREATE TABLE resumen_matriculas (\n  id_asignatura INT PRIMARY KEY,\n  total_matriculas INT DEFAULT 0\n);\n\nDELIMITER //\n\nCREATE TRIGGER trg_incrementar_matriculas\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO resumen_matriculas (id_asignatura, total_matriculas)\n  VALUES (NEW.id_asignatura, 1)\n  ON DUPLICATE KEY UPDATE total_matriculas = total_matriculas + 1;\nEND //\n\nDELIMITER ;\n```\n\n> **Advertencia**: Los contadores mantenidos por triggers son frágiles. Si alguien modifica `matriculas` directamente sin pasar por los triggers, el contador se desincroniza."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-4-1",
+          "title": "Trigger BEFORE INSERT con validación",
+          "difficulty": "basic",
+          "description": "Crea un trigger BEFORE INSERT en `alumnos` que:\n1. Valide que el email no esté vacío (lanzar error si lo está)\n2. Establezca activo = TRUE por defecto si es NULL",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_alumno\nBEFORE INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  IF NEW.email IS NULL OR TRIM(NEW.email) = '' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El email del alumno no puede estar vacío';\n  END IF;\n\n  IF NEW.activo IS NULL THEN\n    SET NEW.activo = TRUE;\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-4-2",
+          "title": "Trigger AFTER INSERT para auditoría completa",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger AFTER INSERT en `notas` que registre: id de la nota, alumno, asignatura, nota, convocatoria, y usuario que insertó. Usa una tabla `log_notas` con todos esos campos.",
+          "solution": "```sql\nCREATE TABLE IF NOT EXISTS log_notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_nota INT,\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  convocatoria VARCHAR(50),\n  usuario VARCHAR(100),\n  fecha_log TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\n\nCREATE TRIGGER trg_log_nueva_nota\nAFTER INSERT ON notas\nFOR EACH ROW\nBEGIN\n  INSERT INTO log_notas (id_nota, id_alumno, id_asignatura, nota, convocatoria, usuario)\n  VALUES (NEW.id, NEW.id_alumno, NEW.id_asignatura, NEW.nota, NEW.convocatoria, CURRENT_USER());\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-4-3",
+          "title": "Trigger INSERT con referencia a otra tabla",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger BEFORE INSERT en `matriculas` que establezca automáticamente el estado como 'activa' si el alumno está activo, o lance error si el alumno está inactivo.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_matricula_alumno_activo\nBEFORE INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  DECLARE v_activo BOOLEAN;\n\n  SELECT activo INTO v_activo\n  FROM alumnos WHERE id = NEW.id_alumno;\n\n  IF v_activo IS NULL THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno no existe';\n  ELSEIF v_activo = FALSE THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede matricular un alumno inactivo';\n  ELSE\n    SET NEW.estado = 'activa';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-4-4",
+          "title": "Trigger INSERT con cambio de estado automático",
+          "difficulty": "hard",
+          "description": "Crea un trigger AFTER INSERT en `lineas_pedido` que actualice el estado del pedido padre a 'procesando' cuando se inserta la primera línea de pedido. No cambies el estado si ya es 'procesando' o 'entregado'.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_pedido_procesando\nAFTER INSERT ON lineas_pedido\nFOR EACH ROW\nBEGIN\n  DECLARE v_estado_actual VARCHAR(20);\n\n  SELECT estado INTO v_estado_actual\n  FROM pedidos WHERE id = NEW.id_pedido;\n\n  IF v_estado_actual = 'pendiente' THEN\n    UPDATE pedidos\n    SET estado = 'procesando'\n    WHERE id = NEW.id_pedido;\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-5",
+      "title": "Triggers de UPDATE",
+      "order": 5,
+      "objectives": [
+        "Crear triggers BEFORE UPDATE para validar cambios antes de aplicarlos",
+        "Crear triggers AFTER UPDATE para registrar historial de cambios",
+        "Detectar cambios específicos con el operador null-safe",
+        "Implementar auditoría de campos individuales"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## BEFORE UPDATE: validar antes de cambiar\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_estado_matricula\nBEFORE UPDATE ON matriculas\nFOR EACH ROW\nBEGIN\n  IF OLD.estado = 'cancelada' AND NEW.estado = 'activa' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede reactivar una matrícula cancelada';\n  END IF;\n  IF OLD.estado = 'finalizada' AND NEW.estado = 'activa' THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede reactivar una matrícula finalizada';\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\n> **Nota**: OLD es de solo lectura. No puedes hacer `SET OLD.estado = ...`. Solo puedes modificar NEW."
+        },
+        {
+          "type": "text",
+          "content": "## AFTER UPDATE: registrar historial de cambios\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_audit_estado_matricula\nAFTER UPDATE ON matriculas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.estado <=> NEW.estado) THEN\n    INSERT INTO auditoria_matricula (\n      id_matricula, accion, estado_anterior, estado_nuevo, usuario, fecha_evento\n    ) VALUES (\n      NEW.id, 'UPDATE', OLD.estado, NEW.estado, CURRENT_USER(), NOW()\n    );\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nSin la condición `IF`, cada UPDATE generaría un registro innecesario."
+        },
+        {
+          "type": "text",
+          "content": "## Auditoría de múltiples campos\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_audit_cambios_alumno\nAFTER UPDATE ON alumnos\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.nombre <=> NEW.nombre) THEN\n    INSERT INTO log_cambios (tabla, id_registro, campo, valor_anterior, valor_nuevo)\n    VALUES ('alumnos', NEW.id, 'nombre', OLD.nombre, NEW.nombre);\n  END IF;\n  IF NOT (OLD.email <=> NEW.email) THEN\n    INSERT INTO log_cambios (tabla, id_registro, campo, valor_anterior, valor_nuevo)\n    VALUES ('alumnos', NEW.id, 'email', OLD.email, NEW.email);\n  END IF;\n  IF NOT (OLD.telefono <=> NEW.telefono) THEN\n    INSERT INTO log_cambios (tabla, id_registro, campo, valor_anterior, valor_nuevo)\n    VALUES ('alumnos', NEW.id, 'telefono', OLD.telefono, NEW.telefono);\n  END IF;\nEND //\n\nDELIMITER ;\n```\n\nCada campo se verifica por separado. Solo se genera un registro si ese campo específico cambió."
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: control de cambios en notas\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_control_cambios_nota\nBEFORE UPDATE ON notas\nFOR EACH ROW\nBEGIN\n  DECLARE v_max_subida DECIMAL(4,2);\n  SET v_max_subida = OLD.nota + 2.00;\n\n  IF NEW.nota > v_max_subida AND OLD.nota < 5 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede subir más de 2 puntos en una sola revisión';\n  END IF;\n\n  IF NEW.nota < OLD.nota THEN\n    INSERT INTO log_cambios (tabla, id_registro, campo, valor_anterior, valor_nuevo)\n    VALUES ('notas', NEW.id, 'nota', OLD.nota, NEW.nota);\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-5-1",
+          "title": "Trigger BEFORE UPDATE para proteger campos",
+          "difficulty": "basic",
+          "description": "Crea un trigger BEFORE UPDATE en `alumnos` que impida cambiar el id de un alumno (restablecer OLD.id si se modifica).",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_proteger_id_alumno\nBEFORE UPDATE ON alumnos\nFOR EACH ROW\nBEGIN\n  IF OLD.id != NEW.id THEN\n    SET NEW.id = OLD.id;\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-5-2",
+          "title": "Auditoría de cambios de precio",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger AFTER UPDATE en `productos` que registre en `log_cambios` cada vez que el precio de un producto cambie, mostrando el precio anterior y el nuevo.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_audit_cambio_precio\nAFTER UPDATE ON productos\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.precio <=> NEW.precio) THEN\n    INSERT INTO log_cambios (tabla, id_registro, campo, valor_anterior, valor_nuevo)\n    VALUES ('productos', NEW.id, 'precio', OLD.precio, NEW.precio);\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-5-3",
+          "title": "Transición de estados válida",
+          "difficulty": "hard",
+          "description": "Crea un trigger BEFORE UPDATE en `pedidos` que solo permita las siguientes transiciones de estado:\n- pendiente → procesando\n- procesando → enviado\n- enviado → entregado\n\nCualquier otra transición debe lanzar un error con SIGNAL.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_transicion_estado_pedido\nBEFORE UPDATE ON pedidos\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.estado <=> NEW.estado) THEN\n    IF NOT (\n      (OLD.estado = 'pendiente' AND NEW.estado = 'procesando') OR\n      (OLD.estado = 'procesando' AND NEW.estado = 'enviado') OR\n      (OLD.estado = 'enviado' AND NEW.estado = 'entregado')\n    ) THEN\n      SIGNAL SQLSTATE '45000'\n      SET MESSAGE_TEXT = 'Transición de estado no permitida';\n    END IF;\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-5-4",
+          "title": "Trigger UPDATE con lógica condicional",
+          "difficulty": "hard",
+          "description": "Crea un trigger BEFORE UPDATE en `asignaturas` que, si se cambia el profesor de una asignatura, registre el cambio en una tabla `cambio_profesor` (id_asignatura, profesor_anterior, profesor_nuevo, fecha).",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_cambio_profesor\nBEFORE UPDATE ON asignaturas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.id_profesor <=> NEW.id_profesor) THEN\n    INSERT INTO cambio_profesor (id_asignatura, profesor_anterior, profesor_nuevo, fecha)\n    VALUES (NEW.id, OLD.id_profesor, NEW.id_profesor, NOW());\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-6",
+      "title": "Triggers de DELETE",
+      "order": 6,
+      "objectives": [
+        "Crear triggers BEFORE DELETE para validar antes de eliminar",
+        "Crear triggers AFTER DELETE para auditoría de eliminaciones",
+        "Comprender que solo OLD está disponible en DELETE triggers",
+        "Implementar respaldo de datos antes de eliminar"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## BEFORE DELETE: validar y respaldar\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_proteger_alumno_con_notas\nBEFORE DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  DECLARE v_total_notas INT;\n  SELECT COUNT(*) INTO v_total_notas FROM notas WHERE id_alumno = OLD.id;\n  IF v_total_notas > 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede eliminar un alumno con notas registradas';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## AFTER DELETE: registro de auditoría\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_log_eliminar_alumno\nAFTER DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO log_eliminaciones (\n    id_alumno, nombre_completo, email, fecha_eliminacion\n  ) VALUES (\n    OLD.id, CONCAT(OLD.nombre, ' ', OLD.apellido), OLD.email, NOW()\n  );\nEND //\n\nDELIMITER ;\n```\n\n> **Clave**: En DELETE, solo existe OLD. Si intentas usar NEW, MySQL dará un error de compilación."
+        },
+        {
+          "type": "text",
+          "content": "## Respaldar datos antes de eliminar: tabla histórica\n\n```sql\nCREATE TABLE alumnos_historico (\n  id INT, nombre VARCHAR(50), apellido VARCHAR(50), email VARCHAR(100),\n  fecha_nacimiento DATE, telefono VARCHAR(20), direccion VARCHAR(150),\n  ciudad VARCHAR(50), activo BOOLEAN,\n  fecha_borrado TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\n\nCREATE TRIGGER trg_respaldar_alumno\nBEFORE DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO alumnos_historico (\n    id, nombre, apellido, email, fecha_nacimiento,\n    telefono, direccion, ciudad, activo\n  ) VALUES (\n    OLD.id, OLD.nombre, OLD.apellido, OLD.email, OLD.fecha_nacimiento,\n    OLD.telefono, OLD.direccion, OLD.ciudad, OLD.activo\n  );\nEND //\n\nDELIMITER ;\n```\n\n> **Patrón**: BEFORE DELETE para respaldo, AFTER DELETE para auditoría."
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes con DELETE triggers\n\n### Error 1: usar NEW en DELETE trigger\n\n```sql\n-- INCORRECTO\nCREATE TRIGGER trg_error\nAFTER DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO log (id) VALUES (NEW.id);  -- ERROR: NEW no existe en DELETE\nEND;\n```\n\n### Error 2: intentar modificar la fila eliminada\n\n```sql\n-- INCORRECTO\nCREATE TRIGGER trg_error2\nBEFORE DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  SET NEW.activo = FALSE;  -- ERROR: NEW no existe en DELETE\nEND;\n```\n\n> **Regla**: En DELETE triggers, solo usa OLD."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: disponibilidad en DELETE\n\n| Qué necesitas | Disponible | Ejemplo |\n|---|---|---|\n| Valor de una columna antes de eliminar | ✅ OLD | `OLD.nombre` |\n| Valor de una columna nueva | ❌ NEW | No existe |\n| Modificar la fila que se elimina | ❌ | No se puede |\n| Hacer INSERT en otra tabla | ✅ | `INSERT INTO log ...` |\n| Hacer UPDATE en otra tabla | ✅ | `UPDATE resumen SET ...` |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-6-1",
+          "title": "Trigger BEFORE DELETE con validación",
+          "difficulty": "basic",
+          "description": "Crea un trigger BEFORE DELETE en `productos` que impida eliminar productos que tengan pedidos asociados en `lineas_pedido`.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_proteger_producto_pedido\nBEFORE DELETE ON productos\nFOR EACH ROW\nBEGIN\n  DECLARE v_pedidos INT;\n  SELECT COUNT(*) INTO v_pedidos\n  FROM lineas_pedido WHERE id_producto = OLD.id;\n  IF v_pedidos > 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede eliminar un producto con pedidos asociados';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-6-2",
+          "title": "Trigger AFTER DELETE para log",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger AFTER DELETE en `asignaturas` que registre en `log_eliminaciones` el id, nombre, ciclo y creditos de la asignatura eliminada.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_log_eliminar_asignatura\nAFTER DELETE ON asignaturas\nFOR EACH ROW\nBEGIN\n  INSERT INTO log_eliminaciones (\n    id_asignatura, nombre, ciclo, creditos, fecha_eliminacion\n  ) VALUES (\n    OLD.id, OLD.nombre, OLD.ciclo, OLD.creditos, NOW()\n  );\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-6-3",
+          "title": "Respaldar notas antes de eliminar asignatura",
+          "difficulty": "intermediate",
+          "description": "Crea un trigger BEFORE DELETE en `asignaturas` que copie todas las notas de esa asignatura a una tabla `notas_respaldadas` antes de eliminar la asignatura.",
+          "solution": "```sql\nCREATE TABLE IF NOT EXISTS notas_respaldadas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT, id_asignatura INT, nota DECIMAL(4,2),\n  convocatoria VARCHAR(50), fecha_evaluacion DATE,\n  fecha_respaldo TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\n\nCREATE TRIGGER trg_respaldar_notas_before_delete\nBEFORE DELETE ON asignaturas\nFOR EACH ROW\nBEGIN\n  INSERT INTO notas_respaldadas (id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion)\n  SELECT id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion\n  FROM notas WHERE id_asignatura = OLD.id;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-6-4",
+          "title": "Trigger DELETE con cascada manual",
+          "difficulty": "hard",
+          "description": "Crea un trigger BEFORE DELETE en `profesores` que, antes de eliminar un profesor, cambie el id_profesor de todas sus asignaturas a NULL.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_desasignar_profesor\nBEFORE DELETE ON profesores\nFOR EACH ROW\nBEGIN\n  UPDATE asignaturas\n  SET id_profesor = NULL\n  WHERE id_profesor = OLD.id;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-7",
+      "title": "Auditoría y automatización con triggers",
+      "order": 7,
+      "objectives": [
+        "Diseñar un esquema de auditoría completo con triggers",
+        "Comprender el papel de CURRENT_USER() en auditoría",
+        "Identificar casos de uso de automatización con triggers",
+        "Reconocer los riesgos y limitaciones de la automatización con triggers"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Diseño de tabla de auditoría\n\nUna tabla de auditoría bien diseñada debe registrar:\n- **Qué** pasó (INSERT, UPDATE, DELETE)\n- **En qué tabla** y **qué fila**\n- **Qué cambió** (valores antes y después)\n- **Quién** lo hizo\n- **Cuándo** ocurrió\n\n```sql\nCREATE TABLE auditoria_matricula (\n  id_auditoria INT PRIMARY KEY AUTO_INCREMENT,\n  id_matricula INT NOT NULL,\n  accion VARCHAR(10) NOT NULL,\n  estado_anterior VARCHAR(20),\n  estado_nuevo VARCHAR(20),\n  usuario VARCHAR(100) NOT NULL,\n  fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  INDEX idx_id_matricula (id_matricula),\n  INDEX idx_fecha (fecha_evento)\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## CURRENT_USER() vs USER()\n\n| Función | Qué devuelve | Ejemplo |\n|---|---|---|\n| `USER()` | Usuario y host de la conexión actual | `'admin@localhost'` |\n| `CURRENT_USER()` | Usuario y host del permiso concedido | `'admin@%'` |\n\nEn auditoría, `CURRENT_USER()` es más preciso porque refleja el permiso usado, no la conexión física."
+        },
+        {
+          "type": "text",
+          "content": "## Triggers completos de auditoría para matrículas\n\n```sql\n-- INSERT\nDELIMITER //\nCREATE TRIGGER trg_auditar_insert_matricula\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (id_matricula, accion, estado_nuevo, usuario)\n  VALUES (NEW.id, 'INSERT', NEW.estado, CURRENT_USER());\nEND //\nDELIMITER ;\n\n-- UPDATE\nDELIMITER //\nCREATE TRIGGER trg_auditar_update_matricula\nAFTER UPDATE ON matriculas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.estado <=> NEW.estado) THEN\n    INSERT INTO auditoria_matricula (id_matricula, accion, estado_anterior, estado_nuevo, usuario)\n    VALUES (NEW.id, 'UPDATE', OLD.estado, NEW.estado, CURRENT_USER());\n  END IF;\nEND //\nDELIMITER ;\n\n-- DELETE\nDELIMITER //\nCREATE TRIGGER trg_auditar_delete_matricula\nAFTER DELETE ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (id_matricula, accion, estado_anterior, usuario)\n  VALUES (OLD.id, 'DELETE', OLD.estado, CURRENT_USER());\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Casos de uso de automatización\n\n### 1. Mantener tablas de resumen\n\n```sql\nDELIMITER //\nCREATE TRIGGER trg_actualizar_media\nAFTER INSERT ON notas\nFOR EACH ROW\nBEGIN\n  UPDATE alumnos\n  SET nota_media = (\n    SELECT IFNULL(AVG(nota), 0) FROM notas WHERE id_alumno = NEW.id_alumno\n  )\n  WHERE id = NEW.id_alumno;\nEND //\nDELIMITER ;\n```\n\n### 2. Validaciones cruzadas\n\n```sql\nDELIMITER //\nCREATE TRIGGER trg_no_doble_matricula\nBEFORE INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  IF EXISTS (\n    SELECT 1 FROM matriculas m\n    INNER JOIN asignaturas a1 ON m.id_asignatura = a1.id\n    INNER JOIN asignaturas a2 ON NEW.id_asignatura = a2.id\n    WHERE m.id_alumno = NEW.id_alumno\n    AND a1.ciclo = a2.ciclo AND a1.curso = a2.curso\n  ) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Ya estás matriculado en otra asignatura del mismo ciclo y curso';\n  END IF;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Riesgos de la automatización con triggers\n\n- **Lógica oculta**: Un INSERT puede activar 3 triggers que ejecutan UPDATEs y validaciones.\n- **Efectos en cascada**: Un trigger puede disparar otro trigger.\n- **Rendimiento**: Cada fila afectada ejecuta el trigger.\n- **Testing dificultado**: Probar triggers requiere crear la estructura completa.\n- **Portabilidad**: Los triggers no son portables entre SGBD.\n\n> **Regla práctica**: Si la automatización puede hacerse en la capa de aplicación, piénsalo dos veces antes de meterla en un trigger."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-7-1",
+          "title": "Sistema completo de auditoría",
+          "difficulty": "intermediate",
+          "description": "Implementa triggers de auditoría completos para la tabla `notas`: AFTER INSERT, AFTER UPDATE y AFTER DELETE. Usa una tabla `log_notas` con los campos apropiados.",
+          "solution": "```sql\nCREATE TABLE IF NOT EXISTS log_notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_nota INT, id_alumno INT, id_asignatura INT,\n  nota DECIMAL(4,2), convocatoria VARCHAR(50),\n  accion VARCHAR(10), usuario VARCHAR(100),\n  fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\nCREATE TRIGGER trg_log_insert_nota\nAFTER INSERT ON notas\nFOR EACH ROW\nBEGIN\n  INSERT INTO log_notas (id_nota, id_alumno, id_asignatura, nota, convocatoria, accion, usuario)\n  VALUES (NEW.id, NEW.id_alumno, NEW.id_asignatura, NEW.nota, NEW.convocatoria, 'INSERT', CURRENT_USER());\nEND //\nDELIMITER ;\n\nDELIMITER //\nCREATE TRIGGER trg_log_update_nota\nAFTER UPDATE ON notas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.nota <=> NEW.nota) THEN\n    INSERT INTO log_notas (id_nota, id_alumno, id_asignatura, nota, convocatoria, accion, usuario)\n    VALUES (NEW.id, NEW.id_alumno, NEW.id_asignatura, NEW.nota, NEW.convocatoria, 'UPDATE', CURRENT_USER());\n  END IF;\nEND //\nDELIMITER ;\n\nDELIMITER //\nCREATE TRIGGER trg_log_delete_nota\nAFTER DELETE ON notas\nFOR EACH ROW\nBEGIN\n  INSERT INTO log_notas (id_nota, id_alumno, id_asignatura, nota, convocatoria, accion, usuario)\n  VALUES (OLD.id, OLD.id_alumno, OLD.id_asignatura, OLD.nota, OLD.convocatoria, 'DELETE', CURRENT_USER());\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-7-2",
+          "title": "Automatizar actualización de media",
+          "difficulty": "intermediate",
+          "description": "Crea una columna `nota_media` en `alumnos` y un trigger AFTER INSERT en `notas` que actualice la media de cada alumno cuando se inserta una nueva nota.",
+          "solution": "```sql\nALTER TABLE alumnos ADD COLUMN nota_media DECIMAL(4,2) DEFAULT 0.00;\n\nDELIMITER //\nCREATE TRIGGER trg_actualizar_media_after_insert\nAFTER INSERT ON notas\nFOR EACH ROW\nBEGIN\n  UPDATE alumnos\n  SET nota_media = (\n    SELECT IFNULL(ROUND(AVG(nota), 2), 0)\n    FROM notas WHERE id_alumno = NEW.id_alumno\n  )\n  WHERE id = NEW.id_alumno;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-7-3",
+          "title": "Auditoría con JSON",
+          "difficulty": "intermediate",
+          "description": "Crea una tabla `auditoria_general` que registre todas las operaciones INSERT, UPDATE y DELETE en la tabla `alumnos`. Incluye: id, operación, datos anteriores y nuevos (como JSON), usuario y fecha.",
+          "solution": "```sql\nCREATE TABLE auditoria_general (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  tabla VARCHAR(50), id_registro INT, operacion VARCHAR(10),\n  datos_anteriores JSON, datos_nuevos JSON,\n  usuario VARCHAR(100), fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\nCREATE TRIGGER trg_auditar_alumnos_insert\nAFTER INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_general (tabla, id_registro, operacion, datos_nuevos, usuario)\n  VALUES ('alumnos', NEW.id, 'INSERT',\n    JSON_OBJECT('nombre', NEW.nombre, 'apellido', NEW.apellido, 'email', NEW.email),\n    CURRENT_USER());\nEND //\nDELIMITER ;\n\nDELIMITER //\nCREATE TRIGGER trg_auditar_alumnos_delete\nAFTER DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_general (tabla, id_registro, operacion, datos_anteriores, usuario)\n  VALUES ('alumnos', OLD.id, 'DELETE',\n    JSON_OBJECT('nombre', OLD.nombre, 'email', OLD.email),\n    CURRENT_USER());\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-7-4",
+          "title": "Validación cruzada con trigger",
+          "difficulty": "hard",
+          "description": "Crea un trigger BEFORE INSERT en `matriculas` que impida matricular a un alumno en una asignatura si ya está matriculado en otra asignatura del mismo ciclo y curso.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_no_doble_matricula_ciclo\nBEFORE INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  DECLARE v_duplicado INT DEFAULT 0;\n  SELECT COUNT(*) INTO v_duplicado\n  FROM matriculas m\n  INNER JOIN asignaturas a_existente ON m.id_asignatura = a_existente.id\n  INNER JOIN asignaturas a_nueva ON NEW.id_asignatura = a_nueva.id\n  WHERE m.id_alumno = NEW.id_alumno\n  AND a_existente.ciclo = a_nueva.ciclo\n  AND a_existente.curso = a_nueva.curso\n  AND m.estado = 'activa';\n  IF v_duplicado > 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede matricular: ya estás en otra asignatura del mismo ciclo y curso';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-8",
+      "title": "Triggers vs constraints y limitaciones",
+      "order": 8,
+      "objectives": [
+        "Entender cuándo usar constraints vs triggers para integridad",
+        "Conocer las limitaciones técnicas de los triggers en MySQL",
+        "Listar los errores comunes al crear triggers",
+        "Usar SHOW TRIGGERS y DROP TRIGGER para gestionar triggers existentes"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## CRÍTICO: Constraints antes que triggers\n\n| Problema | Solución correcta | Trigger (NO recomendado) |\n|---|---|---|\n| Columna obligatoria | `NOT NULL` | BEFORE INSERT que comprueba NULL |\n| Valor único | `UNIQUE` | BEFORE INSERT que busca duplicados |\n| Relación referencial | `FOREIGN KEY` | BEFORE INSERT que busca la fila padre |\n| Rango de valores | `CHECK (nota BETWEEN 0 AND 10)` | BEFORE INSERT que comprueba el rango |\n| Valor por defecto | `DEFAULT` | BEFORE INSERT que asigna el valor |"
+        },
+        {
+          "type": "text",
+          "content": "## No reemplazar FKs con triggers\n\n```sql\n-- BIEN: constraint FK\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT NOT NULL,\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n\n-- MAL: trigger que hace lo mismo\nDELIMITER //\nCREATE TRIGGER trg_check_alumno\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  IF NOT EXISTS (SELECT 1 FROM alumnos WHERE id = NEW.id_alumno) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Alumno no existe';\n  END IF;\nEND //\nDELIMITER ;\n```\n\nEl trigger es más lento, más difícil de mantener y no ofrece las acciones referenciales (CASCADE, SET NULL)."
+        },
+        {
+          "type": "text",
+          "content": "## Limitaciones de triggers en MySQL\n\n1. **No pueden llamar a stored procedures directamente**.\n2. **No pueden modificar la tabla que los disparó** en AFTER triggers.\n3. **No pueden usar RETURN** — los triggers no devuelven valores.\n4. **No pueden tener parámetros**.\n5. **No hay triggers en vistas** — solo en tablas base.\n6. **La recursión está limitada**."
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes al crear triggers\n\n| Error | Causa | Solución |\n|---|---|---|\n| Falta DELIMITER | Múltiples sentencias sin DELIMITER | Añadir `DELIMITER //` antes y `DELIMITER ;` después |\n| Trigger already exists | Ya existe con ese nombre | Usar `DROP TRIGGER IF EXISTS` antes |\n| Can't update table | AFTER trigger modifica la tabla que disparó | Mover la lógica a un procedimiento |\n| NEW en DELETE | Usar NEW en DELETE trigger | Usar OLD en su lugar |\n\n### Gestionar triggers existentes\n\n```sql\nSHOW TRIGGERS;\nSHOW TRIGGERS WHERE `Table` = 'matriculas';\nDROP TRIGGER IF EXISTS trg_auditar_matricula;\nSHOW CREATE TRIGGER trg_auditar_matricula;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: cuándo usar cada herramienta\n\n| Necesidad | Herramienta |\n|---|---|\n| Valor obligatorio | `NOT NULL` |\n| Valor único | `UNIQUE` |\n| Relación entre tablas | `FOREIGN KEY` |\n| Rango de valores | `CHECK` |\n| Valor por defecto | `DEFAULT` |\n| Validación de negocio compleja | Trigger BEFORE o Procedimiento |\n| Auditoría de cambios | Trigger AFTER |\n| Lógica de negocio compleja | Procedimiento almacenado |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-8-1",
+          "title": "Constraint vs trigger",
+          "difficulty": "basic",
+          "description": "Para cada caso, indica si usarías un constraint o un trigger. Justifica:\n1. Un campo email no puede tener valores duplicados\n2. La nota debe estar entre 0 y 10\n3. Al insertar una nota, registrar quién la insertó\n4. Un alumno no puede matricularse dos veces en la misma asignatura",
+          "solution": "1. **Constraint UNIQUE** — MySQL lo gestiona internamente, es más rápido.\n2. **Constraint CHECK** — `CHECK (nota BETWEEN 0 AND 10)` es la forma correcta.\n3. **Trigger AFTER INSERT** — Los constraints no pueden ejecutar código.\n4. **Constraint UNIQUE** — `UNIQUE (id_alumno, id_asignatura)` resuelve el problema."
+        },
+        {
+          "id": "ex-15-8-2",
+          "title": "Gestionar triggers existentes",
+          "difficulty": "intermediate",
+          "description": "Escribe los comandos para:\n1. Ver todos los triggers de la base de datos\n2. Ver los triggers de la tabla `notas`\n3. Eliminar el trigger `trg_validar_nota` si existe\n4. Recrear el trigger después de eliminarlo",
+          "solution": "```sql\nSHOW TRIGGERS;\nSHOW TRIGGERS WHERE `Table` = 'notas';\nDROP TRIGGER IF EXISTS trg_validar_nota;\n\nDELIMITER //\nCREATE TRIGGER trg_validar_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  IF NEW.nota < 0 OR NEW.nota > 10 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'La nota debe estar entre 0 y 10';\n  END IF;\nEND //\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-8-3",
+          "title": "Errores de triggers",
+          "difficulty": "intermediate",
+          "description": "Identifica el error en cada trigger y corrígelo:\n1. Falta FOR EACH ROW en un trigger\n2. AFTER trigger modifica la misma tabla que lo disparó\n3. Se usa NEW.id en un DELETE trigger",
+          "solution": "1. **Falta FOR EACH ROW**: Añadir `FOR EACH ROW` después de `ON tabla`.\n2. **AFTER trigger modifica la misma tabla**: Puede causar recursión. Mover la lógica a un procedimiento o usar BEFORE.\n3. **NEW.id en DELETE**: No existe NEW en DELETE. Usar OLD.id."
+        },
+        {
+          "id": "ex-15-8-4",
+          "title": "Decidir la herramienta correcta",
+          "difficulty": "hard",
+          "description": "Evalúa si es correcto o si hay una mejor alternativa:\n1. Un trigger BEFORE INSERT en `alumnos` que lance error si el email ya existe\n2. Un trigger AFTER INSERT en `notas` que envíe un email de confirmación",
+          "solution": "1. **Incorrecto**: Ya existe `UNIQUE (email)` en la tabla. El constraint es más rápido.\n2. **Incorrecto**: Los triggers no pueden ejecutar operaciones externas (enviar emails). Eso pertenece a la capa de aplicación."
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-9",
+      "title": "Introducción a los cursores",
+      "order": 9,
+      "objectives": [
+        "Entender qué problema resuelven los cursores",
+        "Comprender la diferencia entre procesamiento set-based y fila por fila",
+        "Saber cuándo es apropiado usar un cursor",
+        "Conocer el ciclo de vida completo de un cursor"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El problema que resuelven los cursores\n\nSQL trabaja con **conjuntos (sets)**: un UPDATE puede modificar 1.000 filas con una sola sentencia. Pero a veces necesitas procesar cada fila de forma individual.\n\n> **Analogía**: Un set-based UPDATE es como pintar una pared entera con un rodillo. Un cursor es como pintar cada detalle a mano con un pincel."
+        },
+        {
+          "type": "text",
+          "content": "## CRÍTICO: SQL set-based primero\n\n**Antes de usar un cursor, pregúntate: ¿puedo hacer esto con un solo UPDATE/DELETE/SELECT?**\n\n```sql\n-- MAL: cursor para actualizar notas\nBEGIN\n  DECLARE v_id INT; DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n  DECLARE cur CURSOR FOR SELECT id, nota FROM notas;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nota;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    IF v_nota >= 5 THEN\n      UPDATE notas SET nota = nota + 0.5 WHERE id = v_id;\n    END IF;\n  END LOOP;\n  CLOSE cur;\nEND;\n\n-- BIEN: un solo UPDATE set-based\nUPDATE notas SET nota = nota + 0.5 WHERE nota >= 5;\n```\n\nLa versión set-based es **más rápida, más simple y más mantenible**."
+        },
+        {
+          "type": "text",
+          "content": "## Cuándo SÍ usar cursores\n\n1. **La lógica depende de resultados anteriores** (acumulación, secuencias).\n2. **Operaciones que no se pueden expresar como un solo set**.\n3. **Procesamiento administrativo por lotes**.\n4. **Migración de datos con transformación compleja**.\n\n```sql\nBEGIN\n  DECLARE v_id INT; DECLARE v_expediente INT DEFAULT 1;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n  DECLARE cur CURSOR FOR SELECT id FROM alumnos ORDER BY id;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_id;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    UPDATE alumnos SET num_expediente = v_expediente WHERE id = v_id;\n    SET v_expediente = v_expediente + 1;\n  END LOOP;\n  CLOSE cur;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Ciclo de vida de un cursor\n\n```\n1. DECLARE CURSOR   → Definir la consulta\n2. DECLARE HANDLER  → Definir qué hacer cuando no hay más filas\n3. OPEN cursor      → Ejecutar la consulta\n4. FETCH cursor     → Leer la siguiente fila (repetir)\n5. CLOSE cursor     → Liberar los recursos\n```\n\n> **Importante**: Si olvidas CLOSE, el cursor queda abierto y puede causar errores."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-9-1",
+          "title": "Cursor vs set-based",
+          "difficulty": "basic",
+          "description": "Para cada caso, indica si usarías un cursor o una sentencia set-based:\n1. Actualizar el precio de todos los productos aumentándolos un 10%\n2. Generar un número de expediente secuencial para cada alumno\n3. Eliminar todas las notas con nota < 3",
+          "solution": "1. **Set-based**: `UPDATE productos SET precio = precio * 1.10;`\n2. **Cursor**: cada fila necesita el número anterior + 1.\n3. **Set-based**: `DELETE FROM notas WHERE nota < 3;`"
+        },
+        {
+          "id": "ex-15-9-2",
+          "title": "Identificar las 5 fases de un cursor",
+          "difficulty": "basic",
+          "description": "Identifica las 5 fases del cursor en este código:\n```sql\nBEGIN\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n  DECLARE cur CURSOR FOR SELECT nota FROM notas;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_nota;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SET v_total = v_total + 1;\n  END LOOP;\n  CLOSE cur;\n  SELECT v_total AS total_notas;\nEND;\n```",
+          "solution": "1. **DECLARE CURSOR**: Define la consulta.\n2. **DECLARE HANDLER**: Maneja el fin de datos.\n3. **OPEN**: Ejecuta la consulta.\n4. **FETCH**: Lee la siguiente fila.\n5. **CLOSE**: Libera los recursos."
+        },
+        {
+          "id": "ex-15-9-3",
+          "title": "Problema de cursor innecesario",
+          "difficulty": "intermediate",
+          "description": "Un compañero usó un cursor para eliminar notas suspensas (una por una). ¿Qué problema tiene? ¿Cómo lo mejorarías?",
+          "solution": "**Problema**: Es un cursor innecesario. `DELETE FROM notas WHERE nota < 5;` logra lo mismo con UNA sola sentencia.\n\nEl cursor es más lento (una eliminación por fila), más código, más propenso a errores.\n\n**Mejora**:\n```sql\nDELETE FROM notas WHERE nota < 5;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-10",
+      "title": "DECLARE, OPEN, FETCH y CLOSE",
+      "order": 10,
+      "objectives": [
+        "Escribir la sintaxis correcta de DECLARE CURSOR",
+        "Respetar el orden obligatorio de declaraciones en MySQL",
+        "Usar FETCH INTO para leer filas en variables",
+        "Cerrar correctamente los cursores después de usarlos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## DECLARE CURSOR: sintaxis\n\n```sql\nDECLARE nombre_cursor CURSOR FOR\n  SELECT columna1, columna2 FROM tabla WHERE condición;\n```\n\nLas columnas del SELECT deben coincidir en número y tipo con las variables en FETCH."
+        },
+        {
+          "type": "text",
+          "content": "## Orden de declaraciones: REGLA CRÍTICA\n\n```\n1. DECLARE variables locales\n2. DECLARE condiciones\n3. DECLARE cursores\n4. DECLARE handlers\n5. Sentencias ejecutables\n```\n\n```sql\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n  DECLARE cur CURSOR FOR SELECT id FROM alumnos;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n  OPEN cur;\n  -- sentencias ejecutables\n  CLOSE cur;\nEND;\n```\n\n> **Error común**: Poner DECLARE handler ANTES de DECLARE cursor."
+        },
+        {
+          "type": "text",
+          "content": "## OPEN, FETCH y CLOSE\n\n```sql\nOPEN cur;           -- Ejecuta la consulta\nFETCH cur INTO v;   -- Lee la siguiente fila\nCLOSE cur;          -- Libera recursos\n```\n\n- El número de variables en INTO debe coincidir con el número de columnas del SELECT.\n- La primera vez que ejecutas FETCH, obtienes la primera fila.\n- Cuando no hay más filas, se activa el handler NOT FOUND.\n\n> No puedes hacer FETCH sin haber hecho OPEN primero."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo completo con orden correcto\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_listar_creditos_dam()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_creditos DECIMAL(4,2);\n  DECLARE v_total DECIMAL(4,2) DEFAULT 0;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre, creditos FROM asignaturas WHERE ciclo = 'DAM';\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre, v_creditos;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SET v_total = v_total + v_creditos;\n    SELECT v_id AS id, v_nombre AS asignatura, v_creditos AS creditos;\n  END LOOP;\n\n  CLOSE cur;\n  SELECT v_total AS total_creditos_dam;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-10-1",
+          "title": "Declarar un cursor con orden correcto",
+          "difficulty": "basic",
+          "description": "Escribe un bloque BEGIN...END que declare: variables, un cursor para alumnos activos, un handler NOT FOUND, y recorra el cursor mostrando cada alumno.",
+          "solution": "```sql\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre FROM alumnos WHERE activo = TRUE;\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SELECT v_id AS id, v_nombre AS nombre;\n  END LOOP;\n\n  CLOSE cur;\nEND;\n```"
+        },
+        {
+          "id": "ex-15-10-2",
+          "title": "FETCH con múltiples columnas",
+          "difficulty": "intermediate",
+          "description": "Escribe un procedimiento que use un cursor para recorrer las asignaturas del ciclo 'DAM' y mostrar: id, nombre, ciclo y creditos.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_asignaturas_dam()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_ciclo VARCHAR(10);\n  DECLARE v_creditos DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre, ciclo, creditos FROM asignaturas WHERE ciclo = 'DAM';\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre, v_ciclo, v_creditos;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SELECT v_id AS id, v_nombre AS nombre, v_ciclo AS ciclo, v_creditos AS creditos;\n  END LOOP;\n\n  CLOSE cur;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-10-3",
+          "title": "Corregir orden de declaraciones",
+          "difficulty": "intermediate",
+          "description": "Corrige el orden de un código donde el handler va antes del cursor y las variables van después.",
+          "solution": "El orden correcto es: variables → cursor → handler → sentencias ejecutables."
+        },
+        {
+          "id": "ex-15-10-4",
+          "title": "Cursor con cálculos por fila",
+          "difficulty": "hard",
+          "description": "Escribe un procedimiento que recorra todas las asignaturas y, para cada una, muestre su nombre y el número de alumnos matriculados.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_contar_alumnos_por_asignatura()\nBEGIN\n  DECLARE v_id_asig INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_total_alumnos INT;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR SELECT id, nombre FROM asignaturas;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id_asig, v_nombre;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n\n    SELECT COUNT(*) INTO v_total_alumnos\n    FROM matriculas WHERE id_asignatura = v_id_asig AND estado = 'activa';\n\n    SELECT v_nombre AS asignatura, v_total_alumnos AS alumnos;\n  END LOOP;\n\n  CLOSE cur;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-11",
+      "title": "Cursores con NOT FOUND y handlers",
+      "order": 11,
+      "objectives": [
+        "Comprender qué hace el handler NOT FOUND",
+        "Implementar el patrón completo de cursor con LOOP y LEAVE",
+        "Controlar el flujo correctamente: FETCH antes de procesar",
+        "Evitar errores comunes con NOT FOUND"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## El handler NOT FOUND\n\n```sql\nDECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n```\n\nLe dice a MySQL: \"Cuando FETCH no encuentre más filas, establece `v_fin` a TRUE en lugar de lanzar un error\".\n\n> NOT FOUND no es un error \"serio\". Es el mecanismo estándar para detectar el fin del cursor."
+        },
+        {
+          "type": "text",
+          "content": "## El patrón completo\n\n```sql\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n  DECLARE cur CURSOR FOR SELECT id FROM alumnos;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id;  -- Leer ANTES de procesar\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    -- Procesar la fila\n    SELECT v_id;\n  END LOOP;\n\n  CLOSE cur;\nEND;\n```\n\n> **Clave**: El FETCH va ANTES de la verificación IF v_fin, NO después."
+        },
+        {
+          "type": "text",
+          "content": "## Error común: procesar ANTES de verificar v_fin\n\n```sql\n-- INCORRECTO\nmi_bucle: LOOP\n  FETCH cur INTO v_id;\n  -- ¡Falta IF v_fin THEN LEAVE!\n  SELECT v_id;  -- Se ejecuta con valores basura\nEND LOOP;\n\n-- CORRECTO\nmi_bucle: LOOP\n  FETCH cur INTO v_id;\n  IF v_fin THEN LEAVE mi_bucle; END IF;\n  SELECT v_id;  -- Solo aquí es seguro\nEND LOOP;\n```\n\n> **Regla inquebrantable**: Después de cada FETCH, SIEMPRE verifica v_fin ANTES de procesar."
+        },
+        {
+          "type": "text",
+          "content": "## Manejo de cursor vacío\n\nSi el cursor no tiene ninguna fila, el primer FETCH activa NOT FOUND y el LOOP se sale inmediatamente. No necesitas lógica adicional."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico: listado con contador\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_listar_alumnos_orden()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  DECLARE v_orden INT DEFAULT 0;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre, apellido FROM alumnos WHERE activo = TRUE ORDER BY apellido, nombre;\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre, v_apellido;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SET v_orden = v_orden + 1;\n    SELECT v_orden AS orden, v_nombre AS nombre, v_apellido AS apellido;\n  END LOOP;\n\n  CLOSE cur;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-11-1",
+          "title": "Patrón básico de cursor con NOT FOUND",
+          "difficulty": "basic",
+          "description": "Escribe un procedimiento que recorra todas las asignaturas y muestre su id, nombre y creditos.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_listar_asignaturas()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_creditos DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR SELECT id, nombre, creditos FROM asignaturas;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre, v_creditos;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SELECT v_id AS id, v_nombre AS nombre, v_creditos AS creditos;\n  END LOOP;\n  CLOSE cur;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-11-2",
+          "title": "Detectar el fin del cursor",
+          "difficulty": "intermediate",
+          "description": "Escribe un procedimiento que cuente cuántas filas tiene el cursor (sin usar COUNT(*)) usando el handler NOT FOUND.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_contar_filas_cursor()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_contador INT DEFAULT 0;\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR SELECT id FROM alumnos;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_id;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SET v_contador = v_contador + 1;\n  END LOOP;\n  CLOSE cur;\n\n  SELECT v_contador AS total_alumnos;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-11-3",
+          "title": "Cursor con procesamiento condicional",
+          "difficulty": "hard",
+          "description": "Escribe un procedimiento que recorra las notas y, para cada una, muestre: id, nota, y una clasificación (>= 9 Sobresaliente, >= 7 Notable, >= 5 Aprobado, < 5 Suspenso).",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_clasificar_notas()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nota DECIMAL(4,2);\n  DECLARE v_clasificacion VARCHAR(20);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR SELECT id, nota FROM notas;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nota;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n\n    IF v_nota >= 9 THEN SET v_clasificacion = 'Sobresaliente';\n    ELSEIF v_nota >= 7 THEN SET v_clasificacion = 'Notable';\n    ELSEIF v_nota >= 5 THEN SET v_clasificacion = 'Aprobado';\n    ELSE SET v_clasificacion = 'Suspenso';\n    END IF;\n\n    SELECT v_id AS id_nota, v_nota AS nota, v_clasificacion AS clasificacion;\n  END LOOP;\n  CLOSE cur;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-11-4",
+          "title": "Cursor con acumulación",
+          "difficulty": "hard",
+          "description": "Escribe un procedimiento que recorra los alumnos activos y calcule: total de alumnos, suma de ids, y el alumno con el id más alto.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_estadisticas_alumnos()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_total INT DEFAULT 0;\n  DECLARE v_suma_ids INT DEFAULT 0;\n  DECLARE v_max_id INT DEFAULT 0;\n  DECLARE v_max_nombre VARCHAR(50);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR SELECT id, nombre FROM alumnos WHERE activo = TRUE;\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  OPEN cur;\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n    SET v_total = v_total + 1;\n    SET v_suma_ids = v_suma_ids + v_id;\n    IF v_id > v_max_id THEN\n      SET v_max_id = v_id;\n      SET v_max_nombre = v_nombre;\n    END IF;\n  END LOOP;\n  CLOSE cur;\n\n  SELECT v_total AS total_alumnos, v_suma_ids AS suma_ids,\n         v_max_id AS max_id, v_max_nombre AS alumno_max_id;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-12",
+      "title": "Tratamiento de errores con handlers",
+      "order": 12,
+      "objectives": [
+        "Declarar handlers CONTINUE y EXIT para diferentes errores",
+        "Distinguir entre SQLEXCEPTION, SQLWARNING y NOT FOUND",
+        "Usar códigos de error específicos de MySQL",
+        "Combinar handlers con transacciones para ROLLBACK"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## CONTINUE HANDLER vs EXIT HANDLER\n\n```sql\n-- CONTINUE: ejecuta handler y continúa\nDECLARE CONTINUE HANDLER FOR 1062\n  SELECT 'Error: duplicado' AS error;\n\n-- EXIT: ejecuta handler y abandona el bloque BEGIN...END\nDECLARE EXIT HANDLER FOR SQLEXCEPTION\nBEGIN\n  ROLLBACK;\n  SELECT 'Error: transacción revertida' AS error;\nEND;\n```\n\n> **Regla**: CONTINUE para errores recuperables, EXIT para errores fatales."
+        },
+        {
+          "type": "text",
+          "content": "## Clases de errores en MySQL\n\n| Clase | Descripción |\n|---|---|\n| `SQLEXCEPTION` | Errores SQL generales |\n| `SQLWARNING` | Advertencias |\n| `NOT FOUND` | No se encontraron filas (fin de cursor) |"
+        },
+        {
+          "type": "text",
+          "content": "## Códigos de error específicos\n\n| Código | Significado |\n|---|---|\n| `1062` | Duplicate entry |\n| `1452` | Foreign key constraint fails |\n| `1364` | Field doesn't have a default value |\n| `1406` | Data too long for column |\n\n```sql\nDECLARE CONTINUE HANDLER FOR 1062, 1452\nBEGIN\n  SELECT 'Error de integridad' AS error;\nEND;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Handler + transacciones: ROLLBACK en error\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_transferir_nota(\n  IN p_origen INT, IN p_destino INT, IN p_cantidad DECIMAL(4,2)\n)\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    ROLLBACK;\n    SELECT 'Error: transferencia revertida' AS resultado;\n  END;\n\n  START TRANSACTION;\n  UPDATE notas SET nota = nota - p_cantidad WHERE id = p_origen;\n  UPDATE notas SET nota = nota + p_cantidad WHERE id = p_destino;\n  COMMIT;\n  SELECT 'Transferencia completada' AS resultado;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes con handlers\n\n1. **Silenciar todos los errores** con SQLEXCEPTION genérico.\n2. **Handler vacío** que no hace nada.\n3. **No usar ROLLBACK** en EXIT handler con transacciones.\n\n> **Regla**: Nunca silences errores sin una razón clara. Usa EXIT HANDLER FOR SQLEXCEPTION con ROLLBACK."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-12-1",
+          "title": "CONTINUE vs EXIT handler",
+          "difficulty": "basic",
+          "description": "Para cada caso, indica CONTINUE o EXIT:\n1. Se duplicó un email\n2. Error de conexión\n3. Fin de cursor (NOT FOUND)\n4. Violación de FK",
+          "solution": "1. **CONTINUE** — recuperable.\n2. **EXIT** — fatal.\n3. **CONTINUE** — no es un error, es fin de cursor.\n4. **EXIT** — operación no puede completarse."
+        },
+        {
+          "id": "ex-15-12-2",
+          "title": "Handler con ROLLBACK",
+          "difficulty": "intermediate",
+          "description": "Escribe un procedimiento que INSERTe una matrícula y una nota inicial. Si falla, ROLLBACK y mostrar error.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_matricular_con_nota(\n  IN p_id_alumno INT, IN p_id_asignatura INT\n)\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    ROLLBACK;\n    SELECT 'Error: matrícula no procesada' AS resultado;\n  END;\n\n  START TRANSACTION;\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (p_id_alumno, p_id_asignatura, CURDATE(), 'activa');\n  INSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\n  VALUES (p_id_alumno, p_id_asignatura, 0, 'Pendiente');\n  COMMIT;\n  SELECT 'Matrícula y nota inicial creadas' AS resultado;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-12-3",
+          "title": "Handler específico por código",
+          "difficulty": "intermediate",
+          "description": "Escribe un procedimiento que inserte un alumno y maneje: 1062 → 'Email ya registrado', 1406 → 'Datos muy largos', otros → 'Error desconocido'.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_insertar_alumno_safe(\n  IN p_nombre VARCHAR(50), IN p_apellido VARCHAR(50), IN p_email VARCHAR(100)\n)\nBEGIN\n  DECLARE EXIT HANDLER FOR 1062\n    SELECT 'Email ya registrado' AS error;\n  DECLARE EXIT HANDLER FOR 1406\n    SELECT 'Datos exceden el límite' AS error;\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n    SELECT 'Error desconocido' AS error;\n\n  INSERT INTO alumnos (nombre, apellido, email) VALUES (p_nombre, p_apellido, p_email);\n  SELECT 'Alumno insertado correctamente' AS resultado;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-12-4",
+          "title": "Handler con GET DIAGNOSTICS",
+          "difficulty": "hard",
+          "description": "Escribe un procedimiento que actualice el email y, si falla, muestre el código y mensaje del error usando GET DIAGNOSTICS.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_actualizar_email_safe(\n  IN p_id INT, IN p_nuevo_email VARCHAR(100)\n)\nBEGIN\n  DECLARE v_codigo INT;\n  DECLARE v_mensaje VARCHAR(200);\n\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    GET DIAGNOSTICS CONDITION 1\n      v_codigo = MYSQL_ERRNO,\n      v_mensaje = MESSAGE_TEXT;\n    SELECT CONCAT('Error ', v_codigo, ': ', v_mensaje) AS error;\n  END;\n\n  UPDATE alumnos SET email = p_nuevo_email WHERE id = p_id;\n  SELECT 'Email actualizado correctamente' AS resultado;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-13",
+      "title": "SIGNAL, RESIGNAL y errores personalizados",
+      "order": 13,
+      "objectives": [
+        "Crear errores personalizados con SIGNAL SQLSTATE",
+        "Entender el formato SQLSTATE de 5 caracteres",
+        "Usar SIGNAL para validar reglas de negocio",
+        "Implementar RESIGNAL para capturar, actuar y re-lanzar errores"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## SIGNAL: lanzar errores personalizados\n\n```sql\nSIGNAL SQLSTATE '45000'\nSET MESSAGE_TEXT = 'mensaje descriptivo del error';\n```\n\n### Ejemplo básico\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  IF NEW.nota < 0 OR NEW.nota > 10 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'La nota debe estar entre 0 y 10';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## SQLSTATE: códigos de 5 caracteres\n\n| SQLSTATE | Significado |\n|---|---|\n| '00000' | Éxito |\n| '23000' | Integrity constraint violation |\n| '22000' | Data exception |\n| '45000' | **User-defined exception** (la más usada) |\n\n> **Regla**: Para errores de regla de negocio, usa siempre `45000`."
+        },
+        {
+          "type": "text",
+          "content": "## SIGNAL para validar reglas de negocio en triggers\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_matricula_completo\nBEFORE INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  DECLARE v_activo BOOLEAN;\n  DECLARE v_ya_matriculado INT DEFAULT 0;\n\n  SELECT activo INTO v_activo FROM alumnos WHERE id = NEW.id_alumno;\n  IF v_activo IS NULL THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno no existe en el sistema';\n  END IF;\n\n  IF v_activo = FALSE THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede matricular un alumno inactivo';\n  END IF;\n\n  SELECT COUNT(*) INTO v_ya_matriculado\n  FROM matriculas WHERE id_alumno = NEW.id_alumno AND id_asignatura = NEW.id_asignatura;\n\n  IF v_ya_matriculado > 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno ya está matriculado en esta asignatura';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## RESIGNAL: capturar, actuar y re-lanzar\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_insertar_alumno_con_log(\n  IN p_nombre VARCHAR(50), IN p_apellido VARCHAR(50), IN p_email VARCHAR(100)\n)\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    INSERT INTO log_errores (mensaje, fecha)\n    VALUES (CONCAT('Error al insertar: ', p_email), NOW());\n    RESIGNAL;\n  END;\n\n  INSERT INTO alumnos (nombre, apellido, email) VALUES (p_nombre, p_apellido, p_email);\nEND //\n\nDELIMITER ;\n```\n\n> **Cuándo usar RESIGNAL**: cuando necesitas registrar el error PERO también quieres que la aplicación cliente lo vea."
+        },
+        {
+          "type": "text",
+          "content": "## GET DIAGNOSTICS: información del error\n\n```sql\nDECLARE EXIT HANDLER FOR SQLEXCEPTION\nBEGIN\n  DECLARE v_codigo INT;\n  DECLARE v_mensaje VARCHAR(200);\n  GET DIAGNOSTICS CONDITION 1\n    v_codigo = MYSQL_ERRNO,\n    v_mensaje = MESSAGE_TEXT;\n  INSERT INTO log_errores (codigo, mensaje, fecha) VALUES (v_codigo, v_mensaje, NOW());\n  RESIGNAL;\nEND;\n```\n\n> GET DIAGNOSTICS solo funciona DENTRO de un handler."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-13-1",
+          "title": "SIGNAL básico",
+          "difficulty": "basic",
+          "description": "Escribe un trigger BEFORE INSERT en `alumnos` que lance error si el nombre tiene menos de 2 caracteres.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_nombre_minimo\nBEFORE INSERT ON alumnos\nFOR EACH ROW\nBEGIN\n  IF LENGTH(TRIM(NEW.nombre)) < 2 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El nombre debe tener al menos 2 caracteres';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-13-2",
+          "title": "SIGNAL con validación completa",
+          "difficulty": "intermediate",
+          "description": "Crea un procedimiento que verifique: alumno existe, alumno activo, asignatura existe, no ya matriculado. Lanza SIGNAL con mensaje descriptivo para cada error.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_matricular_verificar(\n  IN p_id_alumno INT, IN p_id_asignatura INT\n)\nBEGIN\n  DECLARE v_existe INT DEFAULT 0;\n  DECLARE v_activo BOOLEAN;\n\n  SELECT COUNT(*) INTO v_existe FROM alumnos WHERE id = p_id_alumno;\n  IF v_existe = 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El alumno no existe';\n  END IF;\n\n  SELECT activo INTO v_activo FROM alumnos WHERE id = p_id_alumno;\n  IF v_activo = FALSE THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El alumno está inactivo';\n  END IF;\n\n  SELECT COUNT(*) INTO v_existe FROM asignaturas WHERE id = p_id_asignatura;\n  IF v_existe = 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La asignatura no existe';\n  END IF;\n\n  SELECT COUNT(*) INTO v_existe FROM matriculas\n  WHERE id_alumno = p_id_alumno AND id_asignatura = p_id_asignatura;\n  IF v_existe > 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya está matriculado en esta asignatura';\n  END IF;\n\n  SELECT 'Verificación correcta' AS resultado;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-13-3",
+          "title": "RESIGNAL con logging",
+          "difficulty": "intermediate",
+          "description": "Crea un procedimiento que inserte un producto y, si falla, registre el error en `log_errores` y re-lance con RESIGNAL.",
+          "solution": "```sql\nCREATE TABLE IF NOT EXISTS log_errores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  mensaje VARCHAR(200),\n  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\nDELIMITER //\n\nCREATE PROCEDURE sp_insertar_producto_safe(\n  IN p_nombre VARCHAR(100), IN p_precio DECIMAL(10,2), IN p_stock INT\n)\nBEGIN\n  DECLARE EXIT HANDLER FOR SQLEXCEPTION\n  BEGIN\n    INSERT INTO log_errores (mensaje)\n    VALUES (CONCAT('Error al insertar producto: ', p_nombre));\n    RESIGNAL;\n  END;\n\n  INSERT INTO productos (nombre, precio, stock) VALUES (p_nombre, p_precio, p_stock);\n  SELECT 'Producto insertado correctamente' AS resultado;\nEND //\n\nDELIMITER ;\n```"
+        },
+        {
+          "id": "ex-15-13-4",
+          "title": "SIGNAL en BEFORE trigger con JOIN",
+          "difficulty": "hard",
+          "description": "Crea un trigger BEFORE INSERT en `notas` que verifique que el alumno esté matriculado en la asignatura correspondiente. Si no lo está, lanza SIGNAL.",
+          "solution": "```sql\nDELIMITER //\n\nCREATE TRIGGER trg_verificar_matricula_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  DECLARE v_matriculado INT DEFAULT 0;\n\n  SELECT COUNT(*) INTO v_matriculado\n  FROM matriculas\n  WHERE id_alumno = NEW.id_alumno\n  AND id_asignatura = NEW.id_asignatura\n  AND estado = 'activa';\n\n  IF v_matriculado = 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno no está matriculado en esta asignatura';\n  END IF;\nEND //\n\nDELIMITER ;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-14",
+      "title": "Buenas prácticas, limitaciones y caso práctico",
+      "order": 14,
+      "objectives": [
+        "Aplicar buenas prácticas para triggers, cursores y handlers",
+        "Reconocer errores comunes y evitarlos",
+        "Diseñar un caso práctico completo de matriculación y auditoría",
+        "Integrar triggers, cursores, handlers y SIGNAL en un sistema cohesivo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Buenas prácticas para triggers\n\n1. **Lógica mínima**: Un trigger debe hacer UNA cosa bien. No metas 20 líneas de lógica.\n2. **Naming claro**: `trg_{evento}_{tabla}` (ej: `trg_after_insert_matricula`).\n3. **Documentar efectos secundarios**: Si un INSERT dispara un trigger que hace UPDATE en otra tabla, documéntalo.\n4. **No reemplazar constraints**: Si un UNIQUE puede resolver el problema, no uses un trigger.\n5. **Evitar recursión**: No modifiques la tabla que disparó el trigger dentro del mismo trigger."
+        },
+        {
+          "type": "text",
+          "content": "## Buenas prácticas para cursores\n\n1. **Solo cuando sea necesario**: Primero intenta set-based.\n2. **Cerrar siempre**: Usa CLOSE al final del bloque.\n3. **Manejar NOT FOUND**: Siempre incluye DECLARE CONTINUE HANDLER FOR NOT FOUND.\n4. **FETCH antes de procesar**: Verifica v_fin después de cada FETCH.\n5. **Declarar en orden**: Variables → Cursores → Handlers."
+        },
+        {
+          "type": "text",
+          "content": "## Buenas prácticas para handlers\n\n1. **Condiciones específicas**: Usa códigos de error específicos cuando sea posible.\n2. **No silenciar errores**: Un handler vacío es peligroso.\n3. **ROLLBACK en EXIT handler**: Si usas transacciones, siempre revierte en error.\n4. **RESIGNAL cuando sea necesario**: Para que la aplicación vea el error.\n5. **Usar GET DIAGNOSTICS**: Para logging detallado de errores."
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes resumen\n\n### Triggers\n- Falta DELIMITER con múltiples sentencias\n- Usar NEW en DELETE trigger\n- Modificar la tabla que disparó el trigger en AFTER\n- No usar FOR EACH ROW\n\n### Cursores\n- No verificar v_fin después de FETCH\n- Olvidar CLOSE cursor\n- Poner handler ANTES del cursor\n- Usar cursor cuando un set-based es suficiente\n\n### Handlers\n- Silenciar errores con handler vacío\n- No usar ROLLBACK en EXIT handler con transacciones\n- Usar SQLEXCEPTION como cajón de sastre sin logging"
+        },
+        {
+          "type": "text",
+          "content": "## CASO PRÁCTICO: Sistema de matriculación y auditoría\n\n### Análisis\n\nNecesitamos un sistema que:\n1. Permita matricular alumnos verificando reglas de negocio\n2. Registre cada operación en una tabla de auditoría\n3. Lance errores claros cuando algo falle\n4. Maneje errores gracefully con transacciones\n\n### Esquema necesario\n\n```sql\n-- Tabla de auditoría\nCREATE TABLE IF NOT EXISTS auditoria_matricula (\n  id_auditoria INT PRIMARY KEY AUTO_INCREMENT,\n  id_matricula INT,\n  accion VARCHAR(10),\n  estado_anterior VARCHAR(20),\n  estado_nuevo VARCHAR(20),\n  usuario VARCHAR(100),\n  fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n```\n\n### Procedimiento de matriculación\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_matricular_alumno(\n  IN p_id_alumno INT,\n  IN p_id_asignatura INT\n)\nBEGIN\n  DECLARE v_existe_alumno INT DEFAULT 0;\n  DECLARE v_activo BOOLEAN;\n  DECLARE v_existe_asig INT DEFAULT 0;\n  DECLARE v_ya_matriculado INT DEFAULT 0;\n\n  -- Verificar alumno\n  SELECT COUNT(*) INTO v_existe_alumno FROM alumnos WHERE id = p_id_alumno;\n  IF v_existe_alumno = 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno no existe';\n  END IF;\n\n  SELECT activo INTO v_activo FROM alumnos WHERE id = p_id_alumno;\n  IF v_activo = FALSE THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno está inactivo';\n  END IF;\n\n  -- Verificar asignatura\n  SELECT COUNT(*) INTO v_existe_asig FROM asignaturas WHERE id = p_id_asignatura;\n  IF v_existe_asig = 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'La asignatura no existe';\n  END IF;\n\n  -- Verificar duplicado\n  SELECT COUNT(*) INTO v_ya_matriculado\n  FROM matriculas WHERE id_alumno = p_id_alumno AND id_asignatura = p_id_asignatura;\n  IF v_ya_matriculado > 0 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'El alumno ya está matriculado en esta asignatura';\n  END IF;\n\n  -- Insertar matrícula\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (p_id_alumno, p_id_asignatura, CURDATE(), 'activa');\n\n  SELECT CONCAT('Alumno ', p_id_alumno, ' matriculado en asignatura ', p_id_asignatura) AS resultado;\nEND //\n\nDELIMITER ;\n```\n\n### Trigger de auditoría\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_auditar_matricula_insert\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (id_matricula, accion, estado_nuevo, usuario)\n  VALUES (NEW.id, 'INSERT', NEW.estado, CURRENT_USER());\nEND //\n\nDELIMITER ;\n```\n\n### Pruebas\n\n```sql\n-- Prueba 1: matriculación exitosa\nCALL sp_matricular_alumno(1, 1);\n-- Resultado: Alumno 1 matriculado en asignatura 1\n\n-- Prueba 2: alumno no existe\nCALL sp_matricular_alumno(999, 1);\n-- Error: El alumno no existe\n\n-- Prueba 3: alumno duplicado\nCALL sp_matricular_alumno(1, 1);\n-- Error: El alumno ya está matriculado en esta asignatura\n\n-- Verificar auditoría\nSELECT * FROM auditoria_matricula;\n-- Debe mostrar el registro de la matrícula insertada\n```\n\n### Explicación\n\nEl sistema integra:\n- **SIGNAL** para validación de reglas de negocio con mensajes claros.\n- **Trigger AFTER INSERT** para auditoría automática.\n- **Procedimiento** para centralizar la lógica de matriculación.\n- **Handler** implícito: si el procedimiento falla, MySQL aborta la operación y el error llega al cliente.\n\nEste patrón es la base para sistemas de matriculación reales: centralizar la validación en un procedimiento, automatizar la auditoría con triggers, y manejar errores con SIGNAL."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-14-1",
+          "title": "Caso práctico completo",
+          "difficulty": "hard",
+          "description": "Implementa el sistema completo de matriculación descrito en la lección. Incluye:\n1. La tabla de auditoría\n2. El procedimiento sp_matricular_alumno con todas las validaciones\n3. El trigger de auditoría para INSERT\n4. Un trigger de auditoría para UPDATE (cambio de estado)\n5. Un trigger de auditoría para DELETE\n6. Prueba cada caso: exitoso, alumno no existe, alumno inactivo, duplicado",
+          "solution": "```sql\n-- 1. Tabla de auditoría\nCREATE TABLE IF NOT EXISTS auditoria_matricula (\n  id_auditoria INT PRIMARY KEY AUTO_INCREMENT,\n  id_matricula INT,\n  accion VARCHAR(10),\n  estado_anterior VARCHAR(20),\n  estado_nuevo VARCHAR(20),\n  usuario VARCHAR(100),\n  fecha_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- 2. Procedimiento\nDELIMITER //\nCREATE PROCEDURE sp_matricular_alumno(\n  IN p_id_alumno INT, IN p_id_asignatura INT\n)\nBEGIN\n  DECLARE v_existe INT DEFAULT 0;\n  DECLARE v_activo BOOLEAN;\n\n  SELECT COUNT(*) INTO v_existe FROM alumnos WHERE id = p_id_alumno;\n  IF v_existe = 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El alumno no existe';\n  END IF;\n\n  SELECT activo INTO v_activo FROM alumnos WHERE id = p_id_alumno;\n  IF v_activo = FALSE THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'El alumno está inactivo';\n  END IF;\n\n  SELECT COUNT(*) INTO v_existe FROM asignaturas WHERE id = p_id_asignatura;\n  IF v_existe = 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'La asignatura no existe';\n  END IF;\n\n  SELECT COUNT(*) INTO v_existe FROM matriculas\n  WHERE id_alumno = p_id_alumno AND id_asignatura = p_id_asignatura;\n  IF v_existe > 0 THEN\n    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya está matriculado';\n  END IF;\n\n  INSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado)\n  VALUES (p_id_alumno, p_id_asignatura, CURDATE(), 'activa');\n\n  SELECT CONCAT('Alumno ', p_id_alumno, ' matriculado en asignatura ', p_id_asignatura) AS resultado;\nEND //\nDELIMITER ;\n\n-- 3. Trigger INSERT\nDELIMITER //\nCREATE TRIGGER trg_auditar_matricula_insert\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (id_matricula, accion, estado_nuevo, usuario)\n  VALUES (NEW.id, 'INSERT', NEW.estado, CURRENT_USER());\nEND //\nDELIMITER ;\n\n-- 4. Trigger UPDATE\nDELIMITER //\nCREATE TRIGGER trg_auditar_matricula_update\nAFTER UPDATE ON matriculas\nFOR EACH ROW\nBEGIN\n  IF NOT (OLD.estado <=> NEW.estado) THEN\n    INSERT INTO auditoria_matricula (id_matricula, accion, estado_anterior, estado_nuevo, usuario)\n    VALUES (NEW.id, 'UPDATE', OLD.estado, NEW.estado, CURRENT_USER());\n  END IF;\nEND //\nDELIMITER ;\n\n-- 5. Trigger DELETE\nDELIMITER //\nCREATE TRIGGER trg_auditar_matricula_delete\nAFTER DELETE ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO auditoria_matricula (id_matricula, accion, estado_anterior, usuario)\n  VALUES (OLD.id, 'DELETE', OLD.estado, CURRENT_USER());\nEND //\nDELIMITER ;\n\n-- 6. Pruebas\nCALL sp_matricular_alumno(1, 1);\n-- OK: Alumno 1 matriculado en asignatura 1\n\nCALL sp_matricular_alumno(999, 1);\n-- Error: El alumno no existe\n\nCALL sp_matricular_alumno(1, 1);\n-- Error: Ya está matriculado\n\n-- Verificar auditoría\nSELECT * FROM auditoria_matricula ORDER BY fecha_evento;\n```"
         }
       ]
     }

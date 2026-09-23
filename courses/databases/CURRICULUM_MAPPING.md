@@ -115,7 +115,7 @@
 | Deadlocks | mod-13 | lesson-13-11 |
 | Diseño de transacciones seguras y caso práctico | mod-13 | lesson-13-12 |
 
-### RA5: Procedimientos almacenados y automatización (PARTIAL — M14)
+### RA5: Procedimientos almacenados y automatización (COMPLETE — M14 + M15)
 
 | Contenido | Módulo | Lección |
 |---|---|---|
@@ -131,10 +131,20 @@
 | Funciones almacenadas | mod-14 | lesson-14-12 |
 | Procedimientos vs funciones y buenas prácticas | mod-14 | lesson-14-13 |
 | Caso práctico completo | mod-14 | lesson-14-14 |
-| Triggers (BEFORE/AFTER) | mod-15 | lesson-15-1 |
-| NEW y OLD en triggers | mod-15 | lesson-15-1 |
-| Cursores | mod-15 | lesson-15-2 |
-| DECLARE HANDLER (excepciones) | mod-15 | lesson-15-2 |
+| Triggers: introducción y CREATE TRIGGER | mod-15 | lesson-15-1 |
+| BEFORE y AFTER | mod-15 | lesson-15-2 |
+| NEW y OLD | mod-15 | lesson-15-3 |
+| Triggers de INSERT | mod-15 | lesson-15-4 |
+| Triggers de UPDATE | mod-15 | lesson-15-5 |
+| Triggers de DELETE | mod-15 | lesson-15-6 |
+| Auditoría y automatización con triggers | mod-15 | lesson-15-7 |
+| Triggers vs constraints y limitaciones | mod-15 | lesson-15-8 |
+| Cursores: introducción | mod-15 | lesson-15-9 |
+| DECLARE, OPEN, FETCH, CLOSE | mod-15 | lesson-15-10 |
+| Cursores con NOT FOUND y handlers | mod-15 | lesson-15-11 |
+| Tratamiento de errores con handlers | mod-15 | lesson-15-12 |
+| SIGNAL, RESIGNAL y errores personalizados | mod-15 | lesson-15-13 |
+| Buenas prácticas y caso práctico | mod-15 | lesson-15-14 |
 
 ### RA6: Diseñar modelo relacional normalizado y diagramas E/R
 
@@ -169,9 +179,9 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 157 |
-| Bloques de contenido | ~566 |
-| Ejercicios | ~287 |
+| Lecciones totales | 169 |
+| Bloques de contenido | ~628 |
+| Ejercicios | ~338 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
@@ -192,10 +202,10 @@
 | mod-12: Modificación datos | 12 | 56 | 43 |
 | mod-13: Transacciones y concurrencia | 12 | 57 | 41 |
 | mod-14: Programación almacenada | 14 | 63 | 50 |
-| mod-15: Triggers/cursores | 2 | 3 | 2 |
+| mod-15: Triggers, cursores y excepciones | 14 | 65 | 51 |
 | mod-16: NoSQL | 2 | 5 | 2 |
 | mod-17: Proyecto final | 3 | 4 | 3 |
-| **TOTAL** | **157** | **~566** | **~287** |
+| **TOTAL** | **169** | **~628** | **~338** |
 
 ## Bases de datos de ejemplo utilizadas
 
@@ -222,6 +232,6 @@
 | mod-12: Modificación datos | ✅ Implementado (12 lecciones, 43 ejercicios) |
 | mod-13: Transacciones y concurrencia | ✅ Implementado (12 lecciones, 41 ejercicios) |
 | mod-14: Programación almacenada | ✅ Implementado (14 lecciones, 50 ejercicios) |
-| mod-15: Triggers/cursores | ⏳ Pendiente |
+| mod-15: Triggers, cursores y excepciones | ✅ Implementado (14 lecciones, 51 ejercicios) |
 | mod-16: NoSQL | ⏳ Pendiente |
 | mod-17: Proyecto final | ⏳ Pendiente |
