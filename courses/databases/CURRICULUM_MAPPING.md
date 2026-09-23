@@ -85,7 +85,7 @@
 | UNION | mod-11 | lesson-11-2 |
 | EXPLAIN y optimización | mod-11 | lesson-11-3 |
 
-### RA4: Modificar datos, transacciones y concurrencia (PARTIAL — M12)
+### RA4: Modificar datos, transacciones y concurrencia (COMPLETE — M12 + M13)
 
 | Contenido | Módulo | Lección |
 |---|---|---|
@@ -102,11 +102,18 @@
 | Subconsultas en INSERT, UPDATE y DELETE | mod-12 | lesson-12-10 |
 | Modificaciones seguras y depuración | mod-12 | lesson-12-11 |
 | Caso práctico completo | mod-12 | lesson-12-12 |
-| Propiedades ACID | mod-13 | lesson-13-1 |
-| COMMIT, ROLLBACK, SAVEPOINT | mod-13 | lesson-13-2 |
-| Problemas de concurrencia | mod-13 | lesson-13-3 |
-| Niveles de aislamiento | mod-13 | lesson-13-3 |
-| Bloqueos en MySQL | mod-13 | lesson-13-3 |
+| Qué es una transacción | mod-13 | lesson-13-1 |
+| Propiedades ACID | mod-13 | lesson-13-2 |
+| Autocommit y control manual | mod-13 | lesson-13-3 |
+| START TRANSACTION, COMMIT, ROLLBACK | mod-13 | lesson-13-4 |
+| DDL y commits implícitos en MySQL | mod-13 | lesson-13-5 |
+| SAVEPOINT y reversión parcial | mod-13 | lesson-13-6 |
+| Concurrência: múltiples usuarios | mod-13 | lesson-13-7 |
+| Problemas de concurrencia (dirty read, non-repeatable, phantom, lost update) | mod-13 | lesson-13-8 |
+| Niveles de aislamiento | mod-13 | lesson-13-9 |
+| Bloqueos y SELECT ... FOR UPDATE | mod-13 | lesson-13-10 |
+| Deadlocks | mod-13 | lesson-13-11 |
+| Diseño de transacciones seguras y caso práctico | mod-13 | lesson-13-12 |
 
 ### RA5: Procedimientos almacenados y automatización
 
@@ -155,9 +162,9 @@
 | Métrica | Cantidad |
 |---|---|
 | Módulos | 17 |
-| Lecciones totales | 138 |
-| Bloques de contenido | ~455 |
-| Ejercicios | ~196 |
+| Lecciones totales | 147 |
+| Bloques de contenido | ~508 |
+| Ejercicios | ~237 |
 | RA cubiertos | 7/7 (100%) |
 
 ## Cobertura por módulo
@@ -176,12 +183,12 @@
 | mod-10: Consultas multitabla | 8 | 24 | 8 |
 | mod-11: Subconsultas | 8 | 36 | 29 |
 | mod-12: Modificación datos | 12 | 56 | 43 |
-| mod-13: Transacciones | 3 | 4 | 3 |
+| mod-13: Transacciones y concurrencia | 12 | 57 | 41 |
 | mod-14: Programación almacenada | 4 | 5 | 4 |
 | mod-15: Triggers/cursores | 2 | 3 | 2 |
 | mod-16: NoSQL | 2 | 5 | 2 |
 | mod-17: Proyecto final | 3 | 4 | 3 |
-| **TOTAL** | **138** | **~455** | **~196** |
+| **TOTAL** | **147** | **~508** | **~237** |
 
 ## Bases de datos de ejemplo utilizadas
 
@@ -206,7 +213,7 @@
 | mod-10: Consultas multitabla | ⏳ Pendiente |
 | mod-11: Subconsultas | ⏳ Pendiente |
 | mod-12: Modificación datos | ✅ Implementado (12 lecciones, 43 ejercicios) |
-| mod-13: Transacciones | ⏳ Pendiente |
+| mod-13: Transacciones y concurrencia | ✅ Implementado (12 lecciones, 41 ejercicios) |
 | mod-14: Programación almacenada | ⏳ Pendiente |
 | mod-15: Triggers/cursores | ⏳ Pendiente |
 | mod-16: NoSQL | ⏳ Pendiente |
