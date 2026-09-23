@@ -4,95 +4,425 @@
   "title": "Funciones y consultas resumen",
   "slug": "funciones-consultas-resumen",
   "order": 9,
-  "description": "Funciones numéricas, de cadena y de fecha. Funciones de agregación COUNT, SUM, AVG, MIN, MAX. GROUP BY y HAVING.",
+  "description": "Domina las funciones de MySQL: texto, numéricas, fecha y agregación. Aprende a agrupar con GROUP BY, filtrar grupos con HAVING y construir consultas resumen que extraigan información clave del dataset academia. Todo sin JOINs ni subconsultas.",
   "objectives": [
-    "Usar funciones numéricas de MySQL",
-    "Usar funciones de cadena de texto",
-    "Usar funciones de fecha",
-    "Aplicar funciones de agregación (COUNT, SUM, AVG, MIN, MAX)",
-    "Agrupar resultados con GROUP BY",
-    "Filtrar grupos con HAVING"
+    "Entender qué son las funciones SQL y cuándo usarlas",
+    "Manipular texto con funciones de cadena (CONCAT, UPPER, LOWER, SUBSTRING, TRIM, LENGTH, REPLACE)",
+    "Realizar cálculos numéricos con funciones matemáticas (ROUND, TRUNCATE, CEIL, FLOOR, ABS, MOD)",
+    "Trabajar con fechas y horas usando funciones temporales (NOW, CURDATE, DATE_FORMAT, DATEDIFF, TIMESTAMPDIFF, DATE_ADD)",
+    "Resumir datos con funciones de agregación (COUNT, SUM, AVG, MIN, MAX)",
+    "Agrupar resultados con GROUP BY para obtener resúmenes por categoría",
+    "Filtrar grupos con HAVING después de la agrupación",
+    "Construir consultas resumen completas integrando todos los conceptos"
   ],
-  "estimatedMinutes": 360,
+  "estimatedMinutes": 480,
   "lessons": [
     {
       "id": "lesson-09-1",
-      "title": "Funciones numéricas",
+      "title": "Funciones SQL: qué son y cómo utilizarlas",
       "order": 1,
       "objectives": [
-        "Usar ROUND, TRUNCATE, CEIL, FLOOR, ABS",
-        "Aplicar funciones de redondeo a notas y precios"
+        "Comprender qué es una función SQL y su propósito",
+        "Distinguir entre funciones escalares y funciones de agregación",
+        "Conocer las categorías de funciones de MySQL",
+        "Aplicar funciones en SELECT, WHERE y otras cláusulas"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Funciones numéricas\n\n| Función | Descripción | Ejemplo | Resultado |\n|---|---|---|---|\n| `ROUND(x, d)` | Redondea a d decimales | `ROUND(8.567, 2)` | 8.57 |\n| `TRUNCATE(x, d)` | Trunca a d decimales (sin redondear) | `TRUNCATE(8.567, 2)` | 8.56 |\n| `CEIL(x)` | Techo (siguiente entero) | `CEIL(8.1)` | 9 |\n| `FLOOR(x)` | Suelo (entero anterior) | `FLOOR(8.9)` | 8 |\n| `ABS(x)` | Valor absoluto | `ABS(-5)` | 5 |\n| `MOD(a, b)` | Resto de la división | `MOD(10, 3)` | 1 |\n| `POW(a, b)` | Potencia | `POW(2, 3)` | 8 |\n| `SQRT(x)` | Raíz cuadrada | `SQRT(9)` | 3 |\n\n### Ejemplos prácticos\n\n```sql\n-- Redondear la media de notas a 2 decimales\nSELECT\n  a.nombre,\n  a.apellido,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido;\n\n-- Truncar precios a 0 decimales (sin decimales)\nSELECT\n  nombre,\n  precio,\n  TRUNCATE(precio, 0) AS precio_truncado\nFROM productos;\n\n-- Nota redondeada al entero más cercano\nSELECT\n  id_alumno,\n  id_asignatura,\n  nota,\n  ROUND(nota) AS nota_redondeada\nFROM notas;\n```\n\n### Diferencia entre ROUND y TRUNCATE\n\n```sql\nSELECT\n  ROUND(8.567, 2) AS redondeo,   -- 8.57 (redondea)\n  TRUNCATE(8.567, 2) AS truncado; -- 8.56 (trunca)\n\nSELECT\n  ROUND(8.562, 2) AS redondeo,   -- 8.56\n  TRUNCATE(8.562, 2) AS truncado; -- 8.56\n```\n\n> **Cuándo usar cada uno:**\n> - `ROUND`: Cuando necesitas el valor más cercano (notas, precios finales).\n> - `TRUNCATE`: Cuando necesitas cortar sin redondear (cálculos intermedios)."
+          "content": "## Dataset de práctica: academia\n\nTodas las lecciones de este módulo usan la base de datos `academia`. Asegúrate de tener estas tablas:\n\n```sql\nCREATE DATABASE IF NOT EXISTS academia;\nUSE academia;\n\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  fecha_nacimiento DATE,\n  telefono VARCHAR(20),\n  direccion VARCHAR(150),\n  ciudad VARCHAR(50),\n  activo BOOLEAN DEFAULT TRUE\n);\n\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento, telefono, direccion, ciudad, activo) VALUES\n('Juan', 'García López', 'juan.garcia@email.com', '2000-05-15', '612345678', 'Calle Mayor 10', 'Madrid', TRUE),\n('María', 'Fernández Ruiz', 'maria.fernandez@email.com', '1999-11-22', '623456789', 'Avda. de la Paz 5', 'Barcelona', TRUE),\n('Pedro', 'Martínez Sánchez', 'pedro.martinez@email.com', '2001-03-08', '634567890', 'Calle Sol 23', 'Valencia', TRUE),\n('Ana', 'López García', 'ana.lopez@email.com', '2000-07-30', '645678901', 'Paseo del Prado 12', 'Madrid', TRUE),\n('Carlos', 'Rodríguez Pérez', 'carlos.rodriguez@email.com', '1998-09-14', '656789012', 'Calle Luna 8', 'Sevilla', FALSE),\n('Laura', 'Sánchez Martín', 'laura.sanchez@email.com', '2001-01-25', '667890123', 'Gran Vía 45', 'Bilbao', TRUE),\n('Pablo', 'Jiménez Díaz', 'pablo.jimenez@email.com', '2000-12-03', '678901234', 'Calle Río 17', 'Zaragoza', TRUE),\n('Sofía', 'Moreno Castro', 'sofia.moreno@email.com', '1999-06-18', '689012345', 'Avda. Libertad 33', 'Valencia', TRUE);\n\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  especialidad VARCHAR(100),\n  fecha_alta DATE\n);\n\nINSERT INTO profesores (nombre, apellido, email, especialidad, fecha_alta) VALUES\n('Miguel', 'Álvarez Torres', 'miguel.alvarez@email.com', 'Bases de Datos', '2018-09-01'),\n('Carmen', 'Ortega Vega', 'carmen.ortega@email.com', 'Programación', '2019-01-15'),\n('Antonio', 'Romero Gil', 'antonio.romero@email.com', 'Redes', '2020-03-10'),\n('Lucía', 'Navarro Luna', 'lucia.navarro@email.com', 'Sistemas Operativos', '2017-09-01'),\n('Javier', 'Domínguez Ríos', 'javier.dominguez@email.com', 'Programación Web', '2021-02-20');\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  ciclo VARCHAR(10) NOT NULL,\n  curso INT NOT NULL,\n  creditos DECIMAL(4,2) NOT NULL\n);\n\nINSERT INTO asignaturas (nombre, ciclo, curso, creditos) VALUES\n('Bases de Datos', 'DAM', 1, 6.00),\n('Programación', 'DAM', 1, 8.00),\n('Lenguajes de Marcas', 'DAM', 1, 4.00),\n('Sistemas Informáticos', 'DAW', 1, 5.00),\n('Desarrollo Web en Entorno Cliente', 'DAW', 2, 7.00),\n('Desarrollo Web en Entorno Servidor', 'DAW', 2, 7.00);\n\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT NOT NULL,\n  id_asignatura INT NOT NULL,\n  nota DECIMAL(4,2) NOT NULL,\n  convocatoria VARCHAR(20) NOT NULL,\n  fecha_evaluacion DATE NOT NULL\n);\n\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion) VALUES\n(1, 1, 7.50, 'Extraordinaria', '2024-02-10'),\n(1, 2, 8.25, 'Ordinaria', '2024-01-20'),\n(2, 1, 9.00, 'Ordinaria', '2024-01-20'),\n(2, 2, 6.75, 'Ordinaria', '2024-01-20'),\n(2, 3, 8.50, 'Ordinaria', '2024-01-22'),\n(3, 1, 5.50, 'Ordinaria', '2024-01-20'),\n(3, 4, 7.00, 'Ordinaria', '2024-01-22'),\n(4, 1, 8.75, 'Ordinaria', '2024-01-20'),\n(4, 2, 9.50, 'Ordinaria', '2024-01-20'),\n(5, 1, 4.25, 'Ordinaria', '2024-01-20'),\n(5, 5, 6.00, 'Extraordinaria', '2024-02-15'),\n(6, 2, 7.75, 'Ordinaria', '2024-01-20'),\n(6, 6, 8.00, 'Ordinaria', '2024-01-22'),\n(7, 1, 6.50, 'Ordinaria', '2024-01-20'),\n(7, 4, 5.75, 'Extraordinaria', '2024-02-15'),\n(8, 3, 9.25, 'Ordinaria', '2024-01-22'),\n(8, 6, 7.50, 'Ordinaria', '2024-01-22');\n\nCREATE TABLE matriculas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT NOT NULL,\n  id_asignatura INT NOT NULL,\n  fecha_matricula DATE NOT NULL,\n  estado VARCHAR(20) DEFAULT 'activa'\n);\n\nINSERT INTO matriculas (id_alumno, id_asignatura, fecha_matricula, estado) VALUES\n(1, 1, '2023-09-05', 'activa'),\n(1, 2, '2023-09-05', 'activa'),\n(2, 1, '2023-09-05', 'activa'),\n(2, 2, '2023-09-05', 'activa'),\n(2, 3, '2023-09-05', 'activa'),\n(3, 1, '2023-09-06', 'activa'),\n(3, 4, '2023-09-06', 'activa'),\n(4, 1, '2023-09-05', 'activa'),\n(4, 2, '2023-09-05', 'activa'),\n(5, 1, '2023-09-07', 'baja'),\n(5, 5, '2023-09-07', 'activa'),\n(6, 2, '2023-09-06', 'activa'),\n(6, 6, '2023-09-06', 'activa'),\n(7, 1, '2023-09-05', 'activa'),\n(7, 4, '2023-09-05', 'activa'),\n(8, 3, '2023-09-06', 'activa'),\n(8, 6, '2023-09-06', 'activa');\n```\n\n> **Nota**: Las tablas `notas` y `matriculas` se amplían con más datos para que las funciones de agregación tengan sentido."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Qué es una función SQL?\n\nUna **función SQL** es un bloque de código predefinido que realiza un cálculo o transformación y devuelve un resultado. Piensa en ella como una \"máquina\" que recibe datos por la entrada y devuelve un valor procesado.\n\n### Ejemplo sencillo\n\n```sql\n-- Sin función: el cálculo lo haces tú\nSELECT nombre, YEAR(CURDATE()) - YEAR(fecha_nacimiento) AS edad\nFROM alumnos;\n\n-- Con función: YEAR() extrae el año de una fecha\nSELECT YEAR(CURDATE()) AS anio_actual;\n```\n\n### ¿Por qué usar funciones?\n\n1. **Evitan código repetitivo**: No necesitas escribir lógica compleja cada vez.\n2. **Son optimizadas**: MySQL las ejecuta internamente de forma eficiente.\n3. **Son estándar**: Conoces `UPPER()` en MySQL y funcionará en PostgreSQL, SQL Server, etc.\n4. **Legibilidad**: `ROUND(AVG(nota), 2)` es más claro que el código equivalente sin funciones."
+        },
+        {
+          "type": "text",
+          "content": "## Categorías de funciones\n\nMySQL organiza las funciones en categorías:\n\n| Categoría | Funciones principales | Uso típico |\n|---|---|---|\n| **Texto (cadena)** | `CONCAT`, `UPPER`, `LOWER`, `SUBSTRING`, `TRIM`, `LENGTH`, `REPLACE` | Formatear nombres, emails, búsquedas |\n| **Numéricas** | `ROUND`, `TRUNCATE`, `CEIL`, `FLOOR`, `ABS`, `MOD` | Calcular notas, precios, redondeos |\n| **Fecha y hora** | `NOW`, `CURDATE`, `DATE_FORMAT`, `DATEDIFF`, `TIMESTAMPDIFF`, `DATE_ADD` | Calcular edades, formatear fechas |\n| **Agregación** | `COUNT`, `SUM`, `AVG`, `MIN`, `MAX` | Resumir datos: totales, medias, máximos |\n\n### Funciones escalares vs. de agregación\n\n- **Escalares**: Devuelven un valor por cada fila. Ej: `UPPER(nombre)` devuelve el nombre en mayúsculas para CADA fila.\n- **Agregación**: Resumen muchas filas en UN solo valor. Ej: `AVG(nota)` calcula la media de TODAS las notas.\n\n```sql\n-- Función escalar: un resultado por fila\nSELECT nombre, UPPER(nombre) AS nombre_mayusculas\nFROM alumnos;\n-- Devuelve 8 filas (una por alumno)\n\n-- Función de agregación: un solo resultado\nSELECT AVG(nota) AS nota_media\nFROM notas;\n-- Devuelve 1 fila con la media global\n```\n\n### ¿Dónde puedo usar funciones?\n\nLas funciones escalares se pueden usar en casi cualquier cláusula:\n\n```sql\n-- En SELECT\nSELECT UPPER(nombre) FROM alumnos;\n\n-- En WHERE\nSELECT * FROM alumnos WHERE YEAR(fecha_nacimiento) > 2000;\n\n-- En ORDER BY\nSELECT nombre FROM alumnos ORDER BY UPPER(apellido);\n```\n\n> **Consejo**: No memorices todas las funciones. Conoce las categorías y busca en la documentación de MySQL cuando necesites una función específica."
         }
       ],
       "exercises": [
         {
           "id": "ex-09-1-1",
-          "title": "Funciones numéricas",
+          "title": "Identificar categorías de funciones",
           "difficulty": "basic",
-          "description": "Dadas las notas de un alumno: 7.5, 8.2, 9.8, 6.1, 5.0. Calcula:\n1. La media redondeada a 1 decimal\n2. La nota más alta truncada a 0 decimales\n3. El valor absoluto de la diferencia entre la nota más alta y la más baja",
-          "solution": "```sql\n-- 1. Media redondeada a 1 decimal\nSELECT ROUND(AVG(nota), 1) AS media\nFROM notas WHERE id_alumno = 1;\n-- Resultado: 7.3\n\n-- 2. Nota más alta truncada a 0 decimales\nSELECT TRUNCATE(MAX(nota), 0) AS max_truncada\nFROM notas WHERE id_alumno = 1;\n-- Resultado: 9\n\n-- 3. Valor absoluto de la diferencia\nSELECT ABS(MAX(nota) - MIN(nota)) AS diferencia\nFROM notas WHERE id_alumno = 1;\n-- Resultado: 4.8\n```"
+          "description": "Clasifica cada expresión en la categoría correcta (texto, numérica, fecha, agregación):\n1. `CONCAT(nombre, ' ', apellido)`\n2. `ROUND(nota, 1)`\n3. `CURDATE()`\n4. `COUNT(*)`\n5. `UPPER(ciudad)`\n6. `DATEDIFF(fecha_evaluacion, CURDATE())`",
+          "solution": "1. **Texto** (CONCAT une cadenas)\n2. **Numérica** (ROUND redondea)\n3. **Fecha** (CURDATE devuelve la fecha actual)\n4. **Agregación** (COUNT cuenta filas)\n5. **Texto** (UPPER convierte a mayúsculas)\n6. **Fecha** (DATEDIFF calcula días entre fechas)"
+        },
+        {
+          "id": "ex-09-1-2",
+          "title": "Función escalar en SELECT",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre de cada alumno en mayúsculas usando la función `UPPER()`.",
+          "solution": "```sql\nSELECT UPPER(nombre) AS nombre_mayusculas\nFROM alumnos;\n```\n\nResultado: JUAN, MARÍA, PEDRO, ANA, CARLOS, LAURA, PABLO, SOFÍA."
+        },
+        {
+          "id": "ex-09-1-3",
+          "title": "Escalares vs. agregación",
+          "difficulty": "intermediate",
+          "description": "Escribe dos consultas:\n1. Una que muestre TODAS las notas individuales\n2. Una que muestre SOLO la nota media global\nExplica por qué una devuelve muchas filas y la otra solo una.",
+          "solution": "```sql\n-- 1. Todas las notas individuales\nSELECT id_alumno, nota\nFROM notas;\n-- Devuelve 17 filas (una por cada nota registrada)\n\n-- 2. Nota media global\nSELECT ROUND(AVG(nota), 2) AS nota_media_global\nFROM notas;\n-- Devuelve 1 sola fila con el resultado del cálculo\n```\n\n**Explicación**: Las consultas sin función de agregación devuelven una fila por cada registro de la tabla. `AVG()` toma TODAS las filas y las comprime en un solo valor resultado. Por eso solo devuelve 1 fila."
         }
       ]
     },
     {
       "id": "lesson-09-2",
-      "title": "Funciones de cadena y fecha",
+      "title": "Funciones de texto",
       "order": 2,
       "objectives": [
-        "Usar funciones de cadena: CONCAT, LENGTH, UPPER, LOWER, SUBSTRING, TRIM",
-        "Usar funciones de fecha: NOW, CURDATE, DATE_FORMAT, DATEDIFF, TIMESTAMPDIFF"
+        "Usar CONCAT y CONCAT_WS para unir cadenas",
+        "Aplicar UPPER, LOWER para cambiar caso",
+        "Extraer partes de texto con SUBSTRING, LEFT y RIGHT",
+        "Limpiar texto con TRIM",
+        "Medir y reemplazar texto con LENGTH, CHAR_LENGTH, REPLACE"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Funciones de cadena\n\n| Función | Descripción | Ejemplo | Resultado |\n|---|---|---|---|\n| `CONCAT(a, b)` | Concatena cadenas | `CONCAT('Juan', ' García')` | 'Juan García' |\n| `LENGTH(c)` | Longitud en bytes | `LENGTH('Hola')` | 4 |\n| `CHAR_LENGTH(c)` | Longitud en caracteres | `CHAR_LENGTH('ñ')` | 1 |\n| `UPPER(c)` | Mayúsculas | `UPPER('hola')` | 'HOLA' |\n| `LOWER(c)` | Minúsculas | `LOWER('HOLA')` | 'hola' |\n| `SUBSTRING(c, pos, len)` | Extrae subcadena | `SUBSTRING('Hola', 1, 2)` | 'Ho' |\n| `TRIM(c)` | Elimina espacios | `TRIM('  hola  ')` | 'hola' |\n| `REPLACE(c, old, new)` | Reemplaza texto | `REPLACE('hola', 'o', '0')` | 'h0la' |\n| `LEFT(c, n)` | Primeros n caracteres | `LEFT('Hola', 2)` | 'Ho' |\n| `RIGHT(c, n)` | Últimos n caracteres | `RIGHT('Hola', 2)` | 'la' |\n\n```sql\n-- Nombre completo\nSELECT CONCAT(nombre, ' ', apellido) AS nombre_completo\nFROM alumnos;\n\n-- Email en minúsculas\nSELECT LOWER(email) AS email_lower\nFROM alumnos;\n\n-- Iniciales\nSELECT\n  CONCAT(LEFT(nombre, 1), '.', LEFT(apellido, 1), '.') AS iniciales\nFROM alumnos;\n\n-- Buscar alumnos cuyo nombre contiene más de 5 caracteres\nSELECT * FROM alumnos\nWHERE CHAR_LENGTH(nombre) > 5;\n```\n\n## Funciones de fecha\n\n| Función | Descripción | Ejemplo |\n|---|---|---|\n| `NOW()` | Fecha y hora actual | `2026-09-22 14:30:00` |\n| `CURDATE()` | Fecha actual | `2026-09-22` |\n| `CURTIME()` | Hora actual | `14:30:00` |\n| `DATE_FORMAT(f, formato)` | Formatear fecha | `DATE_FORMAT(NOW(), '%d/%m/%Y')` |\n| `DATEDIFF(f1, f2)` | Días entre dos fechas | `DATEDIFF('2026-12-31', '2026-01-01')` |\n| `TIMESTAMPDIFF(UNIT, f1, f2)` | Diferencia en unidades | `TIMESTAMPDIFF(YEAR, '2005-03-15', CURDATE())` |\n| `DATE_ADD(f, INTERVAL n unit)` | Sumar tiempo | `DATE_ADD(CURDATE(), INTERVAL 7 DAY)` |\n| `DATE_SUB(f, INTERVAL n unit)` | Restar tiempo | `DATE_SUB(CURDATE(), INTERVAL 1 MONTH)` |\n\n```sql\n-- Edad de los alumnos\nSELECT\n  nombre,\n  fecha_nacimiento,\n  TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad\nFROM alumnos;\n\n-- Notas del último mes\nSELECT * FROM notas\nWHERE fecha_evaluacion >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH);\n\n-- Formatear fecha\nSELECT\n  fecha_evaluacion,\n  DATE_FORMAT(fecha_evaluacion, '%d de %M de %Y') AS fecha_formateada\nFROM notas;\n```\n\n### Formatos de DATE_FORMAT\n\n| Código | Significado | Ejemplo |\n|---|---|---|\n| `%d` | Día (01-31) | 22 |\n| `%m` | Mes numérico (01-12) | 09 |\n| `%M` | Mes en texto | September |\n| `%Y` | Año con 4 dígitos | 2026 |\n| `%H` | Hora (00-23) | 14 |\n| `%i` | Minutos (00-59) | 30 |\n| `%W` | Día de la semana | Tuesday |"
+          "content": "## Funciones de cadena de texto\n\n| Función | Descripción | Ejemplo | Resultado |\n|---|---|---|---|\n| `CONCAT(a, b, ...)` | Une cadenas | `CONCAT('Juan', ' ', 'García')` | 'Juan García' |\n| `CONCAT_WS(sep, a, b)` | Une con separador | `CONCAT_WS(', ', 'Juan', 'García')` | 'Juan, García' |\n| `UPPER(c)` | Todo a mayúsculas | `UPPER('hola')` | 'HOLA' |\n| `LOWER(c)` | Todo a minúsculas | `LOWER('HOLA')` | 'hola' |\n| `LENGTH(c)` | Longitud en bytes | `LENGTH('ñ')` | 2 |\n| `CHAR_LENGTH(c)` | Longitud en caracteres | `CHAR_LENGTH('ñ')` | 1 |\n| `SUBSTRING(c, pos, len)` | Extrae subcadena | `SUBSTRING('Hola Mundo', 1, 4)` | 'Hola' |\n| `LEFT(c, n)` | Primeros n caracteres | `LEFT('MySQL', 2)` | 'My' |\n| `RIGHT(c, n)` | Últimos n caracteres | `RIGHT('MySQL', 3)` | 'SQL' |\n| `TRIM(c)` | Elimina espacios extremos | `TRIM('  hola  ')` | 'hola' |\n| `REPLACE(c, old, new)` | Reemplaza texto | `REPLACE('hola', 'o', '0')` | 'h0la' |\n| `LPAD(c, len, pad)` | Rellena por la izquierda | `LPAD('42', 5, '0')` | '00042' |"
+        },
+        {
+          "type": "text",
+          "content": "## CONCAT y CONCAT_WS\n\n`CONCAT` une cadenas. Si algún argumento es NULL, el resultado completo es NULL. `CONCAT_WS` usa un separador y omite los NULL.\n\n```sql\n-- Nombre completo\nSELECT CONCAT(nombre, ' ', apellido) AS nombre_completo\nFROM alumnos;\n\n-- CONCAT con NULL: CUIDADO\nSELECT CONCAT(nombre, NULL) AS resultado\nFROM alumnos WHERE id = 1;\n-- Resultado: NULL (¡se pierde todo!)\n\n-- CONCAT_WS: mejor opción cuando hay NULLs\nSELECT CONCAT_WS(', ', apellido, nombre, ciudad) AS contacto\nFROM alumnos WHERE id = 1;\n-- Resultado: 'García López, Juan, Madrid'\n```"
+        },
+        {
+          "type": "text",
+          "content": "## UPPER, LOWER, SUBSTRING y TRIM\n\n```sql\n-- Nombre en mayúsculas\nSELECT UPPER(nombre) FROM alumnos;\n\n-- Iniciales\nSELECT CONCAT(LEFT(nombre, 1), '.', LEFT(apellido, 1), '.') AS iniciales\nFROM alumnos;\n\n-- Limpiar espacios\nSELECT TRIM('   MySQL   ') AS limpio;  -- 'MySQL'\n\n-- LENGTH vs CHAR_LENGTH: importa con tildes y eñes\nSELECT LENGTH('ñ') AS bytes, CHAR_LENGTH('ñ') AS caracteres;\n-- Resultado: bytes=2, caracteres=1\n```\n\n> **Regla**: Usa `CHAR_LENGTH()` cuando necesites \"cantidad de letras\". Usa `LENGTH()` solo para tamaño en bytes."
+        },
+        {
+          "type": "text",
+          "content": "## REPLACE y LPAD\n\n```sql\n-- Reemplazar texto\nSELECT\n  email,\n  REPLACE(email, '@email.com', '@academia.es') AS email_nuevo\nFROM alumnos;\n\n-- Rellenar con ceros a la izquierda\nSELECT\n  nombre,\n  CONCAT('+34', LPAD(telefono, 9, '0')) AS telefono_formato\nFROM alumnos;\n```"
         }
       ],
       "exercises": [
         {
           "id": "ex-09-2-1",
-          "title": "Funciones de cadena y fecha",
+          "title": "Nombre completo con CONCAT",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el nombre completo de cada alumno en formato 'Nombre Apellido' usando CONCAT.",
+          "solution": "```sql\nSELECT CONCAT(nombre, ' ', apellido) AS nombre_completo\nFROM alumnos\nORDER BY apellido ASC;\n```\n\nResultado: 'Juan García López', 'Ana López García', 'Pedro Martínez Sánchez', etc."
+        },
+        {
+          "id": "ex-09-2-2",
+          "title": "Iniciales con LEFT y LONGITUD con CHAR_LENGTH",
           "difficulty": "intermediate",
-          "description": "Escribe consultas para:\n1. Mostrar el nombre completo de los alumnos en formato 'APELLIDO, Nombre'\n2. Calcular la edad actual de cada alumno\n3. Mostrar las notas con la fecha formateada como 'dd/mm/aaaa'\n4. Encontrar alumnos nacidos en el año 2005",
-          "solution": "```sql\n-- 1. Formato 'APELLIDO, Nombre'\nSELECT CONCAT(apellido, ', ', nombre) AS nombre_completo\nFROM alumnos\nORDER BY apellido;\n\n-- 2. Edad actual\nSELECT\n  nombre,\n  apellido,\n  fecha_nacimiento,\n  TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad\nFROM alumnos;\n\n-- 3. Fecha formateada\nSELECT\n  id_alumno,\n  id_asignatura,\n  nota,\n  DATE_FORMAT(fecha_evaluacion, '%d/%m/%Y') AS fecha\nFROM notas;\n\n-- 4. Alumnos nacidos en 2005\nSELECT * FROM alumnos\nWHERE YEAR(fecha_nacimiento) = 2005;\n-- o con BETWEEN para ser más eficiente:\nSELECT * FROM alumnos\nWHERE fecha_nacimiento BETWEEN '2005-01-01' AND '2005-12-31';\n```"
+          "description": "Escribe una consulta que muestre: nombre, apellido, las iniciales en formato 'N.A.' y la longitud del nombre completo.",
+          "solution": "```sql\nSELECT\n  nombre,\n  apellido,\n  CONCAT(LEFT(nombre, 1), '.', LEFT(apellido, 1), '.') AS iniciales,\n  CHAR_LENGTH(CONCAT(nombre, ' ', apellido)) AS long_total\nFROM alumnos\nORDER BY long_total DESC;\n```\n\nResultado: 'Carlos Rodríguez Pérez' con 23 caracteres, 'Ana López García' con 16, etc."
+        },
+        {
+          "id": "ex-09-2-3",
+          "title": "Reemplazar y formatear texto",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre el email de cada alumno reemplazando '@email.com' por '@academia.es', y la dirección en mayúsculas sin espacios extra.",
+          "solution": "```sql\nSELECT\n  REPLACE(email, '@email.com', '@academia.es') AS email_nuevo,\n  UPPER(TRIM(direccion)) AS direccion_formateada\nFROM alumnos;\n```\n\nResultado: 'juan.garcia@academia.es' / 'CALLE MAYOR 10', etc."
         }
       ]
     },
     {
       "id": "lesson-09-3",
-      "title": "Funciones de agregación",
+      "title": "Funciones numéricas",
       "order": 3,
       "objectives": [
-        "Usar COUNT, SUM, AVG, MIN, MAX",
-        "Combinar funciones de agregación con GROUP BY",
-        "Comprender la diferencia entre COUNT(*) y COUNT(columna)"
+        "Redondear valores con ROUND y TRUNCATE",
+        "Obtener techo y suelo con CEIL y FLOOR",
+        "Calcular valor absoluto con ABS",
+        "Realizar operaciones con MOD",
+        "Aplicar funciones numéricas a notas y cálculos académicos"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Funciones de agregación\n\nLas funciones de agregación **resumen** un conjunto de filas en un solo valor.\n\n| Función | Descripción | Ejemplo |\n|---|---|---|\n| `COUNT(*)` | Cuenta todas las filas | `SELECT COUNT(*) FROM alumnos` |\n| `COUNT(columna)` | Cuenta filas no NULL en la columna | `SELECT COUNT(email) FROM alumnos` |\n| `COUNT(DISTINCT columna)` | Cuenta valores únicos | `SELECT COUNT(DISTINCT ciclo) FROM asignaturas` |\n| `SUM(columna)` | Suma de valores | `SELECT SUM(nota) FROM notas` |\n| `AVG(columna)` | Media de valores | `SELECT AVG(nota) FROM notas` |\n| `MIN(columna)` | Valor mínimo | `SELECT MIN(nota) FROM notas` |\n| `MAX(columna)` | Valor máximo | `SELECT MAX(nota) FROM notas` |\n\n### Ejemplos básicos\n\n```sql\n-- Total de alumnos\nSELECT COUNT(*) AS total_alumnos FROM alumnos;\n\n-- Alumnos con email registrado\nSELECT COUNT(email) AS con_email FROM alumnos;\n-- No cuenta los NULL\n\n-- Nota media global\nSELECT ROUND(AVG(nota), 2) AS media_global FROM notas;\n\n-- Nota más alta y más baja\nSELECT\n  MIN(nota) AS nota_minima,\n  MAX(nota) AS nota_maxima,\n  ROUND(AVG(nota), 2) AS nota_media\nFROM notas;\n\n-- Suma total de créditos\nSELECT SUM(creditos) AS total_creditos FROM asignaturas;\n```\n\n### Diferencia entre COUNT(*) y COUNT(columna)\n\n```sql\n-- COUNT(*) cuenta todas las filas (incluidas las que tienen NULL en alguna columna)\nSELECT COUNT(*) FROM alumnos;\n-- Resultado: 6 (todos los alumnos)\n\n-- COUNT(email) solo cuenta filas donde email NO es NULL\nSELECT COUNT(email) FROM alumnos;\n-- Resultado: 5 (si un alumno no tiene email)\n\n-- COUNT(DISTINCT ciclo) cuenta ciclos únicos\nSELECT COUNT(DISTINCT ciclo) FROM asignaturas;\n-- Resultado: 2 (DAM y DAW)\n```\n\n> **Regla**: Usa `COUNT(*)` para contar filas. Usa `COUNT(columna)` para contar valores no nulos de una columna específica."
+          "content": "## Funciones numéricas\n\n| Función | Descripción | Ejemplo | Resultado |\n|---|---|---|---|\n| `ROUND(x, d)` | Redondea a d decimales | `ROUND(8.567, 2)` | 8.57 |\n| `TRUNCATE(x, d)` | Trunca a d decimales | `TRUNCATE(8.567, 2)` | 8.56 |\n| `CEIL(x)` | Techo (siguiente entero) | `CEIL(8.1)` | 9 |\n| `FLOOR(x)` | Suelo (entero anterior) | `FLOOR(8.9)` | 8 |\n| `ABS(x)` | Valor absoluto | `ABS(-5)` | 5 |\n| `MOD(a, b)` | Resto de la división | `MOD(10, 3)` | 1 |\n| `GREATEST(a, b)` | El mayor | `GREATEST(3, 7, 5)` | 7 |\n| `LEAST(a, b)` | El menor | `LEAST(3, 7, 5)` | 3 |"
         },
         {
           "type": "text",
-          "content": "## GROUP BY\n\n`GROUP BY` agrupa filas que tienen los mismos valores en columnas especificadas, permitiendo calcular resúmenes por grupo.\n\n```sql\n-- Nota media por alumno\nSELECT\n  a.nombre,\n  a.apellido,\n  ROUND(AVG(n.nota), 2) AS nota_media,\n  COUNT(n.id) AS total_notas\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido\nORDER BY nota_media DESC;\n\n-- Resultado:\n-- +-------+-----------+------------+------------+\n-- | nombre| apellido  | nota_media | total_notas|\n-- +-------+-----------+------------+------------+\n-- | Ana   | Rodríguez | 9.50       | 1          |\n-- | María | López     | 8.08       | 3          |\n-- | Juan  | García    | 7.88       | 2          |\n-- | Carlos| Martínez  | 6.13       | 2          |\n-- | Lucía | Jiménez   | 7.38       | 2          |\n-- | Pedro | Hernández | 5.63       | 2          |\n-- +-------+-----------+------------+------------+\n\n-- Contar alumnos por ciclo\nSELECT\n  asig.ciclo,\n  COUNT(DISTINCT m.id_alumno) AS num_alumnos\nFROM asignaturas asig\nLEFT JOIN matriculas m ON asig.id = m.id_asignatura\nGROUP BY asig.ciclo;\n\n-- Nota media por asignatura\nSELECT\n  asig.nombre AS asignatura,\n  ROUND(AVG(n.nota), 2) AS nota_media,\n  COUNT(n.id_alumno) AS num_evaluados\nFROM asignaturas asig\nLEFT JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre\nORDER BY nota_media DESC;\n```\n\n### Reglas de GROUP BY\n\n1. **Todas las columnas** del SELECT que no son funciones de agregación **deben** estar en el GROUP BY.\n2. Las columnas del GROUP BY determinan los \"grupos\".\n3. Las funciones de agregación se aplican **a cada grupo**."
+          "content": "## ROUND vs TRUNCATE\n\nROUND **redondea** al valor más cercano. TRUNCATE **corta** sin redondear.\n\n```sql\nSELECT\n  ROUND(8.567, 2) AS redondeo,   -- 8.57 (sube)\n  TRUNCATE(8.567, 2) AS truncado, -- 8.56 (corta)\n  ROUND(8.562, 2) AS redondeo2,   -- 8.56 (baja)\n  TRUNCATE(8.562, 2) AS truncado2; -- 8.56 (corta)\n```\n\n### Ejemplos prácticos\n\n```sql\n-- Nota media redondeada a 2 decimales\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno;\n\n-- Nota redondeada al entero más cercano\nSELECT id_alumno, nota, ROUND(nota) AS nota_redondeada\nFROM notas;\n```\n\n> **Cuándo usar cada uno:**\n> - `ROUND`: notas finales, precios.\n> - `TRUNCATE`: cálculos intermedios, impuestos."
         },
         {
           "type": "text",
-          "content": "## HAVING\n\n`HAVING` filtra **grupos** después de aplicar GROUP BY. Es como un WHERE pero para grupos.\n\n```sql\n-- Asignaturas con nota media superior a 7\nSELECT\n  asig.nombre,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM asignaturas asig\nINNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre\nHAVING AVG(n.nota) > 7;\n\n-- Alumnos con más de 1 nota\nSELECT\n  a.nombre,\n  a.apellido,\n  COUNT(n.id) AS total_notas\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido\nHAVING COUNT(n.id) > 1;\n\n-- Asignaturas donde la nota mínima es inferior a 5\nSELECT\n  asig.nombre,\n  MIN(n.nota) AS nota_minima\nFROM asignaturas asig\nINNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre\nHAVING MIN(n.nota) < 5;\n```\n\n### Diferencia entre WHERE y HAVING\n\n| WHERE | HAVING |\n|---|---|\n| Filtra **filas** individuales | Filtra **grupos** |\n| Se aplica **antes** de GROUP BY | Se aplica **después** de GROUP BY |\n| No puede usar funciones de agregación | Puede usar funciones de agregación |\n\n```sql\n-- WHERE: filtra filas ANTES de agrupar\nSELECT id_alumno, AVG(nota) AS media\nFROM notas\nWHERE nota >= 5  -- Solo incluye notas >= 5\nGROUP BY id_alumno;\n\n-- HAVING: filtra grupos DESPUÉS de agrupar\nSELECT id_alumno, AVG(nota) AS media\nFROM notas\nGROUP BY id_alumno\nHAVING AVG(nota) >= 7;  -- Solo incluye alumnos con media >= 7\n```\n\n### Orden de ejecución SQL\n\n```\n1. FROM       → De qué tabla\n2. WHERE      → Filtrar filas\n3. GROUP BY   → Agrupar\n4. HAVING     → Filtrar grupos\n5. SELECT     → Seleccionar columnas\n6. ORDER BY   → Ordenar\n7. LIMIT      → Limitar\n```"
+          "content": "## CEIL, FLOOR, ABS y MOD\n\n```sql\n-- CEIL: techo\nSELECT CEIL(8.1) AS techo;   -- 9\nSELECT CEIL(-3.7) AS techo;  -- -3\n\n-- FLOOR: suelo\nSELECT FLOOR(8.9) AS suelo;  -- 8\nSELECT FLOOR(-3.2) AS suelo; -- -4\n\n-- ABS: valor absoluto\nSELECT ABS(-5) AS absoluto;   -- 5\n\n-- MOD: resto de la división\nSELECT MOD(10, 3) AS resto;  -- 1\n\n-- Uso práctico: par/impar\nSELECT id, nombre,\n  CASE WHEN MOD(id, 2) = 0 THEN 'Par' ELSE 'Impar' END AS paridad\nFROM alumnos;\n```\n\n> **Recuerda**: `CEIL(-3.7)` es -3 (hacia arriba), `FLOOR(-3.2)` es -4 (hacia abajo)."
         }
       ],
       "exercises": [
         {
           "id": "ex-09-3-1",
-          "title": "Funciones de agregación",
+          "title": "ROUND y TRUNCATE comparados",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre la nota, la nota redondeada a 1 decimal y la nota truncada a 1 decimal. Solo notas donde haya diferencia.",
+          "solution": "```sql\nSELECT\n  nota,\n  ROUND(nota, 1) AS redondeada,\n  TRUNCATE(nota, 1) AS truncada\nFROM notas\nWHERE ROUND(nota, 1) != TRUNCATE(nota, 1);\n```\n\nResultado: notas como 8.25 se redondean a 8.3 pero se truncan a 8.2."
+        },
+        {
+          "id": "ex-09-3-2",
+          "title": "CEIL para cálculo de sesiones",
+          "difficulty": "basic",
+          "description": "Un profesor tiene 17 exámenes y cada sesión admite 10. Calcula cuántas sesiones necesita usando CEIL.",
+          "solution": "```sql\nSELECT\n  COUNT(*) AS total_examenes,\n  CEIL(COUNT(*) / 10) AS sesiones_necesarias\nFROM notas;\n-- Resultado: 17 exámenes → 2 sesiones\n```"
+        },
+        {
+          "id": "ex-09-3-3",
+          "title": "ABS: amplitud de notas",
           "difficulty": "intermediate",
-          "description": "Escribe consultas para:\n1. ¿Cuántos alumnos hay por ciclo? (necesitarás JOIN con matrículas y asignaturas)\n2. ¿Cuál es la nota media por asignatura?\n3. ¿Qué alumnos tienen una media superior a 7?\n4. ¿Cuántas notas hay por convocatoria?\n5. ¿Qué asignatura tiene la nota más alta?",
-          "solution": "```sql\n-- 1. Alumnos por ciclo\nSELECT\n  asig.ciclo,\n  COUNT(DISTINCT m.id_alumno) AS num_alumnos\nFROM asignaturas asig\nINNER JOIN matriculas m ON asig.id = m.id_asignatura\nGROUP BY asig.ciclo;\n\n-- 2. Nota media por asignatura\nSELECT\n  asig.nombre AS asignatura,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM asignaturas asig\nINNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre\nORDER BY nota_media DESC;\n\n-- 3. Alumnos con media > 7\nSELECT\n  a.nombre,\n  a.apellido,\n  ROUND(AVG(n.nota), 2) AS media\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido\nHAVING AVG(n.nota) > 7\nORDER BY media DESC;\n\n-- 4. Notas por convocatoria\nSELECT\n  convocatoria,\n  COUNT(*) AS total_notas,\n  ROUND(AVG(nota), 2) AS nota_media\nFROM notas\nGROUP BY convocatoria;\n\n-- 5. Asignatura con la nota más alta\nSELECT\n  asig.nombre,\n  MAX(n.nota) AS nota_maxima\nFROM asignaturas asig\nINNER JOIN notas n ON asig.id = n.id_asignatura\nGROUP BY asig.id, asig.nombre\nORDER BY nota_maxima DESC\nLIMIT 1;\n```"
+          "description": "Escribe una consulta que muestre el id del alumno, su nota más alta, su más baja y la diferencia absoluta entre ambas. Solo alumnos con más de una nota.",
+          "solution": "```sql\nSELECT\n  id_alumno,\n  MAX(nota) AS nota_max,\n  MIN(nota) AS nota_min,\n  ROUND(ABS(MAX(nota) - MIN(nota)), 2) AS amplitud\nFROM notas\nGROUP BY id_alumno\nHAVING COUNT(*) > 1\nORDER BY amplitud DESC;\n```\n\nResultado: alumnos con mayor dispersión entre sus notas aparecen primero."
+        }
+      ]
+    },
+    {
+      "id": "lesson-09-4",
+      "title": "Funciones de fecha y hora",
+      "order": 4,
+      "objectives": [
+        "Obtener la fecha y hora actual con NOW, CURDATE y CURTIME",
+        "Extraer partes de una fecha con YEAR, MONTH, DAY",
+        "Formatear fechas con DATE_FORMAT",
+        "Calcular diferencias entre fechas con DATEDIFF y TIMESTAMPDIFF",
+        "Sumar y restar tiempo con DATE_ADD y DATE_SUB"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Fecha y hora actual\n\n| Función | Descripción | Ejemplo |\n|---|---|---|\n| `NOW()` | Fecha y hora actual | `2026-09-22 14:30:00` |\n| `CURDATE()` | Solo fecha | `2026-09-22` |\n| `CURTIME()` | Solo hora | `14:30:00` |"
+        },
+        {
+          "type": "text",
+          "content": "## Extraer partes de una fecha\n\n| Función | Extrae | Ejemplo |\n|---|---|---|\n| `YEAR(fecha)` | Año | `YEAR('2026-09-22')` → 2026 |\n| `MONTH(fecha)` | Mes (1-12) | `MONTH('2026-09-22')` → 9 |\n| `DAY(fecha)` | Día del mes | `DAY('2026-09-22')` → 22 |\n| `DAYNAME(fecha)` | Nombre del día | `DAYNAME('2026-09-22')` → 'Tuesday' |\n| `LAST_DAY(fecha)` | Último día del mes | `LAST_DAY('2026-02-15')` → '2026-02-28' |\n\n```sql\n-- Edad de cada alumno\nSELECT nombre, fecha_nacimiento,\n  TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad\nFROM alumnos;\n```\n\n### DATE_FORMAT: formatear fechas\n\n| Código | Significado | Ejemplo |\n|---|---|---|\n| `%d` | Día (01-31) | 22 |\n| `%m` | Mes (01-12) | 09 |\n| `%Y` | Año 4 dígitos | 2026 |\n| `%H` | Hora (00-23) | 14 |\n| `%i` | Minutos (00-59) | 30 |\n\n```sql\nSELECT nombre, DATE_FORMAT(fecha_nacimiento, '%d/%m/%Y') AS fecha_nac\nFROM alumnos;\n-- Resultado: '15/05/2000', '22/11/1999', etc.\n```"
+        },
+        {
+          "type": "text",
+          "content": "## DATEDIFF, TIMESTAMPDIFF, DATE_ADD y DATE_SUB\n\n```sql\n-- Días desde la evaluación hasta hoy\nSELECT id_alumno, nota, fecha_evaluacion,\n  DATEDIFF(CURDATE(), fecha_evaluacion) AS dias_transcurridos\nFROM notas;\n\n-- Edad exacta en años\nSELECT nombre, fecha_nacimiento,\n  TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad\nFROM alumnos;\n\n-- Fecha límite (30 días después de matricularse)\nSELECT id_alumno, fecha_matricula,\n  DATE_ADD(fecha_matricula, INTERVAL 30 DAY) AS fecha_limite\nFROM matriculas;\n\n-- Hace 1 mes\nSELECT DATE_SUB(CURDATE(), INTERVAL 1 MONTH) AS hace_un_mes;\n```\n\n> **Consejo**: `DATE_ADD('2026-01-31', INTERVAL 1 MONTH)` → `2026-02-28`. MySQL ajusta automáticamente los días que no existen."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-4-1",
+          "title": "Edad exacta de cada alumno",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre nombre, apellido, fecha de nacimiento y edad exacta (en años completos) de cada alumno.",
+          "solution": "```sql\nSELECT\n  nombre,\n  apellido,\n  fecha_nacimiento,\n  TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad\nFROM alumnos\nORDER BY edad DESC;\n```\n\nResultado: cada alumno con su edad calculada correctamente."
+        },
+        {
+          "id": "ex-09-4-2",
+          "title": "Fechas formateadas y días transcurridos",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre el id del alumno, la nota, la fecha de evaluación formateada como 'dd/mm/yyyy' y los días transcurridos hasta hoy.",
+          "solution": "```sql\nSELECT\n  id_alumno,\n  nota,\n  DATE_FORMAT(fecha_evaluacion, '%d/%m/%Y') AS fecha_evaluacion,\n  DATEDIFF(CURDATE(), fecha_evaluacion) AS dias_desde_evaluacion\nFROM notas\nORDER BY dias_desde_evaluacion DESC;\n```\n\nResultado: cada nota con fecha formateada y días transcurridos."
+        },
+        {
+          "id": "ex-09-4-3",
+          "title": "Meses matriculado y fecha límite",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre el id del alumno, la asignatura, la fecha de matrícula, los meses matriculado y la fecha límite (30 días después).",
+          "solution": "```sql\nSELECT\n  id_alumno,\n  id_asignatura,\n  fecha_matricula,\n  TIMESTAMPDIFF(MONTH, fecha_matricula, CURDATE()) AS meses_matriculado,\n  DATE_ADD(fecha_matricula, INTERVAL 30 DAY) AS fecha_limite\nFROM matriculas\nWHERE estado = 'activa'\nORDER BY meses_matriculado DESC;\n```\n\nResultado: cada matrícula con meses transcurridos y fecha límite."
+        }
+      ]
+    },
+    {
+      "id": "lesson-09-5",
+      "title": "Funciones de agregación",
+      "order": 5,
+      "objectives": [
+        "Usar COUNT para contar filas y valores únicos",
+        "Usar SUM para sumar valores",
+        "Usar AVG para calcular medias",
+        "Usar MIN y MAX para encontrar extremos",
+        "Comprender la diferencia entre COUNT(*) y COUNT(columna)"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Funciones de agregación\n\nLas funciones de agregación **resumen** un conjunto de filas en un solo valor.\n\n| Función | Descripción | Ejemplo |\n|---|---|---|\n| `COUNT(*)` | Cuenta TODAS las filas | `SELECT COUNT(*) FROM alumnos` → 8 |\n| `COUNT(columna)` | Cuenta filas no NULL | `SELECT COUNT(email) FROM alumnos` → 8 |\n| `COUNT(DISTINCT col)` | Cuenta valores únicos | `SELECT COUNT(DISTINCT ciudad) FROM alumnos` → 6 |\n| `SUM(columna)` | Suma de valores | `SELECT SUM(nota) FROM notas` → 127.25 |\n| `AVG(columna)` | Media aritmética | `SELECT AVG(nota) FROM notas` → 7.49 |\n| `MIN(columna)` | Valor mínimo | `SELECT MIN(nota) FROM notas` → 4.25 |\n| `MAX(columna)` | Valor máximo | `SELECT MAX(nota) FROM notas` → 9.50 |\n\n```sql\n-- Resumen completo\nSELECT\n  COUNT(*) AS total_notas,\n  COUNT(DISTINCT id_alumno) AS alumnos_evaluados,\n  ROUND(AVG(nota), 2) AS nota_media,\n  MIN(nota) AS nota_minima,\n  MAX(nota) AS nota_maxima\nFROM notas;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## COUNT(*) vs COUNT(columna)\n\n```sql\n-- COUNT(*) cuenta TODAS las filas\nSELECT COUNT(*) FROM alumnos;  -- 8\n\n-- COUNT(telefono) solo cuenta no-NULL\nSELECT COUNT(telefono) AS con_telefono FROM alumnos;\n\n-- COUNT(DISTINCT ciudad) cuenta ciudades únicas\nSELECT COUNT(DISTINCT ciudad) AS ciudades FROM alumnos;  -- 6\n```\n\n### COUNT con CASE: contar condicionalmente\n\n```sql\n-- Aprobados y suspensos\nSELECT\n  COUNT(CASE WHEN nota >= 5 THEN 1 END) AS aprobados,\n  COUNT(CASE WHEN nota < 5 THEN 1 END) AS suspensos\nFROM notas;\n```\n\n> **Regla**: `COUNT(*)` cuenta filas. `COUNT(col)` cuenta no-NULL. Las funciones de agregación ignoran NULL por defecto."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-5-1",
+          "title": "Contar y sumar",
+          "difficulty": "basic",
+          "description": "Escribe consultas que devuelvan: 1) Total de alumnos, 2) Total de notas, 3) Suma total de créditos de asignaturas.",
+          "solution": "```sql\n-- 1. Total de alumnos\nSELECT COUNT(*) AS total_alumnos FROM alumnos;  -- 8\n\n-- 2. Total de notas\nSELECT COUNT(*) AS total_notas FROM notas;  -- 17\n\n-- 3. Suma de créditos\nSELECT ROUND(SUM(creditos), 2) AS total_creditos FROM asignaturas;  -- 37.00\n```"
+        },
+        {
+          "id": "ex-09-5-2",
+          "title": "COUNT DISTINCT y COUNT con CASE",
+          "difficulty": "intermediate",
+          "description": "Escribe consultas que devuelvan: 1) Cuántas ciudades distintas hay, 2) Cuántos alumnos tienen nota, 3) Cuántas notas son aprobados (>= 5).",
+          "solution": "```sql\n-- 1. Ciudades distintas\nSELECT COUNT(DISTINCT ciudad) AS ciudades FROM alumnos;  -- 6\n\n-- 2. Alumnos con nota\nSELECT COUNT(DISTINCT id_alumno) AS alumnos_con_nota FROM notas;  -- 8\n\n-- 3. Aprobados\nSELECT COUNT(CASE WHEN nota >= 5 THEN 1 END) AS aprobados FROM notas;  -- 16\n```"
+        },
+        {
+          "id": "ex-09-5-3",
+          "title": "Resumen completo de notas",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que devuelva: total de notas, media, mínima, máxima y suma total. Redondea los decimales a 2.",
+          "solution": "```sql\nSELECT\n  COUNT(*) AS total_notas,\n  ROUND(AVG(nota), 2) AS nota_media,\n  MIN(nota) AS nota_minima,\n  MAX(nota) AS nota_maxima,\n  ROUND(SUM(nota), 2) AS suma_total\nFROM notas;\n-- Resultado: 17 notas, media 7.49, min 4.25, max 9.50, suma 127.25\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-09-6",
+      "title": "GROUP BY",
+      "order": 6,
+      "objectives": [
+        "Comprender qué hace GROUP BY y por qué es necesario",
+        "Agrupar por una columna para obtener resúmenes por categoría",
+        "Agrupar por varias columnas para obtener resúmenes más detallados",
+        "Combinar GROUP BY con funciones de agregación",
+        "Comprender la regla: columnas del SELECT deben estar en GROUP BY"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es GROUP BY?\n\n`GROUP BY` agrupa filas que tienen los **mismos valores** en columnas especificadas, permitiendo calcular resúmenes **por grupo**.\n\n```sql\n-- Sin GROUP BY: nota media GLOBAL\nSELECT ROUND(AVG(nota), 2) AS media_global FROM notas;\n-- Resultado: 7.49 (una sola fila)\n\n-- Con GROUP BY: nota media POR ALUMNO\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno;\n-- Resultado: 8 filas (una por cada alumno)\n```\n\n### Analogía\n\nPiensa en GROUP BY como un \"agrupador de cajones\". Separas las notas por cajones según el alumno, y luego calculas la media de CADA cajón.\n\n```\nCajón Juan:  [7.50, 8.25]       → media: 7.88\nCajón María: [9.00, 6.75, 8.50] → media: 8.08\nCajón Pedro: [5.50, 7.00]      → media: 6.25\n```"
+        },
+        {
+          "type": "text",
+          "content": "## GROUP BY con una y varias columnas\n\n```sql\n-- Alumnos por ciudad\nSELECT ciudad, COUNT(*) AS num_alumnos\nFROM alumnos GROUP BY ciudad ORDER BY num_alumnos DESC;\n\n-- Nota media por alumno y asignatura\nSELECT id_alumno, id_asignatura,\n  COUNT(*) AS evaluaciones,\n  ROUND(AVG(nota), 2) AS nota_media\nFROM notas\nGROUP BY id_alumno, id_asignatura\nORDER BY id_alumno, id_asignatura;\n\n-- Asignaturas por ciclo y curso\nSELECT ciclo, curso,\n  COUNT(*) AS num_asignaturas,\n  ROUND(SUM(creditos), 2) AS total_creditos\nFROM asignaturas\nGROUP BY ciclo, curso\nORDER BY ciclo, curso;\n```\n\n### Regla fundamental\n\n**Todas las columnas** del SELECT que **NO** son funciones de agregación **DEBEN** estar en el GROUP BY:\n\n```sql\n-- ✅ CORRECTO\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno;\n\n-- ❌ INCORRECTO (error en modo strict)\nSELECT id_alumno, id_asignatura, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno; -- Falta id_asignatura\n```"
+        },
+        {
+          "type": "text",
+          "content": "## GROUP BY con funciones de fecha\n\n```sql\n-- Alumnos por año de nacimiento\nSELECT YEAR(fecha_nacimiento) AS anio_nac, COUNT(*) AS num_alumnos\nFROM alumnos GROUP BY YEAR(fecha_nacimiento) ORDER BY anio_nac;\n\n-- Notas por mes de evaluación\nSELECT MONTH(fecha_evaluacion) AS mes, COUNT(*) AS num_notas,\n  ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY MONTH(fecha_evaluacion) ORDER BY mes;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-6-1",
+          "title": "Alumnos por ciudad y nota media por alumno",
+          "difficulty": "basic",
+          "description": "Escribe DOS consultas: 1) Cuántos alumnos hay por ciudad (ordenado de mayor a menor), 2) Nota media de cada alumno (ordenado de mayor a menor).",
+          "solution": "```sql\n-- 1. Alumnos por ciudad\nSELECT ciudad, COUNT(*) AS num_alumnos\nFROM alumnos GROUP BY ciudad ORDER BY num_alumnos DESC;\n-- Madrid (2), Valencia (2), Barcelona (1), etc.\n\n-- 2. Nota media por alumno\nSELECT id_alumno, COUNT(*) AS num_notas, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno ORDER BY nota_media DESC;\n```"
+        },
+        {
+          "id": "ex-09-6-2",
+          "title": "Notas por convocatoria y asignatura por ciclo/curso",
+          "difficulty": "intermediate",
+          "description": "Escribe DOS consultas: 1) Notas por convocatoria con su media, 2) Asignaturas por ciclo y curso con suma de créditos.",
+          "solution": "```sql\n-- 1. Notas por convocatoria\nSELECT convocatoria, COUNT(*) AS num_notas, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY convocatoria;\n\n-- 2. Asignaturas por ciclo y curso\nSELECT ciclo, curso, COUNT(*) AS num_asignaturas, ROUND(SUM(creditos), 2) AS total_creditos\nFROM asignaturas GROUP BY ciclo, curso ORDER BY ciclo, curso;\n```"
+        },
+        {
+          "id": "ex-09-6-3",
+          "title": "Resumen por alumno y asignatura",
+          "difficulty": "advanced",
+          "description": "Escribe una consulta que muestre para cada combinación de alumno y asignatura: evaluaciones, nota media y mejor nota.",
+          "solution": "```sql\nSELECT\n  id_alumno,\n  id_asignatura,\n  COUNT(*) AS evaluaciones,\n  ROUND(AVG(nota), 2) AS nota_media,\n  MAX(nota) AS mejor_nota\nFROM notas\nGROUP BY id_alumno, id_asignatura\nORDER BY id_alumno, id_asignatura;\n```\n\nResultado: cada combinación alumno/asignatura con su resumen."
+        }
+      ]
+    },
+    {
+      "id": "lesson-09-7",
+      "title": "HAVING y consultas resumen",
+      "order": 7,
+      "objectives": [
+        "Comprender qué hace HAVING y cuándo usarlo",
+        "Filtrar grupos con HAVING después de GROUP BY",
+        "Distinguir claramente entre WHERE y HAVING",
+        "Combinar WHERE, GROUP BY y HAVING en una misma consulta"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## HAVING: filtrar grupos\n\n`HAVING` filtra **grupos** después de aplicar GROUP BY. Es como un WHERE pero para resultados de agregación.\n\n```sql\n-- Sin HAVING: todos los alumnos con su media\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno;\n\n-- Con HAVING: solo alumnos con media >= 7\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno\nHAVING AVG(nota) >= 7;\n```\n\n### Más ejemplos\n\n```sql\n-- Alumnos con más de 1 nota\nSELECT id_alumno, COUNT(*) AS total_notas\nFROM notas GROUP BY id_alumno HAVING COUNT(*) > 1;\n\n-- Asignaturas con nota media > 7\nSELECT id_asignatura, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_asignatura HAVING AVG(nota) > 7;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## WHERE vs HAVING\n\n| Aspecto | WHERE | HAVING |\n|---|---|---|\n| **Filtra** | Filas individuales | Grupos completos |\n| **Se ejecuta** | ANTES de GROUP BY | DESPUÉS de GROUP BY |\n| **Funciones de agregación** | ❌ No puede usarlas | ✅ Puede usarlas |\n\n```sql\n-- WHERE + GROUP BY + HAVING\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media, COUNT(*) AS num_notas\nFROM notas\nWHERE nota >= 5           -- 1. Filtra filas ANTES de agrupar\nGROUP BY id_alumno         -- 2. Agrupa\nHAVING AVG(nota) >= 7;     -- 3. Filtra grupos DESPUÉS\n```\n\n### Orden de ejecución SQL\n\n```\n1. FROM       → De qué tabla\n2. WHERE      → Filtrar filas individuales\n3. GROUP BY   → Agrupar filas\n4. HAVING     → Filtrar grupos\n5. SELECT     → Seleccionar columnas y calcular funciones\n6. ORDER BY   → Ordenar resultado\n7. LIMIT      → Limitar filas\n```\n\n> **Regla**: WHERE elimina filas ANTES de agrupar. HAVING elimina grupos DESPUÉS de agrupar."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-7-1",
+          "title": "HAVING: filtrar por agregación",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el id del alumno y su nota media, pero SOLO para alumnos con media >= 7.",
+          "solution": "```sql\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas\nGROUP BY id_alumno\nHAVING AVG(nota) >= 7\nORDER BY nota_media DESC;\n```"
+        },
+        {
+          "id": "ex-09-7-2",
+          "title": "WHERE + HAVING: aprobados con media alta",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre id del alumno y nota media de los alumnos cuyas notas individuales son todas >= 5 y cuya media es >= 8.",
+          "solution": "```sql\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas\nWHERE nota >= 5\nGROUP BY id_alumno\nHAVING AVG(nota) >= 8\nORDER BY nota_media DESC;\n```"
+        },
+        {
+          "id": "ex-09-7-3",
+          "title": "El trío completo: WHERE + GROUP BY + HAVING",
+          "difficulty": "advanced",
+          "description": "Escribe una consulta que muestre id del alumno, número de notas y media, pero: 1) Solo incluir notas >= 5, 2) Agrupar por alumno, 3) Solo mostrar alumnos con 2+ notas y media >= 7.",
+          "solution": "```sql\nSELECT id_alumno, COUNT(*) AS num_notas, ROUND(AVG(nota), 2) AS nota_media\nFROM notas\nWHERE nota >= 5\nGROUP BY id_alumno\nHAVING COUNT(*) >= 2 AND AVG(nota) >= 7\nORDER BY nota_media DESC;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-09-8",
+      "title": "Caso práctico completo y repaso",
+      "order": 8,
+      "objectives": [
+        "Integrar todos los conceptos del módulo en consultas complejas",
+        "Resolver problemas prácticos usando funciones, GROUP BY y HAVING",
+        "Repasar los conceptos clave del módulo",
+        "Evaluar la comprensión con un caso práctico completo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\n### Funciones vistas\n\n| Categoría | Funciones principales |\n|---|---|\n| **Texto** | `CONCAT`, `CONCAT_WS`, `UPPER`, `LOWER`, `SUBSTRING`, `LEFT`, `RIGHT`, `TRIM`, `LENGTH`, `CHAR_LENGTH`, `REPLACE`, `LPAD` |\n| **Numéricas** | `ROUND`, `TRUNCATE`, `CEIL`, `FLOOR`, `ABS`, `MOD`, `GREATEST`, `LEAST` |\n| **Fecha** | `NOW`, `CURDATE`, `YEAR`, `MONTH`, `DAY`, `DATE_FORMAT`, `DATEDIFF`, `TIMESTAMPDIFF`, `DATE_ADD`, `DATE_SUB`, `DAYNAME`, `LAST_DAY` |\n| **Agregación** | `COUNT`, `COUNT(DISTINCT)`, `SUM`, `AVG`, `MIN`, `MAX` |\n\n### Cláusulas de agrupación\n\n| Cláusula | Función | Ejemplo |\n|---|---|---|\n| `GROUP BY` | Agrupar filas | `GROUP BY ciudad` |\n| `HAVING` | Filtrar grupos | `HAVING AVG(nota) > 7` |\n\n### Orden de ejecución SQL\n\n```\n1. FROM       → De qué tabla(s)\n2. WHERE      → Filtrar filas individuales\n3. GROUP BY   → Agrupar filas\n4. HAVING     → Filtrar grupos\n5. SELECT     → Seleccionar columnas y calcular funciones\n6. ORDER BY   → Ordenar resultado\n7. LIMIT      → Limitar filas\n```\n\n### Reglas clave\n\n1. **WHERE vs HAVING**: WHERE filtra filas ANTES de agrupar. HAVING filtra grupos DESPUÉS.\n2. **GROUP BY obligatorio**: Columnas del SELECT que no son agregación DEBEN estar en GROUP BY.\n3. **COUNT(*) vs COUNT(col)**: COUNT(*) cuenta filas. COUNT(col) cuenta no-NULL.\n4. **ROUND vs TRUNCATE**: ROUND redondea. TRUNCATE corta sin redondear.\n5. **NULL en agregación**: SUM, AVG, MIN, MAX ignoran NULL. COUNT(*) los cuenta."
+        },
+        {
+          "type": "text",
+          "content": "## Caso práctico: informe trimestral de la academia\n\nEl director de la academia necesita un informe completo. Usa las tablas `alumnos`, `profesores`, `asignaturas`, `notas` y `matriculas`.\n\n### Peticiones del director\n\n1. **Resumen general**: totales de cada tabla\n2. **Rendimiento por asignatura**: media, mínima, máxima y evaluaciones\n3. **Alumnos destacados**: media >= 8\n4. **Alumnos en riesgo**: al menos un suspenso\n5. **Distribución por ciudad**: solo ciudades con más de 1 alumno\n6. **Informe ejecutivo**: mejor alumno, mejor asignatura, mejor convocatoria"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-09-8-1",
+          "title": "Resumen general de la academia",
+          "difficulty": "basic",
+          "description": "Escribe una consulta que muestre el total de alumnos, profesores, asignaturas y notas registradas.",
+          "solution": "```sql\nSELECT\n  (SELECT COUNT(*) FROM alumnos) AS total_alumnos,\n  (SELECT COUNT(*) FROM profesores) AS total_profesores,\n  (SELECT COUNT(*) FROM asignaturas) AS total_asignaturas,\n  (SELECT COUNT(*) FROM notas) AS total_notas;\n-- Resultado: 8, 5, 6, 17\n```"
+        },
+        {
+          "id": "ex-09-8-2",
+          "title": "Rendimiento por asignatura",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre para cada asignatura: el id, evaluaciones, nota media, mínima y máxima.",
+          "solution": "```sql\nSELECT\n  id_asignatura,\n  COUNT(*) AS evaluaciones,\n  ROUND(AVG(nota), 2) AS nota_media,\n  MIN(nota) AS nota_minima,\n  MAX(nota) AS nota_maxima\nFROM notas\nGROUP BY id_asignatura\nORDER BY nota_media DESC;\n```"
+        },
+        {
+          "id": "ex-09-8-3",
+          "title": "Alumnos destacados y en riesgo",
+          "difficulty": "intermediate",
+          "description": "Escribe DOS consultas: 1) Alumnos con media >= 8, 2) Alumnos con al menos un suspenso (< 5).",
+          "solution": "```sql\n-- 1. Alumnos destacados\nSELECT id_alumno, COUNT(*) AS num_notas, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno\nHAVING AVG(nota) >= 8\nORDER BY nota_media DESC;\n\n-- 2. Alumnos en riesgo\nSELECT id_alumno, COUNT(CASE WHEN nota < 5 THEN 1 END) AS suspensiones, COUNT(*) AS total\nFROM notas GROUP BY id_alumno\nHAVING COUNT(CASE WHEN nota < 5 THEN 1 END) > 0;\n```"
+        },
+        {
+          "id": "ex-09-8-4",
+          "title": "Distribución por ciudad",
+          "difficulty": "intermediate",
+          "description": "Escribe una consulta que muestre cuántos alumnos hay por ciudad, pero SOLO ciudades con más de 1 alumno.",
+          "solution": "```sql\nSELECT ciudad, COUNT(*) AS num_alumnos\nFROM alumnos\nGROUP BY ciudad\nHAVING COUNT(*) > 1\nORDER BY num_alumnos DESC;\n-- Madrid (2), Valencia (2)\n```"
+        },
+        {
+          "id": "ex-09-8-5",
+          "title": "Informe ejecutivo: el top de cada categoría",
+          "difficulty": "advanced",
+          "description": "Escribe tres consultas: 1) El alumno con mejor media, 2) La asignatura con mejor rendimiento, 3) La convocatoria con mejores resultados.",
+          "solution": "```sql\n-- 1. Alumno con mejor media\nSELECT id_alumno, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_alumno\nORDER BY nota_media DESC LIMIT 1;\n\n-- 2. Asignatura con mejor rendimiento\nSELECT id_asignatura, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY id_asignatura\nORDER BY nota_media DESC LIMIT 1;\n\n-- 3. Convocatoria con mejores resultados\nSELECT convocatoria, ROUND(AVG(nota), 2) AS nota_media\nFROM notas GROUP BY convocatoria\nORDER BY nota_media DESC LIMIT 1;\n```"
+        },
+        {
+          "id": "ex-09-8-6",
+          "title": "Prueba final: 5 consultas integradas",
+          "difficulty": "advanced",
+          "description": "Escribe 5 consultas que combinen al menos 3 conceptos del módulo:\n1. Funciones de texto + WHERE + ORDER BY\n2. Funciones numéricas + GROUP BY + HAVING\n3. Funciones de fecha + WHERE + GROUP BY\n4. Agregación + GROUP BY + HAVING + ORDER BY\n5. Resumen completo de la academia",
+          "solution": "```sql\n-- 1. Nombres en mayúsculas de alumnos activos, ordenados por longitud\nSELECT UPPER(nombre) AS nombre, CHAR_LENGTH(nombre) AS long\nFROM alumnos WHERE activo = TRUE ORDER BY long DESC;\n\n-- 2. Alumnos con media >= 7 y al menos 2 notas\nSELECT id_alumno, ROUND(AVG(nota), 2) AS media, COUNT(*) AS num_notas\nFROM notas GROUP BY id_alumno\nHAVING AVG(nota) >= 7 AND COUNT(*) >= 2;\n\n-- 3. Notas de evaluaciones del primer trimestre (enero)\nSELECT MONTH(fecha_evaluacion) AS mes, COUNT(*) AS num_notas, ROUND(AVG(nota), 2) AS media\nFROM notas WHERE MONTH(fecha_evaluacion) = 1\nGROUP BY MONTH(fecha_evaluacion);\n\n-- 4. Convocatoria con mejor rendimiento (mínimo 5 evaluaciones)\nSELECT convocatoria, COUNT(*) AS evals, ROUND(AVG(nota), 2) AS media\nFROM notas GROUP BY convocatoria\nHAVING COUNT(*) >= 5 ORDER BY media DESC;\n\n-- 5. Resumen global\nSELECT\n  (SELECT COUNT(*) FROM alumnos) AS total_alumnos,\n  (SELECT COUNT(*) FROM asignaturas) AS total_asignaturas,\n  COUNT(*) AS total_notas,\n  ROUND(AVG(nota), 2) AS nota_media_global\nFROM notas;\n```"
+        },
+        {
+          "id": "ex-09-8-7",
+          "title": "Resumen conceptual final",
+          "difficulty": "intermediate",
+          "description": "Responde con tus palabras:\n1. ¿Cuándo usarías ROUND y cuándo TRUNCATE?\n2. ¿Cuál es la diferencia entre LENGTH y CHAR_LENGTH?\n3. ¿Por qué WHERE no puede usar funciones de agregación?\n4. ¿Cuándo necesitas HAVING en lugar de WHERE?",
+          "solution": "1. **ROUND vs TRUNCATE**: ROUND redondea al valor más cercano (notas finales). TRUNCATE corta sin redondear (cálculos intermedios).\n\n2. **LENGTH vs CHAR_LENGTH**: LENGTH cuenta bytes. CHAR_LENGTH cuenta caracteres. Con tildes: `LENGTH('ñ')` = 2, `CHAR_LENGTH('ñ')` = 1.\n\n3. **WHERE no puede usar agregación** porque se ejecuta ANTES de GROUP BY. En ese momento aún no se han calculado medias, sumas, etc.\n\n4. **HAVING cuando necesitas filtrar por el resultado de una función de agregación**. Por ejemplo, 'alumnos con media >= 7' no se puede filtrar con WHERE porque la media se calcula DESPUÉS de agrupar."
         }
       ]
     }
