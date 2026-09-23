@@ -4,162 +4,552 @@
   "title": "Del modelo E/R al modelo relacional",
   "slug": "er-a-relacional",
   "order": 4,
-  "description": "Transformación de diagramas E/R a tablas relacionales: relaciones, claves, cardinalidades y restricciones semánticas.",
+  "description": "Transformación de diagramas E/R a tablas relacionales: entidades, relaciones, cardinalidades, entidades débiles, relaciones recursivas y ternarias, y generalización/especialización.",
   "objectives": [
-    "Convertir entidades E/R en tablas",
+    "Comprender los fundamentos del modelo relacional y su terminología",
+    "Identificar tablas, filas, columnas y sus propiedades",
+    "Distinguir entre claves primarias, foráneas y candidatas",
+    "Convertir entidades E/R en tablas del modelo relacional",
     "Transformar relaciones 1:1, 1:N y N:M en estructura relacional",
-    "Identificar claves primarias y foráneas resultantes",
     "Manejar entidades débiles en el modelo relacional",
-    "Comprender las restricciones semánticas"
+    "Resolver relaciones recursivas y ternarias",
+    "Aplicar generalización y especialización al modelo relacional"
   ],
-  "estimatedMinutes": 300,
+  "estimatedMinutes": 600,
   "lessons": [
     {
       "id": "lesson-04-1",
-      "title": "Del diagrama E/R a tablas",
+      "title": "Introducción al modelo relacional",
       "order": 1,
       "objectives": [
-        "Transformar entidades E/R en tablas SQL",
-        "Convertir atributos en columnas",
-        "Establecer tipos de datos adecuados"
+        "Definir qué es el modelo relacional y su origen",
+        "Diferenciar entre modelo conceptual (E/R) y modelo relacional",
+        "Conocer la terminología básica: relación, tupla, atributo, dominio",
+        "Comprender las propiedades fundamentales de una tabla relacional"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Proceso de transformación\n\nEl modelo E/R es un **diseño conceptual**: describe QUÉ datos necesitamos. El modelo relacional es un **diseño lógico**: describe CÓMO se organizan en tablas.\n\n### Regla general\n\n**Cada entidad se convierte en una tabla.** Los atributos de la entidad se convierten en columnas de la tabla.\n\n```\nEntidad E/R              →    Tabla relacional\n─────────────                  ────────────────\nRectángulo              →    CREATE TABLE\nÓvalos (atributos)      →    Columnas\nLínea bajo nombre       →    PRIMARY KEY\nÓvalo doble             →    Tabla separada o array\n```\n\n### Ejemplo: Entidad Alumno\n\n```\nDiagrama E/R:                    SQL:\n┌──────────┐                     CREATE TABLE alumnos (\n│ ALUMNO   │                       id INT PRIMARY KEY AUTO_INCREMENT,\n│ ○ id     │──identificador→       nombre VARCHAR(50) NOT NULL,\n│ ○ nombre │                       apellido VARCHAR(50) NOT NULL,\n│ ○ apellido│                      email VARCHAR(100) UNIQUE,\n│ ○ email  │                       fecha_nacimiento DATE,\n│ ○ fecha_ │                       activo BOOLEAN DEFAULT TRUE\n│   nacim. │                     );\n└──────────┘\n```"
+          "content": "## ¿Qué es el modelo relacional?\n\nEl **modelo relacional** fue propuesto por **Edgar F. Codd** en 1970. Organiza los datos en **tablas** (llamadas formalmente *relaciones*) donde cada fila representa un registro y cada columna un atributo.\n\n> **Dato histórico**: Codd era matemático en IBM. Su modelo se basa en la **teoría de conjuntos** y la **lógica de primer orden**. Por eso la terminología formal (relación = tabla, tupla = fila, atributo = columna).\n\n### Modelo E/R vs Modelo Relacional\n\n| Característica | Modelo E/R (Conceptual) | Modelo Relacional (Lógico) |\n|---|---|---|\n| **Propósito** | Representar QUÉ datos necesitamos | Representar CÓMO se organizan |\n| **Elementos** | Entidades, relaciones, atributos | Tablas, filas, columnas |\n| **Claves** | Identificador de entidad | Clave primaria, clave foránea |\n| **Cardinalidades** | 1:1, 1:N, N:M en líneas | Claves foráneas y tablas intermedias |\n| **Nivel** | Abstracto, sin tecnología concreta | Más cercano a la implementación |\n| **Público** | Stakeholders, analistas | Desarrolladores, DBAs |"
         },
         {
           "type": "text",
-          "content": "## Transformación de cada tipo de atributo\n\n| Atributo E/R | Columna SQL | Ejemplo |\n|---|---|---|\n| **Simple** | Columna normal | `nombre VARCHAR(50)` |\n| **Compuesto** | Varias columnas | `calle VARCHAR(100), ciudad VARCHAR(50), cp VARCHAR(5)` |\n| **Multivalorado** | Tabla separada | `telefonos(id_alumno, telefono)` |\n| **Derivado** | NO se almacena | Se calcula con `TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE())` |\n\n### Ejemplo: Atributo multivalorado\n\n```\nEntidad ALUMNO con atributo multivalorado ○○ telefono\n\n→ Se crea una tabla separada:\n\nCREATE TABLE alumnos_telefonos (\n  id_alumno INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_alumno, telefono),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n> **Regla**: Los atributos multivalorados **NUNCA** se almacenan en la tabla principal. Se crea una tabla adicional."
+          "content": "## Terminología del modelo relacional\n\nLa terminología puede confundir porque hay dos vocabularios: el formal (matemático) y el práctico (SQL). Conoce ambos:\n\n| Término formal | Término SQL | Significado |\n|---|---|---|\n| **Relación** | Tabla | Conjunto de datos con estructura fija |\n| **Tupla** | Fila (registro) | Un elemento de la tabla |\n| **Atributo** | Columna (campo) | Una propiedad de la relación |\n| **Dominio** | Tipo de dato | Conjunto de valores permitidos |\n| **Cardinalidad** | Número de filas | Cuántas tuplas tiene la tabla |\n| **Grado** | Número de columnas | Cuántos atributos tiene la tabla |"
+        },
+        {
+          "type": "text",
+          "content": "## Propiedades de una tabla relacional\n\nUna tabla en el modelo relacional debe cumplir estas propiedades:\n\n1. **Nombre único**: Cada tabla tiene un nombre único dentro de la base de datos.\n2. **Cada columna tiene un nombre único**: No pueden haber dos columnas con el mismo nombre dentro de una tabla.\n3. **Los valores son atómicos**: Cada celda contiene un **único valor** (no listas, no tablas anidadas).\n4. **Cada fila es única**: No pueden existir dos filas idénticas (la clave primaria lo garantiza).\n5. **El orden de filas y columnas no importa**: Una tabla es un **conjunto**.\n6. **Los valores de un dominio son del mismo tipo**: Una columna solo acepta valores de su tipo de dato definido."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: Del E/R al relacional\n\n```\nMODELO E/R (Conceptual)              MODELO RELACIONAL (Lógico)\n─────────────────────────            ──────────────────────────\nEntidad ──────────────────────→     Tabla\nAtributo ─────────────────────→     Columna\nIdentificador ────────────────→     Clave primaria\nRelación 1:1 ────────────────→     FK con UNIQUE\nRelación 1:N ────────────────→     FK en el lado N\nRelación N:M ────────────────→     Tabla intermedia\nEntidad débil ────────────────→     Tabla con PK compuesta\nAtributo multivalorado ──────→     Tabla separada\n```\n\nEn los siguientes temas veremos cada una de estas transformaciones en detalle."
         }
       ],
       "exercises": [
         {
           "id": "ex-04-1-1",
-          "title": "Transformar entidad a tabla",
+          "title": "Terminología relacional",
           "difficulty": "basic",
-          "description": "Transforma la siguiente entidad E/R en una tabla SQL:\n\nEntidad PRODUCTO:\n- ○ id_producto (identificador)\n- ○ nombre\n- ○ precio\n- ○ stock\n- ○○ etiquetas (multivalorado)\n- {descuento} (derivado: 10% del precio)\n\nCrea la tabla de productos y la tabla de etiquetas.",
-          "solution": "```sql\n-- Tabla de productos\nCREATE TABLE productos (\n  id_producto INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  stock INT NOT NULL DEFAULT 0\n  -- No se almacena descuento porque es derivado\n  -- Se calcula: precio * 0.10\n);\n\n-- Tabla de etiquetas (atributo multivalorado)\nCREATE TABLE producto_etiquetas (\n  id_producto INT,\n  etiqueta VARCHAR(50),\n  PRIMARY KEY (id_producto, etiqueta),\n  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)\n);\n```\n\nNota: El atributo derivado `descuento` no se almacena, se calcula con una consulta:\n```sql\nSELECT nombre, precio, precio * 0.10 AS descuento FROM productos;\n```"
+          "description": "Dada la siguiente tabla de productos:\n\n```\n┌────┬──────────────┬────────┬───────┐\n│ id │ nombre       │ precio │ stock │\n├────┼──────────────┼────────┼───────┤\n│  1 │ Portátil     │ 899.99 │    15 │\n│  2 │ Ratón        │  29.99 │   200 │\n│  3 │ Teclado      │  49.99 │    80 │\n│  4 │ Monitor      │ 349.99 │    25 │\n└────┴──────────────┴────────┴───────┘\n```\n\nIdentifica: a) Nombre de la relación, b) Grado, c) Cardinalidad, d) Nombres de los atributos, e) Dominio de la columna `precio`.",
+          "solution": "**a) Nombre de la relación:** `productos`\n\n**b) Grado:** 4 (tiene 4 columnas: id, nombre, precio, stock)\n\n**c) Cardinalidad:** 4 (tiene 4 filas: 4 productos)\n\n**d) Atributos:** `id`, `nombre`, `precio`, `stock`\n\n**e) Dominio de `precio`:** Números decimales positivos (en SQL sería algo como `DECIMAL(10,2) CHECK (precio > 0)`)."
+        },
+        {
+          "id": "ex-04-1-2",
+          "title": "E/R vs Relacional",
+          "difficulty": "basic",
+          "description": "Une cada elemento del modelo E/R con su equivalente en el modelo relacional:\n\n| Modelo E/R | Modelo Relacional |\n|---|---|\n| Rectángulo | ? |\n| Óvalo | ? |\n| Línea bajo nombre | ? |\n| Línea entre entidades | ? |\n| Óvalo doble | ? |",
+          "solution": "| Modelo E/R | Modelo Relacional |\n|---|---|\n| Rectángulo (entidad) | Tabla |\n| Óvalo (atributo) | Columna |\n| Línea bajo nombre (identificador) | Clave primaria |\n| Línea entre entidades (relación) | Clave foránea o tabla intermedia |\n| Óvalo doble (multivalorado) | Tabla separada |"
+        },
+        {
+          "id": "ex-04-1-3",
+          "title": "Propiedades de una tabla",
+          "difficulty": "intermediate",
+          "description": "Indica si cada una de estas situaciones viola alguna propiedad del modelo relacional, y explica cuál:\n\n1. Una tabla `alumnos` tiene dos filas con id=5.\n2. Una columna `telefonos` contiene el valor \"555-1234, 555-5678\".\n3. Se intercambian las columnas `nombre` y `apellido` de la tabla `alumnos`.\n4. Una tabla tiene dos columnas llamadas `nombre`.",
+          "solution": "1. **Sí viola**: La propiedad de que cada fila debe ser única. La clave primaria (`id`) no puede tener valores repetidos.\n\n2. **Sí viola**: La propiedad de atomicidad. Un valor de columna debe ser atómico (un solo valor). Dos teléfonos en una celda no es atómico. Solución: crear una tabla separada `alumno_telefonos`.\n\n3. **No viola**: El orden de las columnas no importa en el modelo relacional.\n\n4. **Sí viola**: La propiedad de que cada columna debe tener un nombre único dentro de la tabla."
         }
       ]
     },
     {
       "id": "lesson-04-2",
-      "title": "Transformación de relaciones 1:1",
+      "title": "Tablas, filas y columnas",
       "order": 2,
       "objectives": [
-        "Transformar relaciones 1:1 a estructura relacional",
-        "Decidir dónde colocar la clave foránea",
-        "Manejar participación total y parcial en relaciones 1:1"
+        "Comprender la estructura de una tabla relacional",
+        "Diferenciar entre tipos de columnas: obligatorias, opcionales, calculadas",
+        "Entender la diferencia entre valores NULL y valores por defecto",
+        "Reconocer buenas prácticas en el diseño de tablas"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Transformar relaciones 1:1\n\nEn una relación **1:1**, cada instancia de A se asocia con como máximo una instancia de B, y viceversa.\n\n### Estrategia: ¿Dónde poner la clave foránea?\n\n| Situación | Solución |\n|---|---|\n| Ambas participaciones totales | Se pueden fusionar en una sola tabla |\n| Una participación total, otra parcial | La FK va en la tabla con participación total |\n| Ambas participaciones parciales | La FK va en cualquiera de las dos |\n\n### Ejemplo: Profesor y Despacho\n\nUn profesor tiene un despacho, y cada despacho pertenece a un solo profesor.\n\n```\n┌──────────┐ 1    tiene   1  ┌──────────┐\n│ PROFESOR ├════════════════┤ DESPACHO │\n└──────────┘                └──────────┘\n```\n\n- Todo profesor **tiene** un despacho (participación total del profesor).\n- Todo despacho **tiene** un profesor (participación total del despacho).\n- **Solución**: Fusionar en una sola tabla.\n\n```sql\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  numero_despacho VARCHAR(10) NOT NULL  -- Se integra aquí\n);\n```\n\nSi fuera **participación parcial** (no todo profesor tiene despacho):\n\n```sql\n-- Opción 1: FK en la tabla con participación total\nCREATE TABLE despachos (\n  numero VARCHAR(10) PRIMARY KEY,\n  id_profesor INT UNIQUE,  -- UNIQUE porque es 1:1\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n```\n\n> **Regla**: En relaciones 1:1, la FK siempre lleva **UNIQUE** para garantizar que no haya repetidos."
+          "content": "## Estructura de una tabla relacional\n\nUna tabla relacional tiene tres componentes fundamentales:\n\n- **Tabla**: El contenedor. Tiene un nombre único (ej: `alumnos`).\n- **Columna**: Una propiedad de la entidad. Tiene nombre y tipo de dato.\n- **Fila**: Un registro concreto. Representa una instancia de la entidad.\n\n```\n┌──────────────────────────────────────────────────┐\n│  TABLA (Relación)                                │\n│  Nombre: alumnos                                 │\n├────┬─────────┬──────────┬───────────────────────┤\n│ id │ nombre  │ apellido │ email                 │  ← Columnas\n├────┼─────────┼──────────┼───────────────────────┤\n│  1 │ Juan    │ García   │ juan@mail.com         │  ← Fila 1\n│  2 │ María   │ López    │ maria@mail.com        │  ← Fila 2\n│  3 │ Carlos  │ Ruiz     │ carlos@mail.com       │  ← Fila 3\n└────┴─────────┴──────────┴───────────────────────┘\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de columnas\n\nLas columnas pueden clasificarse por su comportamiento:\n\n| Tipo | Restricción | Ejemplo |\n|---|---|---|\n| **Obligatoria** | `NOT NULL` | `nombre VARCHAR(50) NOT NULL` |\n| **Opcional** | `NULL` permitido | `telefono VARCHAR(20)` |\n| **Con defecto** | `DEFAULT` | `activo BOOLEAN DEFAULT TRUE` |\n| **Única** | `UNIQUE` | `email VARCHAR(100) UNIQUE` |\n| **Calculada** | No se almacena | Se calcula con una consulta |\n\n### Valores NULL\n\n`NULL` no es cero, no es cadena vacía, no es falso. `NULL` significa **\"desconocido\"** o **\"no aplica\"**.\n\n```sql\n-- Forma correcta de comparar\nWHERE telefono IS NULL     -- ✓\nWHERE telefono = NULL      -- ✗ (siempre da NULL)\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Buenas prácticas en diseño de tablas\n\n### 1. Nombrar de forma consistente\n```sql\n✓ alumnos, cursos, notas          (snake_case, plural)\n✗ ALUMNOS, Alumnos, ALumno        (evitar inconsistencias)\n```\n\n### 2. Usar claves surrogate (artificiales)\n```sql\n✓ id INT PRIMARY KEY AUTO_INCREMENT    (clave surrogate)\n✗ dni VARCHAR(9) PRIMARY KEY           (clave natural — puede cambiar)\n```\n\n### 3. No almacenar datos calculados\n```sql\n✗ total DECIMAL(10,2)                  (se calcula con consulta)\n✓ Se calcula con SUM() cuando se necesita\n```\n\n### 4. Separar entidades débiles\nSi una entidad no puede existir sin otra, crea una tabla separada con clave compuesta."
         }
       ],
       "exercises": [
         {
           "id": "ex-04-2-1",
-          "title": "Relación 1:1",
+          "title": "Diseñar una tabla",
+          "difficulty": "basic",
+          "description": "Diseña la tabla `profesores` con los siguientes requisitos:\n- Tiene un ID único numérico\n- Nombre y apellido son obligatorios\n- Email es obligatorio y único\n- Departamento es opcional (puede no estar asignado)\n- Fecha de incorporación con valor por defecto la fecha actual\n\nEspecifica para cada columna: nombre, tipo de dato y restricción.",
+          "solution": "```\nprofesores\n┌──────────────────────────────────────────────────────────┐\n│ Columna          │ Tipo         │ Restricción           │\n├──────────────────┼──────────────┼───────────────────────┤\n│ id               │ INT          │ PRIMARY KEY, AUTO_INC │\n│ nombre           │ VARCHAR(50)  │ NOT NULL              │\n│ apellido         │ VARCHAR(50)  │ NOT NULL              │\n│ email            │ VARCHAR(100) │ UNIQUE, NOT NULL      │\n│ departamento     │ VARCHAR(100) │ NULL (opcional)       │\n│ fecha_incorpor.  │ DATE         │ DEFAULT CURRENT_DATE  │\n└──────────────────┴──────────────┴───────────────────────┘\n```"
+        },
+        {
+          "id": "ex-04-2-2",
+          "title": "Valores NULL",
+          "difficulty": "basic",
+          "description": "Dada esta tabla de empleados, explica qué significa cada valor `NULL` en contexto:\n\n```\n┌────┬─────────┬──────────┬────────┬──────────┐\n│ id │ nombre  │ salario  │ jefe   │ idioma   │\n├────┼─────────┼──────────┼────────┼──────────┤\n│  1 │ Ana     │ 30000    │ NULL   │ Español  │\n│  2 │ Luis    │ 25000    │ 1      │ NULL     │\n│  3 │ María   │ NULL     │ 1      │ Inglés   │\n└────┴─────────┴──────────┴────────┴──────────┘\n```",
+          "solution": "**Fila 1 (Ana):** `jefe = NULL` significa que Ana no tiene jefe (es la directora).\n\n**Fila 2 (Luis):** `idioma = NULL` significa que no se conoce el idioma de Luis.\n\n**Fila 3 (María):** `salario = NULL` significa que el salario de María es desconocido.\n\n**Clave:** `NULL` siempre significa \"desconocido\" o \"no aplica\", nunca 0, nunca cadena vacía."
+        },
+        {
+          "id": "ex-04-2-3",
+          "title": "Columnas calculadas",
           "difficulty": "intermediate",
-          "description": "En una aplicación, un Usuario tiene un Perfil (con bio, foto, ubicación). Cada perfil pertenece a un solo usuario. Diseña las tablas resultantes asumiendo:\n1. Todo usuario tiene perfil (participación total)\n2. Un usuario puede no tener perfil (participación parcial)",
-          "solution": "**Caso 1: Participación total (todo usuario tiene perfil)**\n\nOpción A: Tabla única (si los campos del perfil son pocos)\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  username VARCHAR(50) NOT NULL,\n  email VARCHAR(100) NOT NULL,\n  bio TEXT,\n  foto_url VARCHAR(255),\n  ubicacion VARCHAR(100)\n);\n```\n\nOpción B: Tablas separadas (si los campos del perfil son muchos)\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  username VARCHAR(50) NOT NULL,\n  email VARCHAR(100) NOT NULL\n);\n\nCREATE TABLE perfiles (\n  id_usuario INT PRIMARY KEY,  -- PRIMARY KEY porque es 1:1\n  bio TEXT,\n  foto_url VARCHAR(255),\n  ubicacion VARCHAR(100),\n  FOREIGN KEY (id_usuario) REFERENCES usuarios(id)\n);\n```\n\n**Caso 2: Participación parcial (un usuario puede no tener perfil)**\n\nSiempre tablas separadas, porque si fusionamos, tendríamos NULLs en muchos campos:\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  username VARCHAR(50) NOT NULL,\n  email VARCHAR(100) NOT NULL\n);\n\nCREATE TABLE perfiles (\n  id_usuario INT PRIMARY KEY,\n  bio TEXT,\n  foto_url VARCHAR(255),\n  ubicacion VARCHAR(100),\n  FOREIGN KEY (id_usuario) REFERENCES usuarios(id)\n);\n-- La tabla perfiles solo tiene filas para usuarios que completaron su perfil\n```"
+          "description": "En una tabla `productos` con columnas `precio` y `descuento_porcentaje`, un diseñador propone añadir una columna `precio_final` que almacene `precio - (precio * descuento_porcentaje / 100)`. ¿Es correcto almacenar este valor? Explica por qué y propone una alternativa.",
+          "solution": "**No es correcto almacenarlo.** El `precio_final` es un **dato derivado**. Almacenarlo viola el principio de no redundancia:\n\n1. **Problema de actualización**: Si cambia el `precio` o el `descuento`, habría que actualizar también `precio_final`.\n2. **Problema de espacio**: Se almacena un dato que se puede calcular.\n\n**Alternativa:** No crear la columna. Calcular el precio final en el momento:\n\n```sql\nSELECT nombre, precio, descuento_porcentaje,\n       precio - (precio * descuento_porcentaje / 100) AS precio_final\nFROM productos;\n```\n\n**Excepción**: Solo se almacena un dato derivado si hay una razón de rendimiento muy fuerte (tabla con millones de filas y consultas muy frecuentes)."
         }
       ]
     },
     {
       "id": "lesson-04-3",
-      "title": "Transformación de relaciones 1:N",
+      "title": "Claves en el modelo relacional",
       "order": 3,
       "objectives": [
-        "Transformar relaciones 1:N a estructura relacional",
-        "Colocar correctamente la clave foránea",
-        "Comprender la participación en relaciones 1:N"
+        "Definir y diferenciar claves primarias, foráneas y candidatas",
+        "Comprender el papel de cada tipo de clave en la integridad referencial",
+        "Diseñar claves compuestas cuando es necesario",
+        "Identificar claves candidatas en un diseño existente"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Transformar relaciones 1:N\n\nEn una relación **1:N**, una instancia de A se asocia con varias instancias de B, pero cada B se asocia con una sola A.\n\n### Regla\n\n**La clave foránea siempre va en el lado N (el lado \"muchos\").**\n\n```\n┌──────────┐ 1    tiene    N  ┌──────────┐\n│PROFESOR  ├════════════════┤ASIGNATURA│\n└──────────┘                 └──────────┘\n\n→ La FK (id_profesor) va en ASIGNATURA\n```\n\n### Ejemplo: Profesor imparte Asignatura\n\n```sql\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  creditos DECIMAL(4,2) NOT NULL,\n  id_profesor INT,  -- FK en el lado N\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n```\n\n### ¿Por qué la FK va en el lado N?\n\nSi la FK estuviera en el lado 1 (profesores), un profesor solo podría impartir **una** asignatura, porque una columna solo puede contener **un** valor.\n\nCon la FK en asignaturas, cada asignatura apunta a un profesor, pero un profesor puede ser apuntado por **varias** asignaturas (la FK se repite)."
+          "content": "## Tipos de claves\n\nEl modelo relacional utiliza diferentes tipos de claves para identificar y relacionar datos:\n\n```\n┌──────────────────────────────────────────────────────────────┐\n│                     TIPOS DE CLAVES                         │\n├──────────────────────────────────────────────────────────────┤\n│  1. Clave primaria (PK)    → Identifica cada fila ÚNICA     │\n│  2. Clave foránea (FK)     → Conecta dos tablas             │\n│  3. Clave candidata (CK)   → Podría ser PK (es UNIQUE)      │\n│  4. Clave compuesta        → PK formada por 2+ columnas     │\n│  5. Clave natural          → Basada en datos reales         │\n│  6. Clave surrogate        → ID artificial, autoincremental  │\n└──────────────────────────────────────────────────────────────┘\n```"
         },
         {
           "type": "text",
-          "content": "### Ejemplo completo: Departamento y Profesores\n\n```\n┌──────────┐ 1    tiene    N  ┌──────────┐\n│DEPARTAM. ├════════════════┤PROFESOR  │\n└──────────┘                 └──────────┘\n```\n\n```sql\nCREATE TABLE departamentos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  edificio VARCHAR(50)\n);\n\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  id_departamento INT,  -- FK en el lado N\n  FOREIGN KEY (id_departamento) REFERENCES departamentos(id)\n);\n```\n\n### Participación total vs parcial\n\n- **Participación total** (todo profesor tiene departamento): `NOT NULL` en la FK.\n- **Participación parcial** (un profesor puede no tener departamento): la FK puede ser `NULL`.\n\n```sql\n-- Participación total del profesor\nid_departamento INT NOT NULL,\n\n-- Participación parcial del profesor\nid_departamento INT  -- puede ser NULL\n```"
+          "content": "## Clave primaria (PRIMARY KEY)\n\nLa **clave primaria** es la columna (o combinación) que identifica de forma **única** cada fila.\n\n### Propiedades de la PK\n- **Única**: No puede haber dos filas con el mismo valor.\n- **No nula**: Nunca puede ser `NULL`.\n- **Estable**: Una vez asignada, no debería cambiar.\n\n### ¿Por qué no usar el nombre como PK?\n```sql\n-- ¿Qué pasa si dos alumnos se llaman \"Juan García\"?\n-- ¿Qué pasa si Juan cambia de apellido?\n\n-- Mejor usar clave surrogate:\nid INT PRIMARY KEY AUTO_INCREMENT  -- Siempre único, nunca cambia\n```\n\n> **Regla**: Usa **clave surrogate** (id numérico artificial) como PK por defecto. Usa **clave natural** (email, DNI) como candidata para búsquedas frecuentes."
+        },
+        {
+          "type": "text",
+          "content": "## Clave foránea (FOREIGN KEY)\n\nLa **clave foránea** es una columna que **apunta a la clave primaria** de otra tabla. Establece una relación.\n\n```\nprofesores                          asignaturas\n┌────┬────────┐                     ┌────┬──────────────┬──────────────┐\n│ id │ nombre │                     │ id │ nombre       │ id_profesor  │← FK\n├────┼────────┤                     ├────┼──────────────┼──────────────┤\n│  1 │ Ana    │───referenciado por──│  1 │ Matemáticas  │ 1            │\n│  2 │ Luis   │───referenciado por──│  2 │ Física       │ 2            │\n└────┴────────┘                     └────┴──────────────┴──────────────┘\n     PK                                    PK              FK\n```\n\n### Integridad referencial\n\nLa FK garantiza que el valor que apunta **existe** en la otra tabla.\n\n```sql\nINSERT INTO asignaturas (nombre, id_profesor)\nVALUES ('Química', 99);  -- ERROR: No existe profesor con id=99\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Clave compuesta\n\nUna **clave compuesta** está formada por **dos o más columnas**. Se usa cuando una sola columna no puede garantizar la unicidad.\n\n### Ejemplo: Notas de alumnos\n\n```sql\nCREATE TABLE notas (\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2),\n  PRIMARY KEY (id_alumno, id_asignatura)  -- PK compuesta\n);\n```\n\n```\nnotas\n┌────────────┬──────────────┬──────┐\n│ id_alumno  │ id_asignatura│ nota │\n├────────────┼──────────────┼──────┤\n│ 1          │ 1            │ 8.5  │  ← Juan saca 8.5 en Matemáticas\n│ 1          │ 2            │ 7.0  │  ← Juan saca 7.0 en Física\n│ 2          │ 1            │ 9.0  │  ← María saca 9.0 en Matemáticas\n└────────────┴──────────────┴──────┘\n\nPK compuesta: (id_alumno, id_asignatura)\n¿Por qué no un solo id? Porque un alumno puede tener varias notas\n(la combinación alumno + asignatura identifica cada fila)\n```\n\n> **Regla**: Si la tabla es el resultado de una relación **N:M**, la PK compuesta está formada por las claves foráneas de ambas tablas."
         }
       ],
       "exercises": [
         {
           "id": "ex-04-3-1",
-          "title": "Relación 1:N",
+          "title": "Identificar tipos de claves",
+          "difficulty": "basic",
+          "description": "Dadas estas tablas, identifica la PK, las FK y las claves candidatas:\n\n```\ncursos                          profesores\n┌────┬───────────┬────────────┐  ┌────┬────────┬────────────┐\n│ id │ nombre    │ id_profesor│  │ id │ nombre │ email      │\n├────┼───────────┼────────────┤  ├────┼────────┼────────────┤\n│  1 │ Algebra   │ 1          │  │  1 │ Ana    │ ana@m.com  │\n│  2 │ Física    │ 2          │  │  2 │ Luis   │ luis@m.com │\n│  3 │ Historia  │ 1          │  └────┴────────┴────────────┘\n└────┴───────────┴────────────┘\n```",
+          "solution": "**Tabla cursos:**\n- **PK**: `id` (identificador único de cada curso)\n- **FK**: `id_profesor` (apunta a `profesores.id`)\n- **Claves candidatas**: `id` (la única con UNIQUE)\n\n**Tabla profesores:**\n- **PK**: `id` (identificador único de cada profesor)\n- **FK**: Ninguna\n- **Claves candidatas**: `id` y `email` (ambos son UNIQUE)"
+        },
+        {
+          "id": "ex-04-3-2",
+          "title": "Clave compuesta",
           "difficulty": "intermediate",
-          "description": "Diseña las tablas resultantes de estas relaciones 1:N:\n1. Un Autor escribe Varios Libros (un libro tiene un solo autor)\n2. Un Cliente realiza Varios Pedidos (un pedido tiene un solo cliente)\n3. Una Categoría contiene Varios Productos (un producto pertenece a una categoría)\n\nJustifica dónde colocas la FK en cada caso.",
-          "solution": "```sql\n-- 1. Autor escribe Libros (1:N)\nCREATE TABLE autores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  nacionalidad VARCHAR(50)\n);\n\nCREATE TABLE libros (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  isbn VARCHAR(20) UNIQUE,\n  fecha_publicacion DATE,\n  id_autor INT NOT NULL,  -- FK en el lado N (libros)\n  FOREIGN KEY (id_autor) REFERENCES autores(id)\n);\n-- NOT NULL porque todo libro debe tener un autor (participación total)\n\n-- 2. Cliente realiza Pedidos (1:N)\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  total DECIMAL(10,2),\n  id_cliente INT NOT NULL,  -- FK en el lado N\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\n-- 3. Categoría contiene Productos (1:N)\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  descripcion TEXT\n);\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  id_categoria INT,  -- FK en el lado N\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n);\n-- Puede ser NULL si un producto puede no tener categoría (participación parcial)\n```\n\n**Justificación**: En los 3 casos, la FK va en el lado N porque es la única forma de que una entidad del lado 1 pueda estar asociada a varias del lado N. Si la FK estuviera en el lado 1, solo podría apuntar a una."
+          "description": "En un sistema de reservas, un cliente puede reservar varias habitaciones de un hotel, y una habitación puede ser reservada por varios clientes (en diferentes fechas). Diseña la tabla intermedia con su clave compuesta.\n\nCampos: id_cliente, id_habitacion, fecha_entrada, fecha_salida, precio_total.",
+          "solution": "```sql\nCREATE TABLE reservas (\n  id_cliente INT,\n  id_habitacion INT,\n  fecha_entrada DATE NOT NULL,\n  fecha_salida DATE NOT NULL,\n  precio_total DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_cliente, id_habitacion, fecha_entrada),\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id),\n  FOREIGN KEY (id_habitacion) REFERENCES habitaciones(id),\n  CHECK (fecha_salida > fecha_entrada)\n);\n```\n\n**¿Por qué esta PK compuesta?** Un cliente puede reservar la misma habitación varias veces (en diferentes fechas). La combinación `(id_cliente, id_habitacion, fecha_entrada)` identifica cada reserva de forma única."
+        },
+        {
+          "id": "ex-04-3-3",
+          "title": "PK surrogate vs natural",
+          "difficulty": "intermediate",
+          "description": "Para una tabla de países, considera dos opciones:\n\nOpción A: `codigo_pais VARCHAR(3) PRIMARY KEY` (ej: 'ESP', 'MEX', 'ARG')\nOpción B: `id INT PRIMARY KEY AUTO_INCREMENT` + `codigo_pais VARCHAR(3) UNIQUE`\n\n¿Cuál recomiendas y por qué?",
+          "solution": "**Recomiendo la Opción B** (clave surrogate + candidata natural):\n\n1. **Estabilidad**: El `id` numérico nunca cambia. Si el código de un país cambiara, solo habría que actualizar una columna.\n2. **Rendimiento**: Las claves numéricas INT son más rápidas para comparaciones y joins que VARCHAR(3).\n3. **Consistencia**: Mantiene un patrón uniforme (todas las tablas usan INT como PK).\n4. **Flexibilidad**: `codigo_pais` queda como UNIQUE para búsquedas por código.\n\n**Estructura recomendada:**\n```sql\nCREATE TABLE paises (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  codigo_pais VARCHAR(3) UNIQUE NOT NULL,\n  nombre VARCHAR(100) NOT NULL\n);\n```"
         }
       ]
     },
     {
       "id": "lesson-04-4",
-      "title": "Transformación de relaciones N:M",
+      "title": "Transformación de entidades",
       "order": 4,
       "objectives": [
-        "Transformar relaciones N:M a estructura relacional",
-        "Crear tablas intermedias (asociativas)",
-        "Establecer claves compuestas"
+        "Convertir entidades E/R en tablas del modelo relacional",
+        "Transformar cada tipo de atributo en columnas o tablas separadas",
+        "Identificar cuándo crear tablas adicionales",
+        "Aplicar las reglas de transformación de atributos"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Transformar relaciones N:M\n\nEn una relación **N:M**, una instancia de A se asocia con varias de B, y viceversa. **No se puede representar con una simple FK.**\n\n### Regla\n\n**Se crea una tabla intermedia** (también llamada tabla asociativa o tabla de unión) que contiene:\n- Las claves primarias de ambas tablas como claves foráneas.\n- La combinación de ambas como clave primaria compuesta.\n- Opcionalmente, atributos propios de la relación.\n\n```\n┌────────┐  N    se matricula   M  ┌──────────┐\n│ ALUMNO ├────────────────────────┤ASIGNATURA│\n└────────┘                        └──────────┘\n\n→ Se crea la tabla intermedia MATRICULAS:\n\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  fecha_matricula DATE,\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```\n\n### ¿Por qué se crea una tabla intermedia?\n\nSi intentáramos poner una FK en `alumnos` apuntando a `asignaturas`, cada alumno solo podría tener una asignatura. Si la ponemos en `asignaturas`, cada asignatura solo podría tener un alumno. Ninguna de las dos opciones funciona para N:M."
+          "content": "## Regla general: Entidad → Tabla\n\n**Cada entidad fuerte del diagrama E/R se convierte en una tabla.** Los atributos se convierten en columnas.\n\n### Transformación de tipos de atributos\n\n| Atributo E/R | Transformación | Ejemplo |\n|---|---|---|\n| **Simple** | Columna normal | `nombre VARCHAR(50)` |\n| **Compuesto** | Varias columnas | `calle VARCHAR(100), ciudad VARCHAR(50)` |\n| **Multivalorado** | Tabla separada | `alumno_telefonos(id_alumno, telefono)` |\n| **Derivado** | NO se almacena | Se calcula con una consulta |\n| **Identificador** | PRIMARY KEY | `id INT PRIMARY KEY` |"
         },
         {
           "type": "text",
-          "content": "## Ejemplo completo: Pedidos y Productos\n\n```\n┌─────────┐  N    contiene    M  ┌──────────┐\n│ PEDIDO  ├─────────────────────┤ PRODUCTO │\n└─────────┘                     └──────────┘\n```\n\nLa tabla intermedia `lineas_pedido` puede tener atributos propios de la relación (cantidad, precio_unitario):\n\n```sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  stock INT DEFAULT 0\n);\n\n-- Tabla intermedia con atributos propios\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cantidad INT NOT NULL DEFAULT 1,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, id_producto),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id),\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n);\n```\n\n> **Nota**: `precio_unitario` es un atributo propio de la relación \"contiene\". Se almacena porque el precio del producto puede cambiar con el tiempo, pero el precio del pedido debe permanecer fijo."
+          "content": "## Atributos multivalorados: Tabla separada\n\nUn **atributo multivalorado** (óvalo doble) **NUNCA** se almacena en la tabla principal.\n\n### Ejemplo: ALUMNO con atributo `telefonos`\n\n```sql\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE alumno_telefonos (\n  id_alumno INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_alumno, telefono),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n> **Regla de oro**: Si un atributo puede tener múltiples valores para una misma entidad, se crea una tabla separada."
         },
         {
           "type": "text",
-          "content": "## Resumen: Transformación de cardinalidades\n\n| Cardinalidad | Solución | FK en... |\n|---|---|---|\n| **1:1** | FK con UNIQUE en cualquiera de las dos tablas | En la tabla con participación total, o en cualquiera si ambas son parciales |\n| **1:N** | FK en la tabla del lado N | En la tabla \"muchos\" |\n| **N:M** | Tabla intermedia con claves compuestas | Tabla nueva con FK a ambas tablas |\n\n### Ejemplo en `academia`\n\n```\nprofesores (1) ──1:N──→ asignaturas\nalumnos (N) ──N:M──→ asignaturas  [a través de matriculas]\nalumnos (N) ──N:M──→ asignaturas  [a través de notas]\n```\n\n```sql\n-- 1:N: profesores → asignaturas\nALTER TABLE asignaturas ADD COLUMN id_profesor INT;\nALTER TABLE asignaturas ADD FOREIGN KEY (id_profesor) REFERENCES profesores(id);\n\n-- N:M: alumnos ↔ asignaturas (matrículas)\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```"
+          "content": "## Atributos derivados: No se almacenan\n\nUn **atributo derivado** se calcula a partir de otros. No se crea una columna para él.\n\n### Ejemplo: `edad` derivada de `fecha_nacimiento`\n\n```sql\n-- Solo se crea la columna de fecha_nacimiento\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  fecha_nacimiento DATE NOT NULL\n);\n\n-- La edad se CALCULA cuando se necesita:\nSELECT nombre, TIMESTAMPDIFF(YEAR, fecha_nacimiento, CURDATE()) AS edad\nFROM alumnos;\n```\n\n> **¿Por qué no almacenarla?** Porque cambia con el tiempo. Si la guardas hoy, mañana estará desactualizada."
+        },
+        {
+          "type": "text",
+          "content": "## Atributos compuestos: Se descomponen\n\nUn **atributo compuesto** (óvalo con subatributos) se descompone en columnas individuales.\n\n### Ejemplo: Dirección compuesta\n\n```sql\n-- En E/R: ○{direccion} → ○ calle, ○ ciudad, ○ cp\n-- En SQL:\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  calle VARCHAR(100),\n  ciudad VARCHAR(50),\n  codigo_postal VARCHAR(5)\n);\n```\n\n> **Nota**: Aunque en E/R el atributo compuesto es un solo óvalo, en el modelo relacional se **descompone** en columnas individuales."
         }
       ],
       "exercises": [
         {
           "id": "ex-04-4-1",
-          "title": "Tabla intermedia N:M",
+          "title": "Transformar entidad completa",
           "difficulty": "intermediate",
-          "description": "En una red social, los Usuarios pueden ser Amigos entre sí (N:M). Un usuario puede tener muchos amigos y cada amigo puede tener muchos amigos. Diseña la tabla intermedia `amistades` con los campos necesarios. Incluye un atributo propio: fecha en que se estableció la amistad.",
-          "solution": "```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL\n);\n\n-- Tabla intermedia AMISTADES\nCREATE TABLE amistades (\n  id_usuario_1 INT,\n  id_usuario_2 INT,\n  fecha_amistad DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_usuario_1, id_usuario_2),\n  FOREIGN KEY (id_usuario_1) REFERENCES usuarios(id),\n  FOREIGN KEY (id_usuario_2) REFERENCES usuarios(id),\n  CHECK (id_usuario_1 < id_usuario_2)  -- Evita duplicados (A-B = B-A)\n);\n```\n\n**Explicación:**\n- La PK compuesta `(id_usuario_1, id_usuario_2)` garantiza que no haya duplicados.\n- El `CHECK (id_usuario_1 < id_usuario_2)` evita que se inserte tanto (A,B) como (B,A), ya que la amistad es bidireccional.\n- `fecha_amistad` es un atributo propio de la relación.\n\n**Ejemplo de inserción:**\n```sql\n-- Juan (id=1) y María (id=2) son amigos desde 2026-01-15\nINSERT INTO amistades (id_usuario_1, id_usuario_2, fecha_amistad)\nVALUES (1, 2, '2026-01-15');\n```"
+          "description": "Transforma la entidad PRODUCTO en tablas del modelo relacional:\n- ○ id_producto (identificador)\n- ○ nombre\n- ○ precio\n- ○ stock\n- ○○ etiquetas (multivalorado)\n- {descuento} (derivado: 10% del precio)\n- ○{direccion_almacen} compuesto por: ○ pasillo, ○ estanteria, ○ posicion\n\nCrea todas las tablas necesarias.",
+          "solution": "```sql\n-- Tabla principal\nCREATE TABLE productos (\n  id_producto INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  stock INT NOT NULL DEFAULT 0,\n  pasillo VARCHAR(10),\n  estanteria VARCHAR(10),\n  posicion VARCHAR(10)\n);\n\n-- Tabla separada (multivalorado)\nCREATE TABLE producto_etiquetas (\n  id_producto INT,\n  etiqueta VARCHAR(50),\n  PRIMARY KEY (id_producto, etiqueta),\n  FOREIGN KEY (id_producto) REFERENCES productos(id_producto)\n);\n```\n\n**Justificación:**\n- `id_producto`: PK (identificador).\n- `nombre`, `precio`, `stock`: Columnas normales.\n- `pasillo`, `estanteria`, `posicion`: Columnas separadas (atributo compuesto).\n- `etiquetas`: Tabla separada (multivalorado).\n- `descuento`: No se almacena (derivado)."
+        },
+        {
+          "id": "ex-04-4-2",
+          "title": "Atributos multivalorados",
+          "difficulty": "basic",
+          "description": "Un hotel tiene la entidad HABITACION:\n- ○ id (identificador)\n- ○ numero\n- ○ tipo (individual, doble, suite)\n- ○○ servicios (multivalorado: wifi, aire acondicionado, minibar, TV...)\n\nTransforma la entidad en tablas.",
+          "solution": "```sql\nCREATE TABLE habitaciones (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  numero VARCHAR(10) NOT NULL UNIQUE,\n  tipo VARCHAR(20) NOT NULL\n);\n\nCREATE TABLE habitacion_servicios (\n  id_habitacion INT,\n  servicio VARCHAR(50),\n  PRIMARY KEY (id_habitacion, servicio),\n  FOREIGN KEY (id_habitacion) REFERENCES habitaciones(id)\n);\n```\n\n**Regla aplicada:** Los atributos multivalorados siempre se separan en una tabla adicional con PK compuesta."
         }
       ]
     },
     {
       "id": "lesson-04-5",
-      "title": "Entidades débiles y restricciones semánticas",
+      "title": "Transformación de relaciones 1:1",
       "order": 5,
       "objectives": [
-        "Transformar entidades débiles a tablas",
-        "Identificar restricciones semánticas en el modelo relacional",
-        "Comprender las integridades del modelo relacional"
+        "Transformar relaciones 1:1 a estructura relacional",
+        "Decidir dónde colocar la clave foránea según la participación",
+        "Garantizar la unicidad de la relación con UNIQUE"
       ],
       "contentBlocks": [
         {
           "type": "text",
-          "content": "## Transformar entidades débiles\n\nUna entidad débil se convierte en tabla, pero su **clave primaria** se forma con:\n1. La clave foránea de la entidad fuerte (que también es FK).\n2. Un discriminador parcial.\n\n### Ejemplo: Línea de pedido\n\n```\n┌────────┐ 1    has    N  ┌─────────────┐\n│ PEDIDO ├══════════════▶║LINEA_PEDIDO║\n└────────┘               ╚═════════════╝\n```\n\n```sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\n-- Entidad débil: LINEA_PEDIDO\nCREATE TABLE lineas_pedido (\n  id_pedido INT,           -- FK de la entidad fuerte\n  n_linea INT,             -- Discriminador parcial\n  id_producto INT NOT NULL,\n  cantidad INT NOT NULL DEFAULT 1,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, n_linea),  -- Clave compuesta\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id),\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n);\n```\n\nLa clave primaria `(id_pedido, n_linea)` identifica cada línea de forma única dentro de su pedido."
+          "content": "## Transformar relaciones 1:1\n\nEn una relación **1:1**, cada instancia de A se asocia con como máximo una instancia de B, y viceversa.\n\n```\n┌──────────┐ 1    tiene   1  ┌──────────┐\n│ PROFESOR ├════════════════┤ DESPACHO │\n└──────────┘                └──────────┘\n```\n\n### ¿Dónde poner la clave foránea?\n\n| Situación | Solución |\n|---|---|\n| Ambas participaciones totales | Se pueden **fusionar** en una sola tabla |\n| Una participación total, otra parcial | La FK va en la tabla con **participación total** |\n| Ambas participaciones parciales | La FK va en **cualquiera** de las dos |\n\n> **Regla clave**: En relaciones 1:1, la FK siempre lleva **UNIQUE** para garantizar que no haya repetidos."
         },
         {
           "type": "text",
-          "content": "## Integridad del modelo relacional\n\nEl modelo relacional tiene **tres tipos de integridad** que deben cumplirse siempre:\n\n### 1. Integridad de entidad\n\n> Cada fila de una tabla debe ser **identificable de forma única** por su clave primaria.\n\n**En SQL:**\n```sql\n-- PRIMARY KEY garantiza unicidad y no nulidad\nPRIMARY KEY (id)\n```\n\n### 2. Integridad referencial\n\n> Los valores de una clave foránea deben corresponder a un valor existente en la tabla referenciada (o ser NULL si está permitido).\n\n**En SQL:**\n```sql\n-- FOREIGN KEY garantiza que el valor exista en la otra tabla\nFOREIGN KEY (id_profesor) REFERENCES profesores(id)\n```\n\n### 3. Integridad de dominio\n\n> Cada columna debe contener valores de un tipo de dato válido y dentro de un rango permitido.\n\n**En SQL:**\n```sql\n-- Tipos de datos, NOT NULL, CHECK, UNIQUE\nnota DECIMAL(4,2) CHECK (nota >= 0 AND nota <= 10)\nemail VARCHAR(100) UNIQUE NOT NULL\n```\n\n### Resumen visual\n\n```\n┌─────────────────────────────────────────────────────┐\n│              INTEGRIDAD DEL MODELO RELACIONAL       │\n├─────────────────────────────────────────────────────┤\n│                                                     │\n│  1. Entidad      → PRIMARY KEY                      │\n│  2. Referencial  → FOREIGN KEY                      │\n│  3. Dominio      → Tipos, CHECK, NOT NULL, UNIQUE   │\n│                                                     │\n└─────────────────────────────────────────────────────┘\n```"
-        },
-        {
-          "type": "text",
-          "content": "## Restricciones semánticas adicionales\n\nAdemás de las tres integridades, existen **restricciones semánticas** que dependen del contexto del negocio:\n\n| Restricción | Ejemplo | Implementación SQL |\n|---|---|---|\n| **Uniqueness** | Cada alumno tiene un email único | `UNIQUE(email)` |\n| **Cardinality** | Un alumno puede tener como máximo 6 asignaturas | Trigger o app |\n| **Participation** | Todo alumno tiene al menos una nota | Trigger o app |\n| **Temporal** | La fecha de fin no puede ser anterior a la de inicio | `CHECK(fecha_fin >= fecha_inicio)` |\n| **Business rule** | La nota máxima es 10 | `CHECK(nota <= 10)` |\n\n```sql\n-- Ejemplo completo de restricciones\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT NOT NULL,\n  id_asignatura INT NOT NULL,\n  nota DECIMAL(4,2) NOT NULL CHECK (nota >= 0 AND nota <= 10),\n  convocatoria VARCHAR(20) NOT NULL,\n  fecha_evaluacion DATE NOT NULL,\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```\n\n> **Importante**: Algunas restricciones semánticas complejas no se pueden expresar con CHECK o FOREIGN KEY. En esos casos se usan **triggers** (ver módulo 15) o se implementan en la capa de aplicación."
+          "content": "## Ejemplo: Profesor y Despacho\n\n### Caso 1: Ambas participaciones totales (fusión)\n\nTodo profesor tiene un despacho, y todo despacho tiene un profesor.\n\n```sql\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  numero_despacho VARCHAR(10) NOT NULL\n);\n```\n\n### Caso 2: Participación parcial (tablas separadas)\n\nUn profesor puede no tener despacho.\n\n```sql\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE despachos (\n  numero VARCHAR(10) PRIMARY KEY,\n  id_profesor INT UNIQUE,  -- UNIQUE porque es 1:1\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n```\n\n> **¿Por qué UNIQUE?** Sin UNIQUE, un profesor podría tener varios despachos (sería 1:N)."
         }
       ],
       "exercises": [
         {
           "id": "ex-04-5-1",
-          "title": "Modelo relacional completo",
+          "title": "Relación 1:1 con fusión",
+          "difficulty": "basic",
+          "description": "Una aplicación tiene USUARIO y PERFIL con relación 1:1:\n- Todo usuario tiene perfil (participación total)\n- Todo perfil pertenece a un usuario (participación total)\n\nCampos usuario: id, username, email, password\nCampos perfil: bio, foto_url, ubicacion, fecha_nacimiento\n\n¿Qué estrategia usarías? Diseña las tablas.",
+          "solution": "**Estrategia: Fusión** (ambas participaciones totales)\n\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  username VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL,\n  password_hash VARCHAR(255) NOT NULL,\n  bio TEXT,\n  foto_url VARCHAR(255),\n  ubicacion VARCHAR(100),\n  fecha_nacimiento DATE\n);\n```\n\n**Justificación:** Como todo usuario tiene perfil y todo perfil pertenece a un usuario, fusionar es la mejor opción: menos tablas, consultas más simples, no hay NULLs problemáticos."
+        },
+        {
+          "id": "ex-04-5-2",
+          "title": "Relación 1:1 separada",
+          "difficulty": "intermediate",
+          "description": "Un sistema de empleados tiene:\n- EMPLEADO: id, nombre, departamento\n- VEHICULO_OFICIAL: matricula, marca, modelo, color\n\nRelación 1:1: Un empleado puede tener un vehículo oficial. No todo empleado tiene vehículo.\n\nDiseña las tablas resultantes.",
+          "solution": "```sql\nCREATE TABLE empleados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  departamento VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE vehiculos_oficiales (\n  matricula VARCHAR(10) PRIMARY KEY,\n  marca VARCHAR(50) NOT NULL,\n  modelo VARCHAR(50) NOT NULL,\n  color VARCHAR(30),\n  id_empleado INT UNIQUE,\n  FOREIGN KEY (id_empleado) REFERENCES empleados(id)\n);\n```\n\n**¿Por qué tablas separadas?** Participación parcial: no todo empleado tiene vehículo. Si fusionáramos, habría columnas con NULL.\n\n**¿Por qué UNIQUE?** Garantiza que cada empleado tenga como máximo un vehículo."
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-6",
+      "title": "Transformación de relaciones 1:N",
+      "order": 6,
+      "objectives": [
+        "Transformar relaciones 1:N a estructura relacional",
+        "Colocar correctamente la clave foránea en el lado N",
+        "Comprender la relación entre participación y NULL"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Transformar relaciones 1:N\n\nEn una relación **1:N**, una instancia de A se asocia con varias de B, pero cada B se asocia con una sola A.\n\n### Regla fundamental\n\n**La clave foránea siempre va en el lado N** (el lado \"muchos\").\n\n```\n┌──────────┐ 1    tiene    N  ┌──────────┐\n│PROFESOR  ├════════════════┤ASIGNATURA│\n└──────────┘                 └──────────┘\n\n→ La FK (id_profesor) va en ASIGNATURA (el lado N)\n```\n\n### ¿Por qué la FK va en el lado N?\n\nSi la FK estuviera en el lado 1, un profesor solo podría impartir **una** asignatura. Con la FK en asignaturas, cada asignatura apunta a un profesor, pero un profesor puede ser apuntado por **varias** asignaturas."
+        },
+        {
+          "type": "text",
+          "content": "## Participación total vs parcial\n\nLa **participación** determina si la FK puede ser `NULL`:\n\n### Participación total del lado N\nTodo registro del lado N **debe** tener referencia. FK `NOT NULL`.\n\n```sql\n-- Todo libro debe tener un autor\nCREATE TABLE libros (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  id_autor INT NOT NULL,  -- NOT NULL\n  FOREIGN KEY (id_autor) REFERENCES autores(id)\n);\n```\n\n### Participación parcial del lado N\nUn registro del lado N **puede** no tener referencia. FK puede ser `NULL`.\n\n```sql\n-- Un producto puede no tener categoría\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  id_categoria INT,  -- NULL permitido\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n);\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-6-1",
+          "title": "Tres relaciones 1:N",
+          "difficulty": "intermediate",
+          "description": "Diseña las tablas de estas relaciones 1:N:\n1. Un Autor escribe Varios Libros (un libro tiene un solo autor)\n2. Un Cliente realiza Varios Pedidos (un pedido tiene un solo cliente)\n3. Una Categoría contiene Varios Productos (un producto pertenece a una categoría)\n\nJustifica dónde colocas la FK en cada caso.",
+          "solution": "```sql\n-- 1. Autor escribe Libros (1:N)\nCREATE TABLE autores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  nacionalidad VARCHAR(50)\n);\n\nCREATE TABLE libros (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  isbn VARCHAR(20) UNIQUE,\n  id_autor INT NOT NULL,\n  FOREIGN KEY (id_autor) REFERENCES autores(id)\n);\n\n-- 2. Cliente realiza Pedidos (1:N)\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  total DECIMAL(10,2),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\n-- 3. Categoría contiene Productos (1:N)\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL\n);\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  id_categoria INT,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n);\n```\n\n**Justificación:** En los 3 casos, la FK va en el lado N porque es la única forma de que una entidad del lado 1 pueda estar asociada a varias del lado N."
+        },
+        {
+          "id": "ex-04-6-2",
+          "title": "Participación total vs parcial",
+          "difficulty": "intermediate",
+          "description": "Para cada relación 1:N, indica si la FK debe ser NOT NULL o puede ser NULL:\n\n1. Un País contiene Varios Ciudadanos (todo ciudadano tiene país)\n2. Un Departamento tiene Varios Empleados (un empleado puede no tener departamento)\n3. Un Autor escribe Varios Libros (todo libro tiene autor)\n4. Un Proveedor suministra Varios Productos (un producto puede no tener proveedor)",
+          "solution": "**1. País → Ciudadanos**: `id_pais INT NOT NULL` — Participación total del lado N.\n\n**2. Departamento → Empleados**: `id_departamento INT` (NULL) — Participación parcial del lado N.\n\n**3. Autor → Libros**: `id_autor INT NOT NULL` — Participación total del lado N.\n\n**4. Proveedor → Productos**: `id_proveedor INT` (NULL) — Participación parcial del lado N.\n\n**Regla:** NOT NULL = participación total del lado N. NULL = participación parcial del lado N."
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-7",
+      "title": "Transformación de relaciones N:M",
+      "order": 7,
+      "objectives": [
+        "Transformar relaciones N:M a estructura relacional",
+        "Crear tablas intermedias (asociativas)",
+        "Establecer claves compuestas en la tabla intermedia",
+        "Manejar atributos propios de la relación"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Transformar relaciones N:M\n\nEn una relación **N:M**, una instancia de A se asocia con varias de B, y viceversa. **No se puede representar con una simple FK.**\n\n### Regla\n\n**Se crea una tabla intermedia** que contiene:\n- Las claves primarias de ambas tablas como claves foráneas.\n- La combinación de ambas como clave primaria compuesta.\n- Opcionalmente, atributos propios de la relación.\n\n```\n┌────────┐  N    se matricula   M  ┌──────────┐\n│ ALUMNO ├────────────────────────┤ASIGNATURA│\n└────────┘                        └──────────┘\n\n→ Se crea la tabla intermedia MATRICULAS:\n\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  fecha_matricula DATE,\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: Pedidos y Productos\n\n```\n┌─────────┐  N    contiene    M  ┌──────────┐\n│ PEDIDO  ├─────────────────────┤ PRODUCTO │\n└─────────┘                     └──────────┘\n```\n\n```sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL\n);\n\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cantidad INT NOT NULL DEFAULT 1,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, id_producto),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id),\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n);\n```\n\n> `precio_unitario` es un atributo propio de la relación. Se almacena porque el precio del producto puede cambiar, pero el precio del pedido debe permanecer fijo."
+        },
+        {
+          "type": "text",
+          "content": "## Resumen: Transformación de cardinalidades\n\n| Cardinalidad | Solución | FK en... |\n|---|---|---|\n| **1:1** | FK con UNIQUE | En la tabla con participación total, o en cualquiera si ambas son parciales |\n| **1:N** | FK en el lado N | En la tabla \"muchos\" |\n| **N:M** | Tabla intermedia | Tabla nueva con FK a ambas tablas |\n\n```\nprofesores (1) ──1:N──→ asignaturas\nalumnos (N) ──N:M──→ asignaturas  [a través de matriculas]\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-7-1",
+          "title": "Tabla intermedia N:M",
+          "difficulty": "intermediate",
+          "description": "En una red social, los Usuarios pueden ser Amigos entre sí (N:M). Un usuario puede tener muchos amigos y cada amigo puede tener muchos amigos. Diseña la tabla intermedia `amistades` con:\n- Atributo propio: fecha en que se estableció la amistad\n- Evitar duplicados (A-B = B-A)",
+          "solution": "```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL\n);\n\nCREATE TABLE amistades (\n  id_usuario_1 INT,\n  id_usuario_2 INT,\n  fecha_amistad DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_usuario_1, id_usuario_2),\n  FOREIGN KEY (id_usuario_1) REFERENCES usuarios(id),\n  FOREIGN KEY (id_usuario_2) REFERENCES usuarios(id),\n  CHECK (id_usuario_1 < id_usuario_2)\n);\n```\n\nEl `CHECK` evita que se inserte tanto (A,B) como (B,A). `fecha_amistad` es un atributo propio de la relación."
+        },
+        {
+          "id": "ex-04-7-2",
+          "title": "N:M con varios atributos",
           "difficulty": "hard",
-          "description": "Diseña el modelo relacional completo para una base de datos de una biblioteca con las siguientes entidades y relaciones:\n\n- **Socio**: id, nombre, email, teléfono (multivalorado)\n- **Libro**: id, título, isbn, editorial\n- **Autor**: id, nombre, nacionalidad\n- **Préstamo**: id, fecha_préstamo, fecha_devolución\n\nRelaciones:\n- Un socio puede tener varios libros prestados (1:N entre Socio y Préstamo)\n- Un libro puede estar en varios préstamos (N:M entre Libro y Préstamo)\n- Un libro puede tener varios autores (N:M entre Libro y Autor)\n- Un autor puede escribir varios libros (N:M)\n\nEscribe todas las sentencias CREATE TABLE.",
-          "solution": "```sql\nCREATE TABLE socios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL\n);\n\n-- Atributo multivalorado: teléfono\nCREATE TABLE socio_telefonos (\n  id_socio INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_socio, telefono),\n  FOREIGN KEY (id_socio) REFERENCES socios(id)\n);\n\nCREATE TABLE autores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  nacionalidad VARCHAR(50)\n);\n\nCREATE TABLE libros (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  isbn VARCHAR(20) UNIQUE NOT NULL,\n  editorial VARCHAR(100)\n);\n\n-- N:M entre Libro y Autor\nCREATE TABLE libro_autores (\n  id_libro INT,\n  id_autor INT,\n  PRIMARY KEY (id_libro, id_autor),\n  FOREIGN KEY (id_libro) REFERENCES libros(id),\n  FOREIGN KEY (id_autor) REFERENCES autores(id)\n);\n\n-- Préstamo: entidad débil de Socio (1:N)\nCREATE TABLE prestamos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_socio INT NOT NULL,\n  fecha_prestamo DATE NOT NULL DEFAULT (CURRENT_DATE),\n  fecha_devolucion DATE,\n  FOREIGN KEY (id_socio) REFERENCES socios(id),\n  CHECK (fecha_devolucion IS NULL OR fecha_devolucion >= fecha_prestamo)\n);\n\n-- N:M entre Préstamo y Libro (un préstamo puede incluir varios libros)\nCREATE TABLE prestamo_libros (\n  id_prestamo INT,\n  id_libro INT,\n  PRIMARY KEY (id_prestamo, id_libro),\n  FOREIGN KEY (id_prestamo) REFERENCES prestamos(id),\n  FOREIGN KEY (id_libro) REFERENCES libros(id)\n);\n```\n\n**Justificación de decisiones:**\n- `socio_telefonos`: Tabla separada por ser atributo multivalorado.\n- `libro_autores`: Tabla intermedia porque la relación Libro-Autor es N:M.\n- `prestamos`: FK `id_socio` con NOT NULL porque todo préstamo tiene un socio (participación total).\n- `prestamo_libros`: Tabla intermedia porque un préstamo puede incluir varios libros y un libro puede estar en varios préstamos.\n- `CHECK`: La fecha de devolución no puede ser anterior a la de préstamo."
+          "description": "Un sistema de gestión de proyectos tiene:\n- PROYECTO: id, nombre, fecha_inicio\n- EMPLEADO: id, nombre, departamento\n\nRelación N:M \"trabaja_en\" con atributos: horas_semanales, rol (líder, desarrollador, tester), fecha_asignación.\n\nDiseña todas las tablas necesarias.",
+          "solution": "```sql\nCREATE TABLE proyectos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  fecha_inicio DATE NOT NULL\n);\n\nCREATE TABLE empleados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  departamento VARCHAR(50)\n);\n\nCREATE TABLE trabaja_en (\n  id_empleado INT,\n  id_proyecto INT,\n  horas_semanales INT NOT NULL CHECK (horas_semanales > 0),\n  rol VARCHAR(30) NOT NULL,\n  fecha_asignacion DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_empleado, id_proyecto),\n  FOREIGN KEY (id_empleado) REFERENCES empleados(id),\n  FOREIGN KEY (id_proyecto) REFERENCES proyectos(id)\n);\n```\n\n**PK compuesta** `(id_empleado, id_proyecto)` garantiza que un empleado no esté asignado dos veces al mismo proyecto. Los atributos `horas_semanales`, `rol` y `fecha_asignación` son propios de la relación."
+        },
+        {
+          "id": "ex-04-7-3",
+          "title": "Comparar cardinalidades",
+          "difficulty": "hard",
+          "description": "Un sistema de biblioteca tiene estas relaciones:\n1. BIBLIOTECA → contiene → LIBRO (1:N)\n2. LECTOR → solicita → LIBRO (N:M, con fecha_solicitud y fecha_devolucion)\n3. AUTOR → escribe → LIBRO (N:M)\n\nDiseña el esquema completo con todas las tablas y relaciones.",
+          "solution": "```sql\nCREATE TABLE bibliotecas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  direccion VARCHAR(200)\n);\n\nCREATE TABLE libros (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  isbn VARCHAR(20) UNIQUE,\n  id_biblioteca INT,\n  FOREIGN KEY (id_biblioteca) REFERENCES bibliotecas(id)\n);\n\nCREATE TABLE lectores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE autores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  nacionalidad VARCHAR(50)\n);\n\nCREATE TABLE solicitudes (\n  id_lector INT,\n  id_libro INT,\n  fecha_solicitud DATE DEFAULT (CURRENT_DATE),\n  fecha_devolucion DATE,\n  PRIMARY KEY (id_lector, id_libro, fecha_solicitud),\n  FOREIGN KEY (id_lector) REFERENCES lectores(id),\n  FOREIGN KEY (id_libro) REFERENCES libros(id)\n);\n\nCREATE TABLE libro_autores (\n  id_libro INT,\n  id_autor INT,\n  PRIMARY KEY (id_libro, id_autor),\n  FOREIGN KEY (id_libro) REFERENCES libros(id),\n  FOREIGN KEY (id_autor) REFERENCES autores(id)\n);\n```\n\n**Decisiones:**\n1. **1:N**: FK `id_biblioteca` en `libros`.\n2. **N:M Lector↔Libro**: Tabla `solicitudes` con PK triple (permite solicitar el mismo libro en diferentes fechas).\n3. **N:M Autor↔Libro**: Tabla `libro_autores` sin atributos adicionales."
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-8",
+      "title": "Transformación de entidades débiles",
+      "order": 8,
+      "objectives": [
+        "Identificar entidades débiles en un diagrama E/R",
+        "Transformar entidades débiles en tablas con clave compuesta",
+        "Comprender la dependencia total con la entidad fuerte"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una entidad débil?\n\nUna **entidad débil** es una entidad que **no puede existir sin otra entidad** (la entidad fuerte). No tiene clave propia.\n\n### Características\n- **No tiene clave propia**: Usa una parte de la clave de la entidad fuerte + un discriminador.\n- **Dependencia total**: No puede existir sin la entidad fuerte.\n- **Identificada por combinación**: Clave de la entidad fuerte + discriminador.\n\n```\nEntidad fuerte          Entidad débil\n┌────────────┐         ╔═════════════╗\n│ PEDIDO     │  1  N   ║LINEA_PEDIDO║\n│ ○ id       ├════════▶╚═════════════╝\n│ ○ fecha    │         ║ ○ n_linea   ║\n└────────────┘         ║ ○ cantidad  ║\n                       ╚═════════════╝\n```\n\n### Ejemplos comunes\n\n| Entidad fuerte | Entidad débil | Discriminador |\n|---|---|---|\n| Pedido | Línea de pedido | Número de línea |\n| Factura | Línea de factura | Número de línea |\n| Examen | Pregunta del examen | Número de pregunta |"
+        },
+        {
+          "type": "text",
+          "content": "## Transformación de entidades débiles\n\nUna entidad débil se convierte en tabla con **PK compuesta**:\n1. La clave foránea de la entidad fuerte.\n2. Un discriminador parcial.\n\n```sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\n-- Entidad débil: LINEA_PEDIDO\nCREATE TABLE lineas_pedido (\n  id_pedido INT,           -- FK de la entidad fuerte\n  n_linea INT,             -- Discriminador\n  id_producto INT NOT NULL,\n  cantidad INT NOT NULL DEFAULT 1,\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, n_linea),  -- PK compuesta\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id),\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n);\n```\n\nLa PK `(id_pedido, n_linea)` identifica cada línea **dentro de su pedido**."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-8-1",
+          "title": "Entidad débil en biblioteca",
+          "difficulty": "intermediate",
+          "description": "En una biblioteca:\n- PRESTAMO: entidad fuerte con id, fecha_prestamo, fecha_devolucion\n- EJEMPLAR: entidad débil de PRESTAMO, con n_ejemplar (discriminador), estado\n\nUn préstamo puede incluir varios ejemplares. Cada ejemplar se identifica por el préstamo + su número.\n\nDiseña las tablas resultantes.",
+          "solution": "```sql\nCREATE TABLE prestamos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha_prestamo DATE NOT NULL DEFAULT (CURRENT_DATE),\n  fecha_devolucion DATE,\n  id_socio INT NOT NULL,\n  FOREIGN KEY (id_socio) REFERENCES socios(id)\n);\n\nCREATE TABLE ejemplares_prestamo (\n  id_prestamo INT,\n  n_ejemplar INT,\n  id_libro INT NOT NULL,\n  estado VARCHAR(20) DEFAULT 'bueno',\n  PRIMARY KEY (id_prestamo, n_ejemplar),\n  FOREIGN KEY (id_prestamo) REFERENCES prestamos(id),\n  FOREIGN KEY (id_libro) REFERENCES libros(id)\n);\n```\n\nPK compuesta: `(id_prestamo, n_ejemplar)` — cada ejemplar se identifica por su préstamo + número."
+        },
+        {
+          "id": "ex-04-8-2",
+          "title": "Entidad débil en examen",
+          "difficulty": "hard",
+          "description": "Un sistema de exámenes online tiene:\n- EXAMEN: id, titulo, fecha, duracion_minutos\n- PREGUNTA: entidad débil de EXAMEN, con enunciado, tipo (test/abierta), puntos\n\nDiseña las tablas. Cada pregunta se identifica por el examen + su número.",
+          "solution": "```sql\nCREATE TABLE examenes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  fecha DATE NOT NULL,\n  duracion_minutos INT NOT NULL CHECK (duracion_minutos > 0)\n);\n\nCREATE TABLE preguntas (\n  id_examen INT,\n  n_pregunta INT,\n  enunciado TEXT NOT NULL,\n  tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('test', 'abierta')),\n  puntos INT NOT NULL DEFAULT 1 CHECK (puntos > 0),\n  PRIMARY KEY (id_examen, n_pregunta),\n  FOREIGN KEY (id_examen) REFERENCES examenes(id)\n);\n\nCREATE TABLE opciones_respuesta (\n  id_examen INT,\n  n_pregunta INT,\n  n_opcion INT,\n  texto TEXT NOT NULL,\n  es_correcta BOOLEAN DEFAULT FALSE,\n  PRIMARY KEY (id_examen, n_pregunta, n_opcion),\n  FOREIGN KEY (id_examen, n_pregunta) REFERENCES preguntas(id_examen, n_pregunta)\n);\n```\n\n**Cascada de claves:** `opciones_respuesta` referencia a `preguntas` con FK compuesta. Si se borra un examen, se borran sus preguntas y opciones."
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-9",
+      "title": "Relaciones recursivas",
+      "order": 9,
+      "objectives": [
+        "Identificar relaciones recursivas en un diagrama E/R",
+        "Transformar relaciones recursivas 1:N con FK autoreferenciada",
+        "Transformar relaciones recursivas N:M con tabla intermedia",
+        "Resolver jerarquías con clave foránea autoreferenciada"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una relación recursiva?\n\nUna **relación recursiva** es una relación donde **una entidad se relaciona consigo misma**.\n\n```\n┌──────────┐                    ┌──────────┐\n│ EMPLEADO │───1:N───┐         │ EMPLEADO │\n└──────────┘         └────────▶└──────────┘\n         Un empleado supervisa a varios empleados\n```\n\n### Ejemplos comunes\n\n| Entidad | Relación recursiva | Cardinalidad |\n|---|---|---|\n| EMPLEADO | supervisa a | 1:N |\n| CATEGORIA | contiene subcategorías | 1:N |\n| PERSONA | es padre/madre de | 1:N |\n| USUARIO | sigue a | N:M |\n| FORO | responde a (hilo) | 1:N |"
+        },
+        {
+          "type": "text",
+          "content": "## Transformación de relación recursiva 1:N\n\nSe añade una **clave foránea autoreferenciada** que apunta a la misma tabla.\n\n```sql\nCREATE TABLE empleados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  puesto VARCHAR(50),\n  id_supervisor INT,  -- FK que apunta a la misma tabla\n  FOREIGN KEY (id_supervisor) REFERENCES empleados(id)\n);\n```\n\n```\nempleados\n┌────┬─────────┬────────────┬──────────────┐\n│ id │ nombre  │ puesto     │ id_supervisor│\n├────┼─────────┼────────────┼──────────────┤\n│  1 │ Ana     │ Director   │ NULL         │  ← No tiene supervisor\n│  2 │ Luis    │ Jefe equipo│ 1            │  ← Supervisado por Ana\n│  3 │ María   │ Jefe equipo│ 1            │  ← Supervisado por Ana\n│  4 │ Carlos  │ Dev        │ 2            │  ← Supervisado por Luis\n└────┴─────────┴────────────┴──────────────┘\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Transformación de relación recursiva N:M\n\nSe crea una **tabla intermedia** que apunta dos veces a la misma tabla.\n\n### Ejemplo: Usuarios que siguen a otros usuarios\n\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL\n);\n\nCREATE TABLE seguidores (\n  id_usuario_sigue INT,\n  id_usuario_seguido INT,\n  fecha_seguimiento DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_usuario_sigue, id_usuario_seguido),\n  FOREIGN KEY (id_usuario_sigue) REFERENCES usuarios(id),\n  FOREIGN KEY (id_usuario_seguido) REFERENCES usuarios(id),\n  CHECK (id_usuario_sigue != id_usuario_seguido)\n);\n```\n\n> **Nota**: El `CHECK` evita que un usuario se siga a sí mismo."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-9-1",
+          "title": "Relación recursiva 1:N",
+          "difficulty": "intermediate",
+          "description": "Un sistema de categorías de productos tiene:\n- CATEGORIA: id, nombre, descripcion\n- Una categoría puede contener varias subcategorías (1:N recursiva)\n\nDiseña la tabla de categorías con la relación recursiva.",
+          "solution": "```sql\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  descripcion TEXT,\n  id_categoria_padre INT,\n  FOREIGN KEY (id_categoria_padre) REFERENCES categorias(id)\n);\n```\n\n**Ejemplo:**\n```\nElectrónica (1)\n├── Móviles (2)\n│   ├── Smartphones (4)\n│   └── Feature phones (5)\n└── Portátiles (3)\n    └── Gaming (6)\n```"
+        },
+        {
+          "id": "ex-04-9-2",
+          "title": "Relación recursiva N:M",
+          "difficulty": "intermediate",
+          "description": "Un foro de discusión tiene:\n- HILO: id, titulo, contenido, fecha_creacion\n- Un hilo puede referenciar otros hilos (N:M recursiva)\n\nDiseña la tabla de hilos y la tabla intermedia de referencias.",
+          "solution": "```sql\nCREATE TABLE hilos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  contenido TEXT NOT NULL,\n  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n  id_autor INT NOT NULL,\n  FOREIGN KEY (id_autor) REFERENCES usuarios(id)\n);\n\nCREATE TABLE referencias_hilos (\n  id_hilo_origen INT,\n  id_hilo_referenciado INT,\n  PRIMARY KEY (id_hilo_origen, id_hilo_referenciado),\n  FOREIGN KEY (id_hilo_origen) REFERENCES hilos(id),\n  FOREIGN KEY (id_hilo_referenciado) REFERENCES hilos(id),\n  CHECK (id_hilo_origen != id_hilo_referenciado)\n);\n```"
+        },
+        {
+          "id": "ex-04-9-3",
+          "title": "Jerarquía completa",
+          "difficulty": "hard",
+          "description": "Un organigrama empresarial tiene:\n- EMPLEADO: id, nombre, puesto, salario\n- Un empleado puede tener un supervisor (1:N recursiva)\n- Solo el director (id=1) no tiene supervisor\n\nDiseña la tabla y escribe las consultas para:\na) Encontrar el supervisor de un empleado\nb) Encontrar todos los subordinados de un empleado",
+          "solution": "```sql\nCREATE TABLE empleados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  puesto VARCHAR(50),\n  salario DECIMAL(10,2),\n  id_supervisor INT,\n  FOREIGN KEY (id_supervisor) REFERENCES empleados(id)\n);\n```\n\n**a) Supervisor de un empleado:**\n```sql\nSELECT e.nombre AS empleado, s.nombre AS supervisor\nFROM empleados e\nLEFT JOIN empleados s ON e.id_supervisor = s.id\nWHERE e.id = 4;\n```\n\n**b) Subordinados directos:**\n```sql\nSELECT e.nombre AS empleado, s.nombre AS subordinado\nFROM empleados e\nLEFT JOIN empleados s ON s.id_supervisor = e.id\nWHERE e.id = 2;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-10",
+      "title": "Relaciones ternarias",
+      "order": 10,
+      "objectives": [
+        "Identificar relaciones ternarias y de más de dos entidades",
+        "Transformar relaciones ternarias en tablas del modelo relacional",
+        "Comprender cuándo una relación ternaria no se puede descomponer",
+        "Diseñar tablas intermedias para relaciones de múltiples extremos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una relación ternaria?\n\nUna **relación ternaria** conecta **tres entidades** simultáneamente. No es lo mismo que dos relaciones binarias separadas.\n\n```\n┌──────────┐\n│ PROFESOR │\n└────┬─────┘\n     │ imparte\n┌────┴─────┐     ┌──────────┐\n│ASIGNATURA├─────┤  ALUMNO  │\n└──────────┘     └──────────┘\n```\n\n### ¿Por qué no son dos relaciones binarias?\n\nSi separáramos en PROFESOR imparte ASIGNATURA (1:N) y ALUMNO se matricula en ASIGNATURA (N:M), perderíamos la información de **qué profesor imparte qué asignatura a qué alumno específico**."
+        },
+        {
+          "type": "text",
+          "content": "## Transformación de relación ternaria\n\nUna relación ternaria se transforma en una **tabla intermedia** con las claves primarias de las tres entidades.\n\n```sql\nCREATE TABLE imparte (\n  id_profesor INT,\n  id_asignatura INT,\n  id_alumno INT,\n  PRIMARY KEY (id_profesor, id_asignatura, id_alumno),\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\nLas relaciones ternarias pueden tener **atributos propios**:\n\n```sql\nCREATE TABLE suministros (\n  id_proveedor INT,\n  id_producto INT,\n  id_tienda INT,\n  cantidad INT NOT NULL CHECK (cantidad > 0),\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_proveedor, id_producto, id_tienda),\n  FOREIGN KEY (id_proveedor) REFERENCES proveedores(id),\n  FOREIGN KEY (id_producto) REFERENCES productos(id),\n  FOREIGN KEY (id_tienda) REFERENCES tiendas(id)\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cuándo usar ternarias vs binarias?\n\n**Regla práctica**: Si puedes eliminar una de las tres entidades y la relación todavía tiene sentido, entonces **no es ternaria** — son relaciones binarias separadas.\n\n```\nSi elimino ALUMNO, ¿tiene sentido \"PROFESOR imparte ASIGNATURA\"?\n→ Sí → Probablemente son dos relaciones binarias\n\nSi elimino ALUMNO, ¿tiene sentido \"PROFESOR imparte ASIGNATURA a [nadie]\"?\n→ No → Es una relación ternaria real\n```\n\n| Situación | Modelo | Ejemplo |\n|---|---|---|\n| La relación conecta 3 entidades de forma atómica | Ternaria | Profesor imparte Asignatura a Alumno |\n| Las relaciones son independientes | Dos binarias | Profesor imparte Asignatura + Alumno se matricula en Asignatura |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-10-1",
+          "title": "Relación ternaria simple",
+          "difficulty": "intermediate",
+          "description": "Un sistema de voluntariado tiene:\n- VOLUNTARIO: id, nombre, especialidad\n- PROYECTO: id, nombre, fecha_inicio\n- TAREA: id, descripcion, prioridad\n\nRelación ternaria: VOLUNTARIO ejecuta TAREA en PROYECTO\n\nDiseña las tablas necesarias.",
+          "solution": "```sql\nCREATE TABLE voluntarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  especialidad VARCHAR(50)\n);\n\nCREATE TABLE proyectos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  fecha_inicio DATE NOT NULL\n);\n\nCREATE TABLE tareas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  descripcion TEXT NOT NULL,\n  prioridad VARCHAR(20) DEFAULT 'media'\n);\n\nCREATE TABLE ejecuta (\n  id_voluntario INT,\n  id_proyecto INT,\n  id_tarea INT,\n  horas_dedicadas DECIMAL(5,2),\n  fecha_ejecucion DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_voluntario, id_proyecto, id_tarea),\n  FOREIGN KEY (id_voluntario) REFERENCES voluntarios(id),\n  FOREIGN KEY (id_proyecto) REFERENCES proyectos(id),\n  FOREIGN KEY (id_tarea) REFERENCES tareas(id)\n);\n```\n\n**¿Por qué es ternaria?** Porque la relación \"ejecuta\" conecta las tres entidades de forma atómica. No tiene sentido que un voluntario ejecute una tarea sin especificar en qué proyecto."
+        },
+        {
+          "id": "ex-04-10-2",
+          "title": "Ternaria vs binarias",
+          "difficulty": "hard",
+          "description": "Un hospital tiene:\n- MEDICO: id, nombre, especialidad\n- PACIENTE: id, nombre, fecha_nacimiento\n- TRATAMIENTO: id, nombre, duracion_dias\n\nConsidera:\nA) Un médico prescribe un tratamiento a un paciente (relación ternaria)\nB) Un médico puede prescribir varios tratamientos (1:N) y un paciente puede recibir varios tratamientos (N:M)\n\n¿Cuándo es ternaria y cuándo son binarias? Diseña ambas opciones.",
+          "solution": "**Situación A: Relación ternaria**\nCuando la información clave es \"qué médico prescribe qué tratamiento a qué paciente\" como unidad atómica.\n\n```sql\nCREATE TABLE prescripciones (\n  id_medico INT,\n  id_paciente INT,\n  id_tratamiento INT,\n  fecha_prescripcion DATE DEFAULT (CURRENT_DATE),\n  dosis VARCHAR(100),\n  PRIMARY KEY (id_medico, id_paciente, id_tratamiento),\n  FOREIGN KEY (id_medico) REFERENCES medicos(id),\n  FOREIGN KEY (id_paciente) REFERENCES pacientes(id),\n  FOREIGN KEY (id_tratamiento) REFERENCES tratamientos(id)\n);\n```\n\n**Situación B: Dos relaciones binarias**\nCuando las relaciones son independientes.\n\n```sql\nCREATE TABLE prescripciones_medico (\n  id_medico INT,\n  id_tratamiento INT,\n  protocolo TEXT,\n  PRIMARY KEY (id_medico, id_tratamiento),\n  FOREIGN KEY (id_medico) REFERENCES medicos(id),\n  FOREIGN KEY (id_tratamiento) REFERENCES tratamientos(id)\n);\n\nCREATE TABLE tratamiento_paciente (\n  id_paciente INT,\n  id_tratamiento INT,\n  fecha_inicio DATE,\n  fecha_fin DATE,\n  PRIMARY KEY (id_paciente, id_tratamiento),\n  FOREIGN KEY (id_paciente) REFERENCES pacientes(id),\n  FOREIGN KEY (id_tratamiento) REFERENCES trattamientos(id)\n);\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-11",
+      "title": "Generalización y especialización",
+      "order": 11,
+      "objectives": [
+        "Identificar jerarquías de generalización/especialización en E/R",
+        "Transformar jerarquías en tablas del modelo relacional",
+        "Distinguir entre disjoint y overlapping",
+        "Elegir entre las estrategias de transformación"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es generalización/especialización?\n\nLa **generalización** va de lo específico a lo general. La **especialización** va de lo general a lo específico.\n\n```\n┌──────────┐\n│ PERSONA  │  ← Superclase\n└────┬─────┘\n     ├──── ALUMNO  ← Subclase 1\n     └──── PROFESOR ← Subclase 2\n```\n\n### Ejemplos comunes\n\n| Superclase | Subclases | Atributos comunes | Atributos específicos |\n|---|---|---|---|\n| PERSONA | ALUMNO, PROFESOR | id, nombre, email | nota_media, departamento |\n| VEHICULO | COCHE, MOTO | id, marca, modelo | num_puertas, cilindrada |\n| CUENTA | AHORRO, CORRIENTE | id, saldo, titular | tipo_interes, descubierto |"
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de restricciones\n\n### Disjoint vs Overlapping\n- **Disjoint**: Una instancia puede pertenecer a **una sola** subclase.\n- **Overlapping**: Una instancia puede pertenecer a **varias** subclases.\n\n### Total vs Parcial\n- **Total**: Toda instancia de la superclase **debe** pertenecer a alguna subclase.\n- **Parcial**: Una instancia **puede** no pertenecer a ninguna subclase."
+        },
+        {
+          "type": "text",
+          "content": "## Estrategia 1: Tabla única (table-per-hierarchy)\n\nUna sola tabla con todas las columnas. Se añade un discriminador.\n\n```sql\nCREATE TABLE personas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL,\n  tipo_persona VARCHAR(20) NOT NULL,\n  nota_media DECIMAL(4,2),\n  fecha_inscripcion DATE,\n  departamento VARCHAR(50),\n  salario DECIMAL(10,2)\n);\n```\n\n**Ventaja**: Consultas simples (sin JOINs).\n**Desventaja**: Muchos NULLs, difícil de mantener."
+        },
+        {
+          "type": "text",
+          "content": "## Estrategia 2: Tablas por subclase (table-per-type)\n\nUna tabla para la superclase y una para cada subclase.\n\n```sql\nCREATE TABLE personas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL\n);\n\nCREATE TABLE alumnos (\n  id_persona INT PRIMARY KEY,\n  nota_media DECIMAL(4,2),\n  fecha_inscripcion DATE,\n  FOREIGN KEY (id_persona) REFERENCES personas(id)\n);\n\nCREATE TABLE profesores (\n  id_persona INT PRIMARY KEY,\n  departamento VARCHAR(50),\n  salario DECIMAL(10,2),\n  FOREIGN KEY (id_persona) REFERENCES personas(id)\n);\n```\n\n**Ventaja**: Sin NULLs, fácil de extender.\n**Desventaja**: Consultas más complejas (JOINs).\n\n> **Recomendación**: Para la mayoría de casos, la **estrategia 2** es la más limpia y mantenible."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-11-1",
+          "title": "Generalización en academia",
+          "difficulty": "intermediate",
+          "description": "Una academia tiene la jerarquía:\n\nPERSONA (superclase): id, nombre, email, telefono\n├── ALUMNO (subclase): nota_media, fecha_inscripcion, beca\n└── PROFESOR (subclase): departamento, salario, fecha_contratacion\n\nRestricción: Disjoint\n\nDiseña las tablas usando la estrategia de tablas por subclase.",
+          "solution": "```sql\nCREATE TABLE personas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL,\n  telefono VARCHAR(20)\n);\n\nCREATE TABLE alumnos (\n  id_persona INT PRIMARY KEY,\n  nota_media DECIMAL(4,2),\n  fecha_inscripcion DATE DEFAULT (CURRENT_DATE),\n  beca BOOLEAN DEFAULT FALSE,\n  FOREIGN KEY (id_persona) REFERENCES personas(id)\n);\n\nCREATE TABLE profesores (\n  id_persona INT PRIMARY KEY,\n  departamento VARCHAR(50) NOT NULL,\n  salario DECIMAL(10,2) NOT NULL,\n  fecha_contratacion DATE DEFAULT (CURRENT_DATE),\n  FOREIGN KEY (id_persona) REFERENCES personas(id)\n);\n```\n\n**Justificación:** Disjoint = cada persona pertenece a una sola subclase. Sin NULLs porque los atributos están en tablas separadas."
+        },
+        {
+          "id": "ex-04-11-2",
+          "title": "Estrategia única vs múltiple",
+          "difficulty": "hard",
+          "description": "Una empresa tiene:\n- EMPLEADO (superclase): id, nombre, salario\n├── ADMINISTRATIVO (subclase): turno, oficina\n└── TECNICO (subclase): certificacion, herramientas\n\nRestricción: Overlapping (un empleado puede ser administrativo Y técnico)\n\nDiseña las tablas usando ambas estrategias y compara.",
+          "solution": "**Estrategia 1: Tabla única**\n```sql\nCREATE TABLE empleados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  salario DECIMAL(10,2) NOT NULL,\n  es_administrativo BOOLEAN DEFAULT FALSE,\n  es_tecnico BOOLEAN DEFAULT FALSE,\n  turno VARCHAR(20),\n  oficina VARCHAR(50),\n  certificacion VARCHAR(100),\n  herramientas TEXT\n);\n```\n\n**Estrategia 2: Tablas por subclase**\n```sql\nCREATE TABLE empleados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  salario DECIMAL(10,2) NOT NULL\n);\n\nCREATE TABLE administrativos (\n  id_empleado INT PRIMARY KEY,\n  turno VARCHAR(20),\n  oficina VARCHAR(50),\n  FOREIGN KEY (id_empleado) REFERENCES empleados(id)\n);\n\nCREATE TABLE tecnicos (\n  id_empleado INT PRIMARY KEY,\n  certificacion VARCHAR(100),\n  herramientas TEXT,\n  FOREIGN KEY (id_empleado) REFERENCES empleados(id)\n);\n```\n\n**Comparación:**\n- **Tabla única**: Un empleado overlap puede tener ambos conjuntos de atributos. Pero genera NULLs para atributos no aplicables.\n- **Tablas por subclase**: Más limpio. Un empleado puede tener registros en ambas tablas (overlap). Sin NULLs.\n- **Recomendación**: Tablas por subclase es mejor para overlapping porque mantiene la integridad por tipo."
+        }
+      ]
+    },
+    {
+      "id": "lesson-04-12",
+      "title": "Caso práctico completo y repaso",
+      "order": 12,
+      "objectives": [
+        "Integrar todos los conceptos del módulo en un caso práctico",
+        "Diseñar un esquema relacional completo a partir de un diagrama E/R",
+        "Tomar decisiones de diseño justificadas",
+        "Repasar las reglas de transformación de cada tipo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Caso práctico: Sistema de gestión académica\n\nVamos a diseñar el modelo relacional completo para una academia. Primero, el diagrama E/R:\n\n```\n┌──────────┐                    ┌────────────┐\n│ DEPARTAM.│───1:N──────────────┤ PROFESOR   │\n└──────────┘                    └─────┬──────┘\n                                      │ imparte (1:N)\n┌──────────┐  N    matriculado   M  ┌──┴────────┐\n│ ALUMNO   ├──────────────────────┤ASIGNATURA │\n└──────────┘                       └───────────┘\n     │                                     │\n     │ N:M (notas)                         │ N:M (prerrequisitos)\n     │                                     │\n┌────┴─────────┐                    ┌──────┴────────┐\n│NOTA          │                    │PRERREQUISITO  │\n│(atributos:   │                    │(atributos:    │\n│ nota, fecha) │                    │ nota_minima)  │──────────────────────────────────┘\n\nEntidad débil: HORARIO (de ASIGNATURA)\n- ○ dia_semana\n- ○ hora_inicio\n- ○ hora_fin\n- ○ aula\n```\n\n### Entidades y sus atributos:\n- **DEPARTAMENTO**: id, nombre, edificio\n- **PROFESOR**: id, nombre, email, especialidad\n- **ALUMNO**: id, nombre, email, fecha_nacimiento, ○○ telefono (multivalorado)\n- **ASIGNATURA**: id, nombre, creditos\n- **NOTA**: id_alumno, id_asignatura, nota, fecha_evaluacion, convocatoria\n- **HORARIO** (débil): dia_semana, hora_inicio, hora_fin, aula"
+        },
+        {
+          "type": "text",
+          "content": "## Solución completa\n\n### Paso 1: Entidades fuertes\n\n```sql\nCREATE TABLE departamentos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  edificio VARCHAR(50)\n);\n\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL,\n  especialidad VARCHAR(50),\n  id_departamento INT,\n  FOREIGN KEY (id_departamento) REFERENCES departamentos(id)\n);\n\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL,\n  fecha_nacimiento DATE\n);\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  creditos DECIMAL(4,2) NOT NULL,\n  id_profesor INT,\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "### Paso 2: Relaciones y entidades débiles\n\n```sql\n-- Atributo multivalorado de ALUMNO\nCREATE TABLE alumno_telefonos (\n  id_alumno INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_alumno, telefono),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n\n-- Relación N:M: ALUMNO matriculado en ASIGNATURA\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  fecha_matricula DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n\n-- Relación N:M: NOTA (con atributos propios)\nCREATE TABLE notas (\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2) NOT NULL CHECK (nota >= 0 AND nota <= 10),\n  fecha_evaluacion DATE NOT NULL,\n  convocatoria VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_alumno, id_asignatura, convocatoria),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n\n-- Entidad débil: HORARIO de ASIGNATURA\nCREATE TABLE horarios (\n  id_asignatura INT,\n  dia_semana VARCHAR(10) NOT NULL,\n  hora_inicio TIME NOT NULL,\n  hora_fin TIME NOT NULL,\n  aula VARCHAR(20) NOT NULL,\n  PRIMARY KEY (id_asignatura, dia_semana, hora_inicio),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id),\n  CHECK (hora_fin > hora_inicio)\n);\n\n-- Relación N:M recursiva: PRERREQUISITO\nCREATE TABLE prerrequisitos (\n  id_asignatura INT,\n  id_prerrequisito INT,\n  nota_minima DECIMAL(4,2) DEFAULT 5.0,\n  PRIMARY KEY (id_asignatura, id_prerrequisito),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id),\n  FOREIGN KEY (id_prerrequisito) REFERENCES asignaturas(id),\n  CHECK (id_asignatura != id_prerrequisito)\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Repaso: Reglas de transformación\n\n| Elemento E/R | Transformación | Ejemplo |\n|---|---|---|\n| Entidad fuerte | Tabla con PK simple | `alumnos(id, nombre)` |\n| Atributo simple | Columna | `nombre VARCHAR(100)` |\n| Atributo compuesto | Columnas separadas | `calle, ciudad, cp` |\n| Atributo multivalorado | Tabla separada | `alumno_telefonos(id_alumno, telefono)` |\n| Atributo derivado | No se almacena | Se calcula con consulta |\n| Identificador | PRIMARY KEY | `id INT PRIMARY KEY` |\n| Relación 1:1 | FK con UNIQUE | `id_profesor INT UNIQUE` |\n| Relación 1:N | FK en el lado N | `id_profesor INT` en `asignaturas` |\n| Relación N:M | Tabla intermedia | `matriculas(id_alumno, id_asignatura)` |\n| Entidad débil | PK compuesta | `horarios(id_asignatura, dia, hora)` |\n| Relación recursiva 1:N | FK autoreferenciada | `id_supervisor INT` |\n| Relación recursiva N:M | Tabla intermedia | `seguidores(id_sigue, id_seguido)` |\n| Relación ternaria | Tabla intermedia 3 FKs | `imparte(prof, asig, alum)` |\n| Generalización | Tabla única o por subclase | Según contexto |"
+        },
+        {
+          "type": "text",
+          "content": "## Checklist de diseño relacional\n\nAntes de finalizar un diseño, verifica:\n\n1. **¿Cada entidad fuerte tiene su tabla?** ✓\n2. **¿Los atributos multivalorados tienen tabla separada?** ✓\n3. **¿Los atributos derivados NO se almacenan?** ✓\n4. **¿Las relaciones 1:1 tienen FK con UNIQUE?** ✓\n5. **¿Las relaciones 1:N tienen FK en el lado N?** ✓\n6. **¿Las relaciones N:M tienen tabla intermedia?** ✓\n7. **¿Las entidades débiles tienen PK compuesta?** ✓\n8. **¿Las relaciones recursivas tienen FK autoreferenciada o tabla intermedia?** ✓\n9. **¿Las relaciones ternarias tienen tabla intermedia con 3 FKs?** ✓\n10. **¿Los nombres son consistentes (snake_case, plurales)?** ✓\n11. **¿Las claves primarias son estables (surrogate)?** ✓\n12. **¿La integridad referencial está definida?** ✓"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-04-12-1",
+          "title": "Modelo relacional completo: tienda online",
+          "difficulty": "hard",
+          "description": "Diseña el modelo relacional completo para una tienda online con:\n\nEntidades:\n- CLIENTE: id, nombre, email, ○○ telefono (multivalorado)\n- PRODUCTO: id, nombre, precio, stock, ○○ etiquetas (multivalorado)\n- CATEGORIA: id, nombre, ○○ subcategorias (1:N recursiva)\n- PEDIDO: id, fecha, estado\n- LINEA_PEDIDO (débil de PEDIDO): n_linea, cantidad, precio_unitario\n\nRelaciones:\n- CLIENTE realiza PEDIDO (1:N)\n- PEDIDO contiene PRODUCTO (N:M, con cantidad y precio_unitario)\n- PRODUCTO pertenece a CATEGORIA (1:N)\n- Un PRODUCTO puede tener PRODUCTOS RELACIONADOS (N:M recursiva)\n\nEscribe todas las sentencias CREATE TABLE.",
+          "solution": "```sql\n-- Entidades fuertes\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  email VARCHAR(100) UNIQUE NOT NULL\n);\n\nCREATE TABLE cliente_telefonos (\n  id_cliente INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_cliente, telefono),\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  id_categoria_padre INT,\n  FOREIGN KEY (id_categoria_padre) REFERENCES categorias(id)\n);\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(200) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL CHECK (precio > 0),\n  stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),\n  id_categoria INT,\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n);\n\nCREATE TABLE producto_etiquetas (\n  id_producto INT,\n  etiqueta VARCHAR(50),\n  PRIMARY KEY (id_producto, etiqueta),\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n);\n\n-- Entidad débil: LINEA_PEDIDO\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  estado VARCHAR(20) DEFAULT 'pendiente',\n  id_cliente INT NOT NULL,\n  FOREIGN KEY (id_cliente) REFERENCES clientes(id)\n);\n\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  n_linea INT,\n  id_producto INT NOT NULL,\n  cantidad INT NOT NULL DEFAULT 1 CHECK (cantidad > 0),\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, n_linea),\n  FOREIGN KEY (id_pedido) REFERENCES pedidos(id),\n  FOREIGN KEY (id_producto) REFERENCES productos(id)\n);\n\n-- Relación N:M recursiva: productos relacionados\nCREATE TABLE producto_relacionado (\n  id_producto_1 INT,\n  id_producto_2 INT,\n  PRIMARY KEY (id_producto_1, id_producto_2),\n  FOREIGN KEY (id_producto_1) REFERENCES productos(id),\n  FOREIGN KEY (id_producto_2) REFERENCES productos(id),\n  CHECK (id_producto_1 != id_producto_2)\n);\n```\n\n**Resumen de decisiones:**\n- `cliente_telefonos`: Tabla separada por atributo multivalorado.\n- `categorias`: FK autoreferenciada para subcategorías (1:N recursiva).\n- `producto_etiquetas`: Tabla separada por atributo multivalorado.\n- `lineas_pedido`: Entidad débil con PK compuesta `(id_pedido, n_linea)`.\n- `producto_relacionado`: Tabla intermedia para N:M recursiva.\n- `lineas_pedido` ya contiene `cantidad` y `precio_unitario` (atributos de la relación contiene)."
+        },
+        {
+          "id": "ex-04-12-2",
+          "title": "Verificar diseño existente",
+          "difficulty": "intermediate",
+          "description": "Un compañero ha diseñado este esquema para un sistema de biblioteca. Encuentra los errores y propón correcciones:\n\n```sql\nCREATE TABLE socios (\n  id INT PRIMARY KEY,\n  nombre VARCHAR(100),\n  telefonos VARCHAR(200)  -- Almacena varios teléfonos separados por comas\n);\n\nCREATE TABLE libros (\n  id INT PRIMARY KEY,\n  titulo VARCHAR(200),\n  autor VARCHAR(100),  -- Nombre del autor como texto\n  categoria VARCHAR(50)  -- Nombre de la categoría como texto\n);\n\nCREATE TABLE prestamos (\n  id INT PRIMARY KEY,\n  socio VARCHAR(100),  -- Nombre del socio como texto\n  libro VARCHAR(200),  -- Título del libro como texto\n  fecha DATE\n);\n```",
+          "solution": "**Errores encontrados:**\n\n1. **`socios.telefonos`**: Almacena múltiples teléfonos en una columna. Viola la atomicidad. **Solución**: Tabla separada `socio_telefonos(id_socio, telefono)`.\n\n2. **`libros.autor`**: Almacena el nombre del autor como texto. No hay integridad referencial. **Solución**: Tabla `autores(id, nombre)` y FK `id_autor` en `libros`.\n\n3. **`libros.categoria`**: Mismo problema. **Solución**: Tabla `categorias(id, nombre)` y FK `id_categoria` en `libros`.\n\n4. **`prestamos.socio`**: Usa el nombre como referencia. Si dos socios se llaman igual, hay confusión. **Solución**: FK `id_socio INT` apuntando a `socios(id)`.\n\n5. **`prestamos.libro`**: Usa el título como referencia. **Solución**: FK `id_libro INT` apuntando a `libros(id)`.\n\n**Esquema corregido:**\n```sql\nCREATE TABLE socios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL\n);\n\nCREATE TABLE socio_telefonos (\n  id_socio INT,\n  telefono VARCHAR(20),\n  PRIMARY KEY (id_socio, telefono),\n  FOREIGN KEY (id_socio) REFERENCES socios(id)\n);\n\nCREATE TABLE autores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL\n);\n\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL UNIQUE\n);\n\nCREATE TABLE libros (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  id_autor INT NOT NULL,\n  id_categoria INT,\n  FOREIGN KEY (id_autor) REFERENCES autores(id),\n  FOREIGN KEY (id_categoria) REFERENCES categorias(id)\n);\n\nCREATE TABLE prestamos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_socio INT NOT NULL,\n  id_libro INT NOT NULL,\n  fecha DATE DEFAULT (CURRENT_DATE),\n  FOREIGN KEY (id_socio) REFERENCES socios(id),\n  FOREIGN KEY (id_libro) REFERENCES libros(id)\n);\n```"
         }
       ]
     }
