@@ -1,0 +1,172 @@
+{
+  "id": "mod-02",
+  "courseId": "databases-0484",
+  "title": "Preparación del entorno",
+  "slug": "entorno",
+  "order": 2,
+  "description": "Instalación y configuración de MySQL y MySQL Workbench. Primeras conexiones, creación de servidores y ejecución de scripts SQL.",
+  "objectives": [
+    "Instalar MySQL Server en el sistema operativo",
+    "Instalar y configurar MySQL Workbench",
+    "Establecer conexiones con el servidor MySQL",
+    "Crear y gestionar servidores y bases de datos",
+    "Ejecutar scripts SQL desde la interfaz gráfica y la línea de comandos"
+  ],
+  "estimatedMinutes": 300,
+  "lessons": [
+    {
+      "id": "lesson-02-1",
+      "title": "Instalación de MySQL Server",
+      "order": 1,
+      "objectives": [
+        "Descargar e instalar MySQL Server en Windows",
+        "Configurar el tipo de servidor y el puerto",
+        "Establecer la contraseña del usuario root"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Instalación de MySQL Server\n\n### Requisitos previos\n\n- Sistema operativo: Windows 10/11, macOS o Linux (Ubuntu, Debian, etc.).\n- Espacio en disco: mínimo 2 GB.\n- RAM: mínimo 2 GB (recomendado 4 GB).\n- Conexión a internet para descargar el instalador.\n\n### Paso 1: Descargar el instalador\n\n1. Ve a [https://dev.mysql.com/downloads/mysql/](https://dev.mysql.com/downloads/mysql/)\n2. Selecciona tu sistema operativo.\n3. Descarga el instalador (MySQL Installer para Windows, DMG para Mac, o usa el gestor de paquetes en Linux)."
+        },
+        {
+          "type": "text",
+          "content": "### Paso 2: Instalar en Windows\n\n1. Ejecuta el instalador descargado (`mysql-installer-community-x.x.x.msi`).\n2. Selecciona **Custom** para elegir los componentes.\n3. Añade al menos:\n   - **MySQL Server** (el motor de bases de datos)\n   - **MySQL Workbench** (herramienta gráfica)\n4. Haz clic en **Execute** para descargar e instalar.\n\n### Paso 3: Configuración\n\nDurante la instalación se te pedirá configurar:\n\n| Opción | Valor recomendado |\n|---|---|\n| **Tipo de servidor** | Development Computer |\n| **Puerto** | 3306 (el puerto por defecto) |\n| **Autenticación** | Use Strong Password Encryption (recomendado) |\n| **Contraseña root** | Establece una contraseña segura. Anótala. |\n| **Servicios de Windows** | MySQL80 como servicio del sistema |\n\n> **IMPORTANTE**: Recuerda la contraseña del usuario `root`. La necesitarás para conectarte."
+        },
+        {
+          "type": "text",
+          "content": "### Paso 4: Verificar la instalación\n\nUna vez instalado, puedes verificar que MySQL funciona desde la línea de comandos:\n\n```bash\n# Abrir una terminal y ejecutar:\nmysql --version\n\n# Salida esperada:\n# mysql  Ver 8.0.xx for Win64 on x86_64 (MySQL Community Server - GPL)\n```\n\nTambién puedes conectarte directamente:\n\n```bash\n# Conectar como root\nmysql -u root -p\n\n# Te pedirá la contraseña. Si ves el prompt de MySQL, todo va bien:\n# mysql>\n```\n\n### Comandos útiles del cliente MySQL\n\n```sql\n-- Ver version del servidor\nSELECT VERSION();\n\n-- Ver las bases de datos existentes\nSHOW DATABASES;\n\n-- Salir del cliente\nEXIT;\n-- o\nQUIT;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-1-1",
+          "title": "Instalar y verificar MySQL",
+          "difficulty": "basic",
+          "description": "Instala MySQL Server en tu equipo. Una vez instalado, abre una terminal y ejecuta `mysql --version` para verificar. Conéctate como root con `mysql -u root -p` y ejecuta `SHOW DATABASES;`. Comparte la salida.",
+          "solution": "La salida esperada de `SHOW DATABASES;` debería ser similar a:\n\n```\n+--------------------+\n| Database           |\n+--------------------+\n| information_schema |\n| mysql              |\n| performance_schema |\n| sys                |\n+--------------------+\n4 rows in set (0.01 sec)\n```\n\nEstas 4 bases de datos son internas de MySQL y se crean automáticamente durante la instalación."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-2",
+      "title": "MySQL Workbench: instalación y primeros pasos",
+      "order": 2,
+      "objectives": [
+        "Instalar y abrir MySQL Workbench",
+        "Crear una conexión al servidor MySQL",
+        "Conocer la interfaz principal de Workbench"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es MySQL Workbench?\n\nMySQL Workbench es la **herramienta gráfica oficial** de MySQL. Permite:\n\n- Conectar y gestionar servidores MySQL.\n- Escribir y ejecutar consultas SQL.\n- Diseñar bases de datos visualmente (diagramas E/R).\n- Gestionar usuarios y privilegios.\n- Realizar copias de seguridad y restauración.\n\n> Si instalaste Workbench durante la instalación de MySQL Server, ya lo tienes disponible. Si no, puedes descargarlo desde [https://dev.mysql.com/downloads/workbench/](https://dev.mysql.com/downloads/workbench/)."
+        },
+        {
+          "type": "text",
+          "content": "## Interfaz de MySQL Workbench\n\nAl abrir Workbench, verás la pantalla de inicio con las conexiones disponibles:\n\n```\n┌─────────────────────────────────────────────────────┐\n│  MySQL Workbench                                    │\n├─────────────────────────────────────────────────────┤\n│                                                     │\n│  [MySQL Connection 8.0]    [+ Nueva conexión]       │\n│  localhost:3306                                      │\n│                                                     │\n└─────────────────────────────────────────────────────┘\n```\n\nAl abrir una conexión, verás 3 áreas principales:\n\n```\n┌──────────────────────┬──────────────────────────────┐\n│  Navegador de objetos│  Editor de consultas SQL      │\n│  (schemas, tablas,   │  (escribes y ejecutas SQL)   │\n│   vistas, etc.)      │                              │\n│                      ├──────────────────────────────┤\n│                      │  Resultados / Mensajes        │\n│                      │  (salida de las consultas)   │\n└──────────────────────┴──────────────────────────────┘\n```\n\n### Áreas principales\n\n1. **Panel izquierdo (Navigator)**: Muestra las bases de datos (schemas), tablas, vistas, procedimientos almacenados.\n2. **Editor SQL**: Aquí escribes tus consultas SQL.\n3. **Panel inferior (Output)**: Muestra los resultados de las consultas y mensajes del servidor."
+        },
+        {
+          "type": "text",
+          "content": "## Crear una conexión\n\n1. Haz clic en el ícono **+** junto a \"MySQL Connections\".\n2. Rellena los datos:\n\n| Campo | Valor |\n|---|---|\n| **Connection Name** | Mi Primera Conexión |\n| **Hostname** | localhost |\n| **Port** | 3306 |\n| **Username** | root |\n| **Password** | (haz clic en \"Store in Vault\" y escribe tu contraseña) |\n\n3. Haz clic en **Test Connection** para verificar que funciona.\n4. Si ves \"Successfully made the MySQL connection\", todo está correcto.\n5. Haz clic en **OK** para guardar.\n\n### Ejecutar tu primera consulta\n\n1. Abre la conexión que acabas de crear.\n2. En el editor SQL, escribe:\n\n```sql\n-- Ver las bases de datos\nSHOW DATABASES;\n```\n\n3. Haz clic en el **rayo** (⚡) o presiona **Ctrl + Shift + Enter** para ejecutar.\n4. Verás el resultado en el panel inferior."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-2-1",
+          "title": "Configurar Workbench",
+          "difficulty": "basic",
+          "description": "Abre MySQL Workbench, crea una conexión a localhost con el usuario root, y ejecuta las siguientes consultas:\n1. `SHOW DATABASES;`\n2. `SELECT VERSION();`\n3. `SELECT USER();`\n\nComparte los resultados.",
+          "solution": "1. `SHOW DATABASES;` muestra las bases de datos del servidor (information_schema, mysql, performance_schema, sys).\n\n2. `SELECT VERSION();` devuelve la versión de MySQL instalada, por ejemplo: `8.0.35`\n\n3. `SELECT USER();` devuelve el usuario actual y el host: `root@localhost`\n\nSi las 3 consultas se ejecutan correctamente, la conexión está configurada adecuadamente."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-3",
+      "title": "Primer servidor y base de datos",
+      "order": 3,
+      "objectives": [
+        "Crear una base de datos de prueba",
+        "Crear una primera tabla",
+        "Insertar y consultar datos básicos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Creando nuestra primera base de datos\n\nAhora que tenemos MySQL y Workbench funcionando, vamos a crear nuestra primera base de datos de ejemplo. Usaremos una base de datos llamada `academia` que utilizaremos a lo largo de todo el curso.\n\n> **Convención del curso**: Usaremos dos bases de datos de ejemplo:\n> - `academia`: Para gestionar alumnos, profesores, asignaturas y notas.\n> - `tienda`: Para gestionar clientes, productos, pedidos y categorías.\n\n### Crear la base de datos\n\n```sql\n-- Crear la base de datos\nCREATE DATABASE academia;\n\n-- Ver las bases de datos (debería aparecer 'academia')\nSHOW DATABASES;\n\n-- Seleccionar la base de datos para trabajar con ella\nUSE academia;\n\n-- Verificar la base de datos actual\nSELECT DATABASE();\n```"
+        },
+        {
+          "type": "text",
+          "content": "### Crear la primera tabla\n\n```sql\n-- Seleccionar la base de datos\nUSE academia;\n\n-- Crear la tabla de alumnos\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  fecha_nacimiento DATE,\n  activo BOOLEAN DEFAULT TRUE\n);\n\n-- Ver las tablas de la base de datos\nSHOW TABLES;\n\n-- Ver la estructura de la tabla alumnos\nDESCRIBE alumnos;\n-- o equivalentemente:\nDESC alumnos;\n```\n\n### Insertar datos de prueba\n\n```sql\n-- Insertar un alumno\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento)\nVALUES ('Juan', 'García', 'juan.garcia@email.com', '2005-03-15');\n\n-- Insertar varios alumnos a la vez\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento)\nVALUES\n  ('María', 'López', 'maria.lopez@email.com', '2004-08-22'),\n  ('Carlos', 'Martínez', 'carlos.martinez@email.com', '2005-01-10'),\n  ('Ana', 'Rodríguez', 'ana.rodriguez@email.com', '2004-11-30');\n\n-- Consultar todos los alumnos\nSELECT * FROM alumnos;\n```\n\n### Salida esperada\n\n```\n+----+----------+-----------+--------------------------+------------------+--------+\n| id | nombre   | apellido  | email                    | fecha_nacimiento | activo |\n+----+----------+-----------+--------------------------+------------------+--------+\n|  1 | Juan     | García    | juan.garcia@email.com    | 2005-03-15       |      1 |\n|  2 | María    | López     | maria.lopez@email.com    | 2004-08-22       |      1 |\n|  3 | Carlos   | Martínez  | carlos.martinez@email.com| 2005-01-10       |      1 |\n|  4 | Ana      | Rodríguez | ana.rodriguez@email.com  | 2004-11-30       |      1 |\n+----+----------+-----------+--------------------------+------------------+--------+\n4 rows in set (0.00 sec)\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-3-1",
+          "title": "Primera base de datos",
+          "difficulty": "basic",
+          "description": "Crea una base de datos llamada `mi_academia`. Dentro de ella, crea una tabla `asignaturas` con los campos: id (entero, clave primaria autoincremental), nombre (texto, máximo 50 caracteres, obligatorio), creditos (número decimal, obligatorio). Inserta al menos 3 asignaturas y consultálas con SELECT.",
+          "solution": "```sql\n-- Crear la base de datos\nCREATE DATABASE mi_academia;\n\n-- Seleccionarla\nUSE mi_academia;\n\n-- Crear la tabla\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  creditos DECIMAL(4,2) NOT NULL\n);\n\n-- Insertar asignaturas\nINSERT INTO asignaturas (nombre, creditos)\nVALUES\n  ('Bases de datos', 6.00),\n  ('Programación', 8.00),\n  ('Sistemas informáticos', 5.50);\n\n-- Consultar\nSELECT * FROM asignaturas;\n```\n\nSalida esperada:\n```\n+----+--------------------------+----------+\n| id | nombre                   | creditos |\n+----+--------------------------+----------+\n|  1 | Bases de datos           |     6.00 |\n|  2 | Programación             |     8.00 |\n|  3 | Sistemas informáticos    |     5.50 |\n+----+--------------------------+----------+\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-4",
+      "title": "Ejecución de scripts SQL",
+      "order": 4,
+      "objectives": [
+        "Crear scripts SQL en ficheros .sql",
+        "Ejecutar scripts completos desde Workbench",
+        "Usar la línea de comandos para ejecutar scripts",
+        "Comprender la importancia de los scripts para documentar el trabajo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Por qué usar scripts?\n\nEscribir consultas directamente en el editor está bien para pruebas, pero en un proyecto real necesitas:\n\n1. **Persistencia**: Guardar las consultas para reutilizarlas.\n2. **Documentación**: Un script documenta qué has hecho y por qué.\n3. **Repetibilidad**: Puedes ejecutar el mismo script en diferentes servidores.\n4. **Control de versiones**: Puedes guardar los scripts en Git.\n\n> **Regla de oro**: Cada cambio estructural (CREATE, ALTER, DROP) debe estar en un fichero `.sql` que puedas ejecutar de nuevo."
+        },
+        {
+          "type": "text",
+          "content": "## Crear un script en Workbench\n\n1. En Workbench, ve a **File → New Query Tab** (o **Ctrl + T**).\n2. Escribe tu SQL en el editor.\n3. Guarda el fichero con extensión `.sql` (ej: `academia_init.sql`).\n\n### Ejemplo de script completo\n\n```sql\n-- academia_init.sql\n-- Script de inicialización de la base de datos academia\n-- Autor: [Tu nombre]\n-- Fecha: 2026-09-22\n-- Descripción: Crea las tablas iniciales e inserta datos de prueba\n\n-- ============================================\n-- 1. CREAR LA BASE DE DATOS\n-- ============================================\nDROP DATABASE IF EXISTS academia;\nCREATE DATABASE academia CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nUSE academia;\n\n-- ============================================\n-- 2. CREAR TABLAS\n-- ============================================\n\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  fecha_nacimiento DATE,\n  activo BOOLEAN DEFAULT TRUE\n);\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  creditos DECIMAL(4,2) NOT NULL,\n  ciclo VARCHAR(10) NOT NULL\n);\n\n-- ============================================\n-- 3. INSERTAR DATOS DE PRUEBA\n-- ============================================\n\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento) VALUES\n  ('Juan', 'García', 'juan@email.com', '2005-03-15'),\n  ('María', 'López', 'maria@email.com', '2004-08-22'),\n  ('Carlos', 'Martínez', 'carlos@email.com', '2005-01-10');\n\nINSERT INTO asignaturas (nombre, creditos, ciclo) VALUES\n  ('Bases de datos', 6.00, 'DAM'),\n  ('Programación', 8.00, 'DAM'),\n  ('Sistemas informáticos', 5.50, 'DAW');\n\n-- ============================================\n-- 4. VERIFICACIÓN\n-- ============================================\nSELECT 'Alumnos insertados' AS info, COUNT(*) AS total FROM alumnos;\nSELECT 'Asignaturas insertadas' AS info, COUNT(*) AS total FROM asignaturas;\n```\n\n### Ejecutar el script\n\n**Desde Workbench:**\n- Abre el fichero `.sql` en una pestaña.\n- Haz clic en el **rayo** (⚡) o presiona **Ctrl + Shift + Enter** para ejecutar todo.\n- Para ejecutar solo una parte: selecciona el código y haz clic en el rayo.\n\n**Desde la línea de comandos:**\n\n```bash\n# Conectar y ejecutar un script\nmysql -u root -p < academia_init.sql\n\n# O dentro del cliente MySQL:\nmysql> source C:\\ruta\\academia_init.sql\n-- o\nmysql>\\. C:\\ruta\\academia_init.sql\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-4-1",
+          "title": "Crear script completo",
+          "difficulty": "intermediate",
+          "description": "Crea un script SQL completo que:\n1. Borre la base de datos `mi_tienda` si existe\n2. La cree con charset utf8mb4\n3. Cree una tabla `productos` con: id, nombre, precio, stock, categoría\n4. Inserte al menos 5 productos reales (por ejemplo: portátil, ratón, teclado...)\n5. Consulte todos los productos\n\nGuarda el script como `mi_tienda_init.sql` y ejecútalo.",
+          "solution": "```sql\n-- mi_tienda_init.sql\nDROP DATABASE IF EXISTS mi_tienda;\nCREATE DATABASE mi_tienda CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nUSE mi_tienda;\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL,\n  stock INT NOT NULL DEFAULT 0,\n  categoria VARCHAR(50) NOT NULL\n);\n\nINSERT INTO productos (nombre, precio, stock, categoria) VALUES\n  ('Portátil HP 15', 649.99, 15, 'Informática'),\n  ('Ratón Logitech M185', 19.99, 50, 'Periféricos'),\n  ('Teclado mecánico Redragon', 49.99, 30, 'Periféricos'),\n  ('Monitor Samsung 24\"', 189.99, 20, 'Informática'),\n  ('Disco SSD Kingston 480GB', 59.99, 40, 'Almacenamiento');\n\nSELECT * FROM productos;\n```\n\nEl script se ejecuta sin errores y muestra los 5 productos en la tabla."
+        }
+      ]
+    },
+    {
+      "id": "lesson-02-5",
+      "title": "La base de datos de ejemplo del curso",
+      "order": 5,
+      "objectives": [
+        "Conocer la estructura completa de la base de datos `academia`",
+        "Comprender las relaciones entre las tablas",
+        "Familiarizarse con los datos de ejemplo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Base de datos `academia`\n\nA lo largo de todo el curso, utilizaremos esta base de datos para todos los ejemplos y ejercicios. Es importante que la tengas creada y poblada antes de continuar.\n\n### Estructura de tablas\n\n```sql\nUSE academia;\n\n-- Tabla de alumnos\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  fecha_nacimiento DATE,\n  activo BOOLEAN DEFAULT TRUE\n);\n\n-- Tabla de profesores\nCREATE TABLE profesores (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  apellido VARCHAR(50) NOT NULL,\n  email VARCHAR(100) UNIQUE,\n  especialidad VARCHAR(100)\n);\n\n-- Tabla de asignaturas\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  creditos DECIMAL(4,2) NOT NULL,\n  ciclo VARCHAR(10) NOT NULL,\n  id_profesor INT,\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n\n-- Tabla de matrículas (relación N:M entre alumnos y asignaturas)\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  fecha_matricula DATE DEFAULT (CURRENT_DATE),\n  PRIMARY KEY (id_alumno, id_asignatura),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n\n-- Tabla de notas\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT,\n  id_asignatura INT,\n  nota DECIMAL(4,2) NOT NULL,\n  convocatoria VARCHAR(20) NOT NULL,\n  fecha_evaluacion DATE,\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```"
+        },
+        {
+          "type": "text",
+          "content": "### Datos de ejemplo\n\n```sql\n-- Profesores\nINSERT INTO profesores (nombre, apellido, email, especialidad) VALUES\n  ('Laura', 'Fernández', 'laura.f@academia.es', 'Bases de datos'),\n  ('Pedro', 'Sánchez', 'pedro.s@academia.es', 'Programación'),\n  ('Elena', 'Ruiz', 'elena.r@academia.es', 'Sistemas informáticos'),\n  ('Miguel', 'Torres', 'miguel.t@academia.es', 'Desarrollo web');\n\n-- Alumnos\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento) VALUES\n  ('Juan', 'García', 'juan.garcia@estudiante.es', '2005-03-15'),\n  ('María', 'López', 'maria.lopez@estudiante.es', '2004-08-22'),\n  ('Carlos', 'Martínez', 'carlos.martinez@estudiante.es', '2005-01-10'),\n  ('Ana', 'Rodríguez', 'ana.rodriguez@estudiante.es', '2004-11-30'),\n  ('Pedro', 'Hernández', 'pedro.hernandez@estudiante.es', '2005-06-05'),\n  ('Lucía', 'Jiménez', 'lucia.jimenez@estudiante.es', '2004-12-18');\n\n-- Asignaturas\nINSERT INTO asignaturas (nombre, creditos, ciclo, id_profesor) VALUES\n  ('Bases de datos', 6.00, 'DAM', 1),\n  ('Programación', 8.00, 'DAM', 2),\n  ('Sistemas informáticos', 5.50, 'DAW', 3),\n  ('Desarrollo web en entorno cliente', 7.00, 'DAW', 4),\n  ('Programación multimedia y dispositivos móviles', 6.50, 'DAM', 2);\n\n-- Matrículas\nINSERT INTO matriculas (id_alumno, id_asignatura) VALUES\n  (1, 1), (1, 2), (1, 5),\n  (2, 1), (2, 2), (2, 3),\n  (3, 1), (3, 4),\n  (4, 2), (4, 3), (4, 5),\n  (5, 1), (5, 3),\n  (6, 4), (6, 5);\n\n-- Notas\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria, fecha_evaluacion) VALUES\n  (1, 1, 7.50, 'Convocatoria 1', '2026-01-20'),\n  (1, 2, 8.25, 'Convocatoria 1', '2026-01-22'),\n  (2, 1, 9.00, 'Convocatoria 1', '2026-01-20'),\n  (2, 2, 6.75, 'Convocatoria 1', '2026-01-22'),\n  (2, 3, 8.50, 'Convocatoria 1', '2026-01-25'),\n  (3, 1, 5.25, 'Convocatoria 1', '2026-01-20'),\n  (3, 1, 7.00, 'Convocatoria 2', '2026-06-15'),\n  (4, 2, 9.50, 'Convocatoria 1', '2026-01-22'),\n  (5, 1, 4.00, 'Convocatoria 1', '2026-01-20'),\n  (5, 3, 7.25, 'Convocatoria 1', '2026-01-25'),\n  (6, 4, 8.75, 'Convocatoria 1', '2026-01-28'),\n  (6, 5, 6.00, 'Convocatoria 1', '2026-01-30');\n```\n\n### Diagrama de relaciones\n\n```\nprofesores (1) ──── imparte ──── (N) asignaturas\nalumnos (N) ──── se matricula en ──── (N) asignaturas  [a través de matriculas]\nalumnos (N) ──── tiene ──── (N) asignaturas  [a través de notas]\n```\n\n> **Consejo**: Ejecuta todo este script en tu Workbench. Lo necesitarás para todos los ejemplos del curso."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-02-5-1",
+          "title": "Base de datos academia",
+          "difficulty": "basic",
+          "description": "Ejecuta el script completo de la base de datos `academia`. Una vez creado, responde:\n1. ¿Cuántos alumnos hay?\n2. ¿Cuántas asignaturas hay?\n3. ¿Qué profesor imparte Bases de datos?\n4. ¿Cuántas matrículas hay en total?",
+          "solution": "```sql\n-- 1. Cuántos alumnos\nSELECT COUNT(*) AS total_alumnos FROM almonds;\n-- Resultado: 6\n\n-- 2. Cuántas asignaturas\nSELECT COUNT(*) AS total_asignaturas FROM asignaturas;\n-- Resultado: 5\n\n-- 3. Profesor de Bases de datos\nSELECT p.nombre, p.apellido\nFROM profesores p\nJOIN asignaturas a ON p.id = a.id_profesor\nWHERE a.nombre = 'Bases de datos';\n-- Resultado: Laura Fernández\n\n-- 4. Total de matrículas\nSELECT COUNT(*) AS total_matriculas FROM matriculas;\n-- Resultado: 15\n```"
+        }
+      ]
+    }
+  ]
+}

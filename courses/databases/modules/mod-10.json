@@ -1,0 +1,104 @@
+{
+  "id": "mod-10",
+  "courseId": "databases-0484",
+  "title": "Consultas multitabla",
+  "slug": "consultas-multitabla",
+  "order": 10,
+  "description": "JOINs: INNER, LEFT, RIGHT. Múltiples JOINs y errores comunes.",
+  "objectives": [
+    "Realizar consultas con INNER JOIN",
+    "Usar LEFT JOIN y RIGHT JOIN",
+    "Combinar múltiples JOINs en una consulta",
+    "Identificar y corregir errores comunes en JOINs"
+  ],
+  "estimatedMinutes": 360,
+  "lessons": [
+    {
+      "id": "lesson-10-1",
+      "title": "INNER JOIN",
+      "order": 1,
+      "objectives": [
+        "Comprender qué es un JOIN",
+        "Realizar INNER JOIN entre dos tablas",
+        "Usar alias para simplificar consultas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un JOIN?\n\nUn **JOIN** combina filas de dos o más tablas basándose en una columna relacionada. Es la forma de consultar datos que están repartidos en varias tablas.\n\n> **Analogía**: Imagina dos listas: una de alumnos y otra de notas. El JOIN conecta cada nota con el alumno al que pertenece.\n\n### INNER JOIN\n\n`INNER JOIN` devuelve **solo las filas que tienen coincidencia en ambas tablas**.\n\n```sql\n-- Alumnos con sus notas (solo los que tienen notas)\nSELECT\n  a.nombre,\n  a.apellido,\n  n.nota,\n  n.convocatoria\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno;\n```\n\n**Resultado:**\n```\n+-------+-----------+------+-------------+\n| nombre| apellido  | nota | convocatoria|\n+-------+-----------+------+-------------+\n| Juan  | García    | 7.50 | Conv. 1     |\n| Juan  | García    | 8.25 | Conv. 1     |\n| María | López     | 9.00 | Conv. 1     |\n| María | López     | 6.75 | Conv. 1     |\n| María | López     | 8.50 | Conv. 1     |\n+-------+-----------+------+-------------+\n```\n\n> **Nota**: Los alumnos sin notas NO aparecen en el resultado."
+        },
+        {
+          "type": "text",
+          "content": "### Sintaxis del INNER JOIN\n\n```sql\nSELECT columna1, columna2, ...\nFROM tabla1\nINNER JOIN tabla2 ON tabla1.columna = tabla2.columna;\n```\n\n### Ejemplo con alias\n\n```sql\n-- Asignaturas con su profesor\nSELECT\n  a.nombre AS asignatura,\n  a.creditos,\n  CONCAT(p.nombre, ' ', p.apellido) AS profesor\nFROM asignaturas a\nINNER JOIN profesores p ON a.id_profesor = p.id;\n```\n\n### Múltiples INNER JOIN\n\n```sql\n-- Notas completas: alumno + asignatura + profesor\nSELECT\n  a.nombre AS alumno,\n  asig.nombre AS asignatura,\n  p.nombre AS profesor,\n  n.nota,\n  n.convocatoria\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nINNER JOIN profesores p ON asig.id_profesor = p.id\nORDER BY a.nombre, asig.nombre;\n```\n\n### Diagrama visual\n\n```\nTabla A          Tabla B\n┌──────┐         ┌──────┐\n│      │    ┌────┤      │\n│  a   │────┤ X  │  b   │\n│      │────┤    │      │\n└──────┘    └────└──────┘\n            Solo X (intersección)\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-10-1-1",
+          "title": "INNER JOIN básico",
+          "difficulty": "basic",
+          "description": "Escribe consultas con INNER JOIN para:\n1. Mostrar las notas con el nombre del alumno y el nombre de la asignatura\n2. Mostrar las asignaturas con el nombre del profesor que las imparte\n3. Mostrar los alumnos matriculados en 'Bases de datos'",
+          "solution": "```sql\n-- 1. Notas con alumno y asignatura\nSELECT\n  a.nombre AS alumno,\n  asig.nombre AS asignatura,\n  n.nota,\n  n.convocatoria\nFROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nORDER BY a.nombre, asig.nombre;\n\n-- 2. Asignaturas con profesor\nSELECT\n  asig.nombre AS asignatura,\n  CONCAT(p.nombre, ' ', p.apellido) AS profesor\nFROM asignaturas asig\nINNER JOIN profesores p ON asig.id_profesor = p.id;\n\n-- 3. Alumnos en 'Bases de datos'\nSELECT\n  a.nombre,\n  a.apellido\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.nombre = 'Bases de datos';\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-10-2",
+      "title": "LEFT JOIN y RIGHT JOIN",
+      "order": 2,
+      "objectives": [
+        "Usar LEFT JOIN para mostrar todos los registros de la tabla izquierda",
+        "Usar RIGHT JOIN para mostrar todos los registros de la tabla derecha",
+        "Comprender cuándo usar cada tipo de JOIN"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## LEFT JOIN\n\n`LEFT JOIN` devuelve **TODAS las filas de la tabla izquierda** y las coincidencias de la tabla derecha. Si no hay coincidencia, muestra NULL.\n\n```sql\n-- TODOS los alumnos, incluidos los que no tienen notas\nSELECT\n  a.nombre,\n  a.apellido,\n  n.nota,\n  n.convocatoria\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nORDER BY a.id;\n```\n\n**Resultado:**\n```\n+----------+-----------+------+-------------+\n| nombre   | apellido  | nota | convocatoria|\n+----------+-----------+------+-------------+\n| Juan     | García    | 7.50 | Conv. 1     |\n| Juan     | García    | 8.25 | Conv. 1     |\n| María    | López     | 9.00 | Conv. 1     |\n| María    | López     | 6.75 | Conv. 1     |\n| María    | López     | 8.50 | Conv. 1     |\n| Carlos   | Martínez  | 5.25 | Conv. 1     |\n| Carlos   | Martínez  | 7.00 | Conv. 2     |\n| Ana      | Rodríguez | 9.50 | Conv. 1     |\n| Pedro    | Hernández | 4.00 | Conv. 1     |\n| Pedro    | Hernández | 7.25 | Conv. 1     |\n| Lucía    | Jiménez   | 8.75 | Conv. 1     |\n| Lucía    | Jiménez   | 6.00 | Conv. 1     |\n+----------+-----------+------+-------------+\n-- Si algún alumno no tuviera notas, aparecería con NULL\n```\n\n> **Uso típico**: Cuando quieres ver TODOS los registros de una tabla, incluidos los que no tienen relación."
+        },
+        {
+          "type": "text",
+          "content": "## RIGHT JOIN\n\n`RIGHT JOIN` es el opuesto: devuelve **TODAS las filas de la tabla derecha** y las coincidencias de la izquierda.\n\n```sql\n-- TODAS las asignaturas, incluidas las que no tienen notas\nSELECT\n  asig.nombre AS asignatura,\n  COUNT(n.id) AS total_notas\nFROM notas n\nRIGHT JOIN asignaturas asig ON n.id_asignatura = asig.id\nGROUP BY asig.id, asig.nombre\nORDER BY total_notas DESC;\n```\n\n> **Nota**: `RIGHT JOIN` es menos común que `LEFT JOIN`. Se puede reescribir como `LEFT JOIN` invirtiendo el orden de las tablas.\n\n### LEFT JOIN para encontrar registros sin relación\n\n```sql\n-- Alumnos que NO tienen notas\nSELECT a.nombre, a.apellido\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nWHERE n.id IS NULL;\n\n-- Asignaturas que NO tienen notas registradas\nSELECT asig.nombre\nFROM asignaturas asig\nLEFT JOIN notas n ON asig.id = n.id_asignatura\nWHERE n.id IS NULL;\n\n-- Profesores que NO imparten ninguna asignatura\nSELECT p.nombre, p.apellido\nFROM profesores p\nLEFT JOIN asignaturas a ON p.id = a.id_profesor\nWHERE a.id IS NULL;\n```\n\n### Resumen visual\n\n```\nINNER JOIN:     LEFT JOIN:      RIGHT JOIN:\n┌───┬───┬───┐  ┌───┬───┬───┐  ┌───┬───┬───┐\n│ A │ X │ B │  │ A │ A │ X │  │ X │ B │ B │\n└───┴───┴───┘  └───┴───┴───┘  └───┴───┴───┘\n  Solo X         A completo      B completo\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-10-2-1",
+          "title": "LEFT y RIGHT JOIN",
+          "difficulty": "intermediate",
+          "description": "Escribe consultas para:\n1. Todos los alumnos con su nota media (incluidos los que no tienen notas, que deberían tener NULL)\n2. Todas las asignaturas con el número de alumnos matriculados (incluidas las que no tienen alumnos)\n3. Alumnos que NO están matriculados en ninguna asignatura\n4. Asignaturas que NO tienen ningún alumno matriculado",
+          "solution": "```sql\n-- 1. Todos los alumnos con nota media\nSELECT\n  a.nombre,\n  a.apellido,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido;\n\n-- 2. Asignaturas con número de alumnos\nSELECT\n  asig.nombre,\n  COUNT(DISTINCT m.id_alumno) AS num_alumnos\nFROM asignaturas asig\nLEFT JOIN matriculas m ON asig.id = m.id_asignatura\nGROUP BY asig.id, asig.nombre;\n\n-- 3. Alumnos sin matrícula\nSELECT a.nombre, a.apellido\nFROM alumnos a\nLEFT JOIN matriculas m ON a.id = m.id_alumno\nWHERE m.id_alumno IS NULL;\n\n-- 4. Asignaturas sin alumnos\nSELECT asig.nombre\nFROM asignaturas asig\nLEFT JOIN matriculas m ON asig.id = m.id_asignatura\nWHERE m.id_asignatura IS NULL;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-10-3",
+      "title": "Múltiples JOINs y errores comunes",
+      "order": 3,
+      "objectives": [
+        "Encadenar múltiples JOINs en una consulta",
+        "Identificar errores comunes en JOINs",
+        "Resolver problemas de rendimiento en JOINs"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Múltiples JOINs\n\nEn la práctica, casi siempre necesitas combinar más de 2 tablas.\n\n### Ejemplo: Resumen completo de notas\n\n```sql\nSELECT\n  a.nombre AS alumno,\n  a.apellido,\n  asig.nombre AS asignatura,\n  p.nombre AS profesor,\n  n.nota,\n  n.convocatoria,\n  n.fecha_evaluacion\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\n  LEFT JOIN profesores p ON asig.id_profesor = p.id\nORDER BY a.nombre, asig.nombre;\n```\n\n### Ejemplo: Resumen de alumnos por ciclo\n\n```sql\nSELECT\n  asig.ciclo,\n  COUNT(DISTINCT a.id) AS num_alumnos,\n  COUNT(DISTINCT asig.id) AS num_asignaturas,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM alumnos a\n  INNER JOIN matriculas m ON a.id = m.id_alumno\n  INNER JOIN asignaturas asig ON m.id_asignatura = asig.id\n  LEFT JOIN notas n ON a.id = n.id_alumno AND asig.id = n.id_asignatura\nGROUP BY asig.ciclo;\n```\n\n> **Importante**: Cuando usas LEFT JOIN y añades condiciones en el WHERE, ten cuidado: las condiciones del WHERE se aplican **después** del JOIN, lo que puede convertir un LEFT JOIN en un INNER JOIN implícito."
+        },
+        {
+          "type": "text",
+          "content": "## Errores comunes en JOINs\n\n### Error 1: Olvidar la condición ON\n\n```sql\n-- ❌ CROSS JOIN implícito (producto cartesiano)\nSELECT * FROM alumnos, notas;\n-- Resultado: 6 alumnos × 12 notas = 72 filas (¡ERROR!)\n\n-- ✅ INNER JOIN correcto\nSELECT * FROM alumnos a INNER JOIN notas n ON a.id = n.id_alumno;\n```\n\n### Error 2: Condiciones en WHERE que anulan el LEFT JOIN\n\n```sql\n-- ❌ LEFT JOIN inútil: el WHERE filtra los NULLs\nSELECT a.nombre, n.nota\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nWHERE n.nota > 7;  -- Esto convierte el LEFT JOIN en INNER JOIN\n\n-- ✅ Condición en el ON si necesitas filtrar en LEFT JOIN\nSELECT a.nombre, n.nota\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno AND n.nota > 7;\n```\n\n### Error 3: Ambigüedad en nombres de columnas\n\n```sql\n-- ❌ Error: 'id' could be from either table\nSELECT id, nombre FROM alumnos INNER JOIN notas ON alumnos.id = notas.id_alumno;\n\n-- ✅ Especificar la tabla\nSELECT a.id, a.nombre\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno;\n```\n\n### Error 4: JOIN sin indices en las columnas de relación\n\n```sql\n-- Si las columnas de JOIN no tienen índice, la consulta es lenta\n-- Solución: crear índices en las FK\nCREATE INDEX idx_id_alumno ON notas(id_alumno);\nCREATE INDEX idx_id_asignatura ON notas(id_asignatura);\nCREATE INDEX idx_id_profesor ON asignaturas(id_profesor);\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-10-3-1",
+          "title": "Múltiples JOINs",
+          "difficulty": "hard",
+          "description": "Escribe una consulta que muestre:\n- Nombre del alumno\n- Nombre de la asignatura\n- Nombre del profesor de esa asignatura\n- Nota obtenida\n- Convocatoria\n- Edad del alumno\n\nOrdena por nombre de alumno y nombre de asignatura.",
+          "solution": "```sql\nSELECT\n  CONCAT(a.nombre, ' ', a.apellido) AS alumno,\n  asig.nombre AS asignatura,\n  CONCAT(p.nombre, ' ', p.apellido) AS profesor,\n  n.nota,\n  n.convocatoria,\n  TIMESTAMPDIFF(YEAR, a.fecha_nacimiento, CURDATE()) AS edad\nFROM notas n\n  INNER JOIN alumnos a ON n.id_alumno = a.id\n  INNER JOIN asignaturas asig ON n.id_asignatura = asig.id\n  INNER JOIN profesores p ON asig.id_profesor = p.id\nORDER BY a.nombre, asig.nombre;\n```\n\n**Resultado esperado:**\n\n```\n+----------------+-------------------------+------------------+------+-------------+------+\n| alumno         | asignatura              | profesor         | nota | convocatoria| edad |\n+----------------+-------------------------+------------------+------+-------------+------+\n| Ana Rodríguez  | Programación            | Pedro Sánchez    | 9.50 | Conv. 1     |   21 |\n| Carlos Martínez| Bases de datos          | Laura Fernández  | 5.25 | Conv. 1     |   21 |\n| Carlos Martínez| Bases de datos          | Laura Fernández  | 7.00 | Conv. 2     |   21 |\n| ...            | ...                     | ...              | ...  | ...         |  ... |\n+----------------+-------------------------+------------------+------+-------------+------+\n```"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "id": "databases-0484",
+  "code": "0484",
+  "title": "Bases de datos",
+  "slug": "databases-0484",
+  "description": "Curso completo de Bases de datos para el módulo 0484 de 1.º DAM/DAW. Desde los conceptos fundamentales hasta bases de datos no relacionales, pasando por diseño E/R, normalización, SQL completo, programación almacenada y transacciones.",
+  "category": "1.º DAM y DAW",
+  "level": "beginner",
+  "sgbd": "MySQL",
+  "language": "es",
+  "estimatedHours": 120,
+  "thumbnail": "/images/courses/databases-0484.jpg",
+  "instructor": {
+    "name": "AulaDev",
+    "bio": "Plataforma de formación en programación"
+  },
+  "tags": ["bases-de-datos", "sql", "mysql", "dam", "daw", "0484"],
+  "prerequisites": [],
+  "learningObjectives": [
+    "Reconocer los elementos de una base de datos y los tipos de SGBD",
+    "Crear bases de datos y definir su estructura relacional",
+    "Consultar datos mediante sentencias SQL de manipulación",
+    "Modificar datos y gestionar transacciones y concurrencia",
+    "Crear procedimientos almacenados y automatizar tareas",
+    "Diseñar modelos relacionales normalizados y diagramas E/R",
+    "Conocer las bases de datos no relacionales (NoSQL)"
+  ],
+  "curriculumMapping": {
+    "RA1": "Reconocimiento de elementos, tipos de SGBD, introducción a Big Data",
+    "RA2": "Creación de bases de datos y estructura relacional",
+    "RA3": "Consultas SQL de manipulación de datos",
+    "RA4": "Modificación de datos, transacciones y concurrencia",
+    "RA5": "Procedimientos almacenados y automatización",
+    "RA6": "Modelo relacional normalizado y diagramas E/R",
+    "RA7": "Bases de datos no relacionales"
+  },
+  "modules": [
+    { "id": "mod-01", "title": "Introducción a las bases de datos", "slug": "introduccion", "order": 1 },
+    { "id": "mod-02", "title": "Preparación del entorno", "slug": "entorno", "order": 2 },
+    { "id": "mod-03", "title": "Modelo entidad/relación", "slug": "modelo-er", "order": 3 },
+    { "id": "mod-04", "title": "Del modelo E/R al modelo relacional", "slug": "er-a-relacional", "order": 4 },
+    { "id": "mod-05", "title": "Normalización", "slug": "normalizacion", "order": 5 },
+    { "id": "mod-06", "title": "Creación de bases de datos con SQL", "slug": "creacion-sql", "order": 6 },
+    { "id": "mod-07", "title": "Elementos avanzados de estructura y seguridad", "slug": "estructura-seguridad", "order": 7 },
+    { "id": "mod-08", "title": "Consultas SQL básicas", "slug": "consultas-basicas", "order": 8 },
+    { "id": "mod-09", "title": "Funciones y consultas resumen", "slug": "funciones-consultas-resumen", "order": 9 },
+    { "id": "mod-10", "title": "Consultas multitabla", "slug": "consultas-multitabla", "order": 10 },
+    { "id": "mod-11", "title": "Subconsultas y consultas avanzadas", "slug": "subconsultas-avanzadas", "order": 11 },
+    { "id": "mod-12", "title": "Modificación de datos", "slug": "modificacion-datos", "order": 12 },
+    { "id": "mod-13", "title": "Transacciones y concurrencia", "slug": "transacciones-concurrencia", "order": 13 },
+    { "id": "mod-14", "title": "Programación almacenada", "slug": "programacion-almacenada", "order": 14 },
+    { "id": "mod-15", "title": "Triggers, cursores y excepciones", "slug": "triggers-courseurs", "order": 15 },
+    { "id": "mod-16", "title": "Bases de datos no relacionales", "slug": "no-relacionales", "order": 16 },
+    { "id": "mod-17", "title": "Proyecto final", "slug": "proyecto-final", "order": 17 }
+  ],
+  "createdAt": "2026-09-22",
+  "updatedAt": "2026-09-22",
+  "version": "1.0"
+}

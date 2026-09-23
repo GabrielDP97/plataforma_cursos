@@ -1,0 +1,98 @@
+{
+  "id": "mod-13",
+  "courseId": "databases-0484",
+  "title": "Transacciones y concurrencia",
+  "slug": "transacciones-concurrencia",
+  "order": 13,
+  "description": "ACID, COMMIT, ROLLBACK, SAVEPOINT. Concurrencia, bloqueos y problemas de acceso simultáneo.",
+  "objectives": [
+    "Comprender las propiedades ACID",
+    "Usar COMMIT, ROLLBACK y SAVEPOINT",
+    "Gestionar transacciones con START TRANSACTION",
+    "Identificar problemas de concurrencia",
+    "Comprender los bloqueos en MySQL"
+  ],
+  "estimatedMinutes": 300,
+  "lessons": [
+    {
+      "id": "lesson-13-1",
+      "title": "Propiedades ACID",
+      "order": 1,
+      "objectives": [
+        "Definir las 4 propiedades ACID",
+        "Comprender por qué son importantes para la integridad de datos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una transacción?\n\nUna **transacción** es un conjunto de operaciones SQL que se ejecutan como una unidad atómica. O se ejecutan **TODAS** o no se ejecuta **NINGUNA**.\n\n> **Analogía**: Una transferencia bancaria. Si envías 100€ de tu cuenta a otra, son 2 operaciones: restar 100€ de tu cuenta y sumar 100€ a la otra. Si falla la segunda, la primera tampoco debería aplicarse.\n\n## Propiedades ACID\n\n| Propiedad | Significado | Ejemplo |\n|---|---|---|\n| **Atomicidad** | Todo o nada: todas las operaciones se completan o ninguna se aplica | Si falla una transferencia, no se resta el dinero |\n| **Consistencia** | Los datos siempre están en un estado válido después de la transacción | El saldo total de las cuentas no cambia |\n| **Aislamiento** | Las transacciones concurrentes no se interfieren entre sí | Dos transferencias simultáneas no corrompen los datos |\n| **Durabilidad** | Los cambios confirmados (COMMIT) persisten incluso si el sistema falla | Tras COMMIT, los datos están seguros en disco |\n\n### Ejemplo práctico\n\n```sql\n-- Transferencia bancaria: atomicidad\nSTART TRANSACTION;\n\n-- 1. Restar 100€ de la cuenta A\nUPDATE cuentas SET saldo = saldo - 100 WHERE id = 1;\n\n-- 2. Sumar 100€ a la cuenta B\nUPDATE cuentas SET saldo = saldo + 100 WHERE id = 2;\n\n-- Si todo va bien:\nCOMMIT;\n\n-- Si algo falla:\n-- ROLLBACK;\n```\n\nSi ocurre un error después del paso 1 pero antes del COMMIT, el ROLLBACK deshace el paso 1 y la cuenta A no pierde dinero."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-1-1",
+          "title": "Propiedades ACID",
+          "difficulty": "basic",
+          "description": "Explica con un ejemplo cotidiano (no bancario) cómo se manifiestan las 4 propiedades ACID en una base de datos de una tienda online.",
+          "solution": "- **Atomicidad**: Al crear un pedido, se inserta el pedido Y se reducen los stocks. Si falla la reducción de stock, el pedido no se crea. Todo o nada.\n\n- **Consistencia**: Si un producto cuesta 50€ y se piden 2 unidades, el total del pedido debe ser 100€. La BD no puede permitir un total incorrecto.\n\n- **Aislamiento**: Si dos clientes compran el último producto en stock al mismo tiempo, cada transacción debe ver el stock anterior. No puede venderse el mismo producto dos veces.\n\n- **Durabilidad**: Tras confirmar un pedido (COMMIT), el pedido existe aunque el servidor se reinicie inmediatamente después."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-2",
+      "title": "Gestión de transacciones",
+      "order": 2,
+      "objectives": [
+        "Iniciar transacciones con START TRANSACTION",
+        "Confirmar cambios con COMMIT",
+        "Deshacer cambios con ROLLBACK",
+        "Usar SAVEPOINT para puntos de guardado parciales"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## START TRANSACTION / COMMIT / ROLLBACK\n\n```sql\n-- Iniciar una transacción\nSTART TRANSACTION;\n\n-- Operaciones\nINSERT INTO pedidos (id_cliente, fecha) VALUES (1, CURDATE());\nSET @ultimo_id = LAST_INSERT_ID();\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES (@ultimo_id, 1, 2, 649.99);\n\n-- Si todo está bien: confirmar\nCOMMIT;\n\n-- Si hay error: deshacer todo\n-- ROLLBACK;\n```\n\n### Ejemplo completo con manejo de errores\n\n```sql\n-- Transferencia de stock entre almacenes\nSTART TRANSACTION;\n\n-- 1. Reducir stock en almacén origen\nUPDATE productos\nSET stock = stock - 10\nWHERE id = 1 AND stock >= 10;\n\n-- Verificar que se actualizó alguna fila\n-- (en MySQL se puede con ROW_COUNT())\n\n-- 2. Aumentar stock en almacén destino\nUPDATE productos\nSET stock = stock + 10\nWHERE id = 1;\n\n-- 3. Registrar el movimiento\nINSERT INTO movimientos_stock (id_producto, cantidad, tipo, fecha)\nVALUES (1, 10, 'TRANSFERENCIA', NOW());\n\n-- Si todo correcto:\nCOMMIT;\n-- Si algo falla:\n-- ROLLBACK;\n```\n\n## SAVEPOINT\n\n`SAVEPOINT` crea un punto de guardado parcial. Puedes deshacer hasta ese punto sin deshacer toda la transacción.\n\n```sql\nSTART TRANSACTION;\n\n-- Paso 1\nINSERT INTO alumnos (nombre, apellido) VALUES ('Nuevo', 'Alumno');\nSAVEPOINT sp1;  -- Guardar punto\n\n-- Paso 2\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (LAST_INSERT_ID(), 1, 8, 'Ordinaria');\n\n-- Si el paso 2 falla, podemos deshacer hasta sp1:\n-- ROLLBACK TO SAVEPOINT sp1;\n-- El alumno se mantiene, la nota se elimina\n\n-- O deshacer todo:\n-- ROLLBACK;\n\n-- O confirmar todo:\nCOMMIT;\n\n-- Liberar el savepoint cuando ya no se necesita\nRELEASE SAVEPOINT sp1;\n```\n\n### Resumen\n\n| Comando | Qué hace |\n|---|---|\n| `START TRANSACTION` | Inicia una transacción |\n| `COMMIT` | Confirma todos los cambios |\n| `ROLLBACK` | Deshace TODOS los cambios |\n| `SAVEPOINT nombre` | Crea un punto de guardado |\n| `ROLLBACK TO SAVEPOINT nombre` | Deshace hasta el punto |\n| `RELEASE SAVEPOINT nombre` | Elimina el punto de guardado |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-2-1",
+          "title": "Transacciones prácticas",
+          "difficulty": "intermediate",
+          "description": "Escribe una transacción que realice estas operaciones de forma atómica:\n1. Crear un nuevo alumno\n2. Matricularlo en 'Bases de datos'\n3. Insertar una nota inicial de 0\n4. Si todo está bien, confirmar. Si algo falla, deshacer todo.",
+          "solution": "```sql\nSTART TRANSACTION;\n\n-- 1. Crear alumno\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento)\nVALUES ('Nuevo', 'Alumno', 'nuevo@email.com', '2006-01-15');\n\nSET @id_nuevo = LAST_INSERT_ID();\n\n-- 2. Matricular en Bases de datos\nSET @id_bd = (SELECT id FROM asignaturas WHERE nombre = 'Bases de datos');\n\nINSERT INTO matriculas (id_alumno, id_asignatura)\nVALUES (@id_nuevo, @id_bd);\n\n-- 3. Nota inicial\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (@id_nuevo, @id_bd, 0, 'Pendiente');\n\n-- 4. Confirmar\nCOMMIT;\n\n-- Si algo falla en cualquier paso, ejecutar:\n-- ROLLBACK;\n\n-- Verificar\nSELECT a.nombre, asig.nombre AS asignatura, n.nota\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nINNER JOIN asignaturas asig ON n.id_asignatura = asig.id\nWHERE a.id = @id_nuevo;\n```\n\nSi el INSERT de matrículas falla (por ejemplo, si el alumno ya está matriculado), el ROLLBACK deshace el INSERT del alumno y la BD queda como estaba."
+        }
+      ]
+    },
+    {
+      "id": "lesson-13-3",
+      "title": "Concurrencia y bloqueos",
+      "order": 3,
+      "objectives": [
+        "Comprender los problemas de concurrencia",
+        "Identificar lost update, dirty read, phantom read",
+        "Conocer los niveles de aislamiento",
+        "Usar bloqueos en MySQL"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Problemas de concurrencia\n\nCuando dos o más usuarios acceden a los mismos datos simultáneamente, pueden ocurrir problemas:\n\n### 1. Lost Update (Actualización perdida)\n\n```\nTransacción A lee stock = 10\nTransacción B lee stock = 10\nTransacción A escribe stock = 8  (resta 2)\nTransacción B escribe stock = 7  (resta 3)\n→ Resultado: stock = 7 (¡debería ser 5!)\nLa actualización de A se perdió.\n```\n\n### 2. Dirty Read (Lectura sucia)\n\n```\nTransacción A escribe stock = 5 (pero no ha hecho COMMIT)\nTransacción B lee stock = 5\nTransacción A hace ROLLBACK (stock vuelve a 10)\n→ Transacción B trabajó con un dato que nunca existió oficialmente.\n```\n\n### 3. Non-Repeatable Read (Lectura no repetible)\n\n```\nTransacción A lee stock = 10\nTransacción B escribe stock = 8 y hace COMMIT\nTransacción A lee stock = 8 (¡cambió!)\n→ En la misma transacción, A obtuvo dos valores distintos.\n```\n\n### 4. Phantom Read (Lectura fantasma)\n\n```\nTransacción A cuenta alumnos = 6\nTransacción B inserta un alumno y hace COMMIT\nTransacción A cuenta alumnos = 7 (¡apareció uno!)\n→ La consulta de A devolvió resultados diferentes.\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Niveles de aislamiento\n\nMySQL permite configurar cuánto se protegen las transacciones entre sí:\n\n| Nivel | Dirty Read | Non-Repeatable | Phantom |\n|---|---|---|---|\n| **READ UNCOMMITTED** | ✅ Puede ocurrir | ✅ Puede ocurrir | ✅ Puede ocurrir |\n| **READ COMMITTED** | ❌ Evitado | ✅ Puede ocurrir | ✅ Puede ocurrir |\n| **REPEATABLE READ** (default) | ❌ Evitado | ❌ Evitado | ✅ Puede ocurrir |\n| **SERIALIZABLE** | ❌ Evitado | ❌ Evitado | ❌ Evitado |\n\n```sql\n-- Ver el nivel de aislamiento actual\nSELECT @@transaction_isolation;\n\n-- Cambiar el nivel de aislamiento\nSET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;\n\n-- Nivel más seguro (pero más lento)\nSET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;\n```\n\n## Bloqueos\n\n### Bloqueo explícito\n\n```sql\n-- Bloquear una fila para escritura\nSELECT * FROM productos WHERE id = 1 FOR UPDATE;\n-- Otras transacciones no pueden modificar esta fila hasta que hagamos COMMIT\n\n-- Bloquear una tabla para lectura\nLOCK TABLES alumnos READ;\n-- Solo se pueden hacer SELECT, no INSERT/UPDATE/DELETE\n\n-- Bloquear una tabla para escritura\nLOCK TABLES alumnos WRITE;\n-- Solo esta conexión puede acceder a la tabla\n\n-- Liberar bloqueos\nUNLOCK TABLES;\n```\n\n### Bloqueo implícito\n\nMySQL bloquea automáticamente:\n- `INSERT`: Bloquea la fila insertada.\n- `UPDATE`: Bloquea la fila modificada.\n- `DELETE`: Bloquea la fila eliminada.\n\n> **Consejo**: Mantén las transacciones lo más cortas posible para reducir el tiempo de bloqueo."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-13-3-1",
+          "title": "Concurrencia",
+          "difficulty": "intermediate",
+          "description": "Describe con un ejemplo de la vida real (no técnico) los 4 problemas de concurrencia. Luego indica qué nivel de aislamiento recomendarías para:\n1. Una red social (muchas escrituras simultáneas)\n2. Un sistema bancario (cero errores aceptables)",
+          "solution": "**Ejemplos cotidianos:**\n\n1. **Lost Update**: Dos cajeros restan dinero de la misma cuenta al mismo tiempo. Uno resta 50€ y otro 30€. Si ambos leen 200€, uno escribe 150€ y otro 170€. El resultado final es 170€ en vez de 120€.\n\n2. **Dirty Read**: Un cajero ve que una transferencia está \"en proceso\" y asume que el dinero ya salió. Pero la transferencia se cancela y el dinero nunca se movió.\n\n3. **Non-Repeatable Read**: Un cajero consulta el saldo (200€), mientras el cliente retira 100€ en otro cajero. Cuando el primer cajero vuelve a consultar, el saldo es 100€.\n\n4. **Phantom Read**: Un cajero lista todas las cuentas del cliente (3 cuentas). Mientras tanto, se crea una cuenta nueva. Cuando el cajero vuelve a listar, aparecen 4 cuentas.\n\n**Recomendaciones:**\n\n1. **Red social**: `READ COMMITTED`. Es suficiente porque los errores menores son aceptables y se necesita alto rendimiento.\n\n2. **Sistema bancario**: `SERIALIZABLE`. No se puede aceptar ningún error. El coste de rendimiento se acepta por seguridad."
+        }
+      ]
+    }
+  ]
+}

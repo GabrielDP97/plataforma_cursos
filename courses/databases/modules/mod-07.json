@@ -1,0 +1,105 @@
+{
+  "id": "mod-07",
+  "courseId": "databases-0484",
+  "title": "Elementos avanzados de estructura y seguridad",
+  "slug": "estructura-seguridad",
+  "order": 7,
+  "description": "Índices, vistas, usuarios y privilegios. DCL con GRANT y REVOKE.",
+  "objectives": [
+    "Crear y gestionar índices para mejorar el rendimiento",
+    "Definir y utilizar vistas",
+    "Crear y administrar usuarios de MySQL",
+    "Asignar y revocar privilegios con GRANT y REVOKE"
+  ],
+  "estimatedMinutes": 300,
+  "lessons": [
+    {
+      "id": "lesson-07-1",
+      "title": "Índices",
+      "order": 1,
+      "objectives": [
+        "Comprender qué son los índices y para qué sirven",
+        "Crear índices simples y compuestos",
+        "Identificar cuándo crear un índice"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un índice?\n\nUn **índice** es una estructura de datos que mejora la **velocidad de las consultas** sobre una tabla. Funciona como el índice de un libro: en lugar de leer todo el libro para encontrar un tema, miras el índice y vas directamente a la página.\n\n### Analogía\n\n- **Sin índice**: Para encontrar \"Juan\" en una lista de 10.000 alumnos, MySQL lee **todas las filas** (escaneo completo).\n- **Con índice**: MySQL busca \"Juan\" en el índice y va directamente a la fila correspondiente.\n\n### Tipos de índices\n\n| Tipo | Descripción |\n|---|---|\n| **Índice simple** | Sobre una sola columna |\n| **Índice compuesto** | Sobre varias columnas |\n| **UNIQUE** | Garantiza que no haya duplicados |\n| **Índice de texto completo** | Para búsquedas en texto |\n| **Índice compuesto (multi)** | Para consultas que filtran por varias columnas |\n\n### Crear índices\n\n```sql\n-- Índice simple sobre una columna\nCREATE INDEX idx_apellido ON alumnos(apellido);\n\n-- Índice compuesto (para consultas que filtran por apellido Y nombre)\nCREATE INDEX idx_nombre_completo ON alumnos(apellido, nombre);\n\n-- UNIQUE index (garantiza unicidad + rapidez)\nCREATE UNIQUE INDEX idx_email ON alumnos(email);\n\n-- Ver los índices de una tabla\nSHOW INDEX FROM alumnos;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cuándo crear un índice?\n\n**Crea un índice cuando:**\n- La columna se usa frecuentemente en `WHERE`.\n- La columna se usa en `JOIN` (claves foráneas).\n- La columna se usa en `ORDER BY`.\n- La tabla tiene muchos registros (> 1.000).\n\n**NO crees un índice cuando:**\n- La tabla tiene pocos registros.\n- La columna tiene pocos valores únicos (ej: campo \"sexo\" con solo M/F).\n- La tabla se escribe mucho y se lee poco (los índices ralenticen las escrituras).\n\n### Ejemplo práctico\n\n```sql\n-- Tabla de notas con muchos registros\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT NOT NULL,\n  id_asignatura INT NOT NULL,\n  nota DECIMAL(4,2) NOT NULL,\n  convocatoria VARCHAR(20) NOT NULL\n);\n\n-- Índice para búsquedas por alumno\nCREATE INDEX idx_id_alumno ON notas(id_alumno);\n\n-- Índice para búsquedas por asignatura\nCREATE INDEX idx_id_asignatura ON notas(id_asignatura);\n\n-- Índice compuesto para búsquedas por alumno Y asignatura\nCREATE INDEX idx_alumno_asignatura ON notas(id_alumno, id_asignatura);\n\n-- Ahora estas consultas son rápidas:\nSELECT * FROM notas WHERE id_alumno = 5;           -- Usa idx_id_alumno\nSELECT * FROM notas WHERE id_asignatura = 3;       -- Usa idx_id_asignatura\nSELECT * FROM notas WHERE id_alumno = 5 AND id_asignatura = 3; -- Usa idx_alumno_asignatura\n```\n\n> **Nota**: Las PRIMARY KEY y UNIQUE ya crean índices automáticamente."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-07-1-1",
+          "title": "Crear índices",
+          "difficulty": "intermediate",
+          "description": "En la tabla `productos` con 50.000 registros, crea los índices necesarios para que estas consultas sean rápidas:\n1. Buscar productos por nombre\n2. Buscar productos por categoría\n3. Buscar productos por nombre Y categoría\n4. Buscar productos por precio (ordenados de mayor a menor)",
+          "solution": "```sql\n-- 1. Índice para búsquedas por nombre\nCREATE INDEX idx_nombre ON productos(nombre);\n\n-- 2. Índice para búsquedas por categoría\nCREATE INDEX idx_categoria ON productos(id_categoria);\n\n-- 3. Índice compuesto para nombre + categoría\nCREATE INDEX idx_nombre_categoria ON productos(nombre, id_categoria);\n\n-- 4. Índice para ordenar por precio (MySQL puede usar este índice en ORDER BY)\nCREATE INDEX idx_precio ON productos(precio);\n\n-- Verificar los índices\nSHOW INDEX FROM productos;\n```\n\n**Justificación:**\n- Los 50.000 registros justifican crear índices.\n- El índice compuesto (nombre, categoría) acelera consultas que filtran por ambos campos.\n- El índice de precio acelera los `ORDER BY precio`."
+        }
+      ]
+    },
+    {
+      "id": "lesson-07-2",
+      "title": "Vistas",
+      "order": 2,
+      "objectives": [
+        "Crear y utilizar vistas",
+        "Comprender las ventajas de las vistas",
+        "Modificar y eliminar vistas"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una vista?\n\nUna **vista** es una consulta SQL almacenada que se comporta como una tabla virtual. No almacena datos, sino que ejecuta la consulta cada vez que se accede a ella.\n\n> **Analogía**: Una vista es como un \"filtro\" o \"atajo\" que muestra solo la parte de los datos que te interesa.\n\n### Ventajas de las vistas\n\n1. **Simplicidad**: Ocultan complejidad (JOINs, subconsultas).\n2. **Seguridad**: Muestran solo columnas/filas autorizadas.\n3. **Consistencia**: Si cambia la estructura subyacente, la vista puede no cambiar.\n4. **Reutilización**: Una vista puede ser consultada como si fuera una tabla.\n\n### Crear una vista\n\n```sql\n-- Vista que muestra los alumnos con su media de notas\nCREATE VIEW v_alumnos_media AS\nSELECT\n  a.id,\n  a.nombre,\n  a.apellido,\n  COUNT(n.id) AS total_notas,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido;\n\n-- Usar la vista como si fuera una tabla\nSELECT * FROM v_alumnos_media WHERE nota_media >= 7;\n\n-- La vista se actualiza automáticamente con los datos\nSELECT * FROM v_alumnos_media;\n```"
+        },
+        {
+          "type": "text",
+          "content": "### Modificar y eliminar vistas\n\n```sql\n-- Modificar una vista\nCREATE OR REPLACE VIEW v_alumnos_media AS\nSELECT\n  a.id,\n  a.nombre,\n  a.apellido,\n  a.email,\n  COUNT(n.id) AS total_notas,\n  ROUND(AVG(n.nota), 2) AS nota_media\nFROM alumnos a\nLEFT JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre, a.apellido, a.email;\n\n-- Eliminar una vista\nDROP VIEW IF EXISTS v_alumnos_media;\n\n-- Ver las vistas de una base de datos\nSHOW FULL TABLES WHERE Table_type = 'VIEW';\n```\n\n### Ejemplo práctico: Vista de seguridad\n\n```sql\n-- Vista que muestra solo los datos públicos de los alumnos\nCREATE VIEW v_alumnos_publico AS\nSELECT id, nombre, apellido, email\nFROM alumnos\nWHERE activo = TRUE;\n\n-- Un profesor podría usar esta vista en lugar de la tabla completa\n-- (sin acceso a fecha_nacimiento ni otros datos sensibles)\nSELECT * FROM v_alumnos_publico;\n```\n\n### Vista con CHECK OPTION\n\nSi quieres que las inserciones/actualizaciones a través de la vista cumplan las condiciones del WHERE:\n\n```sql\nCREATE VIEW v_alumnos_activos AS\nSELECT * FROM alumnos WHERE activo = TRUE\nWITH CHECK OPTION;\n\n-- Esto funcionaría:\nINSERT INTO v_alumnos_activos (nombre, apellido, email)\nVALUES ('Pedro', 'Nuevo', 'pedro@email.com');\n\n-- Esto FALLaría (intentar insertar inactivo a través de una vista con CHECK OPTION)\nINSERT INTO v_alumnos_activos (nombre, apellido, email, activo)\nVALUES ('Pedro', 'Nuevo', 'pedro@email.com', FALSE);\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-07-2-1",
+          "title": "Crear vistas",
+          "difficulty": "intermediate",
+          "description": "Crea las siguientes vistas:\n1. Una vista que muestre solo las asignaturas con más de 5 créditos\n2. Una vista que muestre el resumen de notas por asignatura (nombre de asignatura, media de notas, número de alumnos)\n3. Una vista que muestre los alumnos de ciclo 'DAM'",
+          "solution": "```sql\n-- 1. Asignaturas con más de 5 créditos\nCREATE VIEW v_asignaturas_5creditos AS\nSELECT *\nFROM asignaturas\nWHERE creditos > 5;\n\n-- Uso:\nSELECT * FROM v_asignaturas_5creditos;\n\n-- 2. Resumen de notas por asignatura\nCREATE VIEW v_resumen_notas AS\nSELECT\n  a.nombre AS asignatura,\n  ROUND(AVG(n.nota), 2) AS nota_media,\n  COUNT(DISTINCT n.id_alumno) AS num_alumnos\nFROM asignaturas a\nLEFT JOIN notas n ON a.id = n.id_asignatura\nGROUP BY a.id, a.nombre;\n\n-- Uso:\nSELECT * FROM v_resumen_notas ORDER BY nota_media DESC;\n\n-- 3. Alumnos de DAM\nCREATE VIEW v_alumnos_dam AS\nSELECT a.*\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM'\nGROUP BY a.id;\n\n-- Uso:\nSELECT * FROM v_alumnos_dam;\n```\n\nLas vistas se actualizan automáticamente cuando cambian los datos de las tablas subyacentes."
+        }
+      ]
+    },
+    {
+      "id": "lesson-07-3",
+      "title": "Usuarios y privilegios",
+      "order": 3,
+      "objectives": [
+        "Crear y eliminar usuarios de MySQL",
+        "Asignar contraseñas a usuarios",
+        "Gestionar privilegios con GRANT y REVOKE",
+        "Comprender el modelo de seguridad de MySQL"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Usuarios de MySQL\n\nMySQL tiene un sistema de **usuarios y privilegios** que controla quién puede acceder a la base de datos y qué puede hacer.\n\n### Crear un usuario\n\n```sql\n-- Crear un usuario básico\nCREATE USER 'maria'@'localhost' IDENTIFIED BY 'contraseña123';\n\n-- Crear un usuario que puede conectarse desde cualquier host\nCREATE USER 'pedro'@'%' IDENTIFIED BY 'contraseña456';\n\n-- Crear un usuario solo para una base de datos específica\nCREATE USER 'analista'@'localhost'\n  IDENTIFIED BY 'analista789'\n  PASSWORD EXPIRE INTERVAL 90 DAY;  -- Contraseña expira en 90 días\n```\n\n### Ver usuarios\n\n```sql\n-- Ver todos los usuarios\nSELECT user, host FROM mysql.user;\n\n-- Ver los privilegios de un usuario\nSHOW GRANTS FOR 'maria'@'localhost';\n```\n\n### Eliminar un usuario\n\n```sql\nDROP USER 'maria'@'localhost';\nDROP USER IF EXISTS 'maria'@'localhost';\n```\n\n### Cambiar contraseña\n\n```sql\n-- Cambiar la contraseña de otro usuario (requiere privilegios)\nALTER USER 'maria'@'localhost' IDENTIFIED BY 'nueva_contraseña';\n\n-- Cambiar tu propia contraseña\nALTER USER USER() IDENTIFIED BY 'mi_nueva_contraseña';\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Privilegios: GRANT y REVOKE\n\n### GRANT: Asignar privilegios\n\n```sql\n-- Asignar todos los privilegios sobre una base de datos\nGRANT ALL PRIVILEGES ON academia.* TO 'maria'@'localhost';\n\n-- Asignar solo privilegios de lectura\nGRANT SELECT ON academia.* TO 'analista'@'localhost';\n\n-- Asignar privilegios específicos\nGRANT SELECT, INSERT, UPDATE ON academia.alumnos TO 'maria'@'localhost';\n\n-- Asignar privilegios sobre una tabla específica\nGRANT SELECT ON academia.notas TO 'pedro'@'%';\n\n-- Aplicar los cambios\nFLUSH PRIVILEGES;\n```\n\n### REVOKE: Revocar privilegios\n\n```sql\n-- Revocar todos los privilegios\nREVOKE ALL PRIVILEGES ON academia.* FROM 'maria'@'localhost';\n\n-- Revocar un privilegio específico\nREVOKE INSERT ON academia.* FROM 'maria'@'localhost';\n\n-- Revocar privilegios sobre una tabla\nREVOKE SELECT ON academia.notas FROM 'pedro'@'%';\n\nFLUSH PRIVILEGES;\n```\n\n### Niveles de privilegios\n\n| Nivel | Sintaxis | Alcance |\n|---|---|---|\n| **Global** | `GRANT ... ON *.*` | Todos los servidores, todas las BD |\n| **Base de datos** | `GRANT ... ON academia.*` | Todas las tablas de una BD |\n| **Tabla** | `GRANT ... ON academia.alumnos` | Una tabla específica |\n| **Columna** | `GRANT ... (nombre, email) ON academia.alumnos` | Columnas específicas |\n\n### Ejemplo práctico: Seguridad en `academia`\n\n```sql\n-- 1. Crear usuario para profesores (solo lectura y actualización de notas)\nCREATE USER 'profesor'@'localhost' IDENTIFIED BY 'profesor123';\nGRANT SELECT, UPDATE ON academia.notas TO 'profesor'@'localhost';\nGRANT SELECT ON academia.alumnos TO 'profesor'@'localhost';\nGRANT SELECT ON academia.asignaturas TO 'profesor'@'localhost';\n\n-- 2. Crear usuario para alumnos (solo lectura de sus propias notas)\nCREATE USER 'alumno'@'localhost' IDENTIFIED BY 'alumno123';\nGRANT SELECT ON academia.v_notas_propias TO 'alumno'@'localhost';\n\n-- 3. Crear usuario administrador (todos los privilegios)\nCREATE USER 'admin'@'localhost' IDENTIFIED BY 'admin123';\nGRANT ALL PRIVILEGES ON academia.* TO 'admin'@'localhost' WITH GRANT OPTION;\n-- WITH GRANT OPTION permite a 'admin' dar privilegios a otros usuarios\n\nFLUSH PRIVILEGES;\n```\n\n> **Regla de oro**: Nunca uses el usuario `root` en aplicaciones. Crea usuarios con los privilegios mínimos necesarios (principio de mínimo privilegio)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-07-3-1",
+          "title": "Gestionar usuarios",
+          "difficulty": "intermediate",
+          "description": "En la base de datos `tienda`, crea:\n1. Un usuario `vendedor` que pueda INSERT y SELECT en las tablas `productos` y `pedidos`\n2. Un usuario `cliente` que solo pueda SELECT en `productos`\n3. Un usuario `gerente` con todos los privilegios sobre `tienda`\n4. Verifica los privilegios de cada usuario con SHOW GRANTS",
+          "solution": "```sql\n-- 1. Usuario vendedor\nCREATE USER 'vendedor'@'localhost' IDENTIFIED BY 'vendedor123';\nGRANT SELECT, INSERT ON tienda.productos TO 'vendedor'@'localhost';\nGRANT SELECT, INSERT ON tienda.pedidos TO 'vendedor'@'localhost';\nGRANT SELECT, INSERT ON tienda.lineas_pedido TO 'vendedor'@'localhost';\n\n-- 2. Usuario cliente (solo lectura de productos)\nCREATE USER 'cliente'@'localhost' IDENTIFIED BY 'cliente123';\nGRANT SELECT ON tienda.productos TO 'cliente'@'localhost';\n\n-- 3. Usuario gerente (todos los privilegios)\nCREATE USER 'gerente'@'localhost' IDENTIFIED BY 'gerente123';\nGRANT ALL PRIVILEGES ON tienda.* TO 'gerente'@'localhost' WITH GRANT OPTION;\n\nFLUSH PRIVILEGES;\n\n-- Verificar privilegios\nSHOW GRANTS FOR 'vendedor'@'localhost';\nSHOW GRANTS FOR 'cliente'@'localhost';\nSHOW GRANTS FOR 'gerente'@'localhost';\n```\n\n**Salida esperada de SHOW GRANTS:**\n\nvendedor: SELECT, INSERT en productos, pedidos, lineas_pedido\ncliente: SELECT en productos\ngerente: ALL PRIVILEGES ON tienda.* con WITH GRANT OPTION"
+        }
+      ]
+    }
+  ]
+}

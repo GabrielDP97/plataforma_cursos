@@ -1,0 +1,73 @@
+{
+  "id": "mod-15",
+  "courseId": "databases-0484",
+  "title": "Triggers, cursores y excepciones",
+  "slug": "triggers-courseurs",
+  "order": 15,
+  "description": "Triggers BEFORE/AFTER, cursores para iterar filas, manejo de excepciones y automatización de tareas.",
+  "objectives": [
+    "Crear triggers BEFORE INSERT, AFTER INSERT, BEFORE UPDATE, AFTER UPDATE, BEFORE DELETE, AFTER DELETE",
+    "Usar OLD y NEW para acceder a los valores",
+    "Declarar y usar cursores para iterar sobre resultados",
+    "Manejar errores con DECLARE HANDLER",
+    "Automatizar tareas con triggers"
+  ],
+  "estimatedMinutes": 360,
+  "lessons": [
+    {
+      "id": "lesson-15-1",
+      "title": "Triggers",
+      "order": 1,
+      "objectives": [
+        "Crear triggers BEFORE y AFTER",
+        "Usar NEW y OLD para acceder a valores",
+        "Implementar validaciones automáticas con triggers"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un trigger?\n\nUn **trigger** (disparador) es un bloque de código que se ejecuta **automáticamente** cuando ocurre un evento en una tabla: INSERT, UPDATE o DELETE.\n\n> **Analogía**: Un trigger es como una alarma: cuando algo ocurre (alguien entra, alguien modifica algo), la alarma se activa automáticamente.\n\n### Tipos de triggers\n\n| Momento | Evento | Descripción |\n|---|---|---|\n| **BEFORE INSERT** | Antes de insertar | Validar o modificar datos antes de guardar |\n| **AFTER INSERT** | Después de insertar | Registrar o notificar después de guardar |\n| **BEFORE UPDATE** | Antes de actualizar | Validar o modificar antes de cambiar |\n| **AFTER UPDATE** | Después de actualizar | Registrar cambios después de actualizar |\n| **BEFORE DELETE** | Antes de eliminar | Validar o guardar respaldo antes de borrar |\n| **AFTER DELETE** | Después de eliminar | Registrar o limpiar después de borrar |\n\n### newValores: NEW y OLD\n\n| Trigger | OLD | NEW |\n|---|---|---|\n| INSERT | ❌ No existe | ✅ El valor que se va a insertar |\n| UPDATE | ✅ El valor anterior | ✅ El valor nuevo |\n| DELETE | ✅ El valor que se va a eliminar | ❌ No existe |"
+        },
+        {
+          "type": "text",
+          "content": "### Ejemplo 1: Validar nota antes de insertar\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_validar_nota\nBEFORE INSERT ON notas\nFOR EACH ROW\nBEGIN\n  -- Validar que la nota esté entre 0 y 10\n  IF NEW.nota < 0 OR NEW.nota > 10 THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Error: la nota debe estar entre 0 y 10';\n  END IF;\n\n  -- Validar que el alumno esté activo\n  IF NOT EXISTS (\n    SELECT 1 FROM alumnos WHERE id = NEW.id_alumno AND activo = TRUE\n  ) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'Error: el alumno no está activo';\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- Esto funcionaría:\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (1, 1, 8.5, 'Convocatoria 1');\n\n-- Esto FALLARÍA:\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (1, 1, 15, 'Convocatoria 1');\n-- Error: la nota debe estar entre 0 y 10\n```\n\n### Ejemplo 2: Actualizar stock al insertar un pedido\n\n```sql\nDELIMITER //\n\nCREATE TRIGGER trg_reducir_stock\nAFTER INSERT ON lineas_pedido\nFOR EACH ROW\nBEGIN\n  UPDATE productos\n  SET stock = stock - NEW.cantidad\n  WHERE id = NEW.id_producto;\nEND //\n\nDELIMITER ;\n\n-- Cuando se inserta una línea de pedido, el stock se reduce automáticamente\nINSERT INTO lineas_pedido (id_pedido, id_producto, cantidad, precio_unitario)\nVALUES (1, 1, 2, 649.99);\n-- El stock del producto 1 se reduce en 2\n```\n\n### Ejemplo 3: Registrar cambios en un log\n\n```sql\n-- Tabla de log\nCREATE TABLE log_notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_nota INT,\n  accion VARCHAR(10),\n  nota_anterior DECIMAL(4,2),\n  nota_nueva DECIMAL(4,2),\n  usuario VARCHAR(100),\n  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);\n\n-- Trigger para registrar actualizaciones de nota\nDELIMITER //\n\nCREATE TRIGGER trg_log_actualizar_nota\nAFTER UPDATE ON notas\nFOR EACH ROW\nBEGIN\n  IF OLD.nota != NEW.nota THEN\n    INSERT INTO log_notas (id_nota, accion, nota_anterior, nota_nueva, usuario)\n    VALUES (NEW.id, 'UPDATE', OLD.nota, NEW.nota, USER());\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- Ahora, cada cambio de nota se registra automáticamente\nUPDATE notas SET nota = 8.0 WHERE id = 1;\n-- Se inserta automáticamente en log_notas\n```\n\n### Ejemplo 4: Respaldar antes de eliminar\n\n```sql\n-- Tabla de respaldo\nCREATE TABLE notas_respaldo LIKE notas;\n\nDELIMITER //\n\nCREATE TRIGGER trg_respaldo_nota\nBEFORE DELETE ON notas\nFOR EACH ROW\nBEGIN\n  INSERT INTO notas_respaldo\n  VALUES (OLD.id, OLD.id_alumno, OLD.id_asignatura,\n          OLD.nota, OLD.convocatoria, OLD.fecha_evaluacion);\nEND //\n\nDELIMITER ;\n\n-- Al eliminar una nota, se respalda automáticamente\nDELETE FROM notas WHERE id = 1;\n-- La nota se copia a notas_respaldo antes de eliminarse\n```\n\n### Listar y eliminar triggers\n\n```sql\n-- Ver todos los triggers de una tabla\nSHOW TRIGGERS FROM academia LIKE 'notas';\n\n-- Ver el código de un trigger\nSHOW CREATE TRIGGER trg_validar_nota;\n\n-- Eliminar\nDROP TRIGGER IF EXISTS trg_validar_nota;\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-1-1",
+          "title": "Triggers prácticos",
+          "difficulty": "hard",
+          "description": "Crea los siguientes triggers:\n1. Un trigger BEFORE INSERT en `productos` que ponga el stock a 0 si es negativo\n2. Un trigger AFTER INSERT en `matriculas` que inserte una nota inicial de 0 en 'Pendiente'\n3. Un trigger BEFORE DELETE en `alumnos` que impida borrar alumnos con notas (lanzar error)",
+          "solution": "```sql\n-- 1. Stock no negativo\nDELIMITER //\n\nCREATE TRIGGER trg_stock_no_negativo\nBEFORE INSERT ON productos\nFOR EACH ROW\nBEGIN\n  IF NEW.stock < 0 THEN\n    SET NEW.stock = 0;\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- 2. Nota inicial al matricular\nDELIMITER //\n\nCREATE TRIGGER trg_nota_inicial\nAFTER INSERT ON matriculas\nFOR EACH ROW\nBEGIN\n  INSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\n  VALUES (NEW.id_alumno, NEW.id_asignatura, 0, 'Pendiente');\nEND //\n\nDELIMITER ;\n\n-- 3. Impedir borrar alumnos con notas\nDELIMITER //\n\nCREATE TRIGGER trg_impedir_borrar_alumno\nBEFORE DELETE ON alumnos\nFOR EACH ROW\nBEGIN\n  IF EXISTS (SELECT 1 FROM notas WHERE id_alumno = OLD.id) THEN\n    SIGNAL SQLSTATE '45000'\n    SET MESSAGE_TEXT = 'No se puede borrar un alumno con notas registradas';\n  END IF;\nEND //\n\nDELIMITER ;\n\n-- Prueba:\n-- DELETE FROM alumnos WHERE id = 1;\n-- Error: No se puede borrar un alumno con notas registradas\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-15-2",
+      "title": "Cursores y manejo de errores",
+      "order": 2,
+      "objectives": [
+        "Declarar y abrir cursores",
+        "Recorrer filas con FETCH",
+        "Cerrar cursores",
+        "Manejar errores con DECLARE HANDLER"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Cursores\n\nUn **cursor** es un mecanismo que permite **recorrer fila por fila** el resultado de una consulta. Es como un puntero que va avanzando por cada fila.\n\n> **Nota**: Los cursores son lentos para grandes volúmenes de datos. Siempre intenta resolver problemas con consultas SQL directas antes de usar cursores.\n\n### Ciclo de vida de un cursor\n\n```\n1. DECLARE CURSOR    → Declarar el cursor con una consulta\n2. DECLARE HANDLER   → Manejar errores (opcional)\n3. OPEN cursor       → Abrir el cursor\n4. FETCH cursor      → Leer la siguiente fila\n5. Procesar la fila\n6. Repetir 4-5 hasta que no haya más filas\n7. CLOSE cursor      → Cerrar el cursor\n```\n\n### Ejemplo: Recorrer todas las asignaturas\n\n```sql\nDELIMITER //\n\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_creditos DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  -- Declarar cursor\n  DECLARE cur_asignaturas CURSOR FOR\n    SELECT id, nombre, creditos FROM asignaturas;\n\n  -- Manejar fin de datos\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  -- Abrir cursor\n  OPEN cur_asignaturas;\n\n  -- Recorrer filas\n  mi_bucle: LOOP\n    FETCH cur_asignaturas INTO v_id, v_nombre, v_creditos;\n\n    IF v_fin THEN\n      LEAVE mi_bucle;\n    END IF;\n\n    -- Procesar cada fila\n    SELECT v_id, v_nombre, v_creditos;\n  END LOOP mi_bucle;\n\n  -- Cerrar cursor\n  CLOSE cur_asignaturas;\nEND //\n\nDELIMITER ;\n```\n\n## DECLARE HANDLER: Manejo de errores\n\n```sql\n-- CONTINUE: continúa después del error\nDECLARE CONTINUE HANDLER FOR 1062\n  SELECT 'Error: duplicado' AS error;\n\n-- EXIT: sale del bloque BEGIN...END\nDECLARE EXIT HANDLER FOR SQLEXCEPTION\nBEGIN\n  ROLLBACK;\n  SELECT 'Error: transacción cancelada' AS error;\nEND;\n\n-- Capturar errores específicos por código\nDECLARE CONTINUE HANDLER FOR 1452\n  SELECT 'Error: clave foránea no encontrada' AS error;\n\n-- Capturar cualquier error\nDECLARE CONTINUE HANDLER FOR SQLWARNING, SQLEXCEPTION\n  SELECT 'Ha ocurrido un error' AS error;\n```\n\n### Ejemplo completo: Procedimiento con cursor y manejo de errores\n\n```sql\nDELIMITER //\n\nCREATE PROCEDURE sp_media_por_asignatura()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(100);\n  DECLARE v_media DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre FROM asignaturas;\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  -- Tabla temporal para resultados\n  DROP TEMPORARY TABLE IF EXISTS tmp_medias;\n  CREATE TEMPORARY TABLE tmp_medias (\n    asignatura VARCHAR(100),\n    nota_media DECIMAL(4,2)\n  );\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v.nombre;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n\n    -- Calcular media de cada asignatura\n    SELECT ROUND(AVG(n.nota), 2) INTO v_media\n    FROM notas n WHERE n.id_asignatura = v_id;\n\n    -- Insertar en tabla temporal\n    INSERT INTO tmp_medias VALUES (v_nombre, IFNULL(v_media, 0));\n  END LOOP;\n\n  CLOSE cur;\n\n  -- Mostrar resultados\n  SELECT * FROM tmp_medias ORDER BY nota_media DESC;\n  DROP TEMPORARY TABLE tmp_medias;\nEND //\n\nDELIMITER ;\n\nCALL sp_media_por_asignatura();\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-15-2-1",
+          "title": "Cursores",
+          "difficulty": "hard",
+          "description": "Crea un procedimiento con cursor que:\n1. Recorra todos los alumnos\n2. Para cada alumno, calcule su nota media\n3. Si la media es ≥ 7, inserte una fila en una tabla `alumnos_destacados` con el nombre y la media\n4. Maneje el caso de alumnos sin notas",
+          "solution": "```sql\n-- Tabla de destino\nCREATE TABLE IF NOT EXISTS alumnos_destacados (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50),\n  apellido VARCHAR(50),\n  nota_media DECIMAL(4,2)\n);\n\nDELIMITER //\n\nCREATE PROCEDURE sp_alumnos_destacados()\nBEGIN\n  DECLARE v_id INT;\n  DECLARE v_nombre VARCHAR(50);\n  DECLARE v_apellido VARCHAR(50);\n  DECLARE v_media DECIMAL(4,2);\n  DECLARE v_fin BOOLEAN DEFAULT FALSE;\n\n  DECLARE cur CURSOR FOR\n    SELECT id, nombre, apellido FROM alumnos;\n\n  DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_fin = TRUE;\n\n  -- Limpiar tabla anterior\n  TRUNCATE TABLE alumnos_destacados;\n\n  OPEN cur;\n\n  mi_bucle: LOOP\n    FETCH cur INTO v_id, v_nombre, v_apellido;\n    IF v_fin THEN LEAVE mi_bucle; END IF;\n\n    -- Calcular media (puede ser NULL si no tiene notas)\n    SELECT ROUND(AVG(n.nota), 2) INTO v_media\n    FROM notas n WHERE n.id_alumno = v_id;\n\n    -- Solo insertar si tiene media y es ≥ 7\n    IF v_media IS NOT NULL AND v_media >= 7 THEN\n      INSERT INTO alumnos_destacados (nombre, apellido, nota_media)\n      VALUES (v_nombre, v_apellido, v_media);\n    END IF;\n  END LOOP;\n\n  CLOSE cur;\n\n  -- Mostrar resultados\n  SELECT * FROM alumnos_destacados ORDER BY nota_media DESC;\nEND //\n\nDELIMITER ;\n\n-- Ejecutar\nCALL sp_alumnos_destacados();\n```"
+        }
+      ]
+    }
+  ]
+}

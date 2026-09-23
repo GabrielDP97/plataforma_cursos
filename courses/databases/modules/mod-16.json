@@ -1,0 +1,81 @@
+{
+  "id": "mod-16",
+  "courseId": "databases-0484",
+  "title": "Bases de datos no relacionales",
+  "slug": "no-relacionales",
+  "order": 16,
+  "description": "Conceptos NoSQL: documental, clave-valor, columnar y grafo. Introducción práctica con MongoDB.",
+  "objectives": [
+    "Comprender qué son las bases de datos NoSQL",
+    "Diferenciar entre los 4 tipos principales de NoSQL",
+    "Conocer los casos de uso de cada tipo",
+    "Realizar operaciones básicas con MongoDB",
+    "Comparar bases de relacionales con NoSQL"
+  ],
+  "estimatedMinutes": 300,
+  "lessons": [
+    {
+      "id": "lesson-16-1",
+      "title": "Conceptos NoSQL",
+      "order": 1,
+      "objectives": [
+        "Definir qué es NoSQL y por qué existe",
+        "Diferenciar entre los 4 tipos de bases de datos NoSQL",
+        "Identificar cuándo usar NoSQL vs SQL"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es NoSQL?\n\n**NoSQL** significa \"Not Only SQL\" (no solo SQL). Son bases de datos que **no usan el modelo relacional tradicional** de tablas y filas.\n\n> NoSQL no es mejor ni peor que SQL. Son herramientas diferentes para problemas diferentes.\n\n### ¿Por qué NoSQL?\n\nLas bases de datos relacionales son excelentes para datos estructurados, pero tienen limitaciones:\n\n1. **Escalabilidad**: Escalar un RDBMS verticalmente (más RAM, más CPU) es caro. NoSQL escala horizontalmente (más servidores) de forma más fácil.\n2. **Flexibilidad**: No necesitas definir el esquema antes de insertar datos. Puedes guardar documentos con estructuras diferentes.\n3. **Rendimiento**: Para ciertas operaciones (lecturas masivas, escrituras rápidas), NoSQL puede ser más rápido.\n4. **Volúmenes masivos**: Big Data, IoT, redes sociales generan datos que un RDBMS no puede manejar eficientemente.\n\n### Los 4 tipos de NoSQL\n\n| Tipo | Modelo de datos | Ejemplo | Caso de uso |\n|---|---|---|---|\n| **Documental** | JSON/BSON | MongoDB, CouchDB | Catálogos, blogs, CMS |\n| **Clave-valor** | Pares key→value | Redis, DynamoDB | Caché, sesiones, contadores |\n| **Columnar** | Columnas agrupadas | Cassandra, HBase | Analítica, IoT, logs |\n| **Grafo** | Nodos y aristas | Neo4j, ArangoDB | Redes sociales, recomendaciones |"
+        },
+        {
+          "type": "text",
+          "content": "### 1. Bases de datos documentales\n\nAlmacenan datos como **documentos JSON**. Cada documento puede tener una estructura diferente.\n\n```json\n// Documento de alumno\n{\n  \"_id\": \"ObjectId('abc123')\",\n  \"nombre\": \"Juan García\",\n  \"email\": \"juan@email.com\",\n  \"notas\": [\n    {\"asignatura\": \"BD\", \"nota\": 8.5},\n    {\"asignatura\": \"Prog\", \"nota\": 9.0}\n  ],\n  \"direccion\": {\n    \"calle\": \"Calle Mayor 1\",\n    \"ciudad\": \"Madrid\"\n  }\n}\n```\n\n**Ventaja**: Un alumno puede tener notas, direcciones, teléfonos... todo en un solo documento. Sin necesidad de JOINs.\n\n**MongoDB** es el más popular. Lo veremos en la siguiente lección.\n\n### 2. Bases de datos clave-valor\n\nAlmacenan pares de **clave → valor**. Simple y ultrarrápido.\n\n```\nsession:abc123 → {user: \"juan\", role: \"admin\"}\nuser:42 → {name: \"Juan\", email: \"juan@email.com\"}\ncounter:visitas → 15234\n```\n\n**Redis** es el más conocido. Se usa para caché, sesiones, colas de mensajes, contadores.\n\n### 3. Bases de datos columnar\n\nAlmacenan datos por **columnas** en lugar de por filas. Optimizadas para analítica.\n\n```\nColumna \"nombre\":   [Juan, María, Carlos, Ana]\nColumna \"edad\":     [25, 30, 22, 28]\nColumna \"ciudad\":    [Madrid, Barcelona, Valencia, Sevilla]\n```\n\n**Cassandra** (Facebook la creó) maneja petabytes de datos. Se usa para logs, IoT, análisis de datos.\n\n### 4. Bases de datos de grafo\n\nAlmacenan datos como **nodos** (entidades) conectados por **aristas** (relaciones).\n\n```\n(Juan)──amigo──>(María)\n(Juan)──trabaja_en──>(Google)\n(María)──vive_en──>(Madrid)\n```\n\n**Neo4j** es el más popular. Se usa para redes sociales, sistemas de recomendación, grafos de conocimiento."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Cuándo usar NoSQL vs SQL?\n\n| Situación | SQL (Relacional) | NoSQL |\n|---|---|---|\n| Datos estructurados y consistentes | ✅ Mejor opción |\n| Esquema que cambia frecuentemente | | ✅ Mejor opción |\n| Transacciones complejas (ACID) | ✅ Mejor opción |\n| Escalado horizontal masivo | | ✅ Mejor opción |\n| Grandes volúmenes de datos no estructurados | | ✅ Mejor opción |\n| Relaciones complejas entre datos | ✅ Mejor opción |\n| Rendimiento en lecturas masivas | | ✅ Mejor opción |\n| Necesidad de joins complejos | ✅ Mejor opción |\n\n> **Regla práctica**: Si tus datos son estructurados y necesitas transacciones ACID, usa SQL. Si necesitas flexibilidad, escalabilidad masiva o datos no estructurados, considera NoSQL."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-1-1",
+          "title": "Elegir el tipo de BD",
+          "difficulty": "intermediate",
+          "description": "Para cada caso, indica si usarías una BD relacional (SQL) o NoSQL, y de qué tipo:\n1. Sistema de login de usuarios con roles y permisos\n2. Almacenar los \"me gusta\" y compartidos de posts en una red social\n3. Tienda online con productos, pedidos y facturas\n4. Sistema de recomendación de Netflix (películas conectadas por géneros)\n5. Almacenamiento de logs de servidores (millones de registros por día)",
+          "solution": "1. **Relacional (SQL)**: Los usuarios, roles y permisos tienen una estructura clara y necesitan transacciones ACID para la autenticación.\n\n2. **Grafo (Neo4j)**: Las relaciones entre usuarios y posts (me gusta, compartidos) se modelan como un grafo. Neo4j optimiza las consultas de \"¿a quién le gustó este post?\".\n\n3. **Relacional (SQL)**: Los productos, pedidos y facturas tienen relaciones claras (N:M entre pedidos y productos). Las transacciones son esenciales para la integridad financiera.\n\n4. **Grafo (Neo4j)**: Las recomendaciones se basan en relaciones entre entidades (usuarios-películas-géneros-actores). \"Los usuarios que vieron X también vieron Y\" se resuelve eficientemente con grafo.\n\n5. **Columnar (Cassandra)**: Los logs son escritura masiva y lectura analítica. Cassandra maneja millones de registros por día con alta disponibilidad y escalabilidad horizontal."
+        }
+      ]
+    },
+    {
+      "id": "lesson-16-2",
+      "title": "Introducción práctica a MongoDB",
+      "order": 2,
+      "objectives": [
+        "Instalar MongoDB (o usar MongoDB Atlas)",
+        "Crear colecciones e insertar documentos",
+        "Consultar documentos con find y operadores",
+        "Actualizar y eliminar documentos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## MongoDB: Documentos y colecciones\n\nMongoDB es la base de datos documental más popular. Los conceptos clave:\n\n| SQL | MongoDB |\n|---|---|\n| Base de datos | Base de datos |\n| Tabla | **Colección** |\n| Fila | **Documento** |\n| Columna | **Campo** |\n| PRIMARY KEY | **_id** (generado automáticamente) |\n| JOIN | **Embedding** (documentos anidados) o **$lookup** |\n\n### Instalación\n\n- **Local**: Descarga desde [https://www.mongodb.com/try/download/community](https://www.mongodb.com/try/download/community)\n- **Atlas (nube)**: [https://www.mongodb.com/atlas](https://www.mongodb.com/atlas) (tier gratuito)\n- **Docker**: `docker run -d -p 27017:27017 mongo`\n\n### Shell de MongoDB\n\n```bash\n# Conectar a MongoDB\nmongosh\n\n# o con URI\nmongosh \"mongodb://localhost:27017\"\n```
+        },
+        {
+          "type": "text",
+          "content": "### Operaciones CRUD\n\n#### Crear (Insert)\n\n```javascript\n// Seleccionar base de datos\nuse academia;\n\n// Insertar un documento\ndb.alumnos.insertOne({\n  nombre: \"Juan\",\n  apellido: \"García\",\n  email: \"juan@email.com\",\n  fecha_nacimiento: ISODate(\"2005-03-15\"),\n  activo: true,\n  notas: [\n    { asignatura: \"Bases de datos\", nota: 8.5 },\n    { asignatura: \"Programación\", nota: 9.0 }\n  ]\n});\n\n// Insertar varios documentos\ndb.alumnos.insertMany([\n  {\n    nombre: \"María\",\n    apellido: \"López\",\n    email: \"maria@email.com\",\n    notas: [\n      { asignatura: \"Bases de datos\", nota: 9.0 },\n      { asignatura: \"Sistemas\", nota: 8.5 }\n    ]\n  },\n  {\n    nombre: \"Carlos\",\n    apellido: \"Martínez\",\n    email: \"carlos@email.com\",\n    notas: []\n  }\n]);\n```\n\n#### Leer (Find)\n\n```javascript\n// Buscar todos los documentos\ndb.alumnos.find();\n\n// Buscar con filtro\ndb.alumnos.find({ nombre: \"Juan\" });\n\n// Buscar con operadores\ndb.alumnos.find({ \"notas.nota\": { $gte: 8 } });  // Nota >= 8\n\n// Buscar uno\ndb.alumnos.findOne({ email: \"juan@email.com\" });\n\n// Proyección (seleccionar campos)\ndb.alumnos.find({}, { nombre: 1, apellido: 1, _id: 0 });\n\n// Ordenar\ndb.alumnos.find().sort({ apellido: 1 });\n\n// Limitar\ndb.alumnos.find().limit(5);\n\n// Contar\ndb.alumnos.countDocuments({ activo: true });\n```\n\n#### Actualizar (Update)\n\n```javascript\n// Actualizar un documento\ndb.alumnos.updateOne(\n  { email: \"juan@email.com\" },\n  { $set: { activo: false } }\n);\n\n// Agregar una nota a un alumno\ndb.alumnos.updateOne(\n  { email: \"juan@email.com\" },\n  { $push: { notas: { asignatura: \"BD avanzada\", nota: 7.5 } } }\n);\n\n// Actualizar varios documentos\ndb.alumnos.updateMany(\n  { activo: true },\n  { $set: { revision_pendiente: true } }\n);\n```\n\n#### Eliminar (Delete)\n\n```javascript\n// Eliminar un documento\ndb.alumnos.deleteOne({ email: \"carlos@email.com\" });\n\n// Eliminar varios\ndb.alumnos.deleteMany({ activo: false });\n```\n\n#### Operadores de consulta\n\n```javascript\n// $gte, $lte, $gt, $lt\ndb.alumnos.find({ \"notas.nota\": { $gte: 8, $lte: 10 } });\n\n// $in\ndb.alumnos.find({ nombre: { $in: [\"Juan\", \"María\"] } });\n\n// $and\ndb.alumnos.find({\n  $and: [\n    { \"notas.nota\": { $gte: 7 } },\n    { activo: true }\n  ]\n});\n\n// $exists\ndb.alumnos.find({ email: { $exists: true } });\n\n// $regex (LIKE)\ndb.alumnos.find({ nombre: /Ju/ });  // Contiene 'Ju'\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-16-2-1",
+          "title": "MongoDB CRUD",
+          "difficulty": "intermediate",
+          "description": "En una base de datos `tienda_mongo`, realiza:\n1. Crea una colección `productos` e inserta 5 productos con: nombre, precio, categoría, stock\n2. Busca todos los productos con precio > 50\n3. Actualiza el stock del producto más barato\n4. Elimina los productos con stock 0\n5. Cuenta cuántos productos hay por categoría",
+          "solution": "```javascript\n// 1. Crear colección e insertar\ndb.productos.insertMany([\n  { nombre: \"Portátil HP\", precio: 649.99, categoria: \"Informática\", stock: 15 },\n  { nombre: \"Ratón Logitech\", precio: 19.99, categoria: \"Periféricos\", stock: 50 },\n  { nombre: \"Teclado Mecánico\", precio: 49.99, categoria: \"Periféricos\", stock: 30 },\n  { nombre: \"Monitor 24\\\"\", precio: 189.99, categoria: \"Informática\", stock: 20 },\n  { nombre: \"SSD Kingston\", precio: 59.99, categoria: \"Almacenamiento\", stock: 0 }\n]);\n\n// 2. Productos con precio > 50\ndb.productos.find({ precio: { $gt: 50 } });\n\n// 3. Actualizar stock del más barato\ndb.productos.updateOne(\n  { precio: { $eq: 19.99 } },\n  { $set: { stock: 45 } }\n);\n\n// 4. Eliminar productos con stock 0\ndb.productos.deleteMany({ stock: 0 });\n\n// 5. Contar por categoría\ndb.productos.aggregate([\n  { $group: { _id: \"$categoria\", total: { $sum: 1 } } }\n]);\n```"
+        }
+      ]
+    }
+  ]
+}

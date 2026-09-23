@@ -1,0 +1,77 @@
+{
+  "id": "mod-12",
+  "courseId": "databases-0484",
+  "title": "Modificación de datos",
+  "slug": "modificacion-datos",
+  "order": 12,
+  "description": "Sentencias INSERT, UPDATE y DELETE. INSERT SELECT. Integridad y errores comunes.",
+  "objectives": [
+    "Insertar datos con INSERT individual y múltiple",
+    "Insertar datos de otra tabla con INSERT SELECT",
+    "Actualizar datos con UPDATE",
+    "Eliminar datos con DELETE y TRUNCATE",
+    "Comprender las implicaciones de integridad al modificar datos"
+  ],
+  "estimatedMinutes": 300,
+  "lessons": [
+    {
+      "id": "lesson-12-1",
+      "title": "INSERT y INSERT SELECT",
+      "order": 1,
+      "objectives": [
+        "Insertar filas individuales con INSERT INTO",
+        "Insertar múltiples filas en una sola sentencia",
+        "Copiar datos de una tabla a otra con INSERT SELECT"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## INSERT INTO\n\n`INSERT INTO` añade nuevas filas a una tabla.\n\n### Insertar una fila\n\n```sql\n-- Forma completa (especificar columnas)\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento)\nVALUES ('Pedro', 'Sánchez', 'pedro@email.com', '2006-02-20');\n\n-- Forma abreviada (todos los campos, en orden)\nINSERT INTO alumnos\nVALUES (DEFAULT, 'Laura', 'Torres', 'laura@email.com', '2005-09-10', TRUE, NOW());\n\n-- Con DEFAULT explícito\nINSERT INTO alumnos (nombre, apellido, email, activo)\nVALUES ('Ana', 'Ruiz', 'ana.ruiz@email.com', DEFAULT);\n```\n\n### Insertar múltiples filas\n\n```sql\nINSERT INTO alumnos (nombre, apellido, email, fecha_nacimiento) VALUES\n  ('Pedro', 'Sánchez', 'pedro@email.com', '2006-02-20'),\n  ('Laura', 'Torres', 'laura@email.com', '2005-09-10'),\n  ('Ana', 'Ruiz', 'ana.ruiz@email.com', '2004-12-05');\n```\n\n### Errores comunes\n\n```sql\n-- ❌ Error: duplicado en UNIQUE\nINSERT INTO alumnos (email) VALUES ('juan@email.com');\n-- Error: Duplicate entry 'juan@email.com' for key 'email'\n\n-- ❌ Error: NOT NULL sin valor\nINSERT INTO alumnos (email) VALUES ('test@email.com');\n-- Error: Column 'nombre' cannot be null\n\n-- ❌ Error: violación de CHECK\nINSERT INTO notas (nota) VALUES (15);\n-- Error: Check constraint 'chk_nota' is violated\n\n-- ❌ Error: violación de FOREIGN KEY\nINSERT INTO notas (id_alumno) VALUES (999);\n-- Error: Cannot add or update a child row\n```\n\n> **Consejo**: Siempre especifica las columnas en el INSERT. Así no dependes del orden de las columnas en la tabla."
+        },
+        {
+          "type": "text",
+          "content": "## INSERT SELECT\n\nPermite insertar datos de una consulta SELECT en otra tabla.\n\n```sql\n-- Crear tabla de respaldo\nCREATE TABLE alumnos_backup LIKE alumnos;\n\n-- Copiar todos los alumnos activos\nINSERT INTO alumnos_backup\nSELECT * FROM alumnos WHERE activo = TRUE;\n\n-- Crear tabla de resumen de notas\nCREATE TABLE resumen_notas (\n  id_alumno INT,\n  nombre VARCHAR(50),\n  nota_media DECIMAL(4,2)\n);\n\nINSERT INTO resumen_notas (id_alumno, nombre, nota_media)\nSELECT\n  a.id,\n  a.nombre,\n  ROUND(AVG(n.nota), 2)\nFROM alumnos a\nINNER JOIN notas n ON a.id = n.id_alumno\nGROUP BY a.id, a.nombre;\n\n-- Copiar alumnos de un ciclo específico\nINSERT INTO alumnos_dam (nombre, apellido, email)\nSELECT a.nombre, a.apellido, a.email\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM'\nGROUP BY a.id;\n```\n\n> **Importante**: Las columnas del SELECT deben coincidir en número y tipo con las del INSERT."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-1-1",
+          "title": "INSERT y INSERT SELECT",
+          "difficulty": "basic",
+          "description": "1. Inserta 3 productos nuevos en la tabla `productos`\n2. Crea una tabla `alumnos_dam` con los alumnos que están matriculados en asignaturas de ciclo DAM, usando INSERT SELECT",
+          "solution": "```sql\n-- 1. Insertar productos\nINSERT INTO productos (nombre, precio, stock, categoria) VALUES\n  ('Ratón inalámbrico', 24.99, 100, 'Periféricos'),\n  ('Teclado Bluetooth', 39.99, 50, 'Periféricos'),\n  ('Monitor 27\" 4K', 349.99, 15, 'Informática');\n\n-- 2. Crear tabla y copiar con INSERT SELECT\nCREATE TABLE alumnos_dam LIKE alumnos;\n\nINSERT INTO alumnos_dam\nSELECT DISTINCT a.*\nFROM alumnos a\nINNER JOIN matriculas m ON a.id = m.id_alumno\nINNER JOIN asignaturas asig ON m.id_asignatura = asig.id\nWHERE asig.ciclo = 'DAM';\n\n-- Verificar\nSELECT * FROM alumnos_dam;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-12-2",
+      "title": "UPDATE y DELETE",
+      "order": 2,
+      "objectives": [
+        "Actualizar datos con UPDATE",
+        "Eliminar datos con DELETE",
+        "Diferenciar DELETE y TRUNCATE",
+        "Usar UPDATE con JOIN"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## UPDATE\n\n`UPDATE` modifica filas existentes en una tabla.\n\n### Sintaxis\n\n```sql\nUPDATE tabla\nSET columna1 = valor1, columna2 = valor2, ...\nWHERE condición;\n```\n\n> **⚠️ IMPORTANTE**: Siempre usa `WHERE` en un UPDATE. Sin WHERE, se actualizan **TODAS las filas**.\n\n### Ejemplos\n\n```sql\n-- Actualizar el email de un alumno\nUPDATE alumnos\nSET email = 'juan.nuevo@email.com'\nWHERE id = 1;\n\n-- Actualizar varias columnas\nUPDATE alumnos\nSET nombre = 'Juan Carlos',\n    email = 'jc.garcia@email.com'\nWHERE id = 1;\n\n-- Actualizar el stock de todos los productos de una categoría\nUPDATE productos\nSET stock = stock + 10\nWHERE categoria = 'Periféricos';\n\n-- Actualizar con condición compuesta\nUPDATE notas\nSET nota = nota + 0.5\nWHERE id_alumno = 1 AND nota < 9;\n\n-- Actualizar usando otra tabla (UPDATE con JOIN)\nUPDATE notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nSET n.nota = n.nota * 1.1  -- Subir notas un 10%\nWHERE a.nombre = 'Juan';\n\n-- ⚠️ SIN WHERE: actualizar TODAS las filas\nUPDATE alumnos SET activo = FALSE;\n-- ¡Cuidado! Todos los alumnos quedan inactivos\n```\n\n### Usar UPDATE con subconsulta\n\n```sql\n-- Poner a NULL el email de alumnos sin notas\nUPDATE alumnos\nSET email = NULL\nWHERE id NOT IN (SELECT DISTINCT id_alumno FROM notas);\n```\n\n## DELETE\n\n`DELETE` elimina filas de una tabla.\n\n```sql\n-- Eliminar un alumno concreto\nDELETE FROM alumnos WHERE id = 10;\n\n-- Eliminar alumnos inactivos\nDELETE FROM alumnos WHERE activo = FALSE;\n\n-- Eliminar notas de una convocatoria específica\nDELETE FROM notas WHERE convocatoria = 'Junio 2025';\n\n-- ⚠️ SIN WHERE: eliminar TODAS las filas\nDELETE FROM alumnos;\n-- ¡Cuidado! La tabla queda vacía\n\n-- DELETE con JOIN\nDELETE n FROM notas n\nINNER JOIN alumnos a ON n.id_alumno = a.id\nWHERE a.nombre = 'Pedro';\n```\n\n> **⚠️ ALERTA**: DELETE sin WHERE es **irreversible**. Siempre verifica la condición antes de ejecutar."
+        },
+        {
+          "type": "text",
+          "content": "## DELETE vs TRUNCATE\n\n| Característica | DELETE | TRUNCATE |\n|---|---|---|\n| **Qué hace** | Elimina filas específicas | Elimina TODAS las filas |\n| **WHERE** | ✅ Permitido | ❌ No permitido |\n| **Velocidad** | Lenta (registra cada fila) | Rápida (libera páginas) |\n| **Rollback** | ✅ Se puede deshacer | ❌ No se puede deshacer |\n| **Autoincrement** | No resetea el contador | Resetea el contador |\n| **Triggers** | Sí ejecuta triggers BEFORE DELETE | No ejecuta triggers |\n| **Espacio** | No libera espacio inmediatamente | Libera espacio |\n\n```sql\n-- DELETE: eliminar filas una por una\nDELETE FROM notas WHERE id_alumno = 5;\n-- Se pueden deshacer con ROLLBACK (si hay transacción)\n\n-- TRUNCATE: vaciar la tabla completa\nTRUNCATE TABLE notas;\n-- No se puede deshacer\n-- El autoincrement vuelve a 1\n\n-- DELETE sin WHERE (equivalente a TRUNCATE pero más lento)\nDELETE FROM notas;\n```\n\n> **Cuándo usar cada uno:**\n> - `DELETE`: Cuando quieres eliminar filas específicas (con WHERE) o necesitas que se ejecuten triggers.\n> - `TRUNCATE`: Cuando quieres vaciar una tabla completamente y no necesitas rollback."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-12-2-1",
+          "title": "UPDATE y DELETE",
+          "difficulty": "intermediate",
+          "description": "Escribe las sentencias para:\n1. Subir un 0.5 puntos todas las notas de 'Convocatoria 1' que sean inferiores a 5\n2. Poner el email a NULL de todos los alumnos inactivos\n3. Eliminar todas las notas de un alumno concreto (id = 3)\n4. Eliminar los productos con stock 0",
+          "solution": "```sql\n-- 1. Subir notas inferiores a 5 en Convocatoria 1\nUPDATE notas\nSET nota = nota + 0.5\nWHERE convocatoria = 'Convocatoria 1' AND nota < 5;\n\n-- 2. Email a NULL de alumnos inactivos\nUPDATE alumnos\nSET email = NULL\nWHERE activo = FALSE;\n\n-- 3. Eliminar notas del alumno 3\nDELETE FROM notas WHERE id_alumno = 3;\n\n-- 4. Eliminar productos con stock 0\nDELETE FROM productos WHERE stock = 0;\n```\n\n**Verificación:**\n```sql\n-- Verificar cambios\nSELECT * FROM notas WHERE convocatoria = 'Convocatoria 1' AND nota < 5.5;\nSELECT * FROM alumnos WHERE activo = FALSE AND email IS NULL;\nSELECT * FROM notas WHERE id_alumno = 3;\nSELECT * FROM productos WHERE stock = 0;\n```"
+        }
+      ]
+    }
+  ]
+}

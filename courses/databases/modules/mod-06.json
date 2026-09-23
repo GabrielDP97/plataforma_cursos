@@ -1,0 +1,144 @@
+{
+  "id": "mod-06",
+  "courseId": "databases-0484",
+  "title": "Creación de bases de datos con SQL",
+  "slug": "creacion-sql",
+  "order": 6,
+  "description": "Sentencias SQL para crear y gestionar bases de datos y tablas: CREATE, tipos de datos, restricciones y ALTER TABLE.",
+  "objectives": [
+    "Crear y eliminar bases de datos con SQL",
+    "Crear tablas con tipos de datos adecuados",
+    "Definir restricciones: PRIMARY KEY, FOREIGN KEY, UNIQUE, NOT NULL, DEFAULT, CHECK",
+    "Modificar tablas con ALTER TABLE",
+    "Eliminar tablas con DROP TABLE",
+    "Comprender la integridad referencial"
+  ],
+  "estimatedMinutes": 360,
+  "lessons": [
+    {
+      "id": "lesson-06-1",
+      "title": "CREATE DATABASE y tipos de datos",
+      "order": 1,
+      "objectives": [
+        "Crear bases de datos con CREATE DATABASE",
+        "Conocer los tipos de datos de MySQL",
+        "Seleccionar el tipo de dato adecuado para cada caso"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Crear una base de datos\n\n```sql\n-- Crear una base de datos\nCREATE DATABASE tienda;\n\n-- Crear con IF NOT EXISTS (evita error si ya existe)\nCREATE DATABASE IF NOT EXISTS tienda;\n\n-- Crear con charset específico (recomendado)\nCREATE DATABASE tienda\n  CHARACTER SET utf8mb4\n  COLLATE utf8mb4_unicode_ci;\n\n-- Eliminar una base de datos\nDROP DATABASE tienda;\n\n-- Eliminar solo si existe\nDROP DATABASE IF EXISTS tienda;\n\n-- Seleccionar una base de datos\nUSE tienda;\n\n-- Ver la base de datos actual\nSELECT DATABASE();\n```\n\n> **UTF8MB4**: Es el charset recomendado en MySQL. Soporta caracteres especiales (tildes, ñ, emojis). Siempre úsalo."
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de datos en MySQL\n\n### Numéricos\n\n| Tipo | Rango | Uso típico |\n|---|---|---|\n| `TINYINT` | -128 a 127 | Flags, estados |\n| `SMALLINT` | -32768 a 32767 | IDs pequeños |\n| `MEDIUMINT` | -8388608 a 8388607 | IDs medianos |\n| `INT` | -2^31 a 2^31-1 | IDs, enteros generales |\n| `BIGINT` | -2^63 a 2^63-1 | IDs muy grandes |\n| `FLOAT` | Precisión simple | Decimales aproximados |\n| `DOUBLE` | Precisión doble | Decimales más precisos |\n| `DECIMAL(m,n)` | Exacto | Precios, notas, dinero |\n\n### Textuales\n\n| Tipo | Longitud máxima | Uso típico |\n|---|---|---|\n| `CHAR(n)` | 255 fija | Códigos postales, siglas |\n| `VARCHAR(n)` | 65535 variable | Nombres, emails, textos cortos |\n| `TEXT` | 65535 | Descripciones, comentarios |\n| `MEDIUMTEXT` | 16 MB | Artículos, documentación |\n| `LONGTEXT` | 4 GB | Contenido muy largo |\n\n### Fecha y hora\n\n| Tipo | Formato | Ejemplo |\n|---|---|---|\n| `DATE` | AAAA-MM-DD | '2026-01-15' |\n| `TIME` | HH:MM:SS | '14:30:00' |\n| `DATETIME` | AAAA-MM-DD HH:MM:SS | '2026-01-15 14:30:00' |\n| `TIMESTAMP` | AAAA-MM-DD HH:MM:SS | '2026-01-15 14:30:00' |\n| `YEAR` | AAAA | 2026 |\n\n### Otros\n\n| Tipo | Uso |\n|---|---|\n| `BOOLEAN` / `BOOL` | Verdadero/Falso (internamente TINYINT(1)) |\n| `BLOB` | Datos binarios (imágenes, archivos) |\n| `ENUM('a','b','c')` | Valor de una lista predefinida |\n| `JSON` | Datos JSON nativos |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: Seleccionar tipos de datos\n\nPara la base de datos `academia`:\n\n```sql\nCREATE DATABASE academia\n  CHARACTER SET utf8mb4\n  COLLATE utf8mb4_unicode_ci;\n\nUSE academia;\n\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,        -- ID: entero\n  nombre VARCHAR(50) NOT NULL,               -- Nombre: texto variable, máx 50\n  apellido VARCHAR(50) NOT NULL,             -- Apellido: texto variable\n  email VARCHAR(100) UNIQUE,                 -- Email: texto variable, único\n  fecha_nacimiento DATE,                     -- Fecha: solo fecha\n  activo BOOLEAN DEFAULT TRUE,               -- Activo: sí/no\n  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP -- Fecha de creación\n);\n\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,              -- Nombre: hasta 100 caracteres\n  creditos DECIMAL(4,2) NOT NULL,            -- Créditos: decimal exacto\n  ciclo VARCHAR(10) NOT NULL,                -- Ciclo: texto corto\n  id_profesor INT,                           -- FK: entero\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n);\n```\n\n> **Regla**: Usa `DECIMAL` para dinero y notas, `INT` para IDs, `VARCHAR` para textos variables, `DATE` para fechas sin hora."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-1-1",
+          "title": "Tipos de datos",
+          "difficulty": "basic",
+          "description": "Para cada campo, indica el tipo de dato MySQL más adecuado:\n1. Nombre de producto (máx 100 caracteres)\n2. Precio de un producto (con 2 decimales)\n3. Stock de un producto (número entero)\n4. Fecha de creación de un registro\n5. Email de un usuario (único)\n6. Estado de un pedido ('pendiente', 'enviado', 'entregado')",
+          "solution": "1. `nombre VARCHAR(100) NOT NULL`\n2. `precio DECIMAL(10,2) NOT NULL` — DECIMAL para dinero, nunca FLOAT/DOUBLE\n3. `stock INT NOT NULL DEFAULT 0` — entero para cantidades\n4. `fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP` — TIMESTAMP para fecha+hora\n5. `email VARCHAR(100) NOT NULL UNIQUE` — UNIQUE para garantizar que no se repita\n6. `estado ENUM('pendiente', 'enviado', 'entregado') NOT NULL` — ENUM para lista fija de valores"
+        }
+      ]
+    },
+    {
+      "id": "lesson-06-2",
+      "title": "Restricciones en CREATE TABLE",
+      "order": 2,
+      "objectives": [
+        "Definir PRIMARY KEY simple y compuesta",
+        "Crear claves foráneas con FOREIGN KEY",
+        "Usar UNIQUE, NOT NULL, DEFAULT y CHECK"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Restricciones SQL\n\nLas restricciones garantizan la **integridad** de los datos. Son reglas que los datos deben cumplir.\n\n### PRIMARY KEY\n\nIdentifica de forma única cada fila de una tabla. No puede ser NULL ni repetirse.\n\n```sql\n-- PK simple\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL\n);\n\n-- PK compuesta (para tablas intermedias)\nCREATE TABLE matriculas (\n  id_alumno INT,\n  id_asignatura INT,\n  PRIMARY KEY (id_alumno, id_asignatura)\n);\n```\n\n### FOREIGN KEY\n\nGarantiza que un valor en una tabla existe en otra tabla (integridad referencial).\n\n```sql\nCREATE TABLE asignaturas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  id_profesor INT,\n  -- La FK con acción en cascada\n  FOREIGN KEY (id_profesor)\n    REFERENCES profesores(id)\n    ON DELETE SET NULL\n    ON UPDATE CASCADE\n);\n```\n\n**Acciones de la FK:**\n\n| Acción | Qué hace |\n|---|---|\n| `ON DELETE CASCADE` | Si se borra el padre, se borran los hijos |\n| `ON DELETE SET NULL` | Si se borra el padre, la FK se pone a NULL |\n| `ON DELETE RESTRICT` | Impide borrar el padre si tiene hijos |\n| `ON UPDATE CASCADE` | Si cambia la PK del padre, se actualiza en los hijos |"
+        },
+        {
+          "type": "text",
+          "content": "### NOT NULL y DEFAULT\n\n```sql\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,           -- Obligatorio\n  precio DECIMAL(10,2) NOT NULL,          -- Obligatorio\n  stock INT NOT NULL DEFAULT 0,           -- Obligatorio, valor por defecto 0\n  descripcion TEXT,                        -- Opcional (puede ser NULL)\n  activo BOOLEAN DEFAULT TRUE             -- Valor por defecto TRUE\n);\n```\n\n### UNIQUE\n\nGarantiza que no haya valores repetidos en una columna (o combinación de columnas).\n\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  email VARCHAR(100) NOT NULL UNIQUE,      -- Email único\n  username VARCHAR(50) NOT NULL UNIQUE,    -- Username único\n  -- UNIQUE compuesto: dos columnas juntas deben ser únicas\n  CONSTRAINT uq_usuario_email UNIQUE (email)\n);\n```\n\n### CHECK\n\nValida que un valor cumpla una condición.\n\n```sql\nCREATE TABLE notas (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  id_alumno INT NOT NULL,\n  id_asignatura INT NOT NULL,\n  nota DECIMAL(4,2) NOT NULL\n    CHECK (nota >= 0 AND nota <= 10),       -- Nota entre 0 y 10\n  convocatoria VARCHAR(20) NOT NULL\n    CHECK (convocatoria IN ('Ordinaria', 'Extraordinaria', 'Junio', 'Septiembre')),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id),\n  FOREIGN KEY (id_asignatura) REFERENCES asignaturas(id)\n);\n```\n\n### Ejemplo completo\n\n```sql\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE NOT NULL DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  estado ENUM('pendiente', 'procesado', 'enviado', 'entregado') DEFAULT 'pendiente',\n  total DECIMAL(10,2) CHECK (total >= 0),\n  notas TEXT,\n  FOREIGN KEY (id_cliente)\n    REFERENCES clientes(id)\n    ON DELETE RESTRICT\n    ON UPDATE CASCADE\n);\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-2-1",
+          "title": "Crear tabla con restricciones",
+          "difficulty": "intermediate",
+          "description": "Crea una tabla `examenes` con:\n- id: clave primaria autoincremental\n- titulo: obligatorio, máximo 200 caracteres\n- fecha: obligatoria\n- duracion_minutos: entero, obligatorio, mínimo 10 y máximo 300\n- id_asignatura: clave foránea a asignaturas\n- descripcion: opcional\n\nIncluye todas las restricciones necesarias.",
+          "solution": "```sql\nCREATE TABLE examenes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  titulo VARCHAR(200) NOT NULL,\n  fecha DATE NOT NULL,\n  duracion_minutos INT NOT NULL\n    CHECK (duracion_minutos >= 10 AND duracion_minutos <= 300),\n  id_asignatura INT NOT NULL,\n  descripcion TEXT,\n  FOREIGN KEY (id_asignatura)\n    REFERENCES asignaturas(id)\n    ON DELETE CASCADE\n    ON UPDATE CASCADE\n);\n```\n\n**Restricciones aplicadas:**\n- `PRIMARY KEY`: identificador único\n- `NOT NULL`: titulo, fecha, duracion_minutos, id_asignatura son obligatorios\n- `CHECK`: duracion entre 10 y 300 minutos\n- `FOREIGN KEY`: referencia a asignaturas, con CASCADE para que si se borra una asignatura se borren sus exámenes\n- `descripcion TEXT`: opcional (puede ser NULL)"
+        }
+      ]
+    },
+    {
+      "id": "lesson-06-3",
+      "title": "ALTER TABLE y DROP",
+      "order": 3,
+      "objectives": [
+        "Añadir, modificar y eliminar columnas",
+        "Añadir y eliminar restricciones",
+        "Renombrar tablas y columnas",
+        "Eliminar tablas de forma segura"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ALTER TABLE\n\n`ALTER TABLE` permite modificar la estructura de una tabla existente.\n\n### Añadir una columna\n\n```sql\n-- Añadir columna telefono\nALTER TABLE alumnos ADD COLUMN telefono VARCHAR(20);\n\n-- Añadir con valor por defecto\nALTER TABLE alumnos ADD COLUMN login_count INT DEFAULT 0;\n\n-- Añadir en una posición específica\nALTER TABLE alumnos ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER email;\n```\n\n### Modificar una columna\n\n```sql\n-- Cambiar tipo de datos\nALTER TABLE alumnos MODIFY COLUMN telefono VARCHAR(30);\n\n-- Cambiar nombre y tipo\nALTER TABLE alumnos CHANGE COLUMN telefono movil VARCHAR(20);\n\n-- Añadir NOT NULL\nALTER TABLE alumnos MODIFY COLUMN telefono VARCHAR(20) NOT NULL;\n```\n\n### Eliminar una columna\n\n```sql\nALTER TABLE alumnos DROP COLUMN telefono;\n```\n\n### Renombrar una tabla\n\n```sql\nALTER TABLE alumnos RENAME TO estudiantes;\n-- o equivalentemente:\nRENAME TABLE alumnos TO estudiantes;\n```"
+        },
+        {
+          "type": "text",
+          "content": "### Añadir restricciones\n\n```sql\n-- Añadir PRIMARY KEY\nALTER TABLE alumnos ADD PRIMARY KEY (id);\n\n-- Añadir UNIQUE\nALTER TABLE alumnos ADD CONSTRAINT uq_email UNIQUE (email);\n\n-- Añadir FOREIGN KEY\nALTER TABLE asignaturas\n  ADD CONSTRAINT fk_profesor\n  FOREIGN KEY (id_profesor)\n  REFERENCES profesores(id);\n\n-- Añadir CHECK\nALTER TABLE notas\n  ADD CONSTRAINT chk_nota\n  CHECK (nota >= 0 AND nota <= 10);\n\n-- Añadir DEFAULT\nALTER TABLE alumnos ALTER COLUMN activo SET DEFAULT TRUE;\n```\n\n### Eliminar restricciones\n\n```sql\n-- Eliminar PRIMARY KEY\nALTER TABLE alumnos DROP PRIMARY KEY;\n\n-- Eliminar UNIQUE\nALTER TABLE alumnos DROP INDEX uq_email;\n\n-- Eliminar FOREIGN KEY\nALTER TABLE asignaturas DROP FOREIGN KEY fk_profesor;\n\n-- Eliminar CHECK\nALTER TABLE notas DROP CONSTRAINT chk_nota;\n\n-- Eliminar DEFAULT\nALTER TABLE alumnos ALTER COLUMN activo DROP DEFAULT;\n```\n\n### Ejemplo práctico\n\n```sql\n-- 1. Crear tabla inicial\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100)\n);\n\n-- 2. Añadir email UNIQUE (no se podía en el CREATE porque ya existía)\nALTER TABLE clientes ADD CONSTRAINT uq_email UNIQUE (email);\n\n-- 3. Añadir teléfono\nALTER TABLE clientes ADD COLUMN telefono VARCHAR(20);\n\n-- 4. Cambiar email a NOT NULL\nALTER TABLE clientes MODIFY COLUMN email VARCHAR(100) NOT NULL;\n\n-- 5. Ver estructura\nDESCRIBE clientes;\n```"
+        },
+        {
+          "type": "text",
+          "content": "## DROP TABLE\n\n`DROP TABLE` elimina una tabla y todos sus datos permanentemente.\n\n```sql\n-- Eliminar una tabla\nDROP TABLE clientes;\n\n-- Eliminar solo si existe (evita error)\nDROP TABLE IF EXISTS clientes;\n\n-- Eliminar varias tablas\nDROP TABLE IF EXISTS clientes, pedidos, productos;\n```\n\n### Cuidado con DROP TABLE\n\n```sql\n-- ❌ Esto falla si hay FK que dependen de la tabla\nDROP TABLE profesores;\n-- Error: Cannot delete or update a parent row: a foreign key constraint fails\n\n-- ✅ Primero eliminar las tablas dependientes, o usar CASCADE\nDROP TABLE asignaturas;  -- Tiene FK a profesores\nDROP TABLE profesores;   -- Ahora sí se puede\n\n-- ✅ O usar IF EXISTS + CASCADE (depende del SGBD)\nDROP TABLE IF EXISTS profesores CASCADE;\n```\n\n> **Regla de oro**: Nunca uses `DROP TABLE` en producción sin haber hecho backup. `DROP TABLE` es **irreversible**."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-3-1",
+          "title": "ALTER TABLE completo",
+          "difficulty": "intermediate",
+          "description": "Realiza las siguientes operaciones sobre una tabla `productos`:\n1. Crea la tabla con: id, nombre, precio\n2. Añade la columna `stock` con valor por defecto 0\n3. Añade la columna `categoria` con tipo VARCHAR(50)\n4. Añade una restricción CHECK para que el precio sea mayor que 0\n5. Modifica `categoria` para que sea NOT NULL\n6. Añade una restricción UNIQUE al nombre\n7. Elimina la columna `stock`",
+          "solution": "```sql\n-- 1. Crear tabla\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL\n);\n\n-- 2. Añadir stock\nALTER TABLE productos ADD COLUMN stock INT DEFAULT 0;\n\n-- 3. Añadir categoria\nALTER TABLE productos ADD COLUMN categoria VARCHAR(50);\n\n-- 4. CHECK en precio\nALTER TABLE productos ADD CONSTRAINT chk_precio CHECK (precio > 0);\n\n-- 5. categoria NOT NULL\nALTER TABLE productos MODIFY COLUMN categoria VARCHAR(50) NOT NULL;\n\n-- 6. UNIQUE en nombre\nALTER TABLE productos ADD CONSTRAINT uq_nombre UNIQUE (nombre);\n\n-- 7. Eliminar stock\nALTER TABLE productos DROP COLUMN stock;\n\n-- Verificar estructura\nDESCRIBE productos;\n```"
+        }
+      ]
+    },
+    {
+      "id": "lesson-06-4",
+      "title": "Integridad referencial en la práctica",
+      "order": 4,
+      "objectives": [
+        "Comprender las acciones ON DELETE y ON UPDATE",
+        "Diseñar tablas con integridad referencial completa",
+        "Manejar errores comunes de integridad"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Integridad referencial en la práctica\n\nLa integridad referencial garantiza que las relaciones entre tablas sean **consistentes**. Si una FK apunta a una PK que no existe, los datos estarían corruptos.\n\n### Escenarios prácticos\n\n**Escenario 1: Borrar un profesor que imparte asignaturas**\n\n```sql\n-- Si intentas borrar un profesor con asignaturas...\nDELETE FROM profesores WHERE id = 1;\n-- Error: Cannot delete or update a parent row\n\n-- Soluciones:\n-- Opción A: ON DELETE SET NULL (la asignatura queda sin profesor)\nALTER TABLE asignaturas\n  MODIFY COLUMN id_profesor INT,\n  ADD CONSTRAINT fk_profesor\n  FOREIGN KEY (id_profesor) REFERENCES profesores(id)\n  ON DELETE SET NULL\n  ON UPDATE CASCADE;\n\n-- Opción B: ON DELETE CASCADE (borrar el profesor borra sus asignaturas)\n-- ⚠️ Peligroso: perderías todas las asignaturas de ese profesor\n\n-- Opción C: ON DELETE RESTRICT (impide borrar si tiene hijos)\n-- Es la opción más segura\n```\n\n**Escenario 2: Cambiar el id de un profesor**\n\n```sql\n-- Si un profesor cambia de id (poco común, pero posible)\nUPDATE profesores SET id = 99 WHERE id = 1;\n\n-- Con ON UPDATE CASCADE: todas las asignaturas se actualizan\n-- Con ON DELETE RESTRICT: la actualización falla si tiene hijos\n```\n\n### Estrategias según el caso\n\n| Situación | ON DELETE | ON UPDATE |\n|---|---|---|\n| **Borrar padre implica borrar hijos** | CASCADE | CASCADE |\n| **Borrar padre deja hijos huérfanos** | SET NULL | CASCADE |\n| **Nunca borrar padre con hijos** | RESTRICT | CASCADE |\n| **Datos históricos que no cambian** | RESTRICT | RESTRICT |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo completo: Base de datos `tienda`\n\n```sql\nCREATE DATABASE tienda CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nUSE tienda;\n\nCREATE TABLE categorias (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL UNIQUE,\n  descripcion TEXT\n);\n\nCREATE TABLE clientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) NOT NULL UNIQUE,\n  fecha_registro DATE DEFAULT (CURRENT_DATE)\n);\n\nCREATE TABLE productos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(100) NOT NULL,\n  precio DECIMAL(10,2) NOT NULL CHECK (precio > 0),\n  stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),\n  id_categoria INT,\n  FOREIGN KEY (id_categoria)\n    REFERENCES categorias(id)\n    ON DELETE SET NULL\n    ON UPDATE CASCADE\n);\n\nCREATE TABLE pedidos (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  fecha DATE NOT NULL DEFAULT (CURRENT_DATE),\n  id_cliente INT NOT NULL,\n  estado ENUM('pendiente', 'procesado', 'enviado', 'entregado') DEFAULT 'pendiente',\n  FOREIGN KEY (id_cliente)\n    REFERENCES clientes(id)\n    ON DELETE RESTRICT\n    ON UPDATE CASCADE\n);\n\nCREATE TABLE lineas_pedido (\n  id_pedido INT,\n  id_producto INT,\n  cantidad INT NOT NULL DEFAULT 1 CHECK (cantidad > 0),\n  precio_unitario DECIMAL(10,2) NOT NULL,\n  PRIMARY KEY (id_pedido, id_producto),\n  FOREIGN KEY (id_pedido)\n    REFERENCES pedidos(id)\n    ON DELETE CASCADE\n    ON UPDATE CASCADE,\n  FOREIGN KEY (id_producto)\n    REFERENCES productos(id)\n    ON DELETE RESTRICT\n    ON UPDATE CASCADE\n);\n```"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-06-4-1",
+          "title": "Integridad referencial",
+          "difficulty": "intermediate",
+          "description": "En la base de datos `academia`, prueba a ejecutar estas operaciones y explica qué pasa y por qué:\n1. `DELETE FROM alumnos WHERE id = 1;` (si tiene matrículas y notas)\n2. `INSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria) VALUES (999, 1, 8, 'Ordinaria');`\n3. `UPDATE profesores SET id = 999 WHERE id = 1;`",
+          "solution": "```sql\n-- 1. Borrar un alumno con matrículas y notas\nDELETE FROM alumnos WHERE id = 1;\n-- Error: Cannot delete or update a parent row: a foreign key constraint fails\n-- Las tablas matriculas y notas tienen FK a alumnos(id). No se puede borrar.\n-- Solución: Borrar primero las notas y matrículas del alumno, o usar ON DELETE CASCADE.\n\n-- 2. Insertar nota con alumno inexistente\nINSERT INTO notas (id_alumno, id_asignatura, nota, convocatoria)\nVALUES (999, 1, 8, 'Ordinaria');\n-- Error: Cannot add or update a child row: a foreign key constraint fails\n-- El alumno 999 no existe en la tabla alumnos.\n-- Solución: Solo insertar notas de alumnos que existen.\n\n-- 3. Cambiar el id de un profesor\nUPDATE profesores SET id = 999 WHERE id = 1;\n-- Depende de la FK en asignaturas:\n-- Si tiene ON UPDATE CASCADE: se actualiza automáticamente en asignaturas.\n-- Si tiene ON DELETE RESTRICT: la actualización falla si tiene asignaturas.\n-- Normalmente se usa RESTRICT para IDs, ya que cambiar un ID no es recomendable.\n```"
+        }
+      ]
+    }
+  ]
+}

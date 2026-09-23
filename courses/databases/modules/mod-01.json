@@ -1,0 +1,455 @@
+{
+  "id": "mod-01",
+  "courseId": "databases-0484",
+  "title": "Introducción a las bases de datos",
+  "slug": "introduccion",
+  "order": 1,
+  "description": "Conceptos fundamentales: qué es una base de datos, tipos de SGBD, arquitectura, centralización vs distribución, fragmentación, protección de datos, Big Data e inteligencia de negocio.",
+  "objectives": [
+    "Definir qué es una base de datos y sus componentes",
+    "Diferenciar entre ficheros planos y bases de datos",
+    "Clasificar los tipos de bases de datos existentes",
+    "Identificar los principales SGBD del mercado",
+    "Comprender la arquitectura de un SGBD",
+    "Entender las diferencias entre sistemas centralizados y distribuidos",
+    "Comprender los conceptos de fragmentación de datos",
+    "Conocer los principios de protección de datos y RGPD",
+    "Introducirse en Big Data y sus 5 V",
+    "Entender qué es la inteligencia de negocio (BI)"
+  ],
+  "estimatedMinutes": 720,
+  "lessons": [
+    {
+      "id": "lesson-01-1",
+      "title": "¿Qué es una base de datos?",
+      "order": 1,
+      "objectives": [
+        "Definir qué es una base de datos",
+        "Comprender la diferencia entre datos e información",
+        "Identificar los componentes fundamentales de una BD"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es una base de datos?\n\nUna **base de datos** (BD) es un conjunto de datos estructurados y almacenados de forma organizada, para que puedan ser consultados, modificados y gestionados de manera eficiente.\n\nPensemos en un ejemplo cotidiano: una agenda telefónica. Antes de existir los móviles, la gente guardaba teléfonos en libretas. Cada página tenía un nombre, un apellido y un número. Esa libreta era, en esencia, una base de datos: un conjunto de datos organizados para encontrar información rápidamente.\n\n> **Dato vs Información**: Un *dato* es un valor sin contexto (por ejemplo, `98`). La *información* es ese dato con significado (por ejemplo, la nota `98` del alumno `Juan García` en la asignatura `Bases de datos`)."
+        },
+        {
+          "type": "text",
+          "content": "## Componentes fundamentales\n\nUna base de datos se compone de varios elementos esenciales:\n\n- **Datos**: La materia prima. Valores que representan entidades del mundo real.\n- **Estructura**: Define cómo se organizan los datos (tablas, columnas, relaciones).\n- **Metadatos**: Datos sobre los datos. Describen la estructura (nombres de tablas, tipos de datos, restricciones).\n- **SGBD**: El software que gestiona la base de datos (creación, acceso, manipulación).\n- **Usuarios**: Personas o aplicaciones que interactúan con la BD."
+        },
+        {
+          "type": "text",
+          "content": "## ¿Por qué no usar un fichero?\n\nAntes de las bases de datos, se usaban **ficheros planos** (.txt, .csv) para guardar datos. Veamos por qué eso tiene problemas:\n\n| Problema | Fichero plano | Base de datos |\n|---|---|---|\n| **Redundancia** | Datos duplicados en varios ficheros | Datos centralizados, sin duplicidad |\n| **Inconsistencia** | Un cambio no se refleja en todos los sitios | Un cambio se aplica una vez y afecta a todos |\n| **Acceso concurrente** | Dos usuarios no pueden editar a la vez | Gestión de concurrencia integrada |\n| **Seguridad** | Cualquiera con acceso al fichero lo lee | Control de acceso por usuarios y privilegios |\n| **Integridad** | Sin validación automática de datos | Restricciones y reglas de integridad |\n| **Backup** | Copia manual del fichero | Copias de seguridad automatizadas |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo práctico\n\nImagina que gestionas las notas de un instituto. Con un fichero Excel tendrías algo así:\n\n```\nalumnos.csv: id, nombre, apellido, email\nnotas.csv: id_alumno, asignatura, nota, fecha\nprofesores.csv: id, nombre, apellido, asignatura\n```\n\nLos problemas aparecen rápido:\n1. Si un alumno cambia de nombre, hay que actualizarlo en TODOS los ficheros.\n2. Si el alumno `42` existe en `notas.csv` pero no en `alumnos.csv`, no hay forma de detectarlo.\n3. Si dos profesores escriben notas a la vez, pueden sobrescribirse.\n\nUna base de datos resuelve todos estos problemas de forma nativa."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-1-1",
+          "title": "Identificar componentes",
+          "difficulty": "basic",
+          "description": "Piensa en la base de datos de tu centro educativo (notas, alumnos, asignaturas). Identifica al menos 4 componentes que formarían parte de esa base de datos (datos, estructura, usuarios, etc.).",
+          "solution": "Ejemplo de respuesta:\n- **Datos**: Nombres de alumnos, notas, asignaturas, profesores.\n- **Estructura**: Tablas de alumnos, notas, asignaturas con sus columnas y tipos de datos.\n- **Metadatos**: Descripción de las tablas (nombre de columna, tipo de dato, restricciones como PRIMARY KEY).\n- **SGBD**: MySQL o similar, que permite crear las tablas y hacer consultas.\n- **Usuarios**: Profesores (pueden insertar notas), alumnos (solo pueden consultar sus notas), administradores (gestionan todo)."
+        },
+        {
+          "id": "ex-01-1-2",
+          "title": "Fichero vs BD",
+          "difficulty": "basic",
+          "description": "Describe 3 problemas concretos que tendrías si gestionaras las notas de un instituto con ficheros CSV en lugar de una base de datos.",
+          "solution": "Ejemplo de respuesta:\n1. **Redundancia**: El nombre de un alumno aparecería en el fichero `alumnos.csv` y también en `notas.csv` (si se guarda el nombre del alumno junto a la nota). Si cambia de nombre, hay que modificar ambos ficheros.\n2. **Integridad referencial**: Podría existir una nota en `notas.csv` correspondiente a un alumno que no existe en `alumnos.csv` (por error de copia). La BD impide esto con claves foráneas.\n3. **Concurrencia**: Si dos profesores abren el mismo fichero Excel a la vez y modifican notas, el último en guardar sobrescribe los cambios del primero. La BD gestiona esto con transacciones y bloqueos."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-2",
+      "title": "De los ficheros a las bases de datos",
+      "order": 2,
+      "objectives": [
+        "Comprender la evolución del almacenamiento de datos",
+        "Identificar las limitaciones de los sistemas de ficheros",
+        "Valorar las ventajas de las bases de datos sobre los ficheros"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## La evolución del almacenamiento de datos\n\nAntes de las bases de datos, la informática utilizaba **sistemas de ficheros** para almacenar información. Cada aplicación tenía sus propios ficheros, diseñados para una necesidad concreta. A medida que las aplicaciones crecían, aparecían problemas serios que llevaron al desarrollo de las bases de datos.\n\n### Timeline de la evolución\n\n```\n1960s ──→ Ficheros planos (tarjetas perforadas, cintas)\n1970s ──→ Bases de datos jerárquicas y en red\n1980s ──→ Modelo relacional (Codd, 1970) se populariza\n1990s ──→ SGBD relacionales comerciales (Oracle, SQL Server)\n2000s ──→ Internet: bases de datos para web masiva\n2010s ──→ NoSQL, Big Data, bases de datos en la nube\n2020s ──→ Bases de datos serverless, IA integrada\n```"
+        },
+        {
+          "type": "text",
+          "content": "## Limitaciones de los sistemas de ficheros\n\n### 1. Datos duplicados\n\nEn un sistema de ficheros, cada aplicación mantenía su propia copia de los datos. Si un alumno aparecía en la aplicación de notas y en la de matrícula, su nombre se guardaba en dos sitios distintos.\n\n```\nFichero notas.dat:     Juan García, Matemáticas, 8\nFichero matriculas.dat: Juan García, 1º DAW, 2024\n```\n\nSi Juan cambia de apellido, hay que actualizar ambos ficheros. Si alguien actualiza uno pero no el otro, los datos quedan **inconsistentes**.\n\n### 2. Dependencia de la aplicación\n\nLos ficheros estaban diseñados para una aplicación concreta. Si querías crear una nueva aplicación que usara los mismos datos, tenías que reescribir todo el código de acceso a ficheros. Los datos y el programa estaban **acoplados**.\n\n### 3. Formato rígido\n\nLos ficheros tenían un formato fijo (registros de longitud fija, por ejemplo). Añadir un nuevo campo (como el email de un alumno) significaba modificar TODOS los ficheros y TODAS las aplicaciones que los leían.\n\n### 4. Sin control de acceso\n\nCualquiera con acceso al directorio del sistema operativo podía leer, modificar o borrar los ficheros. No había forma de decir \"este usuario solo puede ver las notas, no los datos personales\"."
+        },
+        {
+          "type": "text",
+          "content": "## La solución: bases de datos\n\nLas bases de datos surgieron para resolver estos problemas:\n\n| Problema del fichero | Solución de la BD |\n|---|---|\n| Datos duplicados | Datos centralizados, una sola copia |\n| Inconsistencia | Actualización en un solo lugar |\n| Dependencia de la aplicación | Independencia de datos (3 niveles de abstracción) |\n| Formato rígido | Metadatos flexibles, tipos de datos definidos |\n| Sin control de acceso | Sistema de usuarios y privilegios |\n| Sin backup automático | Herramientas de copia de seguridad |\n| Sin concurrencia | Gestión de transacciones y bloqueos |\n\n> **Dato histórico**: El modelo relacional fue propuesto por **Edgar F. Codd** en 1970 en su artículo \"A Relational Model of Data for Large Shared Data Banks\". Este artículo revolucionó la informática y dio origen a los SGBD relacionales que usamos hoy (MySQL, PostgreSQL, Oracle)."
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo comparativo\n\nSupongamos que una academia de idiomas gestiona alumnos, cursos y matrículas.\n\n### Con ficheros:\n```\nalumnos.txt:      001|Juan|García|juan@email.com\ncursos.txt:       ENG-1|Inglés Básico|Nivel 1\nmatriculas.txt:   001|ENG-1|2024-01-15|450.00\nnotas.txt:        001|ENG-1|Parcial1|7.5\n```\n\nProblemas: si el curso `ENG-1` cambia de nombre, hay que buscar y reemplazar en `matriculas.txt` y `notas.txt`. Si un alumno se da de baja hay que borrarlo en tres ficheros.\n\n### Con una base de datos:\n\nLos datos se organizan en **tablas relacionadas**. Cada dato se guarda una sola vez. Las relaciones se gestionan con claves. Un cambio en un sitio se refleja automáticamente en todos los informes y consultas."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-2-1",
+          "title": "Analizar un sistema de ficheros",
+          "difficulty": "basic",
+          "description": "Una peluquería guarda sus datos en estos ficheros: `citas.txt` (fecha, hora, cliente, peluuco), `clientes.txt` (id, nombre, teléfono), `pagos.txt` (fecha, cliente, servicio, cantidad). Identifica al menos 4 problemas que tendrían con este sistema.",
+          "solution": "Problemas identificados:\n1. **Redundancia**: El nombre del cliente aparece en los tres ficheros. Si cambia de teléfono, hay que actualizar en `clientes.txt` y verificar que no esté duplicado en otros.\n2. **Inconsistencia**: Si un cliente cambia de nombre en `clientes.txt` pero no se actualiza en `citas.txt`, los informes mostrarán nombres distintos para el mismo cliente.\n3. **Integridad referencial**: Podría existir una cita en `citas.txt` para un cliente que no existe en `clientes.txt` (por error). No hay forma automática de detectarlo.\n4. **Concurrencia**: Si dos recepcionistas abren `citas.txt` a la vez para concertar citas, pueden programar dos citas a la misma hora sin darse cuenta.\n5. **Acceso**: Cualquiera con acceso al PC puede abrir los ficheros y ver datos personales de clientes (teléfono, historial)."
+        },
+        {
+          "id": "ex-01-2-2",
+          "title": "Propuesta de migración",
+          "difficulty": "intermediate",
+          "description": "La peluquería del ejercicio anterior quiere migrar a una base de datos. Propón 3 tablas que necesitaría y los campos de cada una. Explica cómo se relacionarían entre sí.",
+          "solution": "Tablas propuestas:\n\n**Tabla clientes**\n- id (PRIMARY KEY)\n- nombre\n- telefono\n- email\n- fecha_registro\n\n**Tabla servicios**\n- id (PRIMARY KEY)\n- nombre_servicio (ej: 'Corte', 'Tinte', 'Mechas')\n- duracion_minutos\n- precio\n\n**Tabla citas**\n- id (PRIMARY KEY)\n- id_cliente (FOREIGN KEY → clientes.id)\n- id_servicio (FOREIGN KEY → servicios.id)\n- fecha\n- hora\n- estado (confirmada, cancelada, completada)\n\n**Relaciones**:\n- Un cliente puede tener muchas citas (1:N)\n- Un servicio puede aparecer en muchas citas (1:N)\n- La tabla citas conecta clientes con servicios en un momento concreto"
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-3",
+      "title": "Tipos de bases de datos",
+      "order": 3,
+      "objectives": [
+        "Clasificar las bases de datos según su modelo de datos",
+        "Diferenciar entre relacionales, jerárquicas, en red, orientadas a objetos y NoSQL",
+        "Reconocer cuándo usar cada tipo"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Clasificación por modelo de datos\n\nLas bases de datos se clasifican principalmente según la forma en que organizan y relacionan los datos:\n\n### 1. Bases de datos jerárquicas\n\nOrganizan los datos en una estructura de **árbol** (padre-hijo). Cada registro padre puede tener múltiples hijos, pero cada hijo solo tiene un padre.\n\n```\nInstituto\n├── Departamento Física\n│   ├── Asignatura Física 1º\n│   └── Asignatura Física 2º\n└── Departamento Matemáticas\n    ├── Asignatura Matemáticas 1º\n    └── Asignatura Matemáticas 2º\n```\n\n**Ejemplo histórico**: IBM IMS (1966). Aún se usa en sistemas bancarios legacy.\n\n### 2. Bases de datos en red\n\nExtienden el modelo jerárquico permitiendo que un hijo tenga **varios padres**. Es una estructura de grafo.\n\n```\nAlumno ─── pertenece ──→ Grupo\n  │                        │\n  └── matriculado ──→ Asignatura ←── impartida por ── Profesor\n```\n\n**Ejemplo**: CODASYL (1969). Popular en los años 70-80."
+        },
+        {
+          "type": "text",
+          "content": "### 3. Bases de datos relacionales\n\nSon las más utilizadas hoy en día. Organizan los datos en **tablas** (relaciones) con filas (tuplas) y columnas (atributos). Las tablas se relacionan mediante **claves**.\n\n```\n-- Tabla alumnos\n+----+----------+-----------+\n| id | nombre   | apellido  |\n+----+----------+-----------+\n|  1 | Juan     | García    |\n|  2 | María    | López     |\n+----+----------+-----------+\n\n-- Tabla notas\n+------------+-----------+------+\n| id_alumno  | asignatura| nota |\n+------------+-----------+------+\n|          1 | BD        |    9 |\n|          2 | BD        |    8 |\n+------------+-----------+------+\n```\n\n**Ejemplos**: MySQL, PostgreSQL, Oracle, SQL Server.\n\n> **Este es el modelo que estudiaremos a fondo en este curso.**\n\n### 4. Bases de datos orientadas a objetos\n\nAlmacenan datos como **objetos** (como en programación orientada a objetos). Cada objeto contiene datos y métodos.\n\n```\n// Concepto equivalente en OOP\nconst alumno = {\n  nombre: \"Juan\",\n  notas: [9, 8, 7],\n  calcularMedia() {\n    return this.notas.reduce((a, b) => a + b) / this.notas.length;\n  }\n}\n```\n\n**Ejemplo**: db4o, ObjectDB. Poco usadas en la práctica actual."
+        },
+        {
+          "type": "text",
+          "content": "### 5. Bases de datos NoSQL\n\nSurgen para manejar volúmenes masivos de datos no estructurados. Se dividen en subtipos:\n\n| Tipo | Modelo | Ejemplo de uso | SGBD |\n|---|---|---|---|\n| **Documental** | JSON/BSON | Contenido web, catálogos | MongoDB, CouchDB |\n| **Clave-valor** | Pares key→value | Cachés, sesiones | Redis, DynamoDB |\n| **Columnar** | Columnas agrupadas | Analítica, Big Data | Cassandra, HBase |\n| **Grafo** | Nodos y aristas | Redes sociales, recomendaciones | Neo4j, ArangoDB |\n\n### 6. Bases de datos en memoria\n\nAlmacenan todo en RAM para máximo rendimiento. Se usan como caché.\n\n**Ejemplo**: Redis, Memcached.\n\n### 7. Bases de datos temporales\n\nAlmacenan versiones históricas de los datos. Permiten consultar el estado de la BD en un momento dado.\n\n**Ejemplo**: Oracle Temporal, MariaDB temporal tables."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-3-1",
+          "title": "Clasificar tipos de BD",
+          "difficulty": "basic",
+          "description": "Para cada caso de uso, indica qué tipo de base de datos sería más adecuado:\n1. Gestión de notas de un instituto\n2. Sistema de recomendación de Netflix (películas conectadas por géneros, actores...)\n3. Sistema de caché para un sitio web con millones de visitas\n4. Almacenamiento de millones de registros de logs de servidores",
+          "solution": "1. **Relacional** (MySQL/PostgreSQL): Los datos son estructurados, hay relaciones claras (alumnos-notas-asignaturas) y se necesitan transacciones.\n2. **Grafo** (Neo4j): Las recomendaciones se basan en relaciones entre entidades (usuarios-películas-géneros-actores), que se modelan naturalmente como un grafo.\n3. **Clave-valor en memoria** (Redis): Necesita acceso ultrarrápido (RAM) para datos que no requieren complejidad en las consultas.\n4. **Columnar** (Cassandra): Optimizada para escritura masiva y lecturas analíticas sobre grandes volúmenes de datos por columnas."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-4",
+      "title": "¿Qué es un SGBD?",
+      "order": 4,
+      "objectives": [
+        "Definir qué es un SGBD y sus funciones principales",
+        "Diferenciar entre SGBD comerciales y de código abierto",
+        "Identificar los SGBD más utilizados en el mercado"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es un SGBD?\n\nUn **Sistema de Gestión de Bases de Datos** (SGBD) es el software intermediario entre los usuarios y la base de datos. Es la herramienta que permite **crear**, **manipular**, **consultar** y **administrar** bases de datos.\n\n> Analogía: Si la base de datos es el almacén de datos, el SGBD es el almacénico que organiza, busca, registra y controla el acceso a todo lo que hay dentro.\n\n### Funciones principales del SGBD\n\n| Función | Descripción |\n|---|---|\n| **Definición** | Crear, modificar y eliminar estructuras (tablas, vistas, índices) |\n| **Manipulación** | Insertar, actualizar, eliminar y consultar datos |\n| **Seguridad** | Control de acceso por usuarios y privilegios |\n| **Integridad** | Garantizar que los datos cumplan restricciones (claves, tipos, etc.) |\n| **Concurrencia** | Gestionar accesos simultáneos sin conflictos |\n| **Recuperación** | Copias de seguridad y restauración ante fallos |\n| **Comunicación** | Permitir que múltiples usuarios/aplicaciones accedan a la vez |"
+        },
+        {
+          "type": "text",
+          "content": "## Principales SGBD del mercado\n\n### SGBD Relacionales (SQL)\n\n| SGBD | Tipo | Licencia | Uso principal |\n|---|---|---|---|\n| **MySQL** | Relacional | GPL / Comercial | Web, empresas, educación |\n| **PostgreSQL** | Relacional | BSD | Empresas, análisis de datos |\n| **Oracle DB** | Relacional | Comercial | Grandes empresas, banca |\n| **SQL Server** | Relacional | Comercial | Entorno Microsoft, empresas |\n| **MariaDB** | Relacional | GPL | Fork de MySQL, web |\n\n### SGBD NoSQL\n\n| SGBD | Tipo | Licencia | Uso principal |\n|---|---|---|---|\n| **MongoDB** | Documental | SSPL | Web, APIs, catálogos |\n| **Redis** | Clave-valor | BSD | Caché, sesiones, colas |\n| **Cassandra** | Columnar | Apache | Big Data, IoT |\n| **Neo4j** | Grafo | GPL / Comercial | Redes sociales, grafos |\n\n> **Nota**: En este curso utilizaremos **MySQL** como SGBD de referencia, ya que es el más utilizado en el entorno educativo y en el desarrollo web."
+        },
+        {
+          "type": "text",
+          "content": "## MySQL en detalle\n\nMySQL es el SGBD de código abierto más popular del mundo. Algunos datos clave:\n\n- Creado por **MySQL AB** en 1995.\n- Adquirido por **Sun Microsystems** en 2008, luego por **Oracle** en 2010.\n- Versiones: Community (gratuita) y Enterprise (de pago con soporte).\n- Amplio ecosistema: MySQL Workbench, Connector/J, mysqldump, etc.\n- Usado por: Facebook, Twitter, YouTube, WordPress, Drupal.\n\n### Por qué MySQL para este curso\n\n1. **Gratuito y de código abierto** (Community Edition).\n2. **Fácil de instalar** en Windows, Mac y Linux.\n3. **Amplia documentación** y comunidad activa.\n4. **Compatible con SQL estándar** con algunas extensiones propias.\n5. **Alto demandado** en el mercado laboral."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-4-1",
+          "title": "Comparar SGBD",
+          "difficulty": "basic",
+          "description": "Investiga y completa la siguiente tabla para 3 SGBD relacionales (MySQL, PostgreSQL, SQL Server): ¿Qué licencia tienen? ¿En qué entornos son más utilizados? ¿Qué diferencias principales tienen?",
+          "solution": "| SGBD | Licencia | Uso principal | Diferencias principales |\n|---|---|---|---|\n| MySQL | GPL / Comercial (Enterprise) | Web, educación, empresas pequeñas-medias | Rápido, fácil de usar, gran comunidad, menos funciones avanzadas que PostgreSQL |\n| PostgreSQL | BSD / PostgreSQL License | Empresas, análisis de datos, investigación | Más compatible con SQL estándar, soporte para tipos complejos (JSON, arrays, geoespaciales), mayor complejidad |\n| SQL Server | Comercial (Microsoft) | Entorno Microsoft, grandes empresas | Integración completa con .NET y Azure, herramientas gráficas potentes, coste elevado |"
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-5",
+      "title": "Componentes y funciones de un SGBD",
+      "order": 5,
+      "objectives": [
+        "Comprender la arquitectura de un SGBD relacional",
+        "Diferenciar entre nivel interno, conceptual y externo",
+        "Identificar los componentes de la arquitectura cliente-servidor"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Arquitectura de 3 niveles (ANSI/SPARC)\n\nEl estándar ANSI/SPARC define una arquitectura de SGBD en **tres niveles de abstracción**:\n\n```\n┌─────────────────────────────────────┐\n│   Nivel EXTERNO (Vistas)           │  → Lo que ve cada usuario\n├─────────────────────────────────────┤\n│   Nivel CONCEPTUAL (Lógico)        │  → Estructura general de la BD\n├─────────────────────────────────────┤\n│   Nivel INTERNO (Físico)           │  → Cómo se almacenan los datos\n└─────────────────────────────────────┘\n```\n\n### Nivel externo (de vistas)\n\nEs la parte de la BD que **ve cada usuario**. No todos los usuarios necesitan ver toda la información.\n\n- Un **profesor** ve: asignaturas que imparte, alumnos matriculados, notas.\n- Un **alumno** ve: sus propias notas y asignaturas.\n- Un **administrador** ve: todo.\n\nEsto se logra mediante **vistas** (tablas virtuales que muestran solo parte de los datos)."
+        },
+        {
+          "type": "text",
+          "content": "### Nivel conceptual (lógica)\n\nDefine **qué datos** se almacenan y **qué relaciones** existen entre ellos, **sin importar cómo** se almacenan físicamente.\n\n```sql\n-- Nivel conceptual: definición de la estructura\nCREATE TABLE alumnos (\n  id INT PRIMARY KEY,\n  nombre VARCHAR(50),\n  apellido VARCHAR(50),\n  email VARCHAR(100) UNIQUE\n);\n\nCREATE TABLE notas (\n  id_alumno INT,\n  asignatura VARCHAR(50),\n  nota DECIMAL(4,2),\n  FOREIGN KEY (id_alumno) REFERENCES alumnos(id)\n);\n```\n\n### Nivel interno (físico)\n\nDefine **cómo se almacenan** los datos en disco: índices, estructuras de almacenamiento, particiones, etc.\n\nEl usuario normalmente no interactúa con este nivel, pero es crucial para el rendimiento."
+        },
+        {
+          "type": "text",
+          "content": "## Arquitectura cliente-servidor\n\nLos SGBD modernos funcionan bajo el modelo **cliente-servidor**:\n\n```\n┌──────────┐     Consultas SQL      ┌──────────────────┐\n│          │ ─────────────────────→ │                  │\n│  Cliente │                        │  Servidor SGBD   │\n│  (App)   │ ←───────────────────── │  (MySQL Server)  │\n│          │     Resultados         │                  │\n└──────────┘                        └────────┬─────────┘\n                                             │\n                                     ┌───────▼────────┐\n                                     │  Base de datos  │\n                                     │  (ficheros en   │\n                                     │   disco)        │\n                                     └────────────────┘\n```\n\n- **Cliente**: Envía consultas SQL al servidor (puede ser MySQL Workbench, una aplicación web, una línea de comandos...).\n- **Servidor**: Procesa las consultas, gestiona el acceso a los datos y devuelve resultados.\n- **Base de datos**: Los ficheros reales almacenados en disco.\n\n### Componentes del servidor MySQL\n\n| Componente | Función |\n|---|---|\n| **Motor de consultas** | Analiza, optimiza y ejecuta las sentencias SQL |\n| **Parser** | Parsea la sintaxis SQL |\n| **Optimizador** | Elige el mejor plan de ejecución |\n| **Motor de almacenamiento** | Guarda y recupera datos del disco (InnoDB, MyISAM) |\n| **Buffer pool** | Caché en memoria para mejorar rendimiento |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-5-1",
+          "title": "Arquitectura de 3 niveles",
+          "difficulty": "basic",
+          "description": "En una base de datos de un hospital con tablas de pacientes, médicos, citas y diagnósticos, describe qué vería cada usuario en el nivel externo: (a) un paciente, (b) un médico, (c) un administrador del hospital.",
+          "solution": "(a) **Paciente**: Vería solo sus propios datos (nombre, DNI, citas programadas, diagnósticos recibidos). No debería ver datos de otros pacientes.\n\n(b) **Médico**: Vería sus citas asignadas, sus pacientes, sus diagnósticos y podrían ver estadísticas de su departamento. No vería datos de médicos de otros servicios.\n\n(c) **Administrador**: Vería la información completa: todos los pacientes, médicos, citas, diagnósticos, facturación, etc. Tiene acceso total al nivel conceptual."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-6",
+      "title": "Clasificación de los sistemas gestores",
+      "order": 6,
+      "objectives": [
+        "Clasificar los SGBD según el modelo de datos que gestionan",
+        "Diferenciar entre SGBD relacionales, NoSQL y de otros tipos",
+        "Identificar el SGBD adecuado según las necesidades del proyecto"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Clasificación de los SGBD\n\nLos SGBD se clasifican principalmente según el **modelo de datos** que gestionan. Cada tipo está diseñado para resolver problemas distintos.\n\n### SGBD relacionales (SQL)\n\nGestionan bases de datos organizadas en **tablas** con filas y columnas. Utilizan el lenguaje **SQL** (Structured Query Language) para manipular los datos.\n\n**Características principales:**\n- Datos estructurados en tablas con esquema fijo.\n- Relaciones entre tablas mediante claves primarias y foráneas.\n- ACID (Atomicidad, Consistencia, Aislamiento, Durabilidad).\n- SQL como lenguaje estándar de consulta.\n\n**Ejemplos:** MySQL, PostgreSQL, Oracle, SQL Server, MariaDB.\n\n**Uso típico:** Sistemas transaccionales, aplicaciones web, ERP, gestión empresarial."
+        },
+        {
+          "type": "text",
+          "content": "### SGBD NoSQL\n\nDiseñados para trabajar con datos **no estructurados o semiestructurados**. Ofrecen mayor escalabilidad horizontal y flexibilidad en el esquema.\n\n| Subtipo | Modelo de datos | SGBD | Caso de uso |\n|---|---|---|---|\n| **Documental** | JSON/BSON | MongoDB, CouchDB | Catálogos, blogs, APIs REST |\n| **Clave-valor** | Pares key→value | Redis, DynamoDB | Caché, sesiones, contadores |\n| **Columnar** | Columnas agrupadas | Cassandra, HBase | IoT, logs, análisis temporal |\n| **Grafo** | Nodos y aristas | Neo4j, ArangoDB | Redes sociales, grafos de conocimiento |\n\n**Características principales:**\n- Esquema flexible (no todas las filas necesitan las mismas columnas).\n- Escalabilidad horizontal (añadir más servidores).\n- Disponibilidad y tolerancia a fallos (CAP theorem).\n- Sin soporte completo de JOINs como los relacionales."
+        },
+        {
+          "type": "text",
+          "content": "### Otros tipos de SGBD\n\n**SGBD orientados a objetos:**\n- Almacenan datos como objetos (similar a la programación OOP).\n- Ejemplo: db4o, ObjectDB.\n- Poco usados en la práctica actual.\n\n**SGBD en memoria (In-Memory):\n- Almacenan datos en RAM para máximo rendimiento.\n- Se usan como caché o para procesamiento en tiempo real.\n- Ejemplo: Redis, Memcached.\n\n**SGBD temporales:**\n- Mantienen versiones históricas de los datos.\n- Permiten consultar el estado de la BD en un momento dado.\n- Ejemplo: Oracle Temporal, MariaDB system-versioned tables.\n\n### ¿Cómo elegir un SGBD?\n\n| Criterio | Relacional (MySQL) | NoSQL (MongoDB) | Grafo (Neo4j) |\n|---|---|---|---|\n| **Datos estructurados** | ✅ Excelente | ⚠️ Flexible | ❌ No aplica |\n| **Escalabilidad horizontal** | ⚠️ Limitada | ✅ Excelente | ⚠️ Limitada |\n| **Transacciones ACID** | ✅ Completo | ⚠️ Parcial | ⚠️ Parcial |\n| **Relaciones complejas** | ⚠️ Con JOINs | ❌ Difícil | ✅ Nativo |\n| **Flexibilidad de esquema** | ❌ Rígido | ✅ Flexible | ✅ Flexible |"
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-6-1",
+          "title": "Elegir el SGBD adecuado",
+          "difficulty": "intermediate",
+          "description": "Para cada proyecto, indica qué tipo de SGBD sería más adecuado y justifica tu respuesta:\n1. Un banco que gestiona cuentas y transferencias\n2. Una red social que almacena perfiles, publicaciones y relaciones entre usuarios\n3. Un e-commerce con catálogo de productos\n4. Un sistema de logging que recibe 100.000 entradas por segundo",
+          "solution": "1. **Relacional (MySQL/PostgreSQL)**: Las transferencias requieren transacciones ACID (si algo falla, nada se ejecuta). La integridad de datos es crítica.\n2. **Grafo (Neo4j)**: Las relaciones entre usuarios (amigos, seguidores, grupos) se modelan naturalmente como un grafo. Las consultas \"amigos de amigos\" son nativas.\n3. **Relacional o Documental**: Si el catálogo tiene estructura fija (nombre, precio, categoría), un relacional es ideal. Si los productos tienen atributos muy variables (libros, electrónica, ropa), un documental (MongoDB) es más flexible.\n4. **Columnar (Cassandra)**: Optimizado para escritura masiva y lecturas analíticas sobre grandes volúmenes de datos temporales."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-7",
+      "title": "Bases de datos centralizadas y distribuidas",
+      "order": 7,
+      "objectives": [
+        "Diferenciar entre sistemas centralizados y distribuidos",
+        "Identificar ventajas e inconvenientes de cada modelo",
+        "Comprender los conceptos de replicación y partición"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Sistemas centralizados\n\nEn un sistema centralizado, **toda la base de datos reside en un único servidor**. Todos los clientes se conectan a ese servidor para acceder a los datos.\n\n```\n     Cliente A ─┐\n     Cliente B ─┤\n     Cliente C ─┼──→  [Servidor Único]  ──→  [BD completa]\n     Cliente D ─┤\n     Cliente E ─┘\n```\n\n### Ventajas\n- **Simplicidad**: Un solo punto de gestión y administración.\n- **Consistencia**: Los datos están siempre actualizados en un solo lugar.\n- **Coste**: Menor infraestructura necesaria.\n- **Seguridad**: Un solo punto para aplicar políticas de seguridad.\n\n### Inconvenientes\n- **Punto único de fallo**: Si el servidor cae, todo el sistema se detiene.\n- **Rendimiento**: Con muchos usuarios, el servidor puede saturarse.\n- **Escalabilidad limitada**: Difícil crecer más allá de la capacidad de un solo servidor.\n- **Latencia geográfica**: Usuarios lejanos sufren lentitud."
+        },
+        {
+          "type": "text",
+          "content": "## Sistemas distribuidos\n\nLos datos se **distribuyen en varios servidores** que pueden estar en diferentes ubicaciones geográficas.\n\n```\n     Cliente A ──→  [Servidor Madrid]   ──→  [Copia BD]\n     Cliente B ──→  [Servidor Madrid]   ──→  [Copia BD]\n     Cliente C ──→  [Servidor Barcelona]──→  [Copia BD]\n     Cliente D ──→  [Servidor Valencia] ──→  [Copia BD]\n```\n\n### Ventajas\n- **Alta disponibilidad**: Si un servidor falla, otros siguen funcionando.\n- **Escalabilidad**: Se pueden añadir más servidores conforme crece la demanda.\n- **Rendimiento**: Los usuarios se conectan al servidor más cercano.\n- **Tolerancia a fallos**: El sistema sigue operativo aunque parte falle.\n\n### Inconvenientes\n- **Complejidad**: Gestión, sincronización y monitorización más difíciles.\n- **Coste**: Más infraestructura y personal especializado.\n- **Consistencia**: Mantener datos sincronizados entre servidores es complejo.\n- **Seguridad**: Más puntos de acceso potenciales."
+        },
+        {
+          "type": "text",
+          "content": "## Replicación y partición\n\n### Replicación\n\nConsiste en **copiar** los datos de un servidor a otro. Hay varias estrategias:\n\n- **Replicación maestro-esclavo**: Un servidor (maestro) recibe las escrituras y lo replica a uno o más esclavos (solo lectura).\n- **Replicación maestro-maestro**: Varios servidores pueden recibir escrituras y se sincronizan entre sí.\n\n### Partición\n\nConsiste en **dividir** una tabla grande en varias partes más pequeñas, almacenadas en diferentes ubicaciones. Esto mejora el rendimiento de las consultas sobre conjuntos de datos muy grandes.\n\n### Teorema CAP\n\nEn sistemas distribuidos, solo se pueden garantificar **dos de tres propiedades** simultáneamente:\n\n- **Consistencia (C)**: Todos los nodos ven los mismos datos al mismo tiempo.\n- **Disponibilidad (A)**: Cada petición recibe una respuesta (éxito o error).\n- **Tolerancia a particiones (P)**: El sistema sigue funcionando aunque haya cortes de red.\n\nLos sistemas distribuidos siempre eligen tolerancia a particiones (P), y luego deciden entre consistencia (CP) o disponibilidad (AP)."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-7-1",
+          "title": "Centralizado vs distribuido",
+          "difficulty": "intermediate",
+          "description": "Una empresa tiene 3 oficinas en Madrid, Barcelona y Valencia. Cada oficina necesita acceder a la base de datos de clientes. Propón una arquitectura (centralizada o distribuida) y justifica tu decisión. ¿Qué estrategia usarías (replicación, partición)?",
+          "solution": "**Propuesta: Sistema distribuido con replicación maestro-esclavo.**\n\n**Justificación:**\n- Con 3 oficinas en distintas ciudades, un sistema centralizado provocaría latencia (los usuarios de Valencia esperarían más si el servidor está en Madrid).\n- Con replicación maestro-esclavo, el servidor maestro está en Madrid (sede central) y cada oficina tiene un esclavo local para lecturas rápidas.\n- Las escrituras se realizan en el maestro y se replican a los esclavos.\n\n**Estrategia:**\n- **Replicación maestro-esclavo**: Madrid es maestro, Barcelona y Valencia son esclavos. Esto da rapidez en lecturas para cada oficina.\n- **Balanceo de carga**: Las consultas de solo lectura se redirigen al esclavo local.\n- Si una oficina necesita escritura, se comunica con el maestro.\n\n**Alternativa**: Si cada oficina gestiera datos independientes (clientes solo de su zona), se usaría partición por región."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-8",
+      "title": "Fragmentación de la información",
+      "order": 8,
+      "objectives": [
+        "Comprender qué es la fragmentación de datos en bases de datos",
+        "Diferenciar entre fragmentación horizontal y vertical",
+        "Identificar cuándo es conveniente fragmentar una base de datos"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es la fragmentación?\n\nLa **fragmentación** es el proceso de dividir una tabla o base de datos en partes más pequeñas (fragmentos) para mejorar el rendimiento, la disponibilidad o la organización de los datos.\n\n> Analogía: Imagina una enciclopedia de 20 volúmenes. En lugar de tener un único libro enorme, la fragmentas por temas (vol. 1: Historia, vol. 2: Ciencia, vol. 3: Arte...). Así, cuando necesitas información de ciencia, solo consultas el vol. 2.\n\nLa fragmentación se usa en sistemas distribuidos cuando los datos son muy grandes o están geográficamente repartidos."
+        },
+        {
+          "type": "text",
+          "content": "## Tipos de fragmentación\n\n### Fragmentación horizontal\n\nConsiste en **dividir las filas** de una tabla en grupos según algún criterio. Cada fragmento contiene un subconjunto de filas pero TODAS las columnas.\n\n**Ejemplo**: Tabla `ventas` dividida por región:\n\n```\nTabla ventas (original)\n+----+----------+--------+--------+\n| id | producto | region | importe|\n+----+----------+--------+--------+\n|  1 | Laptop   | Madrid |  1200  |\n|  2 | Móvil    | Madrid |   800  |\n|  3 | Tablet   | Barcelona| 500  |\n|  4 | Laptop   | Valencia| 1100  |\n|  5 | Móvil    | Barcelona| 750  |\n+----+----------+--------+--------+\n\nFragmento Madrid:    filas 1, 2\nFragmento Barcelona: filas 3, 5\nFragmento Valencia:  fila 4\n```\n\nCada fragmento tiene las mismas columnas pero filas distintas."
+        },
+        {
+          "type": "text",
+          "content": "### Fragmentación vertical\n\nConsiste en **dividir las columnas** de una tabla en grupos. Cada fragmento contiene TODAS las filas pero un subconjunto de columnas.\n\n**Ejemplo**: Tabla `alumnos` dividida en datos personales y académicos:\n\n```\nTabla alumnos (original)\n+----+--------+-----------+----------+--------+\n| id | nombre | apellido  | email    | nota   |\n+----+--------+-----------+----------+--------+\n|  1 | Juan   | García    | j@g.com  |   8.5  |\n|  2 | María  | López     | m@l.com  |   9.2  |\n+----+--------+-----------+----------+--------+\n\nFragmento datos_personales: id, nombre, apellido, email\nFragmento datos_academicos: id, nota\n```\n\n### Fragmentación por conjuntos (mixta)\n\nCombina ambos tipos. Se puede dividir primero horizontalmente y luego verticalmente (o viceversa)."
+        },
+        {
+          "type": "text",
+          "content": "## Ventajas de la fragmentación\n\n| Ventaja | Descripción |\n|---|---|\n| **Rendimiento** | Las consultas sobre un fragmento son más rápidas (menos datos que recorrer) |\n| **Disponibilidad** | Si un fragmento falla, los demás siguen accesibles |\n| **Seguridad** | Se puede restringir el acceso por fragmento (ej: cada oficina solo ve sus datos) |\n| **Escalabilidad** | Los fragmentos se pueden distribuir en varios servidores |\n\n## Criterios de fragmentación\n\nLa fragmentación debe cumplir estas propiedades:\n\n1. **Completitud**: Todos los datos originales están en algún fragmento.\n2. **No superposición**: Ningún dato aparece en más de un fragmento.\n3. **Reconstrucción**: Se puede recomponer la tabla original uniendo todos los fragmentos."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-8-1",
+          "title": "Fragmentar una tabla",
+          "difficulty": "basic",
+          "description": "Tienes una tabla `pedidos` con los campos: id, cliente, producto, cantidad, precio, fecha, ciudad. Propón una fragmentación horizontal y una vertical para esta tabla. Justifica cada una.",
+          "solution": "**Fragmentación horizontal por ciudad:**\n- Fragmento Madrid: pedidos donde ciudad = 'Madrid'\n- Fragmento Barcelona: pedidos donde ciudad = 'Barcelona'\n- Fragmento Valencia: pedidos donde ciudad = 'Valencia'\n\nJustificación: Si cada oficina local solo gestiona los pedidos de su zona, cada servidor solo almacena los pedidos de su ciudad. Las consultas locales son más rápidas.\n\n**Fragmentación vertical:**\n- Fragmento datos_pedido: id, cliente, producto, cantidad, precio\n- Fragmento datos_logisticos: id, fecha, ciudad\n\nJustificación: Si un módulo de facturación solo necesita los datos del pedido y un módulo de envíos solo necesita fecha y ciudad, cada módulo accede solo a las columnas que necesita, mejorando el rendimiento."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-9",
+      "title": "Protección de datos en bases de datos",
+      "order": 9,
+      "objectives": [
+        "Conocer los principios básicos del RGPD",
+        "Comprender las medidas de protección de datos en bases de datos",
+        "Identificar las responsabilidades del responsable del tratamiento"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Protección de datos personales\n\nCuando una base de datos almacena **datos personales** (nombres, emails, direcciones, teléfonos...), la ley exige medidas específicas de protección.\n\n### RGPD (Reglamento General de Protección de Datos)\n\nEs la normativa europea que regula cómo se recogen, almacenan y tratan los **datos personales** de las personas. Entra en vigor en mayo de 2018.\n\n**Principios clave del RGPD:**\n\n1. **Consentimiento**: Los datos solo se recogen con el consentimiento explícito del usuario.\n2. **Minimización**: Solo se recogen los datos necesarios para la finalidad.\n3. **Limitación del propósito**: Los datos solo se usan para la finalidad para la que se recogieron.\n4. **Exactitud**: Los datos deben mantenerse actualizados.\n5. **Limitación de conservación**: Los datos se eliminan cuando ya no son necesarios.\n6. **Integridad y confidencialidad**: Medidas de seguridad para proteger los datos.\n7. **Responsabilidad demostrable**: El responsable debe poder demostrar el cumplimiento."
+        },
+        {
+          "type": "text",
+          "content": "### Derechos del usuario\n\n| Derecho | Descripción |\n|---|---|\n| **Acceso** | Conocer qué datos tiene sobre ti |\n| **Rectificación** | Corregir datos inexactos |\n| **Supresión** (\"derecho al olvido\") | Solicitar la eliminación de tus datos |\n| **Limitación** | Solicitar que se dejen de usar |\n| **Portabilidad** | Recibir tus datos en formato interoperable |\n| **Oposición** | Oponerte al tratamiento de tus datos |\n\n### Medidas de protección en bases de datos\n\nLas bases de datos implementan varias medidas para proteger los datos personales:\n\n| Medida | Implementación en BD |\n|---|---|\n| **Control de acceso** | Usuarios y privilegios (solo accede quien debe) |\n| **Cifrado** | Datos cifrados en disco y en tránsito |\n| **Auditoría** | Registro de quién accedió a qué datos y cuándo |\n| **Anonimización** | Reemplazar datos reales por datos ficticios para análisis |\n| **Pseudonimización** | Reemplazar identificadores por seudónimos |\n| **Backup seguro** | Copias de seguridad cifradas y con acceso restringido |"
+        },
+        {
+          "type": "text",
+          "content": "## Ejemplo: diseño RGPD-compliant\n\nSupongamos que diseñamos la tabla `usuarios` para una aplicación web que cumpla con el RGPD:\n\n```sql\nCREATE TABLE usuarios (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  nombre VARCHAR(50) NOT NULL,\n  email VARCHAR(100) NOT NULL UNIQUE,\n  password_hash VARCHAR(255) NOT NULL,\n  consentimiento_datos BOOLEAN NOT NULL DEFAULT FALSE,\n  fecha_consentimiento DATETIME,\n  activo BOOLEAN DEFAULT TRUE,\n  fecha_eliminacion DATETIME DEFAULT NULL,\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP\n);\n```\n\n**Justificación de cada campo:**\n- `nombre` y `email`: Datos necesarios para la cuenta (minimización).\n- `password_hash`: Nunca almacenar contraseñas en texto plano. Se guarda el hash.\n- `consentimiento_datos` y `fecha_consentimiento**: Prueba de que el usuario dio su consentimiento.\n- `activo` y `fecha_eliminacion**: Para implementar el \"derecho al olvido\" sin borrar físicamente (soft delete).\n- `created_at**: Registro temporal para auditoría.\n\n> **Importante**: No almacenar datos que no sean necesarios. Si no necesitas la fecha de nacimiento, no la pidas. El principio de minimización es fundamental."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-9-1",
+          "title": "RGPD en una BD",
+          "difficulty": "intermediate",
+          "description": "Diseña una tabla `pacientes` para un hospital que cumpla con los principios básicos del RGPD. Indica qué campos incluirías, cuáles serían obligatorios y cómo implementarías el \"derecho al olvido\".",
+          "solution": "```sql\nCREATE TABLE pacientes (\n  id INT PRIMARY KEY AUTO_INCREMENT,\n  dni VARCHAR(9) NOT NULL UNIQUE,\n  nombre VARCHAR(50) NOT NULL,\n  apellidos VARCHAR(100) NOT NULL,\n  fecha_nacimiento DATE NOT NULL,\n  telefono VARCHAR(15),\n  email VARCHAR(100),\n  direccion VARCHAR(200),\n  consentimiento_tratamiento BOOLEAN NOT NULL DEFAULT FALSE,\n  fecha_consentimiento DATETIME,\n  activo BOOLEAN DEFAULT TRUE,\n  fecha_eliminacion DATETIME DEFAULT NULL,\n  motivo_eliminacion VARCHAR(200),\n  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,\n  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP\n);\n```\n\n**Justificación:**\n- **Campos obligatorios**: DNI, nombre, apellidos, fecha de nacimiento (datos mínimos necesarios para identificar al paciente).\n- **Campos opcionales**: Teléfono, email, dirección (solo si el paciente los facilita).\n- **Consentimiento**: `consentimiento_tratamiento` y `fecha_consentimiento` para demostrar consentimiento explícito.\n- **Derecho al olvido**: `activo = FALSE` y `fecha_eliminacion`. Los datos se anonimizan después de un período legal de conservación.\n- **Auditoría**: `created_at` y `updated_at` para rastrear cambios.\n- **Minimización**: No se almacena historial completo en esta tabla (eso iría a otra tabla con acceso restringido)."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-10",
+      "title": "Introducción a Big Data",
+      "order": 10,
+      "objectives": [
+        "Definir qué es Big Data",
+        "Comprender las 5 V de Big Data",
+        "Identificar las principales herramientas de Big Data"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es Big Data?\n\nBig Data se refiere a **conjuntos de datos tan voluminosos y complejos** que las herramientas tradicionales de procesamiento de bases de datos no pueden manejarlos eficientemente.\n\nNo es solo \"muchos datos\". Big Data implica un cambio de paradigma: en lugar de preguntar \"¿qué datos tengo?\", la pregunta pasa a ser \"¿qué puedo descubrir con estos datos?\".\n\n### Ejemplos cotidianos de Big Data\n\n- **Redes sociales**: Facebook genera ~600 TB de datos por día (posts, fotos, vídeos, likes, comentarios).\n- **Comercio electrónico**: Amazon procesa millones de transacciones diarias y genera recomendaciones personalizadas.\n- **Sanidad**: Los hospitales generan historias clínicas, radiografías, datos de sensores de pacientes.\n- **IoT**: Los dispositivos conectados (smartwatches, coches inteligentes, sensores industriales) generan datos constantemente."
+        },
+        {
+          "type": "text",
+          "content": "## Las 5 V de Big Data\n\n| V | Descripción | Ejemplo |\n|---|---|---|\n| **Volumen** | Cantidad masiva de datos | Facebook genera ~600 TB de datos por día |\n| **Velocidad** | Rapidez de generación y procesamiento | Twitter procesa ~6.000 tweets por segundo |\n| **Variedad** | Diferentes tipos de datos (texto, vídeo, audio, imágenes) | Un hospital genera historias clínicas, radiografías, sensores |\n| **Veracidad** | Fiabilidad y calidad de los datos | Datos de sensores IoT pueden ser imprecisos |\n| **Valor** | Capacidad de extraer información útil | Análisis de compra para detectar fraudes |\n\n### Volumen\n\nEl reto principal es almacenar y procesar petabytes o exabytes de datos. Las bases de datos tradicionales están diseñadas para gigabytes o terabytes.\n\n### Velocidad\n\nLos datos llegan en tiempo real (streaming). Un sistema de Big Data debe procesar millones de eventos por segundo (como las transacciones de una plataforma de trading).\n\n### Variedad\n\nLos datos no son solo tablas estructuradas: son textos, imágenes, vídeos, registros de sensores, emails, archivos de log... Big Data debe manejar todos estos formatos.\n\n### Veracidad\n\nNo todos los datos son fiables. Los sensores pueden dar lecturas erróneas, los usuarios pueden introducir datos incorrectos. Big Data debe validar y depurar.\n\n### Valor\n\nEl objetivo final es extraer **conocimiento accionable** de los datos. Tener muchos datos no sirve de nada si no se pueden analizar para tomar decisiones."
+        },
+        {
+          "type": "text",
+          "content": "## Herramientas de Big Data\n\n| Herramienta | Función |\n|---|---|\n| **Hadoop** | Procesamiento distribuido de grandes volúmenes (HDFS + MapReduce) |\n| **Spark** | Procesamiento rápido en memoria (hasta 100x más rápido que MapReduce) |\n| **Kafka** | Streaming de datos en tiempo real |\n| **Hive** | Consultas SQL sobre datos almacenados en Hadoop |\n| **Cassandra** | Base de datos NoSQL escalable y distribuida |\n| **Elasticsearch** | Motor de búsqueda y análisis de texto |\n\n### Relación con las bases de datos\n\nLas bases de datos son el **pilar fundamental** de cualquier sistema de Big Data. Sin datos bien organizados, no hay análisis posible. La diferencia está en la escala:\n\n- **Base de datos tradicional**: Gestionar datos de una empresa (gigabytes).\n- **Big Data**: Gestionar datos de millones de usuarios/infraestructura (petabytes).\n\n> Muchas herramientas de Big Data (como Hive) usan **consultas SQL** para interactuar con los datos. Por eso aprender SQL es fundamental incluso en el mundo de Big Data."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-10-1",
+          "title": "Las 5 V de Big Data",
+          "difficulty": "basic",
+          "description": "Piensa en una red social (como Instagram o TikTok). Analiza cómo se manifiestan las 5 V de Big Data en esa plataforma.",
+          "solution": "- **Volumen**: Millones de usuarios publican fotos, vídeos y comentarios cada día. Se generan petabytes de datos diariamente.\n- **Velocidad**: Los posts se publican en tiempo real. El feed se actualiza constantemente. Los likes y comentarios llegan por miles por segundo.\n- **Variedad**: Datos de texto (comentarios), imágenes, vídeos, metadatos (ubicación, dispositivo, hora), interacciones (likes, compartidos, guardados).\n- **Veracidad**: No todos los datos son fiables: bots que generan likes falsos, comentarios spam, cuentas falsas. Hay que filtrar y validar.\n- **Valor**: Analizar el comportamiento de usuarios para mostrar contenido relevante, vender publicidad segmentada, detectar tendencias y contenido viral."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-11",
+      "title": "Inteligencia de negocio",
+      "order": 11,
+      "objectives": [
+        "Definir qué es Business Intelligence (BI)",
+        "Comprender el proceso ETL y las fases de BI",
+        "Identificar las principales herramientas de BI"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## ¿Qué es Business Intelligence (BI)?\n\n**Business Intelligence** es el conjunto de estrategias, herramientas y procesos para **analizar datos de negocio** y apoyar la toma de decisiones.\n\nEn términos sencillos: BI transforma **datos en información**, y esa información en **decisiones de negocio**.\n\n> Ejemplo: Una tienda online tiene millones de registros de ventas. BI permite responder preguntas como: ¿Qué productos se venden más en navidad? ¿Qué horarios tienen más pedidos? ¿Los clientes de Madrid compran más que los de Barcelona?"
+        },
+        {
+          "type": "text",
+          "content": "## Proceso de BI\n\n```\n1. Extracción (ETL)  →  2. Almacenamiento (Data Warehouse)  →  3. Análisis  →  4. Visualización\n\n Extraer datos de       Guardar en un repositorio        Consultas,       Dashboards,\n sistemas internos      optimizado para análisis          reportes         gráficos\n (CRM, ERP, web)                                       estadísticos\n```\n\n### Fase 1: Extracción (ETL)\n\n**ETL** significa **Extract, Transform, Load** (Extraer, Transformar, Cargar):\n\n- **Extract**: Extraer datos de diferentes fuentes (bases de datos, ficheros Excel, APIs, emails...).\n- **Transform**: Limpiar, unificar y dar formato a los datos (por ejemplo, convertir todas las fechas al mismo formato, eliminar duplicados).\n- **Load**: Cargar los datos transformados en el repositorio de análisis.\n\n### Fase 2: Almacenamiento (Data Warehouse)\n\nUn **Data Warehouse** es una base de datos especializada en análisis. A diferencia de una BD operacional (que gestiona el día a día), el Data Warehouse:\n- Almacena datos históricos.\n- Está optimizado para consultas de lectura (no de escritura).\n- Integra datos de múltiples fuentes.\n\n### Fase 3: Análisis\n\nSe realizan consultas, reportes y análisis estadísticos para extraer información relevante.\n\n### Fase 4: Visualización\n\nLos resultados se presentan en **dashboards**, gráficos y reportes visuales que facilitan la toma de decisiones."
+        },
+        {
+          "type": "text",
+          "content": "## Herramientas de BI\n\n| Herramienta | Tipo | Precio |\n|---|---|---|\n| **Power BI** | Microsoft | Gratuito (Desktop) / De pago (Service) |\n| **Tableau** | Comercial | De pago |\n| **Google Data Studio** | Google | Gratuito |\n| **Metabase** | Open source | Gratuito |\n| **Apache Superset** | Open source | Gratuito |\n\n### Relación con bases de datos\n\nLas bases de datos son el **pilar fundamental** de cualquier sistema de BI. Sin datos bien organizados, no hay análisis posible. Por eso:\n\n1. Un buen diseño de BD es esencial para poder analizar los datos después.\n2. Los Data Warehouse son bases de datos especializadas en análisis.\n3. Las herramientas de BI se conectan a bases de datos para extraer información.\n\n> **Dato importante**: Un desarrollador de bases de datos necesita entender BI porque el diseño que haga hoy determinará qué tan fácil o difícil será analizar los datos mañana."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-11-1",
+          "title": "Diseñar un ETL sencillo",
+          "difficulty": "intermediate",
+          "description": "Una tienda online tiene 3 fuentes de datos: una BD MySQL con pedidos, un fichero Excel con inventario, y una API que devuelve opiniones de clientes. Describe las 3 fases del ETL para unificar estos datos en un Data Warehouse.",
+          "solution": "**Extract (Extracción):**\n- Pedidos: Conectar a MySQL y extraer la tabla `pedidos` (id, cliente, producto, cantidad, fecha, total).\n- Inventario: Leer el fichero Excel `inventario.xlsx` con columnas (producto, stock, proveedor, precio_compra).\n- Opiniones: Llamar a la API de opiniones y obtener JSON con (producto, puntuacion, comentario, fecha).\n\n**Transform (Transformación):**\n- Unificar formatos de fecha (puede que MySQL use YYYY-MM-DD, Excel use DD/MM/YYYY).\n- Limpiar nombres de productos (quitar espacios, unificar mayúsculas/minúsculas).\n- Calcular campos derivados: margen_beneficio = precio_venta - precio_compra.\n- Eliminar opiniones duplicadas o de baja calidad (puntuación = 0 sin comentario).\n- Codificar opiniones como positivas/negativas según la puntuación.\n\n**Load (Carga):**\n- Insertar los datos transformados en las tablas del Data Warehouse:\n  - `hechos_ventas`: id_venta, fecha, producto, cantidad, total, margen.\n  - `dim_producto`: id_producto, nombre, stock, proveedor.\n  - `dim_opinion`: id_producto, puntuacion, sentimiento, fecha.\n- Verificar que no haya duplicados ni errores de integridad."
+        }
+      ]
+    },
+    {
+      "id": "lesson-01-12",
+      "title": "Repaso y ejercicios del módulo",
+      "order": 12,
+      "objectives": [
+        "Repasar los conceptos clave del módulo",
+        "Aplicar los conocimientos adquiridos en ejercicios integrados",
+        "Evaluar la comprensión de los temas tratados"
+      ],
+      "contentBlocks": [
+        {
+          "type": "text",
+          "content": "## Resumen del módulo\n\nEn este módulo hemos cubierto los conceptos fundamentales de las bases de datos:\n\n### Conceptos clave\n\n1. **Base de datos**: Conjunto de datos estructurados y organizados para su gestión eficiente.\n2. **SGBD**: Software que gestiona la creación, acceso y administración de bases de datos.\n3. **Tipos de BD**: Jerárquicas, en red, relacionales, orientadas a objetos, NoSQL.\n4. **Arquitectura de 3 niveles**: Externo (vistas), conceptual (lógica), interno (física).\n5. **Centralización vs Distribución**: Un solo servidor vs múltiples servidores.\n6. **Fragmentación**: División horizontal (filas) y vertical (columnas) de datos.\n7. **Protección de datos**: RGPD, minimización, consentimiento, derecho al olvido.\n8. **Big Data**: Volumen, Velocidad, Variedad, Veracidad, Valor.\n9. **Business Intelligence**: ETL → Data Warehouse → Análisis → Visualización."
+        },
+        {
+          "type": "text",
+          "content": "## Relación entre conceptos\n\nTodos estos conceptos están interconectados:\n\n- Los **ficheros** evolucionaron hacia las **bases de datos** para resolver problemas de redundancia e inconsistencia.\n- Los **SGBD** son el software que hace posible trabajar con bases de datos.\n- Los **tipos de BD** (relacional, NoSQL...) se eligen según el tipo de datos y las necesidades del proyecto.\n- La **arquitectura de 3 niveles** separa la lógica de los datos de su almacenamiento físico.\n- Los **sistemas distribuidos** y la **fragmentación** permiten escalar cuando los datos son muy grandes.\n- La **protección de datos** es obligatoria cuando se almacenan datos personales.\n- **Big Data** y **BI** representan el futuro: analizar enormes volúmenes de datos para tomar mejores decisiones."
+        }
+      ],
+      "exercises": [
+        {
+          "id": "ex-01-12-1",
+          "title": "Cuestionario conceptual",
+          "difficulty": "basic",
+          "description": "Responde a las siguientes preguntas:\n1. ¿Cuál es la diferencia principal entre un dato y la información?\n2. Nombra 3 problemas de los sistemas de ficheros que resuelven las bases de datos.\n3. ¿Qué es un SGBD y cuáles son sus 3 funciones principales?\n4. ¿En qué se diferencia una BD relacional de una NoSQL documental?\n5. ¿Qué significa el acrónimo ETL?",
+          "solution": "1. **Dato vs Información**: Un dato es un valor sin contexto (ej: `85`). La información es ese dato con significado (ej: `85` es la nota del alumno `Juan García` en `Bases de datos`).\n\n2. **Problemas de ficheros**: (a) Redundancia de datos en múltiples ficheros, (b) Inconsistencia cuando se actualizan solo algunos ficheros, (c) Falta de control de acceso y seguridad.\n\n3. **SGBD**: Es el software que gestiona bases de datos. Funciones principales: (a) Definición (crear estructuras), (b) Manipulación (consultar y modificar datos), (c) Seguridad (control de acceso).\n\n4. **Relacional vs NoSQL**: La relacional organiza datos en tablas con esquema fijo y relaciones mediante claves. La NoSQL documental almacena documentos JSON con esquema flexible, sin relaciones formales entre documentos.\n\n5. **ETL**: Extract, Transform, Load (Extraer, Transformar, Cargar). Proceso para mover datos de fuentes operacionales a un Data Warehouse para análisis."
+        },
+        {
+          "id": "ex-01-12-2",
+          "title": "Caso práctico integrador",
+          "difficulty": "intermediate",
+          "description": "Una academia de música quiere digitalizar su gestión. Actualmente usan ficheros Excel para alumnos, profesores, clases y pagos. Diseña una propuesta de base de datos que incluya:\n1. Al menos 4 tablas con sus campos principales\n2. Las relaciones entre tablas (1:N, N:M)\n3. Un ejemplo de fragmentación horizontal\n4. Cómo implementarían el RGPD",
+          "solution": "**Tablas propuestas:**\n\n**alumnos**: id, nombre, apellidos, email, telefono, fecha_nacimiento, activo, consentimiento_datos, fecha_consentimiento\n\n**profesores**: id, nombre, apellidos, email, especialidad, fecha_contratacion\n\n**instrumentos**: id, nombre, marca, precio_alquiler, estado\n\n**clases**: id, id_alumno, id_profesor, id_instrumento, dia_semana, hora, nivel, fecha_inicio, fecha_fin\n\n**pagos**: id, id_alumno, concepto, cantidad, fecha_pago, metodo_pago\n\n**Relaciones:**\n- Un alumno puede tener muchas clases (1:N: alumnos → clases)\n- Un profesor puede impartir muchas clases (1:N: profesores → clases)\n- Un instrumento puede ser alquilado en muchas clases (1:N: instrumentos → clases)\n- Un alumno puede tener muchos pagos (1:N: alumnos → pagos)\n\n**Fragmentación horizontal:**\nSi la academia tiene sedes en Madrid y Barcelona, se puede fragmentar la tabla `alumnos` por sede. Cada sede solo almacena los datos de sus alumnos.\n\n**RGPD:**\n- Campo `consentimiento_datos` y `fecha_consentimiento` para registrar el consentimiento.\n- Campo `activo` para implementar el derecho al olvido sin borrar físicamente.\n- No almacenar datos innecesarios (minimización).\n- Contraseñas cifradas (nunca en texto plano)."
+        },
+        {
+          "id": "ex-01-12-3",
+          "title": "Reflexión sobre el futuro",
+          "difficulty": "basic",
+          "description": "Explica con tus palabras por qué un desarrollador de aplicaciones web debe entender de bases de datos, Big Data e inteligencia de negocio, aunque su trabajo principal sea el frontend.",
+          "solution": "Ejemplo de respuesta:\n\nUn desarrollador frontend necesita entender bases de datos porque:\n\n1. **Comunicación con el backend**: Necesita saber qué datos puede pedir al servidor, cómo están estructurados y qué consultas son posibles. Si entiende la BD, puede hacer mejores peticiones a la API.\n\n2. **Rendimiento**: Si sabe que una consulta es lenta (por ejemplo, una que hace JOINs sobre millones de filas), puede diseñar la interfaz para cargar datos de forma progresiva en lugar de esperar a que lleguen todos.\n\n3. **Diseño de interfaces**: Conocer la estructura de los datos permite diseñar formularios, tablas y filtros que se correspondan con la realidad del sistema.\n\n4. **Big Data y BI**: Cada vez más aplicaciones web incluyen dashboards y analíticas. Entender BI permite crear visualizaciones útiles para los usuarios.\n\n5. **Comunicación con el equipo**: Cuando el frontend, backend y el equipo de datos hablan el mismo lenguaje, el proyecto avanza más rápido y con menos errores."
+        }
+      ]
+    }
+  ]
+}
