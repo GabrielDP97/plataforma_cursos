@@ -19,6 +19,7 @@
     "course:validate": "npx tsx src/cli/course-validator.ts",
     "course:import": "npx tsx src/cli/course-importer.ts",
     "check": "npm run build && cd frontend && npm run build",
+    "test:e2e": "npx playwright test",
     "deploy:staging": "npx wrangler deploy --env staging",
     "deploy:production": "echo '⚠️  Production deploy requires manual approval' && npx wrangler deploy --env production"
   },
@@ -37,6 +38,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.0.0",
     "@eslint/js": "^9.0.0",
+    "@playwright/test": "^1.63.0",
     "@types/bcrypt": "^6.0.0",
     "bcrypt": "^6.0.0",
     "drizzle-kit": "^0.31.0",
