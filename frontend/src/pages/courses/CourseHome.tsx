@@ -33,6 +33,16 @@ function contentTypeToActivityType(type: string): ActivityNodeData['type'] {
   }
 }
 
+function extractTitleFromContent(content: string, fallback: string): string {
+  // Try to extract first heading from markdown
+  const headingMatch = content.match(/^##\s+(.+)$/m);
+  if (headingMatch) return headingMatch[1].trim();
+  // Try first line as title
+  const firstLine = content.split('\n')[0]?.trim();
+  if (firstLine && firstLine.length < 100) return firstLine;
+  return fallback;
+}
+
 function deriveActivities(mod: ModuleJson): ActivityNodeData[] {
   const activities: ActivityNodeData[] = [];
   let position = 1;
@@ -42,7 +52,7 @@ function deriveActivities(mod: ModuleJson): ActivityNodeData[] {
       activities.push({
         id: `${lesson.id}-${block.type}-${position}`,
         position,
-        title: block.title ?? lesson.title,
+        title: block.title || extractTitleFromContent(block.content || '', lesson.title),
         type: contentTypeToActivityType(block.type),
         status: 'not_started',
         completedCount: 0,

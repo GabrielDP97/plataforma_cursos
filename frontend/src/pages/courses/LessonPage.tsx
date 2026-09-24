@@ -226,6 +226,56 @@ export default function LessonPage() {
     [resolvedCourseId, moduleId, mode]
   );
 
+  // ── Hooks that depend on derived state (must precede conditional returns) ──
+
+  const exercises = currentLesson?.exercises ?? [];
+
+  const handleExerciseNavigate = useCallback((direction: 'prev' | 'next') => {
+    setActiveExerciseIndex((prev) => {
+      if (direction === 'prev') return Math.max(0, prev - 1);
+      return Math.min(exercises.length - 1, prev + 1);
+    });
+  }, [exercises.length]);
+
+  const handleNextLesson = useCallback(() => {
+    if (!nextLessonInfo || nextLessonInfo.isLastInCourse) {
+      // Last lesson in course — navigate back to module
+      navigate(`/courses/${resolvedCourseId}/modules/${moduleId}${mode === 'admin_preview' ? '?admin_preview=true' : ''}`);
+      return;
+    }
+
+    // If lesson already completed, skip modal
+    if (lessonCompleted) {
+      navigate(makeLessonUrl(nextLessonInfo.lessonId, true, nextLessonInfo.moduleId));
+      return;
+    }
+
+    // Show confirmation modal
+    setShowCompletionModal(true);
+  }, [nextLessonInfo, lessonCompleted, navigate, resolvedCourseId, moduleId, mode, makeLessonUrl]);
+
+  const handleConfirmComplete = useCallback(async () => {
+    setCompleting(true);
+    setCompletionError('');
+    try {
+      await progressApi.completeLesson(lessonId!);
+      setLessonCompleted(true);
+
+      // Update sidebar completion
+      setCompletedLessonIds((prev) => new Set([...prev, lessonId!]));
+
+      // Navigate to next lesson
+      const nextInfo = courseData ? getNextLessonInfo(moduleId!, currentLessonIndex, ALL_MODULES, courseData.phases) : null;
+      if (nextInfo && !nextInfo.isLastInCourse && nextInfo.lessonId) {
+        navigate(makeLessonUrl(nextInfo.lessonId, true, nextInfo.moduleId));
+      }
+    } catch {
+      setCompletionError('No se ha podido guardar el progreso. Inténtalo de nuevo.');
+    } finally {
+      setCompleting(false);
+    }
+  }, [lessonId, moduleId, currentLessonIndex, resolvedCourseId, navigate, makeLessonUrl, ALL_MODULES, courseData]);
+
   if (loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -272,56 +322,8 @@ export default function LessonPage() {
     },
   })) ?? [];
 
-  const exercises = currentLesson.exercises ?? [];
   const isExerciseSection = currentSection?.type === 'exercise';
   const moduleProgress = mod.lessons.length > 0 ? Math.round(((currentLessonIndex + 1) / mod.lessons.length) * 100) : 0;
-
-  const handleExerciseNavigate = useCallback((direction: 'prev' | 'next') => {
-    setActiveExerciseIndex((prev) => {
-      if (direction === 'prev') return Math.max(0, prev - 1);
-      return Math.min(exercises.length - 1, prev + 1);
-    });
-  }, [exercises.length]);
-
-  const handleNextLesson = useCallback(() => {
-    if (!nextLessonInfo || nextLessonInfo.isLastInCourse) {
-      // Last lesson in course — navigate back to module
-      navigate(`/courses/${resolvedCourseId}/modules/${moduleId}${mode === 'admin_preview' ? '?admin_preview=true' : ''}`);
-      return;
-    }
-
-    // If lesson already completed, skip modal
-    if (lessonCompleted) {
-      navigate(makeLessonUrl(nextLessonInfo.lessonId, true, nextLessonInfo.moduleId));
-      return;
-    }
-
-    // Show confirmation modal
-    setShowCompletionModal(true);
-  }, [nextLessonInfo, lessonCompleted, navigate, resolvedCourseId, moduleId, mode, makeLessonUrl]);
-
-  const handleConfirmComplete = useCallback(async () => {
-    setCompleting(true);
-    setCompletionError('');
-    try {
-      await progressApi.completeLesson(lessonId!);
-      setLessonCompleted(true);
-
-      // Navigate to next lesson
-      // Update sidebar completion
-      setCompletedLessonIds((prev) => new Set([...prev, lessonId!]));
-
-      // Navigate to next lesson
-      const nextInfo = courseData ? getNextLessonInfo(moduleId!, currentLessonIndex, ALL_MODULES, courseData.phases) : null;
-      if (nextInfo && !nextInfo.isLastInCourse && nextInfo.lessonId) {
-        navigate(makeLessonUrl(nextInfo.lessonId, true, nextInfo.moduleId));
-      }
-    } catch {
-      setCompletionError('No se ha podido guardar el progreso. Inténtalo de nuevo.');
-    } finally {
-      setCompleting(false);
-    }
-  }, [lessonId, moduleId, currentLessonIndex, resolvedCourseId, navigate, makeLessonUrl, ALL_MODULES, courseData]);
 
 
   return (
