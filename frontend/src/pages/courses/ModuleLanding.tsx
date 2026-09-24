@@ -39,6 +39,19 @@ function contentTypeToActivityType(type: string): ActivityNodeData['type'] {
 }
 
 /**
+ * Extract a meaningful title from content block content.
+ * Tries first markdown heading, then first line, then fallback.
+ */
+function extractTitleFromContent(content: string, fallback: string): string {
+  if (!content) return fallback;
+  const headingMatch = content.match(/^##\s+(.+)$/m);
+  if (headingMatch) return headingMatch[1].trim();
+  const firstLine = content.split('\n')[0]?.trim();
+  if (firstLine && firstLine.length < 100) return firstLine;
+  return fallback;
+}
+
+/**
  * Derive activity nodes from a module's lessons.
  *
  * Each content block becomes a theory/code/documentation node.
@@ -55,7 +68,7 @@ function deriveActivities(mod: ModuleJson): ActivityNodeData[] {
       activities.push({
         id: `${lesson.id}-${block.type}-${position}`,
         position,
-        title: block.title ?? lesson.title,
+        title: block.title || extractTitleFromContent(block.content || '', lesson.title),
         type: contentTypeToActivityType(block.type),
         status: 'not_started',
         completedCount: 0,
