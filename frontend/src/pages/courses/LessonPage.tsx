@@ -9,46 +9,23 @@ import { Alert } from '../../components/ui/alert';
 import { getPhaseColors } from '../../components/course/phase-colors';
 import { deriveSections } from '../../components/course/deriveSections';
 import { progressApi } from '../../api/modules/progress';
+import { coursesApi } from '../../api/modules/courses';
 import type { LessonSection } from '../../components/course/deriveSections';
 import type { ViewMode, ModuleJson } from '../../components/course/types';
-import courseData from '../../../../courses/programming/course.json';
-import mod01 from '../../../../courses/programming/modules/mod-01.json';
-import mod02 from '../../../../courses/programming/modules/mod-02.json';
-import mod03 from '../../../../courses/programming/modules/mod-03.json';
-import mod04 from '../../../../courses/programming/modules/mod-04.json';
-import mod05 from '../../../../courses/programming/modules/mod-05.json';
-import mod06 from '../../../../courses/programming/modules/mod-06.json';
-import mod07 from '../../../../courses/programming/modules/mod-07.json';
-import mod08 from '../../../../courses/programming/modules/mod-08.json';
-import mod09 from '../../../../courses/programming/modules/mod-09.json';
-import mod10 from '../../../../courses/programming/modules/mod-10.json';
-import mod11 from '../../../../courses/programming/modules/mod-11.json';
-import mod12 from '../../../../courses/programming/modules/mod-12.json';
-import mod13 from '../../../../courses/programming/modules/mod-13.json';
-import mod14 from '../../../../courses/programming/modules/mod-14.json';
-import mod15 from '../../../../courses/programming/modules/mod-15.json';
-import mod16 from '../../../../courses/programming/modules/mod-16.json';
-import mod17 from '../../../../courses/programming/modules/mod-17.json';
-import mod18 from '../../../../courses/programming/modules/mod-18.json';
+import { getCourseDataBySlug, type CourseRegistryEntry } from '../../data/course-registry';
 
 
-
-const ALL_MODULES = {
-  'mod-01': mod01, 'mod-02': mod02, 'mod-03': mod03, 'mod-04': mod04,
-  'mod-05': mod05, 'mod-06': mod06, 'mod-07': mod07, 'mod-08': mod08,
-  'mod-09': mod09, 'mod-10': mod10, 'mod-11': mod11, 'mod-12': mod12,
-  'mod-13': mod13, 'mod-14': mod14, 'mod-15': mod15, 'mod-16': mod16,
-  'mod-17': mod17, 'mod-18': mod18,
-} as Record<string, ModuleJson>;
 
 function getNextLessonInfo(
   currentModuleId: string,
   currentLessonIndex: number,
+  courseModules: Record<string, ModuleJson>,
+  coursePhases: { id: string; title: string; description: string; modules: string[] }[],
 ): { moduleId: string; lessonId: string; isLastInCourse: boolean } | null {
-  const allModuleIds = courseData.phases.flatMap((p) => p.modules);
+  const allModuleIds = coursePhases.flatMap((p) => p.modules);
   const currentModulePosition = allModuleIds.indexOf(currentModuleId);
 
-  const mod = ALL_MODULES[currentModuleId];
+  const mod = courseModules[currentModuleId];
   if (!mod) return null;
 
   // Within current module
@@ -58,7 +35,7 @@ function getNextLessonInfo(
 
   // Next module's first lesson
   for (let i = currentModulePosition + 1; i < allModuleIds.length; i++) {
-    const nextMod = ALL_MODULES[allModuleIds[i]];
+    const nextMod = courseModules[allModuleIds[i]];
     if (nextMod && nextMod.lessons.length > 0) {
       return { moduleId: allModuleIds[i], lessonId: nextMod.lessons[0].id, isLastInCourse: false };
     }
@@ -68,8 +45,11 @@ function getNextLessonInfo(
   return { moduleId: currentModuleId, lessonId: '', isLastInCourse: true };
 }
 
-function getPhaseIdForModule(moduleId: string): string {
-  for (const phase of courseData.phases) {
+function getPhaseIdForModule(
+  moduleId: string,
+  phases: { id: string; modules: string[] }[],
+): string {
+  for (const phase of phases) {
     if (phase.modules.includes(moduleId)) return phase.id;
   }
   return 'phase-1';
@@ -88,10 +68,51 @@ export default function LessonPage() {
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
 
   const mode: ViewMode = searchParams.get('admin_preview') === 'true' ? 'admin_preview' : 'student';
+
+  // -- Resolve course: fetch metadata from API, then look up registry by slug --
+  const [resolved, setResolved] = useState<CourseRegistryEntry | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!courseId) {
+      setError('No course ID provided');
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    coursesApi
+      .getById(courseId)
+      .then((apiCourse) => {
+        if (cancelled) return;
+        const slug = apiCourse.slug ?? apiCourse.id;
+        const entry = getCourseDataBySlug(slug);
+        if (!entry) {
+          setError(`Course not found for slug "${slug}"`);
+          return;
+        }
+        setResolved(entry);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : 'Failed to load course');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [courseId]);
+
+  // Resolve module data from the resolved course
+  const courseData = resolved?.courseData;
+  const ALL_MODULES = resolved?.modules ?? {} as Record<string, ModuleJson>;
   const mod = moduleId ? ALL_MODULES[moduleId] : undefined;
-  const phaseId = moduleId ? getPhaseIdForModule(moduleId) : 'phase-1';
+  const phaseId = moduleId && courseData ? getPhaseIdForModule(moduleId, courseData.phases) : 'phase-1';
   const colors = getPhaseColors(phaseId);
-  const resolvedCourseId = courseId || courseData.id;
+  const resolvedCourseId = courseId || courseData?.id || '';
 
   const currentLessonIndex = useMemo(() => {
     if (!mod || !lessonId) return -1;
@@ -103,9 +124,9 @@ export default function LessonPage() {
 
   // Cross-module: find next lesson across all modules
   const nextLessonInfo = useMemo(() => {
-    if (!mod || currentLessonIndex < 0) return null;
-    return getNextLessonInfo(moduleId!, currentLessonIndex);
-  }, [mod, moduleId, currentLessonIndex]);
+    if (!mod || currentLessonIndex < 0 || !courseData) return null;
+    return getNextLessonInfo(moduleId!, currentLessonIndex, ALL_MODULES, courseData.phases);
+  }, [mod, moduleId, currentLessonIndex, ALL_MODULES, courseData]);
 
   // ── Section derivation ───────────────────────────────────────────────────
 
@@ -205,6 +226,28 @@ export default function LessonPage() {
     [resolvedCourseId, moduleId, mode]
   );
 
+  if (loading) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent" />
+          <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">Cargando leccion...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !courseData) {
+    return (
+      <div className="flex min-h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg font-semibold text-gray-900 dark:text-white">Error al cargar la leccion</p>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{error ?? 'Curso no encontrado'}</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!mod || !currentLesson) {
     return (
       <div>
@@ -269,7 +312,7 @@ export default function LessonPage() {
       setCompletedLessonIds((prev) => new Set([...prev, lessonId!]));
 
       // Navigate to next lesson
-      const nextInfo = getNextLessonInfo(moduleId!, currentLessonIndex);
+      const nextInfo = courseData ? getNextLessonInfo(moduleId!, currentLessonIndex, ALL_MODULES, courseData.phases) : null;
       if (nextInfo && !nextInfo.isLastInCourse && nextInfo.lessonId) {
         navigate(makeLessonUrl(nextInfo.lessonId, true, nextInfo.moduleId));
       }
@@ -278,7 +321,7 @@ export default function LessonPage() {
     } finally {
       setCompleting(false);
     }
-  }, [lessonId, moduleId, currentLessonIndex, resolvedCourseId, navigate, makeLessonUrl]);
+  }, [lessonId, moduleId, currentLessonIndex, resolvedCourseId, navigate, makeLessonUrl, ALL_MODULES, courseData]);
 
 
   return (
